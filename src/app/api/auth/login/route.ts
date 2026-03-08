@@ -21,14 +21,14 @@ export async function POST(request: Request) {
               cookieStore.set(name, value, options)
             )
           } catch (error) {
-            // This can be ignored if middleware is refreshing sessions
+            // Ignore if middleware is refreshing sessions
           }
         },
       },
     }
   )
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -40,8 +40,27 @@ export async function POST(request: Request) {
     )
   }
 
+  // Manually set cookies if session exists to ensure persistence
+  if (data.session) {
+    cookieStore.set('sb-access-token', data.session.access_token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: data.session.expires_in,
+    })
+    cookieStore.set('sb-refresh-token', data.session.refresh_token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    })
+  }
+
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
     status: 303,
   })
 }
+
 

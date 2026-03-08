@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
   )
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -48,8 +48,27 @@ export async function POST(request: Request) {
     )
   }
 
+  // Manually set cookies if session exists to ensure persistence
+  if (data.session) {
+    cookieStore.set('sb-access-token', data.session.access_token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: data.session.expires_in,
+    })
+    cookieStore.set('sb-refresh-token', data.session.refresh_token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    })
+  }
+
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
     status: 303,
   })
 }
+
 
