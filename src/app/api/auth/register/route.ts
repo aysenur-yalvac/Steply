@@ -1,16 +1,38 @@
-import { createClient } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
-  const requestUrl = new URL(request.url);
-  const formData = await request.formData();
+  const requestUrl = new URL(request.url)
+  const formData = await request.formData()
   
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const fullName = formData.get("fullName") as string;
-  const role = formData.get("role") as string;
+  const email = String(formData.get('email'))
+  const password = String(formData.get('password'))
+  const fullName = String(formData.get('fullName'))
+  const role = String(formData.get('role'))
   
-  const supabase = await createClient();
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Ignore if called from server component
+          }
+        },
+      },
+    }
+  )
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -21,15 +43,15 @@ export async function POST(request: Request) {
         role: role,
       },
     },
-  });
+  })
 
   if (error) {
     return NextResponse.redirect(`${requestUrl.origin}/auth/register?message=Kayıt işlemi başarısız oldu. Email kullanımda olabilir.`, {
-      status: 301,
-    });
+      status: 303,
+    })
   }
 
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
-    status: 301,
-  });
+    status: 303,
+  })
 }
