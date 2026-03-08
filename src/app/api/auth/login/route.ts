@@ -5,10 +5,8 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url)
   const formData = await request.formData()
-  
   const email = String(formData.get('email'))
   const password = String(formData.get('password'))
-  
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -16,16 +14,14 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {
-            // Ignore if called from server component
+          } catch (error) {
+            // This can be ignored if middleware is refreshing sessions
           }
         },
       },
@@ -38,12 +34,14 @@ export async function POST(request: Request) {
   })
 
   if (error) {
-    return NextResponse.redirect(`${requestUrl.origin}/auth/login?message=Giriş başarısız. Bilgilerinizi kontrol edip tekrar deneyin.`, {
-      status: 303,
-    })
+    return NextResponse.redirect(
+      `${requestUrl.origin}/auth/login?message=Giriş başarısız. Bilgilerinizi kontrol edip tekrar deneyin.`,
+      { status: 303 }
+    )
   }
 
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
     status: 303,
   })
 }
+
