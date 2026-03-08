@@ -1,31 +1,37 @@
-import Link from 'next/link';
-import { Home, Compass } from 'lucide-react';
+import Link from "next/link";
+import { BookOpen, Home, RefreshCcw } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 sm:p-12">
-      <div className="w-full max-w-md flex flex-col items-center text-center">
-        <div className="relative mb-8">
-          <div className="text-[120px] font-black text-slate-900 leading-none select-none tracking-tighter">
-            404
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center text-indigo-500">
-             <Compass className="w-20 h-20 animate-[spin_10s_linear_infinite]" />
-          </div>
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex flex-col items-center max-w-lg">
+        <div className="flex items-center gap-2 mb-8 animate-bounce">
+          <BookOpen className="w-12 h-12 text-indigo-500" />
+          <span className="font-bold text-4xl tracking-tight text-slate-900 dark:text-white">Steply</span>
         </div>
         
-        <h1 className="text-3xl font-extrabold text-white mb-4">Sayfa Bulunamadı</h1>
-        <p className="text-slate-400 mb-8 leading-relaxed">
-          Aradığınız sayfa silinmiş, adı değiştirilmiş veya geçici olarak ulaşılamıyor olabilir.
+        <h1 className="text-8xl font-black text-indigo-500/20 mb-4 select-none">404</h1>
+        
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+          Aradığınız Adım Mevcut Değil
+        </h2>
+        
+        <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg leading-relaxed">
+          Görünüşe göre rotadan saptınız. Üzülmeyin, projelerinize geri dönmek için güvenli bir yolunuz var.
         </p>
         
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-8 py-4 rounded-xl transition-all shadow-[0_0_20px_-5px_var(--color-indigo-500)]"
+        <Link 
+          href="/" 
+          className="group flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95"
         >
-          <Home className="w-5 h-5" /> Kontrol Paneline Dön
+          <Home className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+          Ana Sayfaya Dön
         </Link>
       </div>
+
+      {/* Decorative elements */}
+      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
     </div>
   );
 }
