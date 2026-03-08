@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { login } from "../actions";
 import { BookOpen } from "lucide-react";
 
 export default async function LoginPage({
