@@ -22,7 +22,7 @@ export default async function LoginPage({
       </div>
 
       <div className="w-full bg-slate-900/50 backdrop-blur-md p-8 rounded-2xl border border-slate-800 shadow-xl">
-        <form className="flex-1 flex flex-col w-full gap-4 text-slate-300">
+        <form action="/auth/login" method="post" className="flex-1 flex flex-col w-full gap-4 text-slate-300">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="email">
               E-posta Adresi
@@ -49,7 +49,7 @@ export default async function LoginPage({
           </div>
 
           <button
-            formAction={login}
+            type="submit"
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-3 rounded-xl transition-all shadow-[0_0_20px_-5px_var(--color-indigo-500)] mt-4"
           >
             Giriş Yap
