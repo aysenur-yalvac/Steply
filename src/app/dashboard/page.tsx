@@ -19,10 +19,10 @@ export default async function DashboardPage() {
   let projects = [];
   
   if (isTeacher) {
-    // Teachers see all projects
+    // Teachers see all projects with student info
     const { data } = await supabase
       .from('projects')
-      .select('*')
+      .select('*, profiles:student_id(full_name)')
       .order('created_at', { ascending: false });
     projects = data || [];
   } else {
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
         
         {!isTeacher && (
           <Link 
-            href="/dashboard/new" 
+            href="/dashboard/projects/new" 
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-[0_0_20px_-5px_var(--color-indigo-500)] shrink-0"
           >
             <Plus className="w-5 h-5" /> Yeni Proje
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
               : "Proje yönetimine başlamak için ilk projenizi ekleyin."}
           </p>
           {!isTeacher && (
-            <Link href="/dashboard/new" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
+            <Link href="/dashboard/projects/new" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
               Hemen proje ekle &rarr;
             </Link>
           )}

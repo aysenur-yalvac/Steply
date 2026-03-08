@@ -10,6 +10,7 @@ type Project = {
   start_date: string;
   end_date: string;
   progress_percentage: number;
+  profiles?: { full_name: string };
 };
 
 export default function ProjectCard({ project, isTeacher }: { project: Project; isTeacher?: boolean }) {
@@ -21,6 +22,11 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
       <div className="flex justify-between items-start gap-4">
         <div>
           <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
+          {isTeacher && project.profiles?.full_name && (
+            <p className="text-indigo-400 text-xs font-semibold mb-2 uppercase tracking-wide">
+              Öğrenci: {project.profiles.full_name}
+            </p>
+          )}
           <p className="text-slate-400 text-sm line-clamp-2">{project.description}</p>
         </div>
         {isCompleted ? (
