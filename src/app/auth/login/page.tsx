@@ -4,10 +4,15 @@ import { BookOpen } from "lucide-react";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message: string }>;
+  searchParams: Promise<{ message?: string; error?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const message = resolvedSearchParams?.message;
+  const error = resolvedSearchParams?.error;
+  
+  const displayMessage = error === 'invalid_token' 
+    ? "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin." 
+    : message;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 w-full max-w-md mx-auto">
@@ -54,9 +59,9 @@ export default async function LoginPage({
             Giriş Yap
           </button>
 
-          {message && (
+          {displayMessage && (
             <div className="mt-4 p-4 text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg text-center">
-              {message}
+              {displayMessage}
             </div>
           )}
         </form>
