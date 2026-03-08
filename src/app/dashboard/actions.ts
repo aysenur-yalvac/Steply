@@ -31,11 +31,11 @@ export async function createProject(formData: FormData) {
 
   if (error) {
     console.error("Proje ekleme hatası:", error);
-    return redirect("/dashboard/new?error=Proje eklenirken bir hata oluştu.");
+    return { error: "Proje eklenirken bir hata oluştu." };
   }
 
   revalidatePath("/dashboard");
-  return redirect("/dashboard");
+  redirect("/dashboard");
 }
 
 export async function updateProgress(formData: FormData) {
