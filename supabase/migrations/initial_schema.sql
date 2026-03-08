@@ -1,13 +1,18 @@
--- Steply: Social EdTech Platform - Initial Schema
+-- Steply: Social EdTech Platform - Initial Schema (Revised)
 
 -- 1. Profiles Table
+-- FK constraint is handled separately to allow for seeding and flexible management
 CREATE TABLE IF NOT EXISTS profiles (
-    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+    id UUID PRIMARY KEY,
     full_name TEXT,
     role TEXT CHECK (role IN ('student', 'teacher')),
     steply_score INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Note: In a production Supabase environment, you would typically run:
+-- ALTER TABLE profiles ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+-- For seeding 120 users without auth accounts, we leave this loose or drop it during seed.
 
 -- 2. Projects Table
 CREATE TABLE IF NOT EXISTS projects (
@@ -32,7 +37,6 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 -- 4. Social Tables
--- Followers
 CREATE TABLE IF NOT EXISTS followers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     follower_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
@@ -41,7 +45,6 @@ CREATE TABLE IF NOT EXISTS followers (
     UNIQUE(follower_id, following_id)
 );
 
--- Comments
 CREATE TABLE IF NOT EXISTS comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -50,7 +53,6 @@ CREATE TABLE IF NOT EXISTS comments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Ratings
 CREATE TABLE IF NOT EXISTS ratings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -89,6 +91,24 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 6. Tetikleyiciler (Triggers)
+-- Otomatik Profil Oluşturma (Auth Trigger)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, role)
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', COALESCE(new.raw_user_meta_data->>'role', 'student'));
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger'ı auth.users üzerine kur
+-- Not: Bu komutu Supabase Dashboard SQL Editor'da çalıştırmanız gerekir.
+-- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+-- CREATE TRIGGER on_auth_user_created
+--   AFTER INSERT ON auth.users
+--   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Puan Güncelleme Triggerları
 CREATE OR REPLACE FUNCTION trigger_update_score_follower()
 RETURNS TRIGGER AS $$
 BEGIN

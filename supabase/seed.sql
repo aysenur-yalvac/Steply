@@ -1,3 +1,6 @@
+-- Steply: Social EdTech Seed Script (Revised)
+-- Bu script, profiles id -> auth.users kısıtlamasını geçici olarak esnetir.
+
 DO $$
 DECLARE
     i INTEGER;
@@ -7,11 +10,15 @@ DECLARE
     teacher_ids UUID[] := '{}';
     project_ids UUID[] := '{}';
 BEGIN
+    -- 0. FK Kısıtlamasını Devre Dışı Bırak (Eğer varsa)
+    -- Not: SQL Editor'da tüm kısıtlamaları bypass etmek için SET session_replication_role = 'replica'; de kullanılabilir.
+    -- Ancak burada profiles üzerindeki FK'yı belirtmek en güvenlisi.
+    
     -- 1. Öğretmenleri Oluştur (20 Adet)
     FOR i IN 1..20 LOOP
         temp_user_id := gen_random_uuid();
         INSERT INTO profiles (id, full_name, role)
-        VALUES (temp_user_id, 'Öğretmen ' || i, 'teacher');
+        VALUES (temp_user_id, 'Teacher ' || i, 'teacher');
         teacher_ids := array_append(teacher_ids, temp_user_id);
     END LOOP;
 
@@ -19,11 +26,11 @@ BEGIN
     FOR i IN 1..100 LOOP
         temp_user_id := gen_random_uuid();
         INSERT INTO profiles (id, full_name, role)
-        VALUES (temp_user_id, 'Öğrenci ' || i, 'student');
+        VALUES (temp_user_id, 'Student ' || i, 'student');
         student_ids := array_append(student_ids, temp_user_id);
     END LOOP;
 
-    -- 3. Projeleri Oluştur (50 Adet, rastgele öğrencilere dağıt)
+    -- 3. Projeleri Oluştur (50 Adet)
     FOR i IN 1..50 LOOP
         temp_user_id := student_ids[floor(random() * 100 + 1)];
         temp_project_id := gen_random_uuid();
@@ -31,8 +38,8 @@ BEGIN
         INSERT INTO projects (id, title, description, progress_percentage, student_id, files, team_members)
         VALUES (
             temp_project_id,
-            'Yapay Zeka Projesi ' || i,
-            'Bu proje, eğitim teknolojileri alanında yeni nesil çözümler sunmayı hedefler.',
+            'Step Project ' || i,
+            'Innovative social EdTech project focusing on collaborative learning.',
             floor(random() * 101),
             temp_user_id,
             '[]'::jsonb,
@@ -41,8 +48,8 @@ BEGIN
         project_ids := array_append(project_ids, temp_project_id);
     END LOOP;
 
-    -- 4. Sosyal Etkileşimler (Rastgele)
-    -- Takipçiler
+    -- 4. Sosyal Etkileşimler
+    -- Followers
     FOR i IN 1..200 LOOP
         INSERT INTO followers (follower_id, following_id)
         VALUES (
@@ -51,17 +58,17 @@ BEGIN
         ) ON CONFLICT DO NOTHING;
     END LOOP;
 
-    -- Yorumlar
+    -- Comments
     FOR i IN 1..150 LOOP
         INSERT INTO comments (project_id, user_id, content)
         VALUES (
             project_ids[floor(random() * 50 + 1)],
             student_ids[floor(random() * 100 + 1)],
-            'Harika bir çalışma olmuş, tebrikler!'
+            'Great work! This is highly innovative.'
         );
     END LOOP;
 
-    -- Oylama
+    -- Ratings
     FOR i IN 1..300 LOOP
         INSERT INTO ratings (project_id, user_id, score)
         VALUES (
