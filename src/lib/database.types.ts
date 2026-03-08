@@ -14,18 +14,21 @@ export interface Database {
           id: string
           full_name: string | null
           role: 'student' | 'teacher' | null
+          steply_score: number
           created_at: string
         }
         Insert: {
           id: string
           full_name?: string | null
           role?: 'student' | 'teacher' | null
+          steply_score?: number
           created_at?: string
         }
         Update: {
           id?: string
           full_name?: string | null
           role?: 'student' | 'teacher' | null
+          steply_score?: number
           created_at?: string
         }
       }
@@ -36,6 +39,8 @@ export interface Database {
           description: string | null
           progress_percentage: number
           student_id: string
+          files: Json
+          team_members: Json
           created_at: string
         }
         Insert: {
@@ -44,6 +49,8 @@ export interface Database {
           description?: string | null
           progress_percentage?: number
           student_id: string
+          files?: Json
+          team_members?: Json
           created_at?: string
         }
         Update: {
@@ -52,6 +59,74 @@ export interface Database {
           description?: string | null
           progress_percentage?: number
           student_id?: string
+          files?: Json
+          team_members?: Json
+          created_at?: string
+        }
+      }
+      followers: {
+        Row: {
+          id: string
+          follower_id: string
+          following_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          follower_id: string
+          following_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          follower_id?: string
+          following_id?: string
+          created_at?: string
+        }
+      }
+      comments: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          content?: string
+          created_at?: string
+        }
+      }
+      ratings: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          score: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          score: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          score?: number
           created_at?: string
         }
       }
@@ -86,7 +161,12 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_steply_score: {
+        Args: {
+          user_uuid: string
+        }
+        Returns: void
+      }
     }
     Enums: {
       [_ in never]: never
