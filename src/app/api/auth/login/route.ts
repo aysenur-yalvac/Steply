@@ -34,8 +34,12 @@ export async function POST(request: Request) {
   })
 
   if (error) {
+    let message = 'Giriş başarısız. Bilgilerinizi kontrol edip tekrar deneyin.'
+    if (error.message.includes('Email not confirmed')) {
+      message = 'Lütfen e-posta adresinizi doğrulayın. Gelen kutunuzu (ve spam klasörünü) kontrol edin.'
+    }
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/login?message=Giriş başarısız. Bilgilerinizi kontrol edip tekrar deneyin.`,
+      `${requestUrl.origin}/auth/login?message=${encodeURIComponent(message)}`,
       { status: 303 }
     )
   }

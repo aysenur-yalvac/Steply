@@ -64,11 +64,17 @@ export async function POST(request: Request) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 1 week
     })
+    return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
+      status: 303,
+    })
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
-    status: 303,
-  })
+  // If no session, it means email confirmation is likely required
+  return NextResponse.redirect(
+    `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Kayıt başarılı! Lütfen e-posta adresinizi doğrulamak için gelen kutunuzu kontrol edin.')}`,
+    { status: 303 }
+  )
 }
+
 
 
