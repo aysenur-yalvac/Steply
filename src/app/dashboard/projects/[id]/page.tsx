@@ -41,6 +41,14 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
+  type Review = {
+    id: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+    profiles: { full_name: string } | null;
+  };
+
   // Yorumları getir
   const { data: reviews } = await supabase
     .from('reviews')
@@ -49,7 +57,7 @@ export default async function ProjectDetailPage({
       profiles:reviewer_id (full_name)
     `)
     .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: Review[] | null };
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -119,7 +127,7 @@ export default async function ProjectDetailPage({
           {reviews && reviews.length > 0 && (
             <div className="flex flex-col gap-4">
               <h3 className="text-lg font-bold text-white">Öğretmen Değerlendirmeleri</h3>
-              {reviews.map((review: any) => (
+              {reviews.map((review: Review) => (
                 <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                    <div className="flex justify-between items-center mb-4">
                       <span className="font-medium text-slate-200">{review.profiles?.full_name}</span>

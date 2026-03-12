@@ -20,7 +20,7 @@ export async function POST(request: Request) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch (error) {
+          } catch {
             // Ignore if middleware is refreshing sessions
           }
         },

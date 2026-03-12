@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Steply | Modern Proje Yönetim Platformu
 
-## Getting Started
+Steply, öğrenciler ve öğretmenler için tasarlanmış, süreç odaklı, şık ve performanslı bir proje yönetim platformudur. Proje takibi, dosya yönetimi ve sosyal etkileşim özelliklerini modern bir arayüzde birleştirir.
 
-First, run the development server:
+## 🚀 Öne Çıkan Özellikler
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dinamik Tema Sistemi**: Tek bir tıkla Aydınlık ve Karanlık modlar arasında geçiş yapın. Kullanıcı tercihleriniz tarayıcıda kalıcı olarak saklanır.
+- **Gelişmiş Dosya Yönetimi**: Projelerinize sınırsız (5MB/dosya sınırı ile) dosya yükleyin. Supabase Storage entegrasyonu ve güvenli RLS politikaları ile dosyalarınız sadece size özel kalsın.
+- **Akıllı Navbar**: Giriş durumunuza göre dinamik olarak değişen, mobil uyumlu ve sadeleştirilmiş navigasyon arayüzü.
+- **Öğretmen Değerlendirmeleri**: Projeleriniz için öğretmenlerinizden puan ve detaylı geri bildirim alabileceğiniz entegre değerlendirme sistemi.
+- **Rol Tabanlı Erişim**: Öğrenci ve öğretmen rolleri için özelleştirilmiş dashboard ve yetki yönetimi.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Teknoloji Yığını
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router & Turbopack)
+- **Veritabanı & Auth**: [Supabase](https://supabase.com/) (PostgreSQL, Storage, Authentication)
+- **Stil**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **İkonlar**: [Lucide React](https://lucide.dev/)
+- **Tema Yönetimi**: `next-themes`
+- **Dil Desteği**: Altyapı olarak `next-intl` (Gelecek sürümler için hazır)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Kurulum ve Çalıştırma
 
-## Learn More
+### Gereksinimler
+- Node.js 18.x veya üzeri
+- Supabase hesabı ve projesi
 
-To learn more about Next.js, take a look at the following resources:
+### Adımlar
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Depoyu klonlayın:
+   ```bash
+   git clone https://github.com/username/steply.git
+   cd steply
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Bağımlılıkları yükleyin:
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. Çevresel değişkenleri ayarlayın (`.env.local`):
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Geliştirme sunucusunu başlatın:
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗️ Proje Yapısı
+
+- `src/app`: Next.js App Router sayfaları ve layoutları.
+- `src/components`: UI bileşenleri ve özellik tabanlı modüller.
+- `src/lib`: Server Action'lar ve ortak yardımcı fonksiyonlar.
+- `src/context`: Auth ve diğer global state sağlayıcılar.
+- `supabase`: Veritabanı şemaları, migration'lar ve politikalar.
+
+## 📄 Lisans
+
+Bu proje bir **Auto Step** ürünüdür ve eğitim amaçlı geliştirilmiştir. Tüm hakları saklıdır.

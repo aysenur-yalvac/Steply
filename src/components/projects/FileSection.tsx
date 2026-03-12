@@ -73,9 +73,10 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       setFiles(prev => [...prev, newFile]);
       toast.success("Dosya başarıyla yüklendi.");
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       console.error("Yükleme hatası:", error);
-      toast.error("Dosya yüklenemedi: " + (error.message || "Bilinmeyen hata"));
+      toast.error("Dosya yüklenemedi: " + errorMessage);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -89,8 +90,9 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       await deleteFileAction(projectId, fileUrl);
       setFiles(prev => prev.filter(f => f.url !== fileUrl));
       toast.success("Dosya silindi.");
-    } catch (error: any) {
-      toast.error("Dosya silinemedi: " + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
+      toast.error("Dosya silinemedi: " + errorMessage);
     }
   };
 

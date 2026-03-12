@@ -9,25 +9,18 @@ import {
   X, 
   Sun, 
   Moon, 
-  Monitor, 
-  ChevronDown, 
   User, 
-  Settings, 
-  LogOut,
-  LayoutDashboard
+  LogOut
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/context/AuthProvider';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   const { theme, setTheme } = useTheme();
   const { user, signOut, loading } = useAuth();
-  const pathname = usePathname();
 
   // useEffect for hydration mismatch prevention
   useEffect(() => {
@@ -38,15 +31,8 @@ export default function Navbar() {
 
   const closeMenus = () => {
     setIsMenuOpen(false);
-    setIsThemeMenuOpen(false);
-    setIsUserMenuOpen(false);
   };
 
-  const themeIcons = {
-    light: <Sun className="w-4 h-4" />,
-    dark: <Moon className="w-4 h-4" />,
-    system: <Monitor className="w-4 h-4" />,
-  };
 
   return (
     <nav className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
