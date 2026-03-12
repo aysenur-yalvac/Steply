@@ -30,8 +30,8 @@ export async function createProject(formData: FormData) {
   });
 
   if (error) {
-    console.error("Proje ekleme hatası:", error);
-    return { error: "Proje eklenirken bir hata oluştu." };
+    console.error("Project addition error:", error);
+    return { error: "An error occurred while adding the project." };
   }
 
   revalidatePath("/dashboard");
@@ -48,7 +48,7 @@ export async function updateProgress(formData: FormData) {
     .eq('id', projectId);
     
   if (error) {
-    console.error("Güncelleme hatası", error);
+    console.error("Update error", error);
   }
   
   revalidatePath("/dashboard");
@@ -71,8 +71,8 @@ export async function createReview(formData: FormData) {
   });
 
   if (error) {
-    console.error("Yorum ekleme hatası:", error);
-    return redirect(`/dashboard/projects/${projectId}?error=Değerlendirme gönderilemedi.`);
+    console.error("Error adding review:", error);
+    return redirect(`/dashboard/projects/${projectId}?error=Evaluation could not be sent.`);
   }
 
   revalidatePath(`/dashboard/projects/${projectId}`);

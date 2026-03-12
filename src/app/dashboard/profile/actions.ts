@@ -8,18 +8,18 @@ export async function updateProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: 'Oturum açmanız gerekiyor.' };
+    return { error: 'You must be logged in.' };
   }
 
   const userId = formData.get('id') as string;
   const fullName = formData.get('full_name') as string;
 
   if (userId !== user.id) {
-     return { error: 'Yetkisiz işlem.' };
+     return { error: 'Unauthorized action.' };
   }
 
   if (!fullName || fullName.trim().length < 2) {
-    return { error: 'Lütfen geçerli bir ad soyad giriniz.' };
+    return { error: 'Please enter a valid full name.' };
   }
 
   const { error } = await supabase
@@ -28,8 +28,8 @@ export async function updateProfile(formData: FormData) {
     .eq('id', user.id);
 
   if (error) {
-    console.error('Profil güncelleme hatası:', error);
-    return { error: 'Profil güncellenirken bir hata oluştu.' };
+    console.error('Profile update error:', error);
+    return { error: 'An error occurred while updating the profile.' };
   }
 
   revalidatePath('/dashboard/profile');

@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star } from 'lucide-react';
 import { createReview } from '../../actions';
+import FileSection from '@/components/projects/FileSection';
+import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
   params,
@@ -39,7 +41,15 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // Yorumları getir
+  type Review = {
+    id: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+    profiles: { full_name: string } | null;
+  };
+
+  // Fetch reviews
   const { data: reviews } = await supabase
     .from('reviews')
     .select(`
@@ -47,7 +57,7 @@ export default async function ProjectDetailPage({
       profiles:reviewer_id (full_name)
     `)
     .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: Review[] | null };
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -62,55 +72,62 @@ export default async function ProjectDetailPage({
          <div>
             <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">{project.title}</h2>
             <p className="text-slate-400 text-sm">
-              <span className="font-medium text-slate-300">{project.profiles?.full_name}</span> tarafından geliştiriliyor.
+              Developed by <span className="font-medium text-slate-300">{project.profiles?.full_name}</span>.
             </p>
          </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Sol Kolon: Proje Detayları */}
+        {/* Left Column: Project Details */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
             <div className="flex justify-between items-start mb-6">
-               <h3 className="text-xl font-bold text-white">Proje Hakkında</h3>
+               <h3 className="text-xl font-bold text-white">About Project</h3>
                {isCompleted ? (
                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/20 shrink-0">
-                   <CheckCircle className="w-4 h-4" /> Tamamlandı
+                   <CheckCircle className="w-4 h-4" /> Completed
                  </div>
                ) : (
                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 text-sm font-medium border border-amber-500/20 shrink-0">
-                    <Clock className="w-4 h-4" /> Devam Ediyor
+                    <Clock className="w-4 h-4" /> In Progress
                  </div>
                )}
             </div>
             
             <p className="text-slate-300 leading-relaxed whitespace-pre-wrap mb-8">
-              {project.description || "Bu proje için henüz bir açıklama girilmemiş."}
+              {project.description || "No description has been entered for this project yet."}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-slate-950/50 border border-slate-800/80">
               {project.github_link && (
                 <a href={project.github_link} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors font-medium">
-                  <Github className="w-5 h-5" /> GitHub Deposu
+                  <Github className="w-5 h-5" /> GitHub Repository
                 </a>
                )}
                <div className="flex items-center gap-2 text-slate-400">
                   <Calendar className="w-5 h-5 text-slate-500" />
-                  <span className="text-sm">Başlangıç: {project.start_date ? new Date(project.start_date).toLocaleDateString('tr-TR') : '-'}</span>
+                  <span className="text-sm">Start: {project.start_date ? new Date(project.start_date).toLocaleDateString('en-US') : '-'}</span>
                </div>
                <div className="flex items-center gap-2 text-slate-400">
                   <Calendar className="w-5 h-5 text-slate-500" />
-                  <span className="text-sm">Bitiş: {project.end_date ? new Date(project.end_date).toLocaleDateString('tr-TR') : '-'}</span>
+                  <span className="text-sm">End: {project.end_date ? new Date(project.end_date).toLocaleDateString('en-US') : '-'}</span>
                </div>
             </div>
           </div>
 
-          {/* İncelemeler Listesi */}
+          {/* File Management Section */}
+          <FileSection 
+            projectId={project.id} 
+            initialFiles={(project.files as ProjectFile[]) || []} 
+            isOwner={user.id === project.student_id} 
+          />
+
+          {/* Reviews List */}
           {reviews && reviews.length > 0 && (
             <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-bold text-white">Öğretmen Değerlendirmeleri</h3>
-              {reviews.map((review: any) => (
+              <h3 className="text-lg font-bold text-white">Teacher Evaluations</h3>
+              {reviews.map((review: Review) => (
                 <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                    <div className="flex justify-between items-center mb-4">
                       <span className="font-medium text-slate-200">{review.profiles?.full_name}</span>
@@ -127,10 +144,10 @@ export default async function ProjectDetailPage({
           )}
         </div>
 
-        {/* Sağ Kolon: İlerleme & İnceleme Formu */}
+        {/* Right Column: Progress & Review Form */}
         <div className="flex flex-col gap-6">
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
-             <h3 className="font-bold text-white mb-4">İlerleme Durumu</h3>
+             <h3 className="font-bold text-white mb-4">Progress Status</h3>
              <div className="flex justify-between items-end mb-2">
                  <span className="text-3xl font-extrabold text-white">%{project.progress_percentage}</span>
              </div>
@@ -142,17 +159,17 @@ export default async function ProjectDetailPage({
              </div>
           </div>
 
-          {/* Sadece Öğretmenler yorum yapabilir */}
+          {/* Only teachers can comment */}
           {isTeacher && (
              <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-indigo-400" /> Değerlendir
+                  <Star className="w-5 h-5 text-indigo-400" /> Evaluate
                 </h3>
                 <form action={createReview} className="flex flex-col gap-4">
                    <input type="hidden" name="project_id" value={project.id} />
                    
                    <div className="flex flex-col gap-2">
-                     <label className="text-sm font-medium text-slate-300">Puan (1-5)</label>
+                     <label className="text-sm font-medium text-slate-300">Rating (1-5)</label>
                      <input 
                        type="number" 
                        name="rating" 
@@ -164,18 +181,18 @@ export default async function ProjectDetailPage({
                    </div>
 
                    <div className="flex flex-col gap-2">
-                     <label className="text-sm font-medium text-slate-300">Yorum / Geri Bildirim</label>
+                     <label className="text-sm font-medium text-slate-300">Comment / Feedback</label>
                      <textarea 
                        name="comment" 
                        rows={4}
-                       placeholder="Proje hakkındaki düşüncelerinizi yazın..."
+                       placeholder="Write your thoughts about the project..."
                        className="px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors resize-y"
                        required 
                      />
                    </div>
 
                    <button type="submit" className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20">
-                     İncelemeyi Gönder
+                     Submit Review
                    </button>
 
                    {error && (

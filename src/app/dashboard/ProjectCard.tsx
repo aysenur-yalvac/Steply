@@ -24,18 +24,18 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
           <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
           {isTeacher && project.profiles?.full_name && (
             <p className="text-indigo-400 text-xs font-semibold mb-2 uppercase tracking-wide">
-              Öğrenci: {project.profiles.full_name}
+              Student: {project.profiles.full_name}
             </p>
           )}
           <p className="text-slate-400 text-sm line-clamp-2">{project.description}</p>
         </div>
         {isCompleted ? (
           <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20 shrink-0">
-            <CheckCircle className="w-3.5 h-3.5" /> Bitmiş
+            <CheckCircle className="w-3.5 h-3.5" /> Completed
           </div>
         ) : (
           <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20 shrink-0">
-             <Clock className="w-3.5 h-3.5" /> Devam Ediyor
+             <Clock className="w-3.5 h-3.5" /> In Progress
           </div>
         )}
       </div>
@@ -44,7 +44,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
          {project.end_date && (
           <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4 text-slate-500" />
-            Bitiş: {new Date(project.end_date).toLocaleDateString('tr-TR')}
+            End Date: {new Date(project.end_date).toLocaleDateString('en-US')}
           </div>
          )}
          {project.github_link && (
@@ -56,7 +56,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
 
       <div className="mt-auto pt-4 border-t border-slate-800">
         <div className="flex justify-between items-center mb-2">
-           <span className="text-sm font-medium text-slate-300">İlerleme: %{project.progress_percentage}</span>
+           <span className="text-sm font-medium text-slate-300">Progress: %{project.progress_percentage}</span>
         </div>
         
        {/* Progress Bar Display */}
@@ -80,7 +80,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
                  className="flex-1 accent-indigo-500 cursor-pointer h-2 bg-slate-900 rounded-lg appearance-none"
                />
                <button type="submit" className="text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-md transition-colors border border-slate-700 shrink-0">
-                 Güncelle
+                 Update
                </button>
              </form>
           ) : (
@@ -88,7 +88,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
           )}
 
           <a href={`/dashboard/projects/${project.id}`} className="text-xs font-medium bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-lg transition-colors text-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
-            Detay & İncelemeler
+            Details & Reviews
           </a>
         </div>
       </div>

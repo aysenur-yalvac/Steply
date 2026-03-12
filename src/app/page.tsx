@@ -12,24 +12,24 @@ export default function Home() {
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-sm font-medium mb-8 border border-indigo-500/20">
           <BookOpen className="w-4 h-4" />
-          <span>Eğitim İçin Yeniden Tasarlandı</span>
+          <span>Redesigned for Education</span>
         </div>
         
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mb-6">
-          Proje Yönetimini <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Kolaylaştırın</span>
+          Streamline <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Project Management</span>
         </h1>
         
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
-          Öğrenciler ve öğretmenler için özel olarak geliştirilmiş Steply ile projelerinizi takip edin, GitHub bağlantılarınızı paylaşın ve ilerlemenizi tek bir yerden yönetin.
+          Track your projects, share your GitHub links, and manage your progress in one place with Steply, specifically designed for students and teachers.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Link href="/auth/register" className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-8 py-4 rounded-xl transition-all shadow-[0_0_30px_-5px_var(--color-indigo-500)]">
-            Hemen Başla
+            Get Started
             <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="/auth/login" className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-medium px-8 py-4 rounded-xl transition-colors border border-slate-700 hover:border-slate-600">
-            Giriş Yap
+            Log In
           </Link>
         </div>
       </section>
@@ -40,9 +40,9 @@ export default function Home() {
           <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6">
             <Users className="w-7 h-7 text-indigo-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">Rol Tabanlı Sistem</h3>
+          <h3 className="text-xl font-bold text-white mb-3">Role-Based System</h3>
           <p className="text-slate-400">
-            Öğrenci veya öğretmen olarak kayıt olun. Her role özel farklı deneyim ve araçlarla verimliliğinizi artırın.
+            Register as a student or teacher. Increase your productivity with different experiences and tools tailored for each role.
           </p>
         </div>
 
@@ -50,9 +50,9 @@ export default function Home() {
           <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
             <Layers className="w-7 h-7 text-purple-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">İlerleme Takibi</h3>
+          <h3 className="text-xl font-bold text-white mb-3">Progress Tracking</h3>
           <p className="text-slate-400">
-            Projelerinizin ilerleme yüzdesini güncelleyin. Öğretmenler projelerin durumunu canlı olarak görebilir.
+            Update the progress percentage of your projects. Teachers can see the status of projects live.
           </p>
         </div>
 
@@ -71,9 +71,9 @@ export default function Home() {
               <path d="M9 18c-4.51 2-5-2-7-2" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">GitHub Entegrasyonu</h3>
+          <h3 className="text-xl font-bold text-white mb-3">GitHub Integration</h3>
           <p className="text-slate-400">
-            Kodlarınızı tek tıkla entegre edin. Proje repo linklerinizi kolayca paylaşarak ekip çalışmasını güçlendirin.
+            Integrate your code with one click. Strengthen teamwork by easily sharing your project repo links.
           </p>
         </div>
       </section>

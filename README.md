@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Steply | Modern Project Management Platform
 
-## Getting Started
+Steply is a process-oriented, elegant, and high-performance project management platform designed for students and teachers. It combines project tracking, file management, and social interaction features in a modern interface.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dynamic Theme System**: Switch between Light and Dark modes with a single click. Your preferences are stored persistently in the browser.
+- **Advanced File Management**: Upload files to your projects (5MB limit per file). Your files remain private through Supabase Storage integration and secure RLS policies.
+- **Smart Navbar**: A simplified, mobile-responsive navigation interface that dynamically updates based on your authentication status.
+- **Teacher Evaluations**: Integrated evaluation system where students can receive ratings and detailed feedback from teachers.
+- **Role-Based Access**: Customized dashboards and permission management for Student and Teacher roles.
+- **English-Only Localization**: The platform is fully standardized in English for a global professional experience.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Technology Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 16+](https://nextjs.org/) (App Router & Turbopack)
+- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL, Storage, Authentication)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Theme Management**: `next-themes`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Installation & Setup
 
-## Learn More
+### Prerequisites
+- Node.js 18.x or later
+- Supabase account and project
 
-To learn more about Next.js, take a look at the following resources:
+### Steps
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/username/steply.git
+   cd steply
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. Set up environment variables (`.env.local`):
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗️ Project Structure
+
+- `src/app`: Next.js App Router pages and layouts.
+- `src/components`: UI components and feature-based modules.
+- `src/lib`: Server Actions and common utility functions.
+- `src/context`: Auth and other global state providers.
+- `supabase`: Database schemas, migrations, and policies.
+
+## 📄 License
+
+This project is an **Auto Step** product and was developed for educational purposes. All rights reserved.

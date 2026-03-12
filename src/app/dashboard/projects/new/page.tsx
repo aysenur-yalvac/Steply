@@ -27,7 +27,7 @@ export default function NewProjectPage() {
       toast.error(result.error);
       setIsPending(false);
     } else {
-      toast.success('Proje başarıyla oluşturuldu!');
+      toast.success('Project created successfully!');
     }
   };
 
@@ -39,43 +39,43 @@ export default function NewProjectPage() {
           href="/dashboard" 
           className="flex items-center gap-2 text-slate-500 hover:text-indigo-500 transition-colors w-fit"
         >
-          <ArrowLeft className="w-4 h-4" /> Geri Dön
+          <ArrowLeft className="w-4 h-4" /> Go Back
         </Link>
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
             <Plus className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Yeni Proje Başlat</h1>
-            <p className="text-slate-500 dark:text-slate-400">Hedeflerine giden ilk adımı şimdi at.</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Start New Project</h1>
+            <p className="text-slate-500 dark:text-slate-400">Take the first step towards your goals now.</p>
           </div>
         </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-indigo-500/5 backdrop-blur-md">
         <form action={handleSubmit} className="space-y-6">
-          {/* Proje Başlığı */}
+          {/* Project Title */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
-              <Layout className="w-4 h-4 text-indigo-500" /> Proje Başlığı
+              <Layout className="w-4 h-4 text-indigo-500" /> Project Title
             </label>
             <input
               name="title"
               type="text"
-              placeholder="Örn: Mobil Uygulama Geliştirme"
+              placeholder="e.g.: Mobile App Development"
               required
               className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
             />
           </div>
 
-          {/* Açıklama */}
+          {/* Description */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
-              <AlignLeft className="w-4 h-4 text-indigo-500" /> Detaylar
+              <AlignLeft className="w-4 h-4 text-indigo-500" /> Details
             </label>
             <textarea
               name="description"
-              placeholder="Projenin amacını ve hedeflerini kısaca anlat..."
+              placeholder="Describe the purpose and goals of the project briefly..."
               rows={4}
               className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none"
             />
@@ -85,7 +85,7 @@ export default function NewProjectPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center ml-1">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <BarChart3 className="w-4 h-4 text-indigo-500" /> Başlangıç İlerlemesi
+                <BarChart3 className="w-4 h-4 text-indigo-500" /> Initial Progress
               </label>
               <span className="text-xl font-bold text-indigo-500">%{progressPercentage}</span>
             </div>
@@ -100,9 +100,9 @@ export default function NewProjectPage() {
                 className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-medium px-1">
-                <span>BAŞLANGIÇ</span>
-                <span>YARISI</span>
-                <span>TAMAMLANDI</span>
+                <span>START</span>
+                <span>HALF</span>
+                <span>COMPLETED</span>
               </div>
             </div>
           </div>
@@ -117,12 +117,12 @@ export default function NewProjectPage() {
               {isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Hazırlanıyor...
+                  Preparing...
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Projeyi Oluştur
+                  Create Project
                 </>
               )}
             </button>

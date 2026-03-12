@@ -22,7 +22,7 @@ export async function POST(request: Request) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch (error) {
+          } catch {
             // This can be ignored if middleware is refreshing sessions
           }
         },
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?message=Kayıt işlemi başarısız oldu. Email kullanımda olabilir.`,
+      `${requestUrl.origin}/auth/register?message=${encodeURIComponent('Registration failed. Email might be in use.')}`,
       { status: 303 }
     )
   }
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
   // If no session, it means email confirmation is likely required
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Kayıt başarılı! Lütfen e-posta adresinizi doğrulamak için gelen kutunuzu kontrol edin.')}`,
+    `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Registration successful! Please check your inbox to verify your email address.')}`,
     { status: 303 }
   )
 }

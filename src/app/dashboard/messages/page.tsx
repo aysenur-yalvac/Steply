@@ -50,17 +50,17 @@ export default async function MessagesLayoutPage({
   return (
     <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-140px)] w-full max-w-6xl mx-auto border border-slate-800 rounded-2xl overflow-hidden bg-slate-900/40 backdrop-blur-md shadow-2xl">
       
-      {/* Sol Sidebar: Kişi Listesi */}
+      {/* Left Sidebar: Contact List */}
       <div className={`w-full md:w-80 border-r border-slate-800 bg-slate-900/60 flex flex-col ${selectedUserId ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-800">
            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-             <MessageSquare className="w-5 h-5 text-indigo-500" /> Mesajlar
+             <MessageSquare className="w-5 h-5 text-indigo-500" /> Messages
            </h2>
         </div>
         
         <div className="flex-1 overflow-y-auto p-2">
           {profiles?.length === 0 ? (
-            <div className="p-4 text-center text-slate-500 text-sm">Kullanıcı bulunamadı.</div>
+            <div className="p-4 text-center text-slate-500 text-sm">User not found.</div>
           ) : (
             <div className="flex flex-col gap-1">
               {profiles?.map((profile) => (
@@ -75,7 +75,7 @@ export default async function MessagesLayoutPage({
                     </div>
                     <div className="flex flex-col">
                       <span className={`font-medium text-sm ${selectedUserId === profile.id ? 'text-indigo-300' : 'text-slate-200'}`}>
-                        {profile.full_name || 'İsimsiz'}
+                        {profile.full_name || 'Unnamed'}
                       </span>
                       <span className="text-xs text-slate-500 capitalize">{profile.role}</span>
                     </div>
@@ -92,20 +92,20 @@ export default async function MessagesLayoutPage({
         </div>
       </div>
 
-      {/* Sağ Taraf: Chat veya Placeholder */}
+      {/* Right Side: Chat or Placeholder */}
       <div className={`flex-1 flex flex-col ${!selectedUserId ? 'hidden md:flex' : 'flex'}`}>
          {selectedUserId ? (
            <ChatWindow 
              currentUserId={user.id} 
              selectedUserId={selectedUserId} 
-             selectedUserName={profiles?.find(p => p.id === selectedUserId)?.full_name || 'İsimsiz'}
+             selectedUserName={profiles?.find(p => p.id === selectedUserId)?.full_name || 'Unnamed'}
              initialMessages={messages || []}
            />
          ) : (
            <div className="h-full flex flex-col items-center justify-center text-slate-500 bg-slate-900/40 p-6 text-center">
              <MessageSquare className="w-16 h-16 text-slate-800 mb-4" />
-             <h3 className="text-xl font-bold text-slate-300 mb-2">Steply Mesajlaşma</h3>
-             <p className="max-w-md text-sm">Soldaki listeden bir kişiyi seçerek mesajlaşmaya başlayın. Gönderdiğiniz mesajlar anında karşı tarafa iletilecektir.</p>
+             <h3 className="text-xl font-bold text-slate-300 mb-2">Steply Messaging</h3>
+             <p className="max-w-md text-sm">Start messaging by selecting a person from the list on the left. Your messages will be delivered instantly.</p>
            </div>
          )}
       </div>

@@ -25,7 +25,7 @@ export default function ProfileForm({
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success('Profil başarıyla güncellendi!');
+      toast.success('Profile updated successfully!');
     }
     
     setIsPending(false);
@@ -34,10 +34,10 @@ export default function ProfileForm({
   return (
     <form action={handleSubmit} className="flex flex-col gap-6">
       
-      {/* Email Değiştirilemez Alan */}
+      {/* Email Read-only Field */}
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
-           <Mail className="w-4 h-4" /> Kayıtlı E-posta
+           <Mail className="w-4 h-4" /> Registered Email
         </label>
         <input 
           type="email" 
@@ -45,19 +45,19 @@ export default function ProfileForm({
           disabled
           className="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800 text-slate-500 focus:outline-none cursor-not-allowed"
         />
-        <span className="text-xs text-slate-600">E-posta adresi güvenlik nedeniyle değiştirilemez.</span>
+        <span className="text-xs text-slate-600">Email address cannot be changed for security reasons.</span>
       </div>
 
-      {/* Ad Soyad Güncellenebilir Alan */}
+      {/* Full Name Updatable Field */}
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-           <User className="w-4 h-4" /> Ad Soyad
+           <User className="w-4 h-4" /> Full Name
         </label>
         <input 
           type="text" 
           name="full_name"
           defaultValue={initialFullName}
-          placeholder="Adınız ve Soyadınız"
+          placeholder="Your Name and Surname"
           required
           minLength={2}
           className="px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
@@ -73,7 +73,7 @@ export default function ProfileForm({
           {isPending ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <><Save className="w-5 h-5" /> Değişiklikleri Kaydet</>
+            <><Save className="w-5 h-5" /> Save Changes</>
           )}
         </button>
       </div>
