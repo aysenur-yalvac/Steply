@@ -47,7 +47,7 @@ export default function Navbar() {
           <button 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 transition-colors"
-            aria-label="Temayı Değiştir"
+            aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
@@ -68,7 +68,7 @@ export default function Navbar() {
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors hidden md:block"
-          aria-label="Temayı Değiştir"
+          aria-label="Toggle Theme"
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
@@ -81,13 +81,13 @@ export default function Navbar() {
                   href="/dashboard" 
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <User className="w-4 h-4" /> Profil
+                  <User className="w-4 h-4" /> Profile
                 </Link>
                 <button 
                   onClick={() => signOut()}
                   className="w-full md:w-auto text-sm font-medium text-center text-red-600 dark:text-red-400 hover:text-red-700 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <LogOut className="w-4 h-4" /> Çıkış Yap
+                  <LogOut className="w-4 h-4" /> Sign Out
                 </button>
               </div>
             ) : (
@@ -97,14 +97,14 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors py-2 md:px-4"
                 >
-                  Giriş Yap
+                  Log In
                 </Link>
                 <Link 
                   href="/auth/register" 
                   onClick={closeMenus}
                   className="w-full md:w-auto text-sm font-medium text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 px-6 transition-all shadow-[0_4px_20px_-5px_rgba(79,70,229,0.5)] active:scale-95"
                 >
-                  Kayıt Ol
+                  Sign Up
                 </Link>
               </div>
             )}

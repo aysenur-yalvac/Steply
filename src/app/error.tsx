@@ -29,11 +29,11 @@ export default function Error({
         </div>
 
         <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">
-          Beklenmedik Bir Hata Oluştu
+          An Unexpected Error Occurred
         </h1>
 
         <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg">
-          Sistemde geçici bir aksaklık yaşandı. Mühendislerimiz konu üzerinde çalışıyor olabilir.
+          A temporary glitch occurred in the system. Our engineers might be working on the issue.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
@@ -42,7 +42,7 @@ export default function Error({
             className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl transition-all hover:opacity-90 active:scale-95 shadow-xl"
           >
             <RefreshCcw className="w-5 h-5" />
-            Tekrar Dene
+            Try Again
           </button>
           
           <Link
@@ -50,13 +50,13 @@ export default function Error({
             className="flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95"
           >
             <Home className="w-5 h-5" />
-            Ana Sayfaya Dön
+            Go to Home
           </Link>
         </div>
 
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-12 p-6 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-left overflow-auto max-w-full">
-            <p className="text-xs font-mono text-red-500 mb-2 font-bold uppercase tracking-wider">Geliştirici Notu:</p>
+            <p className="text-xs font-mono text-red-500 mb-2 font-bold uppercase tracking-wider">Developer Note:</p>
             <pre className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
               {error.message}
             </pre>

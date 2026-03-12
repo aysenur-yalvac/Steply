@@ -81,7 +81,7 @@ export default function ChatWindow({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-900/40 relative">
-      {/* Chat Başlığı */}
+      {/* Chat Header */}
       <div className="flex items-center gap-3 p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm z-10 shrink-0">
         <Link href="/dashboard/messages" className="md:hidden p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg transition-colors">
           <ChevronLeft className="w-5 h-5" />
@@ -94,14 +94,14 @@ export default function ChatWindow({
         </div>
       </div>
 
-      {/* Mesaj Listesi (Scrollable) */}
+      {/* Message List (Scrollable) */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
         {messages.length === 0 ? (
            <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-             Henüz mesajlaşmadınız. Bir sohbete başlamak için aşağıdan yazın.
+             You haven't messaged yet. Type below to start a conversation.
            </div>
         ) : (
           messages.map((msg) => {
@@ -117,7 +117,7 @@ export default function ChatWindow({
                   >
                      <p className="whitespace-pre-wrap break-words text-[15px]">{msg.content}</p>
                      <span className={`block text-[10px] mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}>
-                       {new Date(msg.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                       {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                      </span>
                   </div>
                </div>
@@ -126,12 +126,12 @@ export default function ChatWindow({
         )}
       </div>
 
-      {/* Mesaj Gönderme Çubuğu */}
+      {/* Message Input Bar */}
       <div className="p-4 bg-slate-900/80 border-t border-slate-800 backdrop-blur-sm shrink-0">
          <form id="chat-form" action={handleSubmit} className="flex gap-2 items-end relative">
             <textarea
               name="content"
-              placeholder="Mesajınızı yazın..."
+              placeholder="Type your message..."
               className="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors resize-none placeholder-slate-500 min-h-[50px] max-h-[120px]"
               rows={1}
               required

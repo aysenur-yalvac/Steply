@@ -15,7 +15,7 @@ export async function uploadFileAction(projectId: string, fileName: string, file
   const supabase = await createClient();
   
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Oturum açmanız gerekiyor.");
+  if (!user) throw new Error("You must be logged in.");
 
   // Proje sahibini kontrol et
   const { data: project, error: projectError } = await supabase
@@ -24,8 +24,8 @@ export async function uploadFileAction(projectId: string, fileName: string, file
     .eq("id", projectId)
     .single();
 
-  if (projectError || !project) throw new Error("Proje bulunamadı.");
-  if (project.student_id !== user.id) throw new Error("Bu işlem için yetkiniz yok.");
+  if (projectError || !project) throw new Error("Project not found.");
+  if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
 
   const newFile: ProjectFile = {
     name: fileName,
@@ -53,7 +53,7 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   const supabase = await createClient();
   
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Oturum açmanız gerekiyor.");
+  if (!user) throw new Error("You must be logged in.");
 
   // Proje sahibini kontrol et
   const { data: project, error: projectError } = await supabase
@@ -62,19 +62,19 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
     .eq("id", projectId)
     .single();
 
-  if (projectError || !project) throw new Error("Proje bulunamadı.");
-  if (project.student_id !== user.id) throw new Error("Bu işlem için yetkiniz yok.");
+  if (projectError || !project) throw new Error("Project not found.");
+  if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
 
-  // Storage'dan sil (URL'den yolu ayıkla)
-  // Örnek URL: .../storage/v1/object/public/project-files/project-id/filename
+  // Delete from storage (extract path from URL)
+  // Example URL: .../storage/v1/object/public/project-files/project-id/filename
   const pathParts = fileUrl.split('project-files/');
   if (pathParts.length > 1) {
     const filePath = pathParts[1];
     const { error: storageError } = await supabase.storage.from('project-files').remove([filePath]);
-    if (storageError) console.error("Storage silme hatası:", storageError);
+    if (storageError) console.error("Storage deletion error:", storageError);
   }
 
-  // Veritabanından sil
+  // Delete from database
   const existingFiles = (project.files as ProjectFile[]) || [];
   const updatedFiles = existingFiles.filter(f => f.url !== fileUrl);
 

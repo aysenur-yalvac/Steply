@@ -16,8 +16,8 @@ export default async function RegisterPage({
           <BookOpen className="w-8 h-8 text-indigo-500" />
           <span className="font-bold text-3xl tracking-tight">Steply</span>
         </Link>
-        <h1 className="text-2xl font-bold text-white mb-2">Topluluğa Katılın</h1>
-        <p className="text-slate-400 text-center">Öğrenci veya öğretmen olarak kaydınızı tamamlayın ve hemen başlayın.</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Join the Community</h1>
+        <p className="text-slate-400 text-center">Complete your registration as a student or teacher and get started immediately.</p>
       </div>
 
       <div className="w-full bg-slate-900/50 backdrop-blur-md p-8 rounded-2xl border border-slate-800 shadow-xl">
@@ -25,19 +25,19 @@ export default async function RegisterPage({
           
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="fullName">
-              Ad Soyad
+              Full Name
             </label>
             <input
               className="px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
               name="fullName"
-              placeholder="Ali Yılmaz"
+              placeholder="Ali Yilmaz"
               required
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="email">
-              E-posta Adresi
+              Email Address
             </label>
             <input
               className="px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
@@ -50,13 +50,13 @@ export default async function RegisterPage({
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="password">
-              Şifre
+              Password
             </label>
             <input
               className="px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
               type="password"
               name="password"
-              placeholder="En az 6 karakter"
+              placeholder="Min 6 characters"
               required
               minLength={6}
             />
@@ -64,7 +64,7 @@ export default async function RegisterPage({
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="role">
-              Rolünüz
+              Your Role
             </label>
             <div className="relative">
               <select
@@ -73,8 +73,8 @@ export default async function RegisterPage({
                 className="w-full appearance-none px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors cursor-pointer"
                 required
               >
-                <option value="student">Öğrenci</option>
-                <option value="teacher">Öğretmen</option>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
@@ -88,7 +88,7 @@ export default async function RegisterPage({
             type="submit"
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-3 rounded-xl transition-all shadow-[0_0_20px_-5px_var(--color-indigo-500)] mt-4"
           >
-            Kayıt Ol
+            Sign Up
           </button>
 
           {message && (
@@ -99,9 +99,9 @@ export default async function RegisterPage({
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-400">
-          Zaten hesabınız var mı?{' '}
+          Already have an account?{' '}
           <Link href="/auth/login" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
-            Giriş Yap
+            Log In
           </Link>
         </div>
       </div>

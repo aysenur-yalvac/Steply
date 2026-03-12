@@ -34,9 +34,9 @@ export async function POST(request: Request) {
   })
 
   if (error) {
-    let message = 'Giriş başarısız. Bilgilerinizi kontrol edip tekrar deneyin.'
+    let message = 'Login failed. Please check your information and try again.'
     if (error.message.includes('Email not confirmed')) {
-      message = 'Lütfen e-posta adresinizi doğrulayın. Gelen kutunuzu (ve spam klasörünü) kontrol edin.'
+      message = 'Please verify your email address. Check your inbox (and spam folder).'
     }
     return NextResponse.redirect(
       `${requestUrl.origin}/auth/login?message=${encodeURIComponent(message)}`,

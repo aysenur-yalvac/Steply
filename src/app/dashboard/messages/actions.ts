@@ -8,7 +8,7 @@ export async function sendMessage(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: 'Oturum açmanız gerekiyor.' };
+    return { error: 'You must be logged in.' };
   }
 
   const receiverId = formData.get('receiver_id') as string;
@@ -16,7 +16,7 @@ export async function sendMessage(formData: FormData) {
   const currentPath = formData.get('current_path') as string;
 
   if (!receiverId || !content.trim()) {
-    return { error: 'Alıcı ve mesaj içeriği boş olamaz.' };
+    return { error: 'Receiver and message content cannot be empty.' };
   }
 
   const { error } = await supabase.from('messages').insert({
@@ -27,8 +27,8 @@ export async function sendMessage(formData: FormData) {
   });
 
   if (error) {
-    console.error('Mesaj gönderme hatası:', error);
-    return { error: 'Mesaj gönderilemedi.' };
+    console.error('Profile update error:', error);
+    return { error: 'An error occurred while updating the profile.' };
   }
 
   revalidatePath(currentPath || '/dashboard/messages');
@@ -47,6 +47,6 @@ export async function markMessagesAsRead(senderId: string) {
     .match({ sender_id: senderId, receiver_id: user.id, is_read: false });
     
   if (error) {
-     console.error('Mesajları okundu isaretleme hatası:', error);
+     console.error('Error marking messages as read:', error);
   }
 }

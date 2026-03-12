@@ -1,62 +1,62 @@
-# Steply | Modern Proje Yönetim Platformu
+# Steply | Modern Project Management Platform
 
-Steply, öğrenciler ve öğretmenler için tasarlanmış, süreç odaklı, şık ve performanslı bir proje yönetim platformudur. Proje takibi, dosya yönetimi ve sosyal etkileşim özelliklerini modern bir arayüzde birleştirir.
+Steply is a process-oriented, elegant, and high-performance project management platform designed for students and teachers. It combines project tracking, file management, and social interaction features in a modern interface.
 
-## 🚀 Öne Çıkan Özellikler
+## 🚀 Key Features
 
-- **Dinamik Tema Sistemi**: Tek bir tıkla Aydınlık ve Karanlık modlar arasında geçiş yapın. Kullanıcı tercihleriniz tarayıcıda kalıcı olarak saklanır.
-- **Gelişmiş Dosya Yönetimi**: Projelerinize sınırsız (5MB/dosya sınırı ile) dosya yükleyin. Supabase Storage entegrasyonu ve güvenli RLS politikaları ile dosyalarınız sadece size özel kalsın.
-- **Akıllı Navbar**: Giriş durumunuza göre dinamik olarak değişen, mobil uyumlu ve sadeleştirilmiş navigasyon arayüzü.
-- **Öğretmen Değerlendirmeleri**: Projeleriniz için öğretmenlerinizden puan ve detaylı geri bildirim alabileceğiniz entegre değerlendirme sistemi.
-- **Rol Tabanlı Erişim**: Öğrenci ve öğretmen rolleri için özelleştirilmiş dashboard ve yetki yönetimi.
+- **Dynamic Theme System**: Switch between Light and Dark modes with a single click. Your preferences are stored persistently in the browser.
+- **Advanced File Management**: Upload files to your projects (5MB limit per file). Your files remain private through Supabase Storage integration and secure RLS policies.
+- **Smart Navbar**: A simplified, mobile-responsive navigation interface that dynamically updates based on your authentication status.
+- **Teacher Evaluations**: Integrated evaluation system where students can receive ratings and detailed feedback from teachers.
+- **Role-Based Access**: Customized dashboards and permission management for Student and Teacher roles.
+- **English-Only Localization**: The platform is fully standardized in English for a global professional experience.
 
-## 🛠️ Teknoloji Yığını
+## 🛠️ Technology Stack
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router & Turbopack)
-- **Veritabanı & Auth**: [Supabase](https://supabase.com/) (PostgreSQL, Storage, Authentication)
-- **Stil**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **İkonlar**: [Lucide React](https://lucide.dev/)
-- **Tema Yönetimi**: `next-themes`
-- **Dil Desteği**: Altyapı olarak `next-intl` (Gelecek sürümler için hazır)
+- **Framework**: [Next.js 16+](https://nextjs.org/) (App Router & Turbopack)
+- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL, Storage, Authentication)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Theme Management**: `next-themes`
 
-## 📦 Kurulum ve Çalıştırma
+## 📦 Installation & Setup
 
-### Gereksinimler
-- Node.js 18.x veya üzeri
-- Supabase hesabı ve projesi
+### Prerequisites
+- Node.js 18.x or later
+- Supabase account and project
 
-### Adımlar
+### Steps
 
-1. Depoyu klonlayın:
+1. Clone the repository:
    ```bash
    git clone https://github.com/username/steply.git
    cd steply
    ```
 
-2. Bağımlılıkları yükleyin:
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Çevresel değişkenleri ayarlayın (`.env.local`):
+3. Set up environment variables (`.env.local`):
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your-project-url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-4. Geliştirme sunucusunu başlatın:
+4. Start the development server:
    ```bash
    npm run dev
    ```
 
-## 🏗️ Proje Yapısı
+## 🏗️ Project Structure
 
-- `src/app`: Next.js App Router sayfaları ve layoutları.
-- `src/components`: UI bileşenleri ve özellik tabanlı modüller.
-- `src/lib`: Server Action'lar ve ortak yardımcı fonksiyonlar.
-- `src/context`: Auth ve diğer global state sağlayıcılar.
-- `supabase`: Veritabanı şemaları, migration'lar ve politikalar.
+- `src/app`: Next.js App Router pages and layouts.
+- `src/components`: UI components and feature-based modules.
+- `src/lib`: Server Actions and common utility functions.
+- `src/context`: Auth and other global state providers.
+- `supabase`: Database schemas, migrations, and policies.
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje bir **Auto Step** ürünüdür ve eğitim amaçlı geliştirilmiştir. Tüm hakları saklıdır.
+This project is an **Auto Step** product and was developed for educational purposes. All rights reserved.

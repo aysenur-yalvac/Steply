@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Steply | Öğrenci & Öğretmen Proje Yönetimi",
-  description: "Steply, öğrencilerin ve öğretmenlerin projeleri yönetebileceği eğitim odaklı bir platformdur. Bu site bir Auto Step ürünüdür.",
+  title: "Steply | Student & Teacher Project Management",
+  description: "Steply is an education-focused platform where students and teachers can manage projects. This site is an Auto Step product.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col transition-colors duration-300`}
       >
