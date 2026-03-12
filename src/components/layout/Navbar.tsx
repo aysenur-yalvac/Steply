@@ -59,10 +59,11 @@ export default function Navbar() {
         <div className="flex items-center gap-4 md:hidden">
           {/* Mobile Theme Toggle */}
           <button 
-            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 transition-colors"
+            aria-label="Temayı Değiştir"
           >
-            {theme === 'system' ? <Monitor className="w-5 h-5" /> : theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           
           <button 
@@ -77,69 +78,31 @@ export default function Navbar() {
       {/* Navigation Links & Actions */}
       <div className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row items-center gap-6 mt-4 md:mt-0`}>
         
-        {/* Theme Switcher Dropdown (Desktop) */}
-        <div className="relative hidden md:block">
-          <button 
-            onClick={() => {
-              setIsThemeMenuOpen(!isThemeMenuOpen);
-              setIsUserMenuOpen(false);
-            }}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-          >
-             {theme === 'system' ? <Monitor className="w-5 h-5" /> : theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          </button>
-          
-          {isThemeMenuOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <button onClick={() => { setTheme('light'); setIsThemeMenuOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <Sun className="w-4 h-4 text-orange-500" /> Açık
-              </button>
-              <button onClick={() => { setTheme('dark'); setIsThemeMenuOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <Moon className="w-4 h-4 text-indigo-400" /> Karanlık
-              </button>
-              <button onClick={() => { setTheme('system'); setIsThemeMenuOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <Monitor className="w-4 h-4 text-slate-400" /> Sistem
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Theme Toggle (Desktop) */}
+        <button 
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors hidden md:block"
+          aria-label="Temayı Değiştir"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
 
         {!loading && (
           <>
             {user ? (
-              <div className="relative w-full md:w-auto">
-                <button 
-                  onClick={() => {
-                    setIsUserMenuOpen(!isUserMenuOpen);
-                    setIsThemeMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between md:justify-start gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 transition-all group"
+              <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <Link 
+                  href="/dashboard" 
+                  className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xs uppercase">
-                    {user.email?.charAt(0)}
-                  </div>
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden md:block">
-                    {user.user_metadata?.full_name || 'Kullanıcı'}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                  <User className="w-4 h-4" /> Profil
+                </Link>
+                <button 
+                  onClick={() => signOut()}
+                  className="w-full md:w-auto text-sm font-medium text-center text-red-600 dark:text-red-400 hover:text-red-700 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" /> Çıkış Yap
                 </button>
-
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 md:mt-2 w-full md:w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-2 z-[60] animate-in fade-in zoom-in-95 duration-200">
-                    <div className="px-3 py-2 mb-2 border-b border-slate-200 dark:border-slate-800">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Menü</p>
-                    </div>
-                    <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors">
-                      <LayoutDashboard className="w-4 h-4 text-indigo-500" /> Panele Git
-                    </Link>
-                    <Link href="/dashboard/settings" onClick={closeMenus} className="flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors">
-                      <Settings className="w-4 h-4 text-slate-500" /> Ayarlar
-                    </Link>
-                    <button onClick={() => { signOut(); closeMenus(); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors mt-1">
-                      <LogOut className="w-4 h-4" /> Çıkış Yap
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
@@ -163,20 +126,6 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Mobile Theme Selection (at bottom of menu) */}
-      {isMenuOpen && isThemeMenuOpen && (
-        <div className="mt-4 flex flex-col gap-2 p-2 bg-slate-100 dark:bg-slate-900 rounded-xl md:hidden">
-          <button onClick={() => { setTheme('light'); setIsThemeMenuOpen(false); }} className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <Sun className="w-4 h-4 text-orange-500" /> Açık Mod
-          </button>
-          <button onClick={() => { setTheme('dark'); setIsThemeMenuOpen(false); }} className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <Moon className="w-4 h-4 text-indigo-400" /> Karanlık Mod
-          </button>
-          <button onClick={() => { setTheme('system'); setIsThemeMenuOpen(false); }} className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <Monitor className="w-4 h-4 text-slate-400" /> Sistem Varsayılanı
-          </button>
-        </div>
-      )}
     </nav>
   );
 }

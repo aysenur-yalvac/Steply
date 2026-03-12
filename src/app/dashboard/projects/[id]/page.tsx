@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star } from 'lucide-react';
 import { createReview } from '../../actions';
+import FileSection from '@/components/projects/FileSection';
+import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
   params,
@@ -105,6 +107,13 @@ export default async function ProjectDetailPage({
                </div>
             </div>
           </div>
+
+          {/* Dosya Yönetimi Bölümü */}
+          <FileSection 
+            projectId={project.id} 
+            initialFiles={(project.files as ProjectFile[]) || []} 
+            isOwner={user.id === project.student_id} 
+          />
 
           {/* İncelemeler Listesi */}
           {reviews && reviews.length > 0 && (
