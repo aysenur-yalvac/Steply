@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star } from 'lucide-react';
 import { createReview } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
+import PageWrapper from '@/components/layout/PageWrapper';
 import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
@@ -76,13 +77,14 @@ export default async function ProjectDetailPage({
   const isCompleted = project.progress_percentage === 100;
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col gap-6">
-      
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-2">
-         <Link href="/dashboard" className="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-colors text-slate-400 hover:text-white shrink-0">
-           <ArrowLeft className="w-5 h-5" />
-         </Link>
+    <PageWrapper>
+      <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-2">
+           <Link href="/dashboard" className="p-2.5 bg-charcoal-card border border-charcoal-border rounded-xl hover:bg-charcoal-card-hover transition-colors text-slate-400 hover:text-white shrink-0">
+             <ArrowLeft className="w-5 h-5" />
+           </Link>
          <div>
             <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">{project.title}</h2>
             <p className="text-slate-400 text-sm">
@@ -91,11 +93,11 @@ export default async function ProjectDetailPage({
          </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Column: Project Details */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          <div className="bg-charcoal-card border border-charcoal-border rounded-3xl p-6 md:p-8 backdrop-blur-sm">
             <div className="flex justify-between items-start mb-6">
                <h3 className="text-xl font-bold text-white">About Project</h3>
                {isCompleted ? (
@@ -139,10 +141,10 @@ export default async function ProjectDetailPage({
 
           {/* Reviews List */}
           {reviews && reviews.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-bold text-white">Teacher Evaluations</h3>
+            <div className="flex flex-col gap-4 mt-2">
+              <h3 className="text-xl font-bold text-white mb-2">Teacher Evaluations</h3>
               {reviews.map((review: Review) => (
-                <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div key={review.id} className="bg-charcoal-card border border-charcoal-border rounded-2xl p-6">
                    <div className="flex justify-between items-start mb-3">
                       <div>
                         <span className="font-medium text-slate-200">
@@ -166,9 +168,9 @@ export default async function ProjectDetailPage({
         </div>
 
         {/* Right Column: Progress & Review Form */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
-             <h3 className="font-bold text-white mb-4">Progress Status</h3>
+        <div className="flex flex-col gap-8">
+          <div className="bg-charcoal-card border border-charcoal-border rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+             <h3 className="text-lg font-bold text-white mb-4">Progress Status</h3>
              <div className="flex justify-between items-end mb-2">
                  <span className="text-3xl font-extrabold text-white">%{project.progress_percentage}</span>
              </div>
@@ -182,9 +184,9 @@ export default async function ProjectDetailPage({
 
           {/* Only teachers can comment */}
           {isTeacher && (
-             <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-2xl p-6 backdrop-blur-sm">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-indigo-400" /> Evaluate
+             <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-sm shadow-inner">
+                <h3 className="font-bold text-white mb-5 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-indigo-400" /> Evaluate Project
                 </h3>
                 <form action={createReview} className="flex flex-col gap-4">
                    <input type="hidden" name="project_id" value={project.id} />
@@ -227,6 +229,7 @@ export default async function ProjectDetailPage({
 
         </div>
       </div>
-    </div>
+      </div>
+    </PageWrapper>
   );
 }

@@ -54,13 +54,13 @@ export default async function DashboardPage() {
             </p>
           </div>
         
-        {!isTeacher && (
+          {!isTeacher && (
            <Link 
             href="/dashboard/projects/new" 
-            className="group relative flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-7 py-3.5 rounded-full transition-all shadow-[0_0_30px_-5px_var(--color-indigo-500)] hover:shadow-[0_0_40px_0_var(--color-indigo-400)] shrink-0 active:scale-95 border border-indigo-400/30 overflow-hidden"
+            className="group relative flex items-center gap-2 bg-primary-electric hover:brightness-110 text-white font-bold px-7 py-3.5 rounded-full transition-all shadow-[0_0_20px_-5px_var(--color-primary-electric)] hover:shadow-[0_0_30px_0_var(--color-primary-electric)] shrink-0 active:scale-95 border border-white/10 overflow-hidden"
           >
-            {/* Subtle glow sweep animation effect inside button */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+            {/* Subtle glow sweep animation effect inside button, only active on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_1.5s_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300 relative z-10" strokeWidth={2.5} /> 
             <span className="relative z-10 tracking-wide">Create Project</span>
           </Link>

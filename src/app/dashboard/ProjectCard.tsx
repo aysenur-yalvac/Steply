@@ -17,7 +17,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
   const isCompleted = project.progress_percentage === 100;
   
   return (
-    <div className="group bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 sm:p-8 hover:border-indigo-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-soft flex flex-col gap-6 w-full relative overflow-hidden">
+    <div className="group bg-charcoal-card backdrop-blur-xl border border-charcoal-border rounded-3xl p-6 sm:p-8 hover:bg-charcoal-card-hover hover:border-charcoal-border-hover transition-all duration-300 hover:-translate-y-1 hover:shadow-soft flex flex-col gap-6 w-full relative overflow-hidden">
       
       <div className="flex justify-between items-start gap-4">
         <div>
