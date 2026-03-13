@@ -1,24 +1,21 @@
+import ProjectSkeleton from '@/components/projects/ProjectSkeleton';
+
 export default function DashboardLoading() {
   return (
-    <div className="flex flex-col gap-6 animate-pulse w-full">
-      <div className="h-32 bg-slate-900 border border-slate-800 rounded-2xl w-full"></div>
+    <div className="flex flex-col gap-10 w-full">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-pulse">
+        <div className="space-y-3 w-full sm:w-1/2">
+          <div className="h-10 bg-slate-800/60 rounded-xl w-3/4 max-w-sm"></div>
+          <div className="h-5 bg-slate-800/40 rounded-lg w-full max-w-md"></div>
+        </div>
+        <div className="h-12 w-40 bg-slate-800/60 rounded-2xl shrink-0"></div>
+      </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Projects Grid Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4">
-             <div className="flex justify-between items-start">
-               <div className="h-6 bg-slate-800 rounded w-1/2"></div>
-               <div className="h-6 bg-slate-800 rounded-full w-24"></div>
-             </div>
-             <div className="h-4 bg-slate-800 rounded w-3/4"></div>
-             <div className="flex gap-4 mb-2 mt-4">
-               <div className="h-4 bg-slate-800 rounded w-24"></div>
-               <div className="h-4 bg-slate-800 rounded w-20"></div>
-             </div>
-             <div className="mt-auto pt-4 border-t border-slate-800">
-               <div className="h-4 bg-slate-800 rounded w-full mt-4"></div>
-             </div>
-          </div>
+          <ProjectSkeleton key={i} />
         ))}
       </div>
     </div>
