@@ -49,15 +49,18 @@ export default async function ProjectDetailPage({
     profiles: { full_name: string } | null;
   };
 
-  // Fetch reviews
-  const { data: reviews } = await supabase
+  // Fetch reviews — joins profiles via reviewer_id FK
+  // NOTE: Requires FK constraint: reviews.reviewer_id → profiles.id in Supabase
+  const { data: reviews, error: reviewsError } = await supabase
     .from('reviews')
     .select(`
       id, rating, comment, created_at,
-      profiles:reviewer_id (full_name)
+      profiles:reviewer_id ( full_name )
     `)
     .eq('project_id', projectId)
-    .order('created_at', { ascending: false }) as { data: Review[] | null };
+    .order('created_at', { ascending: false }) as { data: Review[] | null; error: unknown };
+
+  if (reviewsError) console.error('[Reviews fetch error]', reviewsError);
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -129,9 +132,16 @@ export default async function ProjectDetailPage({
               <h3 className="text-lg font-bold text-white">Teacher Evaluations</h3>
               {reviews.map((review: Review) => (
                 <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                   <div className="flex justify-between items-center mb-4">
-                      <span className="font-medium text-slate-200">{review.profiles?.full_name}</span>
-                      <div className="flex gap-1 text-amber-400">
+                   <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="font-medium text-slate-200">
+                          {review.profiles?.full_name ?? 'Unknown Reviewer'}
+                        </span>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 text-amber-400 shrink-0">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-700'}`} />
                         ))}

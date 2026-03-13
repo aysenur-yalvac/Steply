@@ -17,7 +17,7 @@ export async function uploadFileAction(projectId: string, fileName: string, file
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be logged in.");
 
-  // Proje sahibini kontrol et
+  // Check project owner
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .select("student_id, files")
@@ -43,7 +43,7 @@ export async function uploadFileAction(projectId: string, fileName: string, file
     .update({ files: updatedFiles })
     .eq("id", projectId);
 
-  if (updateError) throw new Error("Veritabanı güncellenemedi.");
+  if (updateError) throw new Error("Database could not be updated: " + updateError.message);
 
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
@@ -55,7 +55,7 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be logged in.");
 
-  // Proje sahibini kontrol et
+  // Check project owner
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .select("student_id, files")
@@ -83,7 +83,7 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
     .update({ files: updatedFiles })
     .eq("id", projectId);
 
-  if (updateError) throw new Error("Veritabanı güncellenemedi.");
+  if (updateError) throw new Error("Database could not be updated: " + updateError.message);
 
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };

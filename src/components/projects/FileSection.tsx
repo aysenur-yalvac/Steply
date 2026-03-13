@@ -48,7 +48,18 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           upsert: false
         });
 
-      if (error) throw error;
+      if (error) {
+        // Log full Supabase storage error for diagnosis
+        console.error("[Storage Upload Error]", {
+          message: error.message,
+          name: error.name,
+          cause: error.cause,
+          stack: error.stack,
+          bucketName: 'project-files',
+          filePath,
+        });
+        throw new Error(`Storage error (${error.name}): ${error.message}`);
+      }
 
       setUploadProgress(70);
 
