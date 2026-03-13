@@ -44,10 +44,10 @@ export default async function DashboardPage() {
         {/* Header Strategy */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2 tracking-tight">
               {isTeacher ? "Portfolio Overview" : "Your Projects"}
             </h1>
-            <p className="text-slate-400 text-sm md:text-base max-w-xl">
+            <p className="text-slate-500 text-sm md:text-base max-w-xl">
               {isTeacher 
                 ? "Monitor the latest milestones of all projects uploaded by students." 
                 : "Manage your active tasks and keep your engineering portfolio up to date."}
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
           {!isTeacher && (
            <Link 
             href="/dashboard/projects/new" 
-            className="group relative flex items-center gap-2 bg-primary-electric hover:brightness-110 text-white font-bold px-7 py-3.5 rounded-full transition-all shadow-[0_0_20px_-5px_var(--color-primary-electric)] hover:shadow-[0_0_30px_0_var(--color-primary-electric)] shrink-0 active:scale-95 border border-white/10 overflow-hidden"
+            className="group relative flex items-center gap-2 bg-dusty-rose hover:bg-rose-600 text-white font-bold px-7 py-3.5 rounded-full transition-all shadow-md hover:shadow-lg shrink-0 active:scale-95 border border-white/20 overflow-hidden"
           >
             {/* Subtle glow sweep animation effect inside button, only active on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_1.5s_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

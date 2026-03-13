@@ -13,12 +13,18 @@ export default function AnimatedProgressBar({
   className?: string;
 }) {
   return (
-    <div className={`w-full bg-slate-950/50 rounded-full overflow-hidden shadow-inner border border-slate-800/50 relative ${className}`}>
+    <div className={`w-full bg-slate-200/50 rounded-full overflow-hidden shadow-inner border border-slate-300/30 relative ${className}`}>
       <motion.div 
         initial={{ width: 0 }}
         animate={{ width: `${progress}%` }}
-        transition={{ duration: 1.5, ease: "easeOut", delay: 0.1 }}
-        className={`h-full rounded-full relative overflow-hidden ${isCompleted ? 'bg-gradient-to-r from-vibrant-teal to-emerald-400 shadow-[0_0_12px_rgba(13,148,136,0.5)]' : 'bg-gradient-to-r from-vibrant-violet to-primary-electric shadow-[0_0_12px_rgba(124,58,237,0.5)]'}`} 
+        transition={{ 
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          mass: 1,
+          delay: 0.1 
+        }}
+        className={`h-full rounded-full relative overflow-hidden ${isCompleted ? 'bg-gradient-to-r from-sage-green to-emerald-400 shadow-[0_2px_8px_-2px_rgba(16,185,129,0.3)]' : 'bg-gradient-to-r from-dusty-rose to-rose-400 shadow-[0_2px_8px_-2px_rgba(244,63,94,0.3)]'}`} 
       >
         {/* Embedded Active Shimmer Line */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full animate-progress-shimmer skew-x-12" />

@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fcfaf6; /* Creamy Latte */
+  --foreground: #1e293b;
+  
+  --color-linen: #f8fafc;
+  --color-dusty-rose: #f43f5e;
+  --color-sage-green: #10b981;
+  --color-soft-lavender: #a78bfa;
+  
+  --charcoal-card: rgba(255, 255, 255, 0.8);
+  --charcoal-card-hover: rgba(255, 255, 255, 0.95);
+  --charcoal-border: rgba(226, 232, 240, 0.6);
+  --charcoal-border-hover: rgba(226, 232, 240, 1);
+  --primary-electric: var(--color-dusty-rose);
 }
 
 @theme inline {
@@ -13,26 +24,26 @@
   --color-charcoal-border: var(--charcoal-border);
   --color-charcoal-border-hover: var(--charcoal-border-hover);
   --color-primary-electric: var(--primary-electric);
-  --color-vibrant-violet: var(--vibrant-violet);
-  --color-vibrant-teal: var(--vibrant-teal);
+  --color-vibrant-violet: var(--color-soft-lavender);
+  --color-vibrant-teal: var(--color-sage-green);
+  --color-dusty-rose: var(--color-dusty-rose);
+  --color-sage-green: var(--color-sage-green);
+  --color-soft-lavender: var(--color-soft-lavender);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Refined Charcoal Mist Background */
-    --background: #14151a; 
-    --foreground: #f4f4f5; 
+    /* Keeping it light as per request for 'Luminous Minimalist' atmosphere */
+    --background: #fcfaf6; 
+    --foreground: #1e293b; 
     
-    /* Semantic Variables for UI Consistency */
-    --charcoal-card: rgba(30, 32, 40, 0.4);
-    --charcoal-card-hover: rgba(36, 38, 48, 0.5);
-    --charcoal-border: rgba(255, 255, 255, 0.05);
-    --charcoal-border-hover: rgba(255, 255, 255, 0.1);
-    --primary-electric: #5a4fcf; /* Vibrant but controlled Soft Indigo */
-    --vibrant-violet: #7c3aed; /* Soft Electric Violet */
-    --vibrant-teal: #0d9488; /* Vibrant Teal */
+    --charcoal-card: rgba(255, 255, 255, 0.8);
+    --charcoal-card-hover: rgba(255, 255, 255, 0.95);
+    --charcoal-border: rgba(226, 232, 240, 0.6);
+    --charcoal-border-hover: rgba(226, 232, 240, 1);
+    --primary-electric: #f43f5e;
   }
 }
 
@@ -41,10 +52,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   
-  /* Extremely soft, warm luxury mesh background */
+  /* Extremely soft, warm luxury mesh background for light theme */
   background-image: 
-    radial-gradient(at 0% 0%, rgba(93, 79, 207, 0.08) 0px, transparent 60%),
-    radial-gradient(at 100% 0%, rgba(51, 65, 85, 0.1) 0px, transparent 60%);
+    radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.03) 0px, transparent 60%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.03) 0px, transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
@@ -90,5 +101,21 @@ body {
 }
 
 .animate-progress-shimmer {
-  animation: progress-shimmer 2s infinite linear;
+  animation: progress-shimmer 2.5s infinite linear;
+}
+
+/* Tooltip Animation */
+@keyframes fadeScaleUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-tooltip {
+  animation: fadeScaleUp 0.2s ease-out forwards;
 }
