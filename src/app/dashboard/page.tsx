@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Plus, FolderOpen } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 import EmptyState from '@/components/layout/EmptyState';
-import { StaggerContainer, StaggerItem } from '@/components/layout/StaggerContainer';
+import PageWrapper from '@/components/layout/PageWrapper';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -38,20 +38,21 @@ export default async function DashboardPage() {
   }
 
   return (
-    <StaggerContainer className="flex flex-col gap-10">
-      
-      {/* Header Strategy */}
-      <StaggerItem className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter drop-shadow-md">
-            {isTeacher ? "Portfolio Overview" : "Your Architecture"}
-          </h1>
-          <p className="text-slate-400 font-light text-base md:text-lg max-w-xl leading-relaxed">
-            {isTeacher 
-              ? "Monitor the latest milestones of all projects uploaded by students." 
-              : "Refine your active projects and build the foundation of your engineering journey."}
-          </p>
-        </div>
+    <PageWrapper>
+      <div className="flex flex-col gap-8 w-full">
+        
+        {/* Header Strategy */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">
+              {isTeacher ? "Portfolio Overview" : "Your Projects"}
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base max-w-xl">
+              {isTeacher 
+                ? "Monitor the latest milestones of all projects uploaded by students." 
+                : "Manage your active tasks and keep your engineering portfolio up to date."}
+            </p>
+          </div>
         
         {!isTeacher && (
            <Link 
@@ -64,34 +65,33 @@ export default async function DashboardPage() {
             <span className="relative z-10 tracking-wide">Create Project</span>
           </Link>
         )}
-      </StaggerItem>
+      </div>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
-        <StaggerItem className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6">
           <EmptyState 
             icon={FolderOpen}
-            title={isTeacher ? "No student projects yet" : "Your canvas is blank"}
+            title={isTeacher ? "No student projects yet" : "No active projects"}
             description={isTeacher 
-              ? "Students who joined the system haven't started any projects yet. They will appear here once created." 
-              : "Every great application starts here. Add your first project to begin your portfolio management."}
+              ? "Students haven't started any projects yet. They will appear here once created." 
+              : "Start by creating a new project to organize your development work."}
             action={!isTeacher ? (
               <Link href="/dashboard/projects/new" className="inline-flex items-center text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors group">
-                Add a project now <span className="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                Create a project <span className="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
               </Link>
             ) : null}
           />
-        </StaggerItem>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
           {projects.map((project: any) => (
-            <StaggerItem key={project.id}>
-              <ProjectCard project={project} isTeacher={isTeacher} />
-            </StaggerItem>
+            <ProjectCard key={project.id} project={project} isTeacher={isTeacher} />
           ))}
         </div>
       )}
 
-    </StaggerContainer>
+      </div>
+    </PageWrapper>
   );
 }

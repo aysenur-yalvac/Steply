@@ -14,10 +14,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Very dark obsidian/slate background for depth */
-    --background: #03040b; 
+    /* Refined Professional Dark Background */
+    --background: #0f111a; 
     /* Soft pearl white for text */
-    --foreground: #f8fafc; 
+    --foreground: #f1f5f9; 
   }
 }
 
@@ -26,12 +26,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   
-  /* Deep, Dramatic Mesh Gradient Background */
+  /* Very subtle, professional mesh background */
   background-image: 
-    radial-gradient(at 0% 0%, rgba(30, 27, 75, 0.4) 0px, transparent 60%),
-    radial-gradient(at 100% 0%, rgba(2, 6, 23, 0.8) 0px, transparent 60%),
-    radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.6) 0px, transparent 60%),
-    radial-gradient(at 0% 100%, rgba(49, 46, 129, 0.3) 0px, transparent 60%);
+    radial-gradient(at 0% 0%, rgba(51, 65, 85, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(30, 41, 59, 0.15) 0px, transparent 50%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
