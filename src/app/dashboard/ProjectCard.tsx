@@ -1,7 +1,7 @@
 import React from 'react';
 import { Github, Calendar, CheckCircle, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { updateProgress } from './actions';
+import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 
 type Project = {
   id: string;
@@ -69,17 +69,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
         </div>
         
        {/* Progress Bar Display with Framer Motion & Internal Shimmer */}
-        <div className="w-full bg-slate-950/50 rounded-full h-2 overflow-hidden mb-6 shadow-inner border border-slate-800/50 relative">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${project.progress_percentage}%` }}
-            transition={{ duration: 1.5, ease: "easeOut", delay: 0.1 }}
-            className={`h-full rounded-full relative overflow-hidden ${isCompleted ? 'bg-gradient-to-r from-vibrant-teal to-emerald-400 shadow-[0_0_12px_rgba(13,148,136,0.5)]' : 'bg-gradient-to-r from-vibrant-violet to-primary-electric shadow-[0_0_12px_rgba(124,58,237,0.5)]'}`} 
-          >
-            {/* Embedded Active Shimmer Line */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full animate-progress-shimmer skew-x-12" />
-          </motion.div>
-        </div>
+        <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-2 mb-6" />
 
         <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
           {/* Update controls (Student only) */}
