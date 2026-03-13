@@ -189,7 +189,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
                 <div 
                   className={`max-w-[75%] md:max-w-[70%] px-5 py-3 shadow-md ${
                     isMine 
-                      ? 'bg-gradient-to-br from-indigo-600 to-indigo-500 text-white rounded-2xl rounded-tr-md shadow-indigo-500/20' 
+                      ? 'bg-gradient-to-br from-primary-electric to-vibrant-violet text-white rounded-2xl rounded-tr-md shadow-[0_5px_15px_-5px_var(--color-vibrant-violet)] border border-primary-electric/30' 
                       : 'bg-slate-800 text-slate-200 rounded-2xl rounded-tl-md border border-slate-700/50 shadow-slate-900/50'
                   }`}
                 >
@@ -219,17 +219,17 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
       <div className="p-4 sm:p-5 border-t border-slate-700/50 bg-slate-900/80 backdrop-blur-xl relative z-20 shrink-0">
         {showMentionMenu && projects.length > 0 && (
           <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-slate-800/95 backdrop-blur-3xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-30">
-            <div className="px-4 py-3 text-xs font-bold text-indigo-400 border-b border-slate-700/50 bg-slate-900/50 uppercase tracking-widest">
+            <div className="px-4 py-3 text-xs font-bold text-vibrant-teal border-b border-slate-700/50 bg-slate-900/50 uppercase tracking-widest">
               Mention a project
             </div>
             <ul className="max-h-48 overflow-y-auto custom-scrollbar p-1">
               {projects.map(p => (
                 <li 
                   key={p.id} 
-                  className="px-4 py-3 hover:bg-indigo-500/10 rounded-xl cursor-pointer text-sm font-medium text-slate-200 transition-all hover:pl-5 border border-transparent hover:border-indigo-500/20 m-1 flex items-center"
+                  className="px-4 py-3 hover:bg-vibrant-teal/10 rounded-xl cursor-pointer text-sm font-medium text-slate-200 transition-all hover:pl-5 border border-transparent hover:border-vibrant-teal/20 m-1 flex items-center"
                   onClick={() => selectMention(p)}
                 >
-                  <FolderRoot className="w-4 h-4 mr-2 text-indigo-400 shrink-0" />
+                  <FolderRoot className="w-4 h-4 mr-2 text-vibrant-teal shrink-0" />
                   <span className="truncate">{p.title}</span>
                 </li>
               ))}
@@ -243,13 +243,13 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             value={newMessage}
             onChange={handleInputChange}
             placeholder="Type your message... (Use @ to tag a project)"
-            className="flex-1 bg-slate-950/50 focus:bg-slate-900 border border-slate-700/60 rounded-2xl px-5 py-3.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-500 shadow-inner"
+            className="flex-1 bg-slate-950/50 focus:bg-slate-900 border border-slate-700/60 rounded-2xl px-5 py-3.5 text-sm text-slate-200 focus:outline-none focus:border-vibrant-violet/50 focus:ring-4 focus:ring-vibrant-violet/10 transition-all placeholder:text-slate-500 shadow-inner"
             autoComplete="off"
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || isSending}
-            className="px-5 py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold rounded-2xl transition-all shadow-glow hover:shadow-[0_0_20px_-3px_var(--color-indigo-500)] active:scale-95 flex items-center justify-center shrink-0 border border-indigo-400/20"
+            className="px-5 py-3.5 bg-primary-electric hover:bg-vibrant-violet disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold rounded-2xl transition-all shadow-glow hover:shadow-[0_0_20px_-3px_var(--color-vibrant-violet)] active:scale-95 flex items-center justify-center shrink-0 border border-vibrant-violet/20"
           >
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 text-white" />}
           </button>

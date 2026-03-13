@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { createReview } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -174,11 +175,16 @@ export default async function ProjectDetailPage({
              <div className="flex justify-between items-end mb-2">
                  <span className="text-3xl font-extrabold text-white">%{project.progress_percentage}</span>
              </div>
-             <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden">
-                <div 
-                  className={`h-3 rounded-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-emerald-500' : 'bg-indigo-500'}`} 
-                  style={{ width: `${project.progress_percentage}%` }}
-                />
+             <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden shadow-inner border border-slate-800/50 relative">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${project.progress_percentage}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut", delay: 0.1 }}
+                  className={`h-full rounded-full relative overflow-hidden ${isCompleted ? 'bg-gradient-to-r from-vibrant-teal to-emerald-400 shadow-[0_0_12px_rgba(13,148,136,0.5)]' : 'bg-gradient-to-r from-vibrant-violet to-primary-electric shadow-[0_0_12px_rgba(124,58,237,0.5)]'}`} 
+                >
+                   {/* Embedded Active Shimmer Line */}
+                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full animate-progress-shimmer skew-x-12" />
+                </motion.div>
              </div>
           </div>
 

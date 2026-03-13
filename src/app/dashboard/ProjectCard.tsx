@@ -1,5 +1,6 @@
 import React from 'react';
 import { Github, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { updateProgress } from './actions';
 
 type Project = {
@@ -19,7 +20,10 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
   return (
     <div className="group bg-charcoal-card backdrop-blur-xl border border-charcoal-border rounded-3xl p-6 sm:p-8 hover:bg-charcoal-card-hover hover:border-charcoal-border-hover transition-all duration-300 hover:-translate-y-1 hover:shadow-soft flex flex-col gap-6 w-full relative overflow-hidden">
       
-      <div className="flex justify-between items-start gap-4">
+      {/* Subtle Light Leak Effect */}
+      <div className="absolute -top-24 -left-24 w-64 h-64 bg-vibrant-violet/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+      <div className="flex justify-between items-start gap-4 relative z-10">
         <div>
           <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-indigo-100 transition-colors">
             {project.title}
@@ -64,12 +68,17 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
            <span className="text-sm font-bold text-white">{project.progress_percentage}%</span>
         </div>
         
-       {/* Progress Bar Display */}
-        <div className="w-full bg-slate-950/50 rounded-full h-2 overflow-hidden mb-6 shadow-inner border border-slate-800/50">
-          <div 
-            className={`h-full rounded-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-gradient-to-r from-indigo-500 to-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.4)]'}`} 
-            style={{ width: `${project.progress_percentage}%` }}
-          />
+       {/* Progress Bar Display with Framer Motion & Internal Shimmer */}
+        <div className="w-full bg-slate-950/50 rounded-full h-2 overflow-hidden mb-6 shadow-inner border border-slate-800/50 relative">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${project.progress_percentage}%` }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: 0.1 }}
+            className={`h-full rounded-full relative overflow-hidden ${isCompleted ? 'bg-gradient-to-r from-vibrant-teal to-emerald-400 shadow-[0_0_12px_rgba(13,148,136,0.5)]' : 'bg-gradient-to-r from-vibrant-violet to-primary-electric shadow-[0_0_12px_rgba(124,58,237,0.5)]'}`} 
+          >
+            {/* Embedded Active Shimmer Line */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full animate-progress-shimmer skew-x-12" />
+          </motion.div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
@@ -92,7 +101,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
              <div className="flex-1"></div>
           )}
 
-          <a href={`/dashboard/projects/${project.id}`} className="text-sm font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-indigo-200 border border-indigo-500/20 px-5 py-2.5 rounded-xl transition-all text-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0 hover:shadow-[0_0_15px_-3px_var(--color-indigo-500)] tracking-wide">
+          <a href={`/dashboard/projects/${project.id}`} className="text-sm font-semibold bg-vibrant-teal/10 hover:bg-vibrant-teal/20 text-teal-300 hover:text-teal-200 border border-vibrant-teal/20 px-5 py-2.5 rounded-xl transition-all text-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0 hover:shadow-[0_0_15px_-3px_var(--color-vibrant-teal)] tracking-wide">
             View Details
           </a>
         </div>
