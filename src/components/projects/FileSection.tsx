@@ -17,8 +17,8 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleUploadAction = async (formData: FormData) => {
+    const file = formData.get("file") as File;
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -30,11 +30,6 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     setUploadProgress(20);
 
     try {
-      // Build FormData — the correct pattern for Server Action file uploads
-      const formData = new FormData();
-      formData.append("projectId", projectId);
-      formData.append("file", file);
-
       setUploadProgress(50);
 
       // Call Server Action — handles Storage upload + DB update server-side
@@ -47,7 +42,6 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       }
 
       toast.success("File uploaded successfully.");
-      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       console.error("[FileSection] Upload error:", error);
@@ -55,6 +49,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -87,15 +82,23 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           <HardDrive className="w-5 h-5 text-indigo-400" /> Project Files
         </h3>
         {isOwner && (
-          <div className="relative">
+          <form action={handleUploadAction} className="relative">
+            <input type="hidden" name="projectId" value={projectId} />
             <input 
               type="file" 
+              name="file"
               ref={fileInputRef}
-              onChange={handleUpload}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  e.target.form?.requestSubmit();
+                }
+              }}
               className="hidden" 
               disabled={isUploading}
             />
             <button 
+              type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white rounded-xl text-sm font-medium transition-all"
@@ -103,7 +106,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {isUploading ? 'Uploading...' : 'Upload File'}
             </button>
-          </div>
+          </form>
         )}
       </div>
 

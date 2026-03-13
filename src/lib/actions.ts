@@ -18,113 +18,112 @@ export type ProjectFile = {
  * Uses the admin client for storage to bypass RLS policies.
  */
 export async function uploadFileAction(formData: FormData) {
-  const projectId = formData.get("projectId") as string;
-  const file = formData.get("file") as File;
+  try {
+    const projectId = formData.get("projectId") as string;
+    const file = formData.get("file") as File;
 
-  console.log("[uploadFileAction] Called:", { projectId, fileName: file?.name, fileSize: file?.size });
+    console.log("[uploadFileAction] Called:", { projectId, fileName: file?.name, fileSize: file?.size });
 
-  if (!projectId || !file) {
-    throw new Error("Missing projectId or file.");
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error("File size must be less than 5MB.");
-  }
-
-  // Auth check via user client
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    console.error("[uploadFileAction] Auth error:", authError);
-    throw new Error("You must be logged in.");
-  }
-  console.log("[uploadFileAction] User:", user.id);
-
-  // Ownership check
-  const { data: project, error: projectError } = await supabase
-    .from("projects")
-    .select("student_id, files")
-    .eq("id", projectId)
-    .single();
-
-  if (projectError || !project) {
-    console.error("[uploadFileAction] Project fetch error:", projectError);
-    throw new Error("Project not found.");
-  }
-  if (project.student_id !== user.id) {
-    console.error("[uploadFileAction] Ownership mismatch");
-    throw new Error("You do not have permission for this action.");
-  }
-
-  // Use admin client for storage upload (bypasses RLS, works even without manual policy setup)
-  const admin = createAdminClient();
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = `${projectId}/${fileName}`;
-
-  console.log("[uploadFileAction] Uploading to storage:", filePath);
-
-  // Ensure the bucket exists (create if missing)
-  const { data: buckets } = await admin.storage.listBuckets();
-  const bucketExists = buckets?.some((b) => b.id === "project-files");
-  if (!bucketExists) {
-    console.log("[uploadFileAction] Creating bucket 'project-files'...");
-    const { error: bucketErr } = await admin.storage.createBucket("project-files", {
-      public: true,
-      fileSizeLimit: 5 * 1024 * 1024,
-    });
-    if (bucketErr) {
-      console.error("[uploadFileAction] Bucket creation error:", bucketErr);
-      throw new Error("Storage bucket could not be created: " + bucketErr.message);
+    if (!projectId || !file) {
+      throw new Error("Missing projectId or file.");
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("File size must be less than 5MB.");
+    }
+
+    // Auth check via user client
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error("You must be logged in.");
+    }
+
+    console.log("[uploadFileAction] User:", user.id);
+
+    // Ownership check
+    const { data: project, error: projectError } = await supabase
+      .from("projects")
+      .select("student_id, files")
+      .eq("id", projectId)
+      .single();
+
+    if (projectError || !project) {
+      throw new Error("Project not found.");
+    }
+    if (project.student_id !== user.id) {
+      throw new Error("You do not have permission for this action.");
+    }
+
+    // Use admin client for storage upload (bypasses RLS, works even without manual policy setup)
+    const admin = createAdminClient();
+    const fileName = `${Date.now()}-${file.name}`;
+    const filePath = `${projectId}/${fileName}`;
+
+    console.log("[uploadFileAction] Uploading to storage:", filePath);
+
+    // Ensure the bucket exists (create if missing)
+    const { data: buckets } = await admin.storage.listBuckets();
+    const bucketExists = buckets?.some((b) => b.id === "project-files");
+    if (!bucketExists) {
+      console.log("[uploadFileAction] Creating bucket 'project-files'...");
+      const { error: bucketErr } = await admin.storage.createBucket("project-files", {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024,
+      });
+      if (bucketErr) {
+        throw new Error("Storage bucket could not be created: " + bucketErr.message);
+      }
+    }
+
+    // Upload the file using the admin client
+    const fileBuffer = await file.arrayBuffer();
+    const { error: storageError } = await admin.storage
+      .from("project-files")
+      .upload(filePath, fileBuffer, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (storageError) {
+      throw new Error("Storage upload failed: " + storageError.message);
+    }
+
+    console.log("[uploadFileAction] Storage upload OK.");
+
+    // Get public URL
+    const { data: { publicUrl } } = admin.storage
+      .from("project-files")
+      .getPublicUrl(filePath);
+
+    // Save metadata to DB
+    const newFile: ProjectFile = {
+      name: file.name,
+      url: publicUrl,
+      size: file.size,
+      type: file.type,
+      uploaded_at: new Date().toISOString(),
+    };
+
+    const existingFiles = (project.files as ProjectFile[]) || [];
+    const updatedFiles = [...existingFiles, newFile];
+
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({ files: updatedFiles })
+      .eq("id", projectId);
+
+    if (updateError) {
+      throw new Error("Database could not be updated: " + updateError.message);
+    }
+
+    console.log("[uploadFileAction] ✅ Complete.");
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    return { success: true, file: newFile };
+  } catch (error: any) {
+    throw new Error(error.message || "An unexpected error occurred during file upload.");
   }
-
-  // Upload the file using the admin client
-  const fileBuffer = await file.arrayBuffer();
-  const { error: storageError } = await admin.storage
-    .from("project-files")
-    .upload(filePath, fileBuffer, {
-      contentType: file.type,
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (storageError) {
-    console.error("[uploadFileAction] Storage upload error:", storageError);
-    throw new Error("Storage upload failed: " + storageError.message);
-  }
-
-  console.log("[uploadFileAction] Storage upload OK.");
-
-  // Get public URL
-  const { data: { publicUrl } } = admin.storage
-    .from("project-files")
-    .getPublicUrl(filePath);
-
-  // Save metadata to DB
-  const newFile: ProjectFile = {
-    name: file.name,
-    url: publicUrl,
-    size: file.size,
-    type: file.type,
-    uploaded_at: new Date().toISOString(),
-  };
-
-  const existingFiles = (project.files as ProjectFile[]) || [];
-  const updatedFiles = [...existingFiles, newFile];
-
-  const { error: updateError } = await supabase
-    .from("projects")
-    .update({ files: updatedFiles })
-    .eq("id", projectId);
-
-  if (updateError) {
-    console.error("[uploadFileAction] DB update error:", updateError);
-    throw new Error("Database could not be updated: " + updateError.message);
-  }
-
-  console.log("[uploadFileAction] ✅ Complete.");
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true, file: newFile };
 }
 
 export async function deleteFileAction(projectId: string, fileUrl: string) {
