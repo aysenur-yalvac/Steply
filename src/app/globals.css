@@ -14,10 +14,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Very dark anthracite/slate background */
-    --background: #0B0E14; 
+    /* Very dark obsidian/slate background for depth */
+    --background: #03040b; 
     /* Soft pearl white for text */
-    --foreground: #f1f5f9; 
+    --foreground: #f8fafc; 
   }
 }
 
@@ -26,24 +26,28 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   
-  /* Soft Mesh Gradient Background for Dark Mode */
+  /* Deep, Dramatic Mesh Gradient Background */
   background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(30, 27, 75, 0.4) 0px, transparent 60%),
+    radial-gradient(at 100% 0%, rgba(2, 6, 23, 0.8) 0px, transparent 60%),
+    radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.6) 0px, transparent 60%),
+    radial-gradient(at 0% 100%, rgba(49, 46, 129, 0.3) 0px, transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
 }
 
 /* Custom Soft Shadows for floating effect */
-.shadow-soft {
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 0, 0, 0.1);
+.shadow-floating {
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
 }
 
 /* Skeleton Shimmer Animation */
