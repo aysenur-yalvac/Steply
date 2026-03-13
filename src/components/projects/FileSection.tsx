@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { Upload, File, X, Loader2, Download, Trash2, HardDrive } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { Upload, File, Loader2, Download, Trash2, HardDrive } from 'lucide-react';
 import { uploadFileAction, deleteFileAction, ProjectFile } from '@/lib/actions';
 import { toast } from 'react-hot-toast';
 
@@ -17,81 +16,42 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limits
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB.");
       return;
     }
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(20);
 
     try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `${projectId}/${fileName}`;
+      // Build FormData — the correct pattern for Server Action file uploads
+      const formData = new FormData();
+      formData.append("projectId", projectId);
+      formData.append("file", file);
 
-      // Check user authentication before upload
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("You must be logged in.");
+      setUploadProgress(50);
 
-      // Upload to Storage
-      const { error } = await supabase.storage
-        .from('project-files')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      // Call Server Action — handles Storage upload + DB update server-side
+      const result = await uploadFileAction(formData);
 
-      if (error) {
-        // Log full Supabase storage error for diagnosis
-        console.error("[Storage Upload Error]", {
-          message: error.message,
-          name: error.name,
-          cause: error.cause,
-          stack: error.stack,
-          bucketName: 'project-files',
-          filePath,
-        });
-        throw new Error(`Storage error (${error.name}): ${error.message}`);
+      setUploadProgress(100);
+
+      if (result?.file) {
+        setFiles(prev => [...prev, result.file]);
       }
 
-      setUploadProgress(70);
-
-      // Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-files')
-        .getPublicUrl(filePath);
-
-      // Update database with Server Action
-      await uploadFileAction(
-        projectId,
-        file.name,
-        publicUrl,
-        file.size,
-        file.type
-      );
-
-      const newFile: ProjectFile = {
-        name: file.name,
-        url: publicUrl,
-        size: file.size,
-        type: file.type,
-        uploaded_at: new Date().toISOString()
-      };
-
-      setFiles(prev => [...prev, newFile]);
       toast.success("File uploaded successfully.");
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("Upload error:", error);
-      toast.error("Could not upload file: " + errorMessage);
+      console.error("[FileSection] Upload error:", error);
+      toast.error("Upload failed: " + errorMessage);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -107,6 +67,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       toast.success("File deleted.");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[FileSection] Delete error:", error);
       toast.error("Could not delete file: " + errorMessage);
     }
   };
@@ -150,10 +111,11 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
         <div className="mb-6">
           <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
             <div 
-              className="h-full bg-indigo-500 transition-all duration-300"
+              className="h-full bg-indigo-500 transition-all duration-500"
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
+          <p className="text-xs text-slate-500 mt-1 text-center">Uploading via secure server...</p>
         </div>
       )}
 
