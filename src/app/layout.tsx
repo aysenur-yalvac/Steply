@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthProvider";
+import { initializeStorage } from "@/lib/init-storage";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
   title: "Steply | Student & Teacher Project Management",
   description: "Steply is an education-focused platform where students and teachers can manage projects. This site is an Auto Step product.",
 };
+
+// Auto-initialize storage bucket on every cold start (server-side only)
+// Safe to call repeatedly — checks if bucket exists before creating
+void initializeStorage();
 
 export default function RootLayout({
   children,

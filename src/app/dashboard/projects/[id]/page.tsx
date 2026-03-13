@@ -46,21 +46,32 @@ export default async function ProjectDetailPage({
     rating: number;
     comment: string;
     created_at: string;
-    profiles: { full_name: string } | null;
+    reviewer_id: string;
+    reviewer_name?: string;
   };
 
-  // Fetch reviews — joins profiles via reviewer_id FK
-  // NOTE: Requires FK constraint: reviews.reviewer_id → profiles.id in Supabase
-  const { data: reviews, error: reviewsError } = await supabase
+  // Step 1: Fetch reviews (no FK join needed)
+  const { data: rawReviews } = await supabase
     .from('reviews')
-    .select(`
-      id, rating, comment, created_at,
-      profiles:reviewer_id ( full_name )
-    `)
+    .select('id, rating, comment, created_at, reviewer_id')
     .eq('project_id', projectId)
-    .order('created_at', { ascending: false }) as { data: Review[] | null; error: unknown };
+    .order('created_at', { ascending: false });
 
-  if (reviewsError) console.error('[Reviews fetch error]', reviewsError);
+  // Step 2: Fetch reviewer names separately by their IDs
+  let reviews: Review[] = [];
+  if (rawReviews && rawReviews.length > 0) {
+    const reviewerIds = [...new Set(rawReviews.map((r) => r.reviewer_id))];
+    const { data: reviewerProfiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', reviewerIds);
+
+    const nameMap = new Map(reviewerProfiles?.map((p) => [p.id, p.full_name]) ?? []);
+    reviews = rawReviews.map((r) => ({
+      ...r,
+      reviewer_name: nameMap.get(r.reviewer_id) ?? 'Unknown Reviewer',
+    }));
+  }
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -135,7 +146,7 @@ export default async function ProjectDetailPage({
                    <div className="flex justify-between items-start mb-3">
                       <div>
                         <span className="font-medium text-slate-200">
-                          {review.profiles?.full_name ?? 'Unknown Reviewer'}
+                          {review.reviewer_name ?? 'Unknown Reviewer'}
                         </span>
                         <p className="text-xs text-slate-500 mt-0.5">
                           {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
