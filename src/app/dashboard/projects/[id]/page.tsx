@@ -83,13 +83,13 @@ export default async function ProjectDetailPage({
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-2">
-           <Link href="/dashboard" className="p-2.5 bg-charcoal-card border border-charcoal-border rounded-xl hover:bg-charcoal-card-hover transition-colors text-slate-400 hover:text-white shrink-0">
+           <Link href="/dashboard" className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 shrink-0 shadow-sm">
              <ArrowLeft className="w-5 h-5" />
            </Link>
          <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">{project.title}</h2>
-            <p className="text-slate-400 text-sm">
-              Developed by <span className="font-medium text-slate-300">{project.profiles?.full_name}</span>.
+            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
+            <p className="text-slate-500 text-sm">
+              Developed by <span className="font-medium text-dusty-rose">{project.profiles?.full_name}</span>.
             </p>
          </div>
       </div>
@@ -98,36 +98,36 @@ export default async function ProjectDetailPage({
         
         {/* Left Column: Project Details */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <div className="bg-charcoal-card border border-charcoal-border rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex justify-between items-start mb-6">
-               <h3 className="text-xl font-bold text-white">About Project</h3>
+               <h3 className="text-xl font-bold text-slate-800">About Project</h3>
                {isCompleted ? (
-                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/20 shrink-0">
+                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sage-green/10 text-sage-green text-sm font-medium border border-sage-green/20 shrink-0">
                    <CheckCircle className="w-4 h-4" /> Completed
                  </div>
                ) : (
-                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 text-sm font-medium border border-amber-500/20 shrink-0">
+                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-medium border border-amber-500/20 shrink-0">
                     <Clock className="w-4 h-4" /> In Progress
                  </div>
                )}
             </div>
             
-            <p className="text-slate-300 leading-relaxed whitespace-pre-wrap mb-8">
+            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap mb-8">
               {project.description || "No description has been entered for this project yet."}
             </p>
 
-            <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-slate-950/50 border border-slate-800/80">
+            <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-slate-50 border border-slate-100">
               {project.github_link && (
-                <a href={project.github_link} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors font-medium">
+                <a href={project.github_link} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-dusty-rose hover:text-rose-600 transition-colors font-bold">
                   <Github className="w-5 h-5" /> GitHub Repository
                 </a>
                )}
-               <div className="flex items-center gap-2 text-slate-400">
-                  <Calendar className="w-5 h-5 text-slate-500" />
+               <div className="flex items-center gap-2 text-slate-500 font-medium">
+                  <Calendar className="w-5 h-5 text-slate-400" />
                   <span className="text-sm">Start: {project.start_date ? new Date(project.start_date).toLocaleDateString('en-US') : '-'}</span>
                </div>
-               <div className="flex items-center gap-2 text-slate-400">
-                  <Calendar className="w-5 h-5 text-slate-500" />
+               <div className="flex items-center gap-2 text-slate-500 font-medium">
+                  <Calendar className="w-5 h-5 text-slate-400" />
                   <span className="text-sm">End: {project.end_date ? new Date(project.end_date).toLocaleDateString('en-US') : '-'}</span>
                </div>
             </div>
@@ -143,25 +143,25 @@ export default async function ProjectDetailPage({
           {/* Reviews List */}
           {reviews && reviews.length > 0 && (
             <div className="flex flex-col gap-4 mt-2">
-              <h3 className="text-xl font-bold text-white mb-2">Teacher Evaluations</h3>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Teacher Evaluations</h3>
               {reviews.map((review: Review) => (
-                <div key={review.id} className="bg-charcoal-card border border-charcoal-border rounded-2xl p-6">
+                <div key={review.id} className="bg-white/90 border border-slate-200 rounded-2xl p-6 shadow-sm">
                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <span className="font-medium text-slate-200">
+                        <span className="font-bold text-slate-700">
                           {review.reviewer_name ?? 'Unknown Reviewer'}
                         </span>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-slate-400 mt-0.5 font-medium">
                           {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className="flex gap-1 text-amber-400 shrink-0">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-700'}`} />
+                          <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
                         ))}
                       </div>
                    </div>
-                   <p className="text-slate-400 text-sm whitespace-pre-wrap">{review.comment}</p>
+                   <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap">{review.comment}</p>
                 </div>
               ))}
             </div>
@@ -170,10 +170,10 @@ export default async function ProjectDetailPage({
 
         {/* Right Column: Progress & Review Form */}
         <div className="flex flex-col gap-8">
-          <div className="bg-charcoal-card border border-charcoal-border rounded-3xl p-6 md:p-8 backdrop-blur-sm">
-             <h3 className="text-lg font-bold text-white mb-4">Progress Status</h3>
+          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Progress Status</h3>
              <div className="flex justify-between items-end mb-2">
-                 <span className="text-3xl font-extrabold text-white">%{project.progress_percentage}</span>
+                 <span className="text-3xl font-black text-slate-800">%{project.progress_percentage}</span>
              </div>
              <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
           </div>
