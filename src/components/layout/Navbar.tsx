@@ -37,10 +37,17 @@ export default function Navbar() {
   return (
     <nav className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
       <div className="flex justify-between items-center w-full md:w-auto">
-        <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
-          <BookOpen className="w-7 h-7 text-indigo-500" />
-          <span className="font-bold text-2xl tracking-tight">Steply</span>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
+            <BookOpen className="w-7 h-7 text-indigo-500" />
+            <span className="font-bold text-2xl tracking-tight">Steply</span>
+          </Link>
+          
+          {/* USER REQUESTED: ZORLA EKLENEN PROJECTS BUTONU */}
+          <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg border border-indigo-200 dark:border-slate-700 hover:bg-indigo-100 dark:hover:bg-slate-700 transition-colors shadow-sm" onClick={closeMenus}>
+            <BookOpen className="w-4 h-4" /> Projects
+          </Link>
+        </div>
         
         <div className="flex items-center gap-4 md:hidden">
           {/* Mobile Theme Toggle */}

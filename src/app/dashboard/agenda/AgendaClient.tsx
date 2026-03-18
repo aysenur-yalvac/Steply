@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 type Task = {
   id: string;
-  title: string;
+  task_title: string;
   due_date: string;
   is_completed: boolean;
 };
@@ -144,7 +144,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                     </button>
                     <div className="flex flex-col truncate pr-4">
                       <span className={`font-bold truncate text-lg ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-800'}`}>
-                        {task.title}
+                        {task.task_title}
                       </span>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${

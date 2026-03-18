@@ -44,14 +44,14 @@ export async function uploadFileAction(formData: FormData) {
     // Ownership check
     const { data: project, error: projectError } = await supabase
       .from("projects")
-      .select("user_id, files")
+      .select("student_id, files")
       .eq("id", projectId)
       .single();
 
     if (projectError || !project) {
       throw new Error("Project not found.");
     }
-    if (project.user_id !== user.id) {
+    if (project.student_id !== user.id) {
       throw new Error("You do not have permission for this action.");
     }
 
@@ -137,12 +137,12 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
 
   const { data: project, error: projectError } = await supabase
     .from("projects")
-    .select("user_id, files")
+    .select("student_id, files")
     .eq("id", projectId)
     .single();
 
   if (projectError || !project) throw new Error("Project not found.");
-  if (project.user_id !== user.id) throw new Error("You do not have permission for this action.");
+  if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
 
   // Delete from storage using admin client (bypasses RLS)
   const admin = createAdminClient();
@@ -264,23 +264,11 @@ export async function addAgendaTaskAction(title: string, due_date: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
 
-  let { data, error } = await supabase.from('agenda_tasks').insert({
+  const { data, error } = await supabase.from('agenda_tasks').insert({
     user_id: user.id,
-    title,
+    task_title: title,
     due_date
   }).select().single();
-
-  // Dynamic fallback for user_id vs student_id on agenda_tasks 
-  if (error && error.code === '42703') {
-    console.log("agenda_tasks user_id not found, retrying with student_id...");
-    const retryInsert = await supabase.from('agenda_tasks').insert({
-      student_id: user.id,
-      title,
-      due_date
-    }).select().single();
-    data = retryInsert.data;
-    error = retryInsert.error;
-  }
 
   if (error) return { success: false, error: `Agenda Error [${error.code}]: ${error.message}` };
 

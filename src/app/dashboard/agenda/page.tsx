@@ -24,21 +24,12 @@ export default async function AgendaPage() {
     );
   }
 
-  // Fetch student's agenda tasks with fallback for user_id vs student_id
-  let { data: tasks, error: agendaError } = await supabase
+  // Fetch student's agenda tasks
+  const { data: tasks, error: agendaError } = await supabase
     .from('agenda_tasks')
     .select('*')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true });
-
-  if (agendaError && agendaError.code === '42703') {
-     const retryFetch = await supabase
-       .from('agenda_tasks')
-       .select('*')
-       .eq('student_id', user.id)
-       .order('due_date', { ascending: true });
-     tasks = retryFetch.data;
-  }
 
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">

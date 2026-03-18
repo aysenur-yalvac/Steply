@@ -62,21 +62,13 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     }
 
   } else {
-    // Students see their own projects with fallback for user_id vs student_id
-    let { data, error } = await supabase
+    // Students see their own projects
+    const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('student_id', user?.id)
       .order('created_at', { ascending: false });
 
-    if (error && error.code === '42703') {
-       const retryFetch = await supabase
-         .from('projects')
-         .select('*')
-         .eq('student_id', user?.id)
-         .order('created_at', { ascending: false });
-       data = retryFetch.data;
-    }
     projects = data || [];
   }
 
