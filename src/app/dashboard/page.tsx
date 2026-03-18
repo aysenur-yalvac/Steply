@@ -4,8 +4,12 @@ import { Plus, FolderOpen } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
+import TeacherSearch from '@/components/dashboard/TeacherSearch';
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
+  const searchParams = await props.searchParams;
+  const q = searchParams?.q?.toLowerCase() || '';
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -19,6 +23,8 @@ export default async function DashboardPage() {
 
   // Fetch projects
   let projects = [];
+  let watchedIds = new Set<string>();
+  let projectNotes: Record<string, string> = {};
   
   if (isTeacher) {
     // Teachers see all projects with student info
@@ -26,7 +32,34 @@ export default async function DashboardPage() {
       .from('projects')
       .select('*, profiles:student_id(full_name)')
       .order('created_at', { ascending: false });
-    projects = data || [];
+    
+    let allProjects = data || [];
+    if (q) {
+      allProjects = allProjects.filter((p: any) => 
+        p.title.toLowerCase().includes(q) || 
+        (p.profiles?.full_name || '').toLowerCase().includes(q)
+      );
+    }
+    projects = allProjects;
+
+    // Fetch watched projects
+    const { data: mentoredData } = await supabase
+      .from('mentored_projects')
+      .select('project_id')
+      .eq('teacher_id', user?.id);
+    watchedIds = new Set(mentoredData?.map((m: any) => m.project_id) || []);
+
+    // Fetch notes
+    const { data: notesData } = await supabase
+      .from('project_notes')
+      .select('project_id, content')
+      .eq('teacher_id', user?.id);
+    if (notesData) {
+      notesData.forEach((n: any) => {
+        projectNotes[n.project_id] = n.content;
+      });
+    }
+
   } else {
     // Students see their own projects
     const { data } = await supabase
@@ -67,6 +100,8 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      {isTeacher && <TeacherSearch />}
+
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <div className="flex justify-center mt-6">
@@ -86,7 +121,13 @@ export default async function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
           {projects.map((project: any) => (
-            <ProjectCard key={project.id} project={project} isTeacher={isTeacher} />
+            <ProjectCard 
+              key={project.id} 
+              project={project} 
+              isTeacher={isTeacher} 
+              isWatched={watchedIds.has(project.id)}
+              teacherNote={projectNotes[project.id]}
+            />
           ))}
         </div>
       )}

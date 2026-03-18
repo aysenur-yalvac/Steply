@@ -172,3 +172,47 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
+
+export async function toggleWatchlistAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: existing } = await supabase
+    .from("mentored_projects")
+    .select("id")
+    .eq("teacher_id", user.id)
+    .eq("project_id", projectId)
+    .single();
+
+  if (existing) {
+    await supabase.from("mentored_projects").delete().eq("id", existing.id);
+  } else {
+    await supabase.from("mentored_projects").insert({
+      teacher_id: user.id,
+      project_id: projectId
+    });
+  }
+
+  // Revalidate so dashboard UI updates immediately
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true, isWatched: !existing };
+}
+
+export async function addQuickNoteAction(projectId: string, content: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase.from("project_notes").insert({
+    teacher_id: user.id,
+    project_id: projectId,
+    content
+  });
+
+  if (error) throw new Error("Failed to add note: " + error.message);
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}

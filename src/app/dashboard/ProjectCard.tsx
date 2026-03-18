@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Github, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Github, Calendar, CheckCircle, Clock, Bookmark, MessageSquarePlus, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProgress } from './actions';
+import { toggleWatchlistAction, addQuickNoteAction } from '@/lib/actions';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
+import confetti from 'canvas-confetti';
+import toast from 'react-hot-toast';
 
 type Project = {
   id: string;
@@ -17,18 +20,109 @@ type Project = {
   profiles?: { full_name: string };
 };
 
-export default function ProjectCard({ project, isTeacher }: { project: Project; isTeacher?: boolean }) {
+export default function ProjectCard({ 
+  project, 
+  isTeacher,
+  isWatched: initialIsWatched = false,
+  teacherNote: initialTeacherNote = ''
+}: { 
+  project: Project; 
+  isTeacher?: boolean;
+  isWatched?: boolean;
+  teacherNote?: string;
+}) {
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging, setIsDragging] = useState(false);
-  const isCompleted = project.progress_percentage === 100;
+  const [isWatched, setIsWatched] = useState(initialIsWatched);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [noteContent, setNoteContent] = useState(initialTeacherNote);
+  const [isNoteSaving, setIsNoteSaving] = useState(false);
+  
+  const isCompleted = localProgress === 100;
+
+  const handleUpdate = async (formData: FormData) => {
+    // If progress hit 100 for the first time
+    if (localProgress === 100 && project.progress_percentage !== 100) {
+      toast.success("Tebrikler! Proje mükemmel bir şekilde tamamlandı!", {
+        icon: '🎉',
+        style: {
+          borderRadius: '16px',
+          background: '#fcfaf6',
+          color: '#1e293b',
+          border: '1px solid #10b981'
+        },
+      });
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#f43f5e', '#10b981', '#a78bfa', '#fde047']
+      });
+    }
+    await updateProgress(formData);
+  };
+
+  const handleToggleWatch = async () => {
+    const previous = isWatched;
+    setIsWatched(!previous);
+    try {
+      await toggleWatchlistAction(project.id);
+      toast.success(!previous ? "Takip listesine eklendi" : "Takipten çıkarıldı", {
+        style: { borderRadius: '12px', background: '#fcfaf6', color: '#1e293b', border: '1px solid #e2e8f0', fontSize: '13px', fontWeight: 'bold' }
+      });
+    } catch(e) {
+      setIsWatched(previous);
+      toast.error("Hata oluştu");
+    }
+  };
+
+  const saveNote = async () => {
+    setIsNoteSaving(true);
+    try {
+      await addQuickNoteAction(project.id, noteContent);
+      setIsNoteModalOpen(false);
+      toast.success("Özel notunuz başarıyla eklendi!", {
+        style: { borderRadius: '12px', background: '#f8fafc', color: '#64748b', border: '1px solid #a78bfa', fontSize: '13px', fontWeight: 'bold' }
+      });
+    } catch(e) {
+      toast.error("Hata oluştu");
+    } finally {
+      setIsNoteSaving(false);
+    }
+  };
   
   return (
     <div className="group bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 sm:p-8 hover:bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex flex-col gap-6 w-full relative overflow-hidden">
       
+      {/* Teacher Actions Hover Group */}
+      {isTeacher && (
+        <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+          <button 
+            onClick={(e) => { e.preventDefault(); setIsNoteModalOpen(true); }}
+            className="opacity-0 group-hover:opacity-100 transition-all p-2 bg-slate-50 border border-slate-200 text-slate-400 hover:text-soft-lavender hover:border-violet-200 hover:bg-violet-50 rounded-full shadow-sm"
+            title="Hızlı Not Ekle"
+          >
+            <MessageSquarePlus className="w-4 h-4" />
+          </button>
+          
+          <button 
+            onClick={(e) => { e.preventDefault(); handleToggleWatch(); }}
+            className={`transition-all p-2 rounded-full border shadow-sm ${
+              isWatched 
+                ? 'bg-dusty-rose text-white border-dusty-rose opacity-100 shadow-rose-200' 
+                : 'bg-white text-slate-300 border-slate-200 hover:text-dusty-rose hover:border-rose-200 hover:bg-rose-50 opacity-0 group-hover:opacity-100'
+            }`}
+            title={isWatched ? "Takipten Çıkar" : "Takibe Al"}
+          >
+            <Bookmark className="w-5 h-5" fill={isWatched ? "currentColor" : "none"} strokeWidth={isWatched ? 2.5 : 2} />
+          </button>
+        </div>
+      )}
+
       {/* Subtle Light Leak Effect - Spring Breeze Style */}
       <div className="absolute -top-24 -left-24 w-64 h-64 bg-dusty-rose/5 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-      <div className="flex justify-between items-start gap-4 relative z-10">
+      <div className="flex justify-between items-start gap-4 relative z-10 pr-16">
         <div>
           <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2 tracking-tight group-hover:text-slate-900 transition-colors">
             {project.title}
@@ -79,7 +173,7 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
         <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
           {/* Update controls (Student only) */}
           {!isTeacher ? (
-             <form action={updateProgress} className="flex gap-4 items-center flex-1 relative">
+             <form action={handleUpdate} className="flex gap-4 items-center flex-1 relative">
                <input type="hidden" name="id" value={project.id} />
                
                <div className="flex-1 relative group/slider">
@@ -127,6 +221,45 @@ export default function ProjectCard({ project, isTeacher }: { project: Project; 
           </a>
         </div>
       </div>
+      
+      {/* Quick Note Modal */}
+      <AnimatePresence>
+        {isNoteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <MessageSquarePlus className="w-5 h-5 text-soft-lavender" /> Hızlı Özel Not
+                </h4>
+                <button onClick={() => setIsNoteModalOpen(false)} className="p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-5 flex flex-col gap-4">
+                <textarea 
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Bu öğrenci/proje hakkında özel notunuz (Öğrenci göremez)..."
+                  rows={4}
+                  className="w-full text-sm resize-y rounded-2xl bg-white border border-slate-200 p-4 focus:outline-none focus:ring-4 focus:ring-violet-50 focus:border-violet-300 transition-all text-slate-700 font-medium placeholder:text-slate-400"
+                />
+                <button 
+                  onClick={saveNote}
+                  disabled={isNoteSaving}
+                  className="w-full flex justify-center items-center py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                >
+                  {isNoteSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       
     </div>
   );
