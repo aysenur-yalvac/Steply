@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { updateProfileAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
 import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
@@ -24,6 +25,7 @@ export default function ProfileForm({
 }) {
   const [isPending, setIsPending] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || AVATARS[0]);
+  const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
@@ -35,6 +37,9 @@ export default function ProfileForm({
         toast.error(result.error);
       } else {
         toast.success('Profile updated successfully!', { icon: '✨' });
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
       }
     } catch(e) {
       toast.error('An error occurred');

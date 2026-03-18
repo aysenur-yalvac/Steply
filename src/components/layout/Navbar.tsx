@@ -37,7 +37,7 @@ export default function Navbar() {
   return (
     <nav className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
       <div className="flex justify-between items-center w-full md:w-auto">
-        <Link href="/" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
+        <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
           <BookOpen className="w-7 h-7 text-indigo-500" />
           <span className="font-bold text-2xl tracking-tight">Steply</span>
         </Link>
@@ -77,6 +77,12 @@ export default function Navbar() {
           <>
             {user ? (
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <Link 
+                  href="/dashboard" 
+                  className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                >
+                  <BookOpen className="w-4 h-4" /> Projects
+                </Link>
                 <Link 
                   href="/dashboard/profile" 
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
