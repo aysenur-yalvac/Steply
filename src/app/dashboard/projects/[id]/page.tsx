@@ -180,42 +180,42 @@ export default async function ProjectDetailPage({
 
           {/* Only teachers can comment */}
           {isTeacher && (
-             <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-sm shadow-inner">
-                <h3 className="font-bold text-white mb-5 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-indigo-400" /> Evaluate Project
+             <div className="bg-white/90 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
                 </h3>
-                <form action={createReview} className="flex flex-col gap-4">
+                <form action={createReview} className="flex flex-col gap-5">
                    <input type="hidden" name="project_id" value={project.id} />
                    
                    <div className="flex flex-col gap-2">
-                     <label className="text-sm font-medium text-slate-300">Rating (1-5)</label>
+                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
                      <input 
                        type="number" 
                        name="rating" 
                        min="1" max="5" 
                        defaultValue="5"
-                       className="px-4 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors w-24"
+                       className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold"
                        required 
                      />
                    </div>
-
+ 
                    <div className="flex flex-col gap-2">
-                     <label className="text-sm font-medium text-slate-300">Comment / Feedback</label>
+                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
                      <textarea 
                        name="comment" 
                        rows={4}
                        placeholder="Write your thoughts about the project..."
-                       className="px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors resize-y"
+                       className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400"
                        required 
                      />
                    </div>
-
-                   <button type="submit" className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20">
+ 
+                   <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">
                      Submit Review
                    </button>
-
+ 
                    {error && (
-                      <div className="mt-2 p-3 text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg text-center">
+                      <div className="mt-2 p-3 text-red-500 text-xs bg-red-50 border border-red-100 rounded-xl text-center font-medium">
                         {error}
                       </div>
                    )}
