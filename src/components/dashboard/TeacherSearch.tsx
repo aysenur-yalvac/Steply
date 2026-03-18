@@ -33,7 +33,7 @@ export default function TeacherSearch() {
       </div>
       <input
         type="text"
-        placeholder="Anlık Arama: Öğrenci adı veya Proje başlığı..."
+        placeholder="Quick Search: Student name or Project title..."
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         className="block w-full pl-12 pr-10 py-4 bg-white/90 backdrop-blur-md border border-slate-200 rounded-3xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm font-medium text-lg"

@@ -205,6 +205,9 @@ export async function addQuickNoteAction(projectId: string, content: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
 
+  // Upsert pattern requires the constrained uniqueness. In initial schema, project_notes lacks UNIQUE constraint, so let's delete existing first or just use a combo.
+  await supabase.from("project_notes").delete().eq("project_id", projectId).eq("teacher_id", user.id);
+
   const { error } = await supabase.from("project_notes").insert({
     teacher_id: user.id,
     project_id: projectId,
@@ -212,6 +215,18 @@ export async function addQuickNoteAction(projectId: string, content: string) {
   });
 
   if (error) throw new Error("Failed to add note: " + error.message);
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function deleteQuickNoteAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase.from("project_notes").delete().eq("project_id", projectId).eq("teacher_id", user.id);
+  if (error) throw new Error("Failed to delete note: " + error.message);
 
   revalidatePath("/dashboard");
   return { success: true };
