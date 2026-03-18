@@ -53,7 +53,7 @@ export default function WatchlistDrawer({ isOpen, onClose }: WatchlistDrawerProp
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col border-l border-slate-200 dark:border-slate-800"
+            className="fixed top-0 right-0 h-[100dvh] w-full sm:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col border-l border-slate-200 dark:border-slate-800"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
               <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">

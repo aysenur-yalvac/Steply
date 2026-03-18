@@ -67,6 +67,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
   };
 
   const handleDelete = async (taskId: string) => {
+    if (!window.confirm("Bu görevi silmek istediğinize emin misiniz?")) return;
     const previousTasks = [...tasks];
     setTasks(tasks.filter(t => t.id !== taskId));
     try {
