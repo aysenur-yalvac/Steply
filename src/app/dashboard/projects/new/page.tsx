@@ -21,13 +21,14 @@ export default function NewProjectPage() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
-    const result = await createProject(formData);
-    
-    if (result?.error) {
-      toast.error(result.error);
-      setIsPending(false);
-    } else {
+    try {
+      await createProject(formData);
       toast.success('Project created successfully!');
+      router.push('/dashboard');
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setIsPending(false);
     }
   };
 
