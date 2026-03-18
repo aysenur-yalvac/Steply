@@ -10,13 +10,16 @@ import {
   Sun, 
   Moon, 
   User, 
-  LogOut
+  LogOut,
+  Bookmark
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/context/AuthProvider';
+import WatchlistDrawer from '@/components/dashboard/WatchlistDrawer';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   const { theme, setTheme } = useTheme();
@@ -88,9 +91,16 @@ export default function Navbar() {
                 <Link 
                   href="/dashboard/profile" 
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                  onClick={closeMenus}
                 >
                   <User className="w-4 h-4" /> Profile
                 </Link>
+                <button 
+                  onClick={() => { setIsWatchlistOpen(true); closeMenus(); }}
+                  className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-dusty-rose transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                >
+                  <Bookmark className="w-4 h-4" /> Watchlist
+                </button>
                 <button 
                   onClick={() => signOut()}
                   className="w-full md:w-auto text-sm font-medium text-center text-red-600 dark:text-red-400 hover:text-red-700 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
@@ -120,6 +130,7 @@ export default function Navbar() {
         )}
       </div>
 
+      <WatchlistDrawer isOpen={isWatchlistOpen} onClose={() => setIsWatchlistOpen(false)} />
     </nav>
   );
 }

@@ -74,11 +74,6 @@ export default async function DashboardLayout({
               </span>
             )}
           </a>
-          <form action="/auth/logout" method="post" className="flex-1 sm:flex-none">
-             <button className="w-full text-sm text-slate-400 hover:text-rose-600 transition-colors bg-slate-100/50 hover:bg-rose-50 px-5 py-2.5 rounded-2xl font-bold border border-slate-200 hover:border-rose-200">
-               Sign Out
-             </button>
-          </form>
         </div>
       </div>
       
