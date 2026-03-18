@@ -121,7 +121,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        <div className="flex flex-col gap-8 w-full">
           {projects.map((project: any) => (
             <ProjectCard 
               key={project.id} 

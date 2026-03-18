@@ -43,8 +43,8 @@ export default function ProjectCard({
   
   const isCompleted = localProgress === 100;
 
-  const canAddNote = isTeacher || project.student_id === currentUserId;
-  const canWatchlist = isTeacher || project.student_id !== currentUserId;
+  const canAddNote = true;
+  const canWatchlist = true;
 
   const handleUpdate = async (formData: FormData) => {
     // If progress hit 100 for the first time
@@ -252,7 +252,7 @@ export default function ProjectCard({
 
           {/* View Details AND Delete Button */}
           <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
-            {(isTeacher || currentUserId === project.student_id) && (
+            {currentUserId === project.student_id && (
               <motion.button 
                 onClick={handleDeleteProject}
                 disabled={isDeleting}
