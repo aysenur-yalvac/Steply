@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+export const dynamic = "force-dynamic";
 import Link from 'next/link';
 import { Plus, FolderOpen } from 'lucide-react';
 import ProjectCard from './ProjectCard';
