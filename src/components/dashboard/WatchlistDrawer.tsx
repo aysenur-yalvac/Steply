@@ -46,16 +46,16 @@ export default function WatchlistDrawer({ isOpen, onClose }: WatchlistDrawerProp
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-md z-40"
           />
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-[100dvh] w-full sm:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col border-l border-slate-200 dark:border-slate-800"
+            className="fixed top-0 right-0 h-[100dvh] w-full sm:w-[400px] bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl shadow-2xl z-50 flex flex-col border-l border-slate-200/50 dark:border-slate-800/50"
           >
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/30">
               <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
                 <Bookmark className="w-5 h-5 text-dusty-rose" fill="currentColor" /> Watchlist
               </h2>
@@ -71,12 +71,12 @@ export default function WatchlistDrawer({ isOpen, onClose }: WatchlistDrawerProp
                 <p className="text-slate-500 text-center mt-10">You have no watched projects yet.</p>
               ) : (
                 watchlist.map(project => (
-                  <Link href={`/dashboard/projects/${project.id}`} onClick={onClose} key={project.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:border-dusty-rose/50 hover:bg-rose-50/10 dark:hover:bg-rose-900/10 hover:shadow-md transition-all flex flex-col gap-2 relative overflow-hidden">
+                  <Link href={`/dashboard/projects/${project.id}`} onClick={onClose} key={project.id} className="group bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-4 hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-900/10 hover:shadow-md transition-all flex flex-col gap-2 relative overflow-hidden">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-dusty-rose transition-colors pr-6">
                       {project.title}
                     </h3>
                     <p className="text-sm text-slate-500 font-medium">Student: {project.studentName}</p>
-                    <ExternalLink className="absolute top-4 right-4 w-4 h-4 text-slate-300 group-hover:text-dusty-rose transition-colors" />
+                    <ExternalLink className="absolute top-4 right-4 w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors" />
                   </Link>
                 ))
               )}

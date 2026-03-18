@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 
 type Project = {
   id: string;
+  student_id?: string;
   title: string;
   description: string;
   github_link: string;
@@ -26,7 +27,7 @@ export default function ProjectCard({
   teacherNote: initialTeacherNote = '',
   currentUserId
 }: { 
-  project: Project & { user_id?: string }; 
+  project: Project; 
   isTeacher?: boolean;
   isWatched?: boolean;
   teacherNote?: string;
@@ -42,8 +43,8 @@ export default function ProjectCard({
   
   const isCompleted = localProgress === 100;
 
-  const canAddNote = isTeacher || project.user_id === currentUserId;
-  const canWatchlist = isTeacher || project.user_id !== currentUserId;
+  const canAddNote = isTeacher || project.student_id === currentUserId;
+  const canWatchlist = isTeacher || project.student_id !== currentUserId;
 
   const handleUpdate = async (formData: FormData) => {
     // If progress hit 100 for the first time
@@ -168,8 +169,8 @@ export default function ProjectCard({
                 onClick={(e) => { e.preventDefault(); handleToggleWatch(); }}
                 className={`transition-all p-2 rounded-full border shadow-sm ${
                   isWatched 
-                    ? 'bg-dusty-rose text-white border-dusty-rose opacity-100 shadow-rose-200' 
-                    : 'bg-white text-slate-300 border-slate-200 hover:text-dusty-rose hover:border-rose-200 hover:bg-rose-50 opacity-0 group-hover:opacity-100'
+                    ? 'bg-amber-400 text-white border-amber-400 opacity-100 shadow-amber-200' 
+                    : 'bg-white text-slate-300 border-slate-200 hover:text-amber-500 hover:border-amber-200 hover:bg-amber-50 opacity-0 group-hover:opacity-100'
                 }`}
                 title={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
               >
@@ -251,7 +252,7 @@ export default function ProjectCard({
 
           {/* View Details AND Delete Button */}
           <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
-            {(isTeacher || currentUserId === project.user_id) && (
+            {(isTeacher || currentUserId === project.student_id) && (
               <motion.button 
                 onClick={handleDeleteProject}
                 disabled={isDeleting}
