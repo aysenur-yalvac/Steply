@@ -36,7 +36,7 @@ export default async function ProjectDetailPage({
     .from('projects')
     .select(`
       *,
-      profiles (full_name, email)
+      profiles!student_id (full_name, email)
     `)
     .eq('id', projectId)
     .single();

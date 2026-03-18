@@ -264,13 +264,25 @@ export async function addAgendaTaskAction(title: string, due_date: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
 
-  const { data, error } = await supabase.from('agenda_tasks').insert({
+  let { data, error } = await supabase.from('agenda_tasks').insert({
     user_id: user.id,
     title,
     due_date
   }).select().single();
 
-  if (error) throw new Error(error.message);
+  // Dynamic fallback for user_id vs student_id on agenda_tasks 
+  if (error && error.code === '42703') {
+    console.log("agenda_tasks user_id not found, retrying with student_id...");
+    const retryInsert = await supabase.from('agenda_tasks').insert({
+      student_id: user.id,
+      title,
+      due_date
+    }).select().single();
+    data = retryInsert.data;
+    error = retryInsert.error;
+  }
+
+  if (error) return { success: false, error: `Agenda Error [${error.code}]: ${error.message}` };
 
   revalidatePath('/dashboard/agenda');
   return { success: true, task: data };
