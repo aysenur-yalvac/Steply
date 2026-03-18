@@ -46,7 +46,7 @@ export default async function DashboardLayout({
           </p>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
           {isTeacher && (
             <Link 
               href="/dashboard/projects/new" 
@@ -55,6 +55,17 @@ export default async function DashboardLayout({
               <Plus className="w-5 h-5" /> New Project
             </Link>
           )}
+
+          {!isTeacher && (
+            <Link href="/dashboard/agenda" className="text-sm font-bold text-slate-500 hover:text-sage-green px-2 fallback-hidden sm:block transition-colors">
+              Agenda
+            </Link>
+          )}
+
+          <Link href="/dashboard/profile" className="text-sm font-bold text-slate-500 hover:text-dusty-rose px-2 fallback-hidden sm:block transition-colors">
+            Profile
+          </Link>
+
           <a href="/dashboard/messages" className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm text-slate-600 bg-slate-100/50 hover:bg-slate-200/50 border border-slate-200/80 backdrop-blur-md transition-colors px-5 py-2.5 rounded-2xl font-bold relative">
             Messages
             {(unreadCount || 0) > 0 && (
@@ -71,7 +82,7 @@ export default async function DashboardLayout({
         </div>
       </div>
       
-      <div className="flex-1 p-6 md:p-10 lg:p-12 max-w-7xl mx-auto w-full">
+      <div className="flex-1 w-full flex flex-col">
         <PageWrapper>
           {children}
         </PageWrapper>

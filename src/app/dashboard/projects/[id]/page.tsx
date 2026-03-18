@@ -36,7 +36,7 @@ export default async function ProjectDetailPage({
     .from('projects')
     .select(`
       *,
-      profiles:student_id (full_name, email)
+      profiles:user_id (full_name, email)
     `)
     .eq('id', projectId)
     .single();
@@ -79,7 +79,7 @@ export default async function ProjectDetailPage({
 
   return (
     <PageWrapper>
-      <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full">
+      <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full p-6 md:p-10 lg:p-12">
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-2">
@@ -137,7 +137,7 @@ export default async function ProjectDetailPage({
           <FileSection 
             projectId={project.id} 
             initialFiles={(project.files as ProjectFile[]) || []} 
-            isOwner={user.id === project.student_id} 
+            isOwner={user.id === project.user_id} 
           />
 
           {/* Reviews List */}

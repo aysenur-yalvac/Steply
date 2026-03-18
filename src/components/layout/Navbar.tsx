@@ -78,7 +78,7 @@ export default function Navbar() {
             {user ? (
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                 <Link 
-                  href="/dashboard" 
+                  href="/dashboard/profile" 
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-700 dark:text-slate-200 hover:text-indigo-500 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
                   <User className="w-4 h-4" /> Profile

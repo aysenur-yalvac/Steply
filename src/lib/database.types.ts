@@ -38,7 +38,7 @@ export interface Database {
           title: string
           description: string | null
           progress_percentage: number
-          student_id: string
+          user_id: string
           files: Json
           team_members: Json
           created_at: string
@@ -48,7 +48,7 @@ export interface Database {
           title: string
           description?: string | null
           progress_percentage?: number
-          student_id: string
+          user_id: string
           files?: Json
           team_members?: Json
           created_at?: string
@@ -58,7 +58,7 @@ export interface Database {
           title?: string
           description?: string | null
           progress_percentage?: number
-          student_id?: string
+          user_id?: string
           files?: Json
           team_members?: Json
           created_at?: string

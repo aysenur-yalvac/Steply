@@ -30,7 +30,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     // Teachers see all projects with student info
     const { data } = await supabase
       .from('projects')
-      .select('*, profiles:student_id(full_name)')
+      .select('*, profiles:user_id(full_name)')
       .order('created_at', { ascending: false });
     
     let allProjects = data || [];
@@ -65,14 +65,14 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     const { data } = await supabase
       .from('projects')
       .select('*')
-      .eq('student_id', user?.id)
+      .eq('user_id', user?.id)
       .order('created_at', { ascending: false });
     projects = data || [];
   }
 
   return (
     <PageWrapper>
-      <div className="flex flex-col gap-8 w-full">
+      <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto p-6 md:p-10 lg:p-12">
         
         {/* Header Strategy */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">

@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { updateProgress } from './actions';
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
-import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
 
 type Project = {
@@ -27,7 +26,7 @@ export default function ProjectCard({
   teacherNote: initialTeacherNote = '',
   currentUserId
 }: { 
-  project: Project & { student_id?: string }; 
+  project: Project & { user_id?: string }; 
   isTeacher?: boolean;
   isWatched?: boolean;
   teacherNote?: string;
@@ -42,8 +41,8 @@ export default function ProjectCard({
   
   const isCompleted = localProgress === 100;
 
-  const canAddNote = isTeacher || project.student_id === currentUserId;
-  const canWatchlist = true;
+  const canAddNote = isTeacher || project.user_id === currentUserId;
+  const canWatchlist = isTeacher || project.user_id !== currentUserId;
 
   const handleUpdate = async (formData: FormData) => {
     // If progress hit 100 for the first time
@@ -57,11 +56,13 @@ export default function ProjectCard({
           border: '1px solid #10b981'
         },
       });
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#f43f5e', '#10b981', '#a78bfa', '#fde047']
+      import('canvas-confetti').then((confetti) => {
+        confetti.default({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#f43f5e', '#10b981', '#a78bfa', '#fde047']
+        });
       });
     }
     await updateProgress(formData);

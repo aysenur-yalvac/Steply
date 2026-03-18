@@ -128,7 +128,7 @@ export async function getUserProjectsAction() {
   const { data, error } = await supabase
     .from("projects")
     .select("id, title")
-    .eq("student_id", user.id);
+    .eq("user_id", user.id);
 
   if (error) {
     console.error("[getUserProjectsAction] Error:", error);

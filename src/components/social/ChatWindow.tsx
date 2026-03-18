@@ -159,24 +159,24 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white/70 backdrop-blur-2xl rounded-r-3xl overflow-hidden relative border-l border-slate-200">
+    <div className="flex flex-col h-full w-full !bg-white backdrop-blur-2xl rounded-r-3xl overflow-hidden relative border-l border-slate-200 !text-slate-900">
       {/* Header */}
-      <div className="p-5 border-b border-slate-100 bg-white/40 shrink-0 z-10 shadow-sm">
-        <h3 className="text-xl font-bold tracking-tight text-slate-800">{selectedUser.full_name}</h3>
+      <div className="p-5 border-b border-slate-100 !bg-white shrink-0 z-10 shadow-sm">
+        <h3 className="text-xl font-bold tracking-tight !text-slate-900">{selectedUser.full_name}</h3>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar relative z-0">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar relative z-0 !bg-[#f8fafc]">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 space-y-3">
-             <div className="w-16 h-16 rounded-full bg-slate-800/50 flex flex-col items-center justify-center shadow-inner">
-               <Send className="w-8 h-8 text-slate-600" />
+             <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200/60 flex flex-col items-center justify-center shadow-inner">
+               <Send className="w-8 h-8 text-slate-400" />
              </div>
-             <p className="max-w-xs">No messages yet. Say hi to start the conversation!</p>
+             <p className="max-w-xs text-sm font-medium !text-slate-900">No messages yet. Say hi to start the conversation!</p>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -193,12 +193,16 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
                       : 'bg-white text-slate-700 rounded-2xl rounded-tl-md border border-slate-200 shadow-sm'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.content}</p>
                   
                   {msg.metadata?.mentioned_project_id && (
                     <a 
                       href={`/dashboard/projects/${msg.metadata.mentioned_project_id}`}
-                      className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-black/20 hover:bg-black/30 rounded-lg text-xs font-semibold transition-all shadow-inner border border-white/5"
+                      className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
+                        isMine 
+                          ? 'bg-white/20 hover:bg-white/30 text-white border-white/20' 
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/60'
+                      }`}
                     >
                       <FolderRoot className="w-3.5 h-3.5" /> View Project
                     </a>

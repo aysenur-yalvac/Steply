@@ -29,13 +29,13 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper>
-      <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-140px)] w-full max-w-6xl mx-auto border border-slate-800/60 rounded-3xl overflow-hidden bg-slate-900/40 backdrop-blur-2xl shadow-soft">
+      <div className="flex-1 flex flex-col md:flex-row !h-[85vh] !w-[95vw] !max-w-none mx-auto border border-slate-200/80 rounded-3xl overflow-hidden !bg-white shadow-xl !text-slate-900">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-800/60 bg-slate-900/30 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-5 border-b border-slate-800/60 space-y-4">
-             <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-               <MessageSquare className="w-5 h-5 text-indigo-400" /> Inbox
+        <div className={`w-full md:w-80 border-r border-slate-200/80 !bg-[#f8fafc] flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-5 border-b border-slate-200/80 space-y-4 !bg-white">
+             <h2 className="text-xl font-bold tracking-tight !text-slate-900 flex items-center gap-2">
+               <MessageSquare className="w-5 h-5 text-dusty-rose" /> Inbox
              </h2>
              <UserSearch onSelectUser={handleSelectUser} placeholder="Search network..." />
           </div>
@@ -47,19 +47,19 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
               </div>
             ) : (
               <div className="flex flex-col gap-1">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-3 mb-3 mt-2">Recent</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-3 mb-3 mt-2">Recent</h3>
                 {recentConversations.map((conv) => (
                   <button
                     key={conv.other_user.id}
                     onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-indigo-500/10 border border-indigo-500/20 shadow-sm' : 'hover:bg-slate-800/50 border border-transparent'}`}
+                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-dusty-rose/10 border border-dusty-rose/20 shadow-sm' : 'hover:bg-slate-100/50 border border-transparent'}`}
                   >
-                    <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 shadow-sm">
-                      <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-indigo-300' : 'text-slate-400'}`} />
+                    <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                      <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
                     </div>
                     <div className="flex flex-col overflow-hidden w-full pt-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`font-semibold text-sm truncate ${selectedUser?.id === conv.other_user.id ? 'text-white' : 'text-slate-300'}`}>
+                        <span className={`font-semibold text-sm truncate ${selectedUser?.id === conv.other_user.id ? 'text-slate-900' : 'text-slate-700'}`}>
                           {conv.other_user.full_name || 'Unnamed'}
                         </span>
                         {conv.last_message && (

@@ -44,14 +44,14 @@ export async function uploadFileAction(formData: FormData) {
     // Ownership check
     const { data: project, error: projectError } = await supabase
       .from("projects")
-      .select("student_id, files")
+      .select("user_id, files")
       .eq("id", projectId)
       .single();
 
     if (projectError || !project) {
       throw new Error("Project not found.");
     }
-    if (project.student_id !== user.id) {
+    if (project.user_id !== user.id) {
       throw new Error("You do not have permission for this action.");
     }
 
@@ -137,12 +137,12 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
 
   const { data: project, error: projectError } = await supabase
     .from("projects")
-    .select("student_id, files")
+    .select("user_id, files")
     .eq("id", projectId)
     .single();
 
   if (projectError || !project) throw new Error("Project not found.");
-  if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
+  if (project.user_id !== user.id) throw new Error("You do not have permission for this action.");
 
   // Delete from storage using admin client (bypasses RLS)
   const admin = createAdminClient();
@@ -229,5 +229,64 @@ export async function deleteQuickNoteAction(projectId: string) {
   if (error) throw new Error("Failed to delete note: " + error.message);
 
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function updateProfileAction(formData: FormData) {
+  const supabase = await createClient();
+  const id = formData.get('id') as string;
+  const full_name = formData.get('full_name') as string;
+  const phone_number = formData.get('phone_number') as string;
+  const bio = formData.get('bio') as string;
+  const github_url = formData.get('github_url') as string;
+  const linkedin_url = formData.get('linkedin_url') as string;
+  const avatar_url = formData.get('avatar_url') as string;
+
+  if (!id) return { error: "User ID missing" };
+
+  const { error } = await supabase.from('profiles').update({
+    full_name,
+    phone_number,
+    bio,
+    github_url,
+    linkedin_url,
+    avatar_url
+  }).eq('id', id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/dashboard/profile');
+  return { success: true };
+}
+
+export async function addAgendaTaskAction(title: string, due_date: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data, error } = await supabase.from('agenda_tasks').insert({
+    user_id: user.id,
+    title,
+    due_date
+  }).select().single();
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/dashboard/agenda');
+  return { success: true, task: data };
+}
+
+export async function toggleAgendaTaskAction(taskId: string, is_completed: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase.from('agenda_tasks').update({
+    is_completed
+  }).eq('id', taskId).eq('user_id', user.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/dashboard/agenda');
   return { success: true };
 }

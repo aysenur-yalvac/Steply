@@ -32,7 +32,8 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="min-h-screen w-full bg-[#f8fafc] p-6 sm:p-10 flex flex-col items-center justify-center">
+      <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <Link 
@@ -46,17 +47,17 @@ export default function NewProjectPage() {
             <Plus className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Start New Project</h1>
-            <p className="text-slate-500 dark:text-slate-400">Take the first step towards your goals now.</p>
+            <h1 className="text-3xl font-bold text-slate-900">Start New Project</h1>
+            <p className="text-slate-500">Take the first step towards your goals now.</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl shadow-indigo-500/5 backdrop-blur-md">
+      <div className="bg-white shadow-xl text-slate-900 rounded-[2rem] p-8 sm:p-12 w-full relative z-10">
         <form action={handleSubmit} className="space-y-6">
           {/* Project Title */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
               <Layout className="w-4 h-4 text-indigo-500" /> Project Title
             </label>
             <input
@@ -64,27 +65,27 @@ export default function NewProjectPage() {
               type="text"
               placeholder="e.g.: Mobile App Development"
               required
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+              className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
               <AlignLeft className="w-4 h-4 text-indigo-500" /> Details
             </label>
             <textarea
               name="description"
               placeholder="Describe the purpose and goals of the project briefly..."
               rows={4}
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none"
+              className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm resize-none"
             />
           </div>
 
           {/* İlerleme Durumu */}
           <div className="space-y-4">
             <div className="flex justify-between items-center ml-1">
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                 <BarChart3 className="w-4 h-4 text-indigo-500" /> Initial Progress
               </label>
               <span className="text-xl font-bold text-indigo-500">%{progressPercentage}</span>
@@ -97,7 +98,7 @@ export default function NewProjectPage() {
                 max="100"
                 value={progressPercentage}
                 onChange={(e) => setProgressPercentage(parseInt(e.target.value))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 shadow-inner"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-medium px-1">
                 <span>START</span>
@@ -112,7 +113,7 @@ export default function NewProjectPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95"
+              className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95"
             >
               {isPending ? (
                 <>
@@ -130,5 +131,6 @@ export default function NewProjectPage() {
         </form>
       </div>
     </div>
+  </div>
   );
 }

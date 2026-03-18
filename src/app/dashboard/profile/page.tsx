@@ -22,34 +22,39 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto w-full p-6">
-      <div className="flex flex-col gap-2 mb-8 text-center md:text-left">
-         <h1 className="text-3xl font-bold text-white">Profile Management</h1>
-         <p className="text-slate-400">You can view and manage your personal information here.</p>
+    <div className="min-h-screen w-full bg-[#f8fafc] p-6 md:p-10 flex flex-col items-center">
+      <div className="w-full max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 rounded-2xl bg-dusty-rose/10 text-dusty-rose border border-dusty-rose/20">
+          <User className="w-7 h-7" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Your Profile</h1>
+          <p className="text-slate-500">Manage your personal information and social links.</p>
+        </div>
       </div>
 
-      <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-8 shadow-xl">
-        <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-800/80">
-           <div className="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center shrink-0">
-             <User className="w-8 h-8 text-indigo-400" />
+      <div className="bg-white border border-slate-200/60 rounded-[2rem] p-8 shadow-xl shadow-rose-500/5">
+        <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
+           <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex flex-col items-center justify-center shrink-0 shadow-inner overflow-hidden">
+             {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
+             ) : (
+                <User className="w-8 h-8 text-slate-400" />
+             )}
            </div>
            <div>
-             <h2 className="text-xl font-bold text-slate-200">{profile.full_name || 'Unnamed User'}</h2>
-             <div className="flex items-center gap-2 text-slate-400 mt-1">
-                <ShieldAlert className="w-4 h-4 text-indigo-500" />
-                <span className="capitalize text-sm font-medium">{profile.role === 'teacher' ? 'Teacher Account' : 'Student Account'}</span>
+             <h2 className="text-xl font-bold text-slate-800">{profile.full_name || 'Unnamed User'}</h2>
+             <div className="flex items-center gap-2 text-dusty-rose mt-1">
+                <span className="capitalize text-sm font-bold tracking-wide">{profile.role === 'teacher' ? 'Teacher Account' : 'Student Account'}</span>
              </div>
            </div>
         </div>
 
-        {/* Form Component separated as Client Component (for Toast support) */}
-        <ProfileForm 
-           initialFullName={profile.full_name || ''} 
-           email={user.email || ''} 
-           userId={user.id} 
-        />
+        <ProfileForm profile={profile} email={user.email || ''} userId={user.id} />
         
       </div>
+    </div>
     </div>
   );
 }
