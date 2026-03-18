@@ -19,19 +19,28 @@ export async function createProject(formData: FormData) {
   const end_date = formData.get("end_date") as string;
   const progress_percentage = parseInt(formData.get("progress_percentage") as string) || 0;
 
-  const { error } = await supabase.from("projects").insert({
+  // Dynamic fallback strategy for user_id vs student_id drifts
+  let { error } = await supabase.from("projects").insert({
     user_id: user.id,
     title,
     description,
-    github_link: github_link || null,
-    start_date: start_date || null,
-    end_date: end_date || null,
     progress_percentage,
   });
 
+  if (error && error.code === '42703') {
+    console.log("Fallback to student_id insert...");
+    const retryInsert = await supabase.from("projects").insert({
+      student_id: user.id,
+      title,
+      description,
+      progress_percentage,
+    });
+    error = retryInsert.error;
+  }
+
   if (error) {
-    console.error("Project addition error:", error);
-    return { error: "An error occurred while adding the project." };
+    console.error("FULL_DATABASE_ERROR:", error);
+    return { error: `Database Error [${error.code}]: ${error.message} (Verify column name for user_id/student_id)` };
   }
 
   revalidatePath("/dashboard");
