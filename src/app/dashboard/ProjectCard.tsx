@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Github, Calendar, CheckCircle, Clock, Bookmark, MessageSquarePlus, X, Loader2 } from 'lucide-react';
+import { Github, Calendar, CheckCircle, Clock, Bookmark, MessageSquarePlus, X, Loader2, Trash2, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateProgress } from './actions';
+import { updateProgress, deleteProjectAction } from './actions';
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import toast from 'react-hot-toast';
@@ -35,9 +35,9 @@ export default function ProjectCard({
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging, setIsDragging] = useState(false);
   const [isWatched, setIsWatched] = useState(initialIsWatched);
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteContent, setNoteContent] = useState(initialTeacherNote);
   const [isNoteSaving, setIsNoteSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const isCompleted = localProgress === 100;
 
@@ -86,7 +86,6 @@ export default function ProjectCard({
     setIsNoteSaving(true);
     try {
       await addQuickNoteAction(project.id, noteContent);
-      setIsNoteModalOpen(false);
       toast.success("Quick note saved successfully!", {
         style: { borderRadius: '12px', background: '#f8fafc', color: '#64748b', border: '1px solid #a78bfa', fontSize: '13px', fontWeight: 'bold' }
       });
@@ -102,7 +101,6 @@ export default function ProjectCard({
     try {
       await deleteQuickNoteAction(project.id);
       setNoteContent('');
-      setIsNoteModalOpen(false);
       toast.success("Note cleared!", {
         style: { borderRadius: '12px', background: '#f8fafc', color: '#64748b', border: '1px solid #f87171', fontSize: '13px', fontWeight: 'bold' }
       });
@@ -110,6 +108,19 @@ export default function ProjectCard({
       toast.error("An error occurred");
     } finally {
       setIsNoteSaving(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+      setIsDeleting(true);
+      try {
+        await deleteProjectAction(project.id);
+        toast.success("Project deleted successfully!");
+      } catch (err) {
+        toast.error("Failed to delete project");
+        setIsDeleting(false);
+      }
     }
   };
   
@@ -148,15 +159,6 @@ export default function ProjectCard({
 
           {/* Action Group */}
           <div className="flex items-center gap-2">
-            {canAddNote && (
-              <button 
-                onClick={(e) => { e.preventDefault(); setIsNoteModalOpen(true); }}
-                className="opacity-0 group-hover:opacity-100 transition-all p-2 bg-slate-50 border border-slate-200 text-slate-400 hover:text-soft-lavender hover:border-violet-200 hover:bg-violet-50 rounded-full shadow-sm"
-                title="Quick Note"
-              >
-                <MessageSquarePlus className="w-4 h-4" />
-              </button>
-            )}
             
             {canWatchlist && (
               <button 
@@ -244,67 +246,48 @@ export default function ProjectCard({
              <div className="flex-1"></div>
           )}
 
-          <a href={`/dashboard/projects/${project.id}`} className="text-sm font-semibold bg-sage-green/10 hover:bg-sage-green/20 text-emerald-600 hover:text-emerald-700 border border-sage-green/20 px-6 py-2.5 rounded-xl transition-all text-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0 hover:shadow-sm tracking-wide">
-            View Details
-          </a>
+          {/* View Details AND Delete Button */}
+          <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
+            {(isTeacher || currentUserId === project.user_id) && (
+              <button 
+                onClick={handleDeleteProject}
+                disabled={isDeleting}
+                className="text-sm font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl transition-all hover:shadow-sm shrink-0 flex items-center justify-center disabled:opacity-50"
+                title="Delete Project"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              </button>
+            )}
+            <a href={`/dashboard/projects/${project.id}`} className="flex-1 text-sm font-semibold bg-sage-green/10 hover:bg-sage-green/20 text-emerald-600 hover:text-emerald-700 border border-sage-green/20 px-6 py-2.5 rounded-xl transition-all text-center shrink-0 hover:shadow-sm tracking-wide">
+              View Details
+            </a>
+          </div>
         </div>
       </div>
       
-      {/* Quick Note Modal */}
-      <AnimatePresence>
-        {isNoteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-3xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden"
-            >
-              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <MessageSquarePlus className="w-5 h-5 text-soft-lavender" /> Quick Private Note
-                </h4>
-                <button onClick={() => setIsNoteModalOpen(false)} className="p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-5 flex flex-col gap-4">
-                <textarea 
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  placeholder="Your private note about this project (Student cannot see)..."
-                  rows={4}
-                  className="w-full text-sm resize-y rounded-2xl bg-white border border-slate-200 p-4 focus:outline-none focus:ring-4 focus:ring-violet-50 focus:border-violet-300 transition-all text-slate-700 font-medium placeholder:text-slate-400"
-                />
-                <div className="flex gap-3">
-                  {initialTeacherNote && (
-                    <button 
-                      onClick={deleteNote}
-                      disabled={isNoteSaving}
-                      className="px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
-                  )}
-                  <button 
-                    onClick={saveNote}
-                    disabled={isNoteSaving}
-                    className="flex-1 flex justify-center items-center py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
-                  >
-                    {isNoteSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save'}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Smart Hover Note Pane */}
-      {noteContent && !isNoteModalOpen && (
-        <div className="absolute inset-x-0 bottom-0 bg-slate-900/95 backdrop-blur-md text-slate-100 p-4 translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out z-20 flex items-start gap-3 border-t border-slate-800 shadow-2xl">
-          <MessageSquarePlus className="w-5 h-5 text-soft-lavender shrink-0 mt-0.5" />
-          <p className="text-sm font-medium leading-relaxed">{noteContent}</p>
+      {/* Quick Private Note (Inline Luminous Style) */}
+      {canAddNote && (
+        <div className="mt-2 pt-4 border-t border-slate-100 relative z-10 w-full">
+           <div className="flex items-start gap-3 bg-slate-50 border border-slate-200/60 rounded-2xl p-3 focus-within:ring-2 focus-within:ring-violet-200 focus-within:bg-white transition-all shadow-inner">
+             <MessageSquarePlus className="w-5 h-5 text-soft-lavender shrink-0 mt-3" />
+             <div className="flex-1 flex flex-col gap-2">
+               <textarea 
+                 value={noteContent}
+                 onChange={(e) => setNoteContent(e.target.value)}
+                 placeholder="Quick private note... (auto-saves)"
+                 rows={1}
+                 className="w-full bg-transparent border-none p-2 focus:ring-0 resize-y text-sm text-slate-700 font-medium placeholder:text-slate-400 min-h-[44px]"
+               />
+               <div className="flex justify-end gap-2 items-center">
+                 {initialTeacherNote && (
+                    <button onClick={deleteNote} disabled={isNoteSaving} className="text-xs font-semibold text-red-500 hover:text-red-600 mr-2 transition-colors">Clear</button>
+                 )}
+                 <button onClick={saveNote} disabled={isNoteSaving || !noteContent.trim() || noteContent === initialTeacherNote} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-all w-fit">
+                   {isNoteSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
+                 </button>
+               </div>
+             </div>
+           </div>
         </div>
       )}
       

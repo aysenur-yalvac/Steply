@@ -78,3 +78,23 @@ export async function createReview(formData: FormData) {
   revalidatePath(`/dashboard/projects/${projectId}`);
   return redirect(`/dashboard/projects/${projectId}`);
 }
+
+export async function deleteProjectAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  const isTeacher = profile?.role === 'teacher';
+
+  if (!isTeacher) {
+    const { data: project } = await supabase.from('projects').select('student_id').eq('id', projectId).single();
+    if (project?.student_id !== user.id) throw new Error("Unauthorized to delete this project.");
+  }
+
+  const { error } = await supabase.from('projects').delete().eq('id', projectId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/dashboard');
+  return { success: true };
+}

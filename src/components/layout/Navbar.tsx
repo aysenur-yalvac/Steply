@@ -42,11 +42,6 @@ export default function Navbar() {
             <BookOpen className="w-7 h-7 text-indigo-500" />
             <span className="font-bold text-2xl tracking-tight">Steply</span>
           </Link>
-          
-          {/* USER REQUESTED: ZORLA EKLENEN PROJECTS BUTONU */}
-          <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg border border-indigo-200 dark:border-slate-700 hover:bg-indigo-100 dark:hover:bg-slate-700 transition-colors shadow-sm" onClick={closeMenus}>
-            <BookOpen className="w-4 h-4" /> Projects
-          </Link>
         </div>
         
         <div className="flex items-center gap-4 md:hidden">

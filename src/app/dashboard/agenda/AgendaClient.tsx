@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle2, Circle, Clock, Loader2, Plus, Flag } from 'lucide-react';
-import { addAgendaTaskAction, toggleAgendaTaskAction } from '@/lib/actions';
+import { Calendar, CheckCircle2, Circle, Clock, Loader2, Plus, Flag, Trash2 } from 'lucide-react';
+import { addAgendaTaskAction, toggleAgendaTaskAction, deleteAgendaTaskAction } from '@/lib/actions';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 type Task = {
@@ -65,6 +66,20 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     }
   };
 
+  const handleDelete = async (taskId: string) => {
+    const previousTasks = [...tasks];
+    setTasks(tasks.filter(t => t.id !== taskId));
+    try {
+      await deleteAgendaTaskAction(taskId);
+      toast.success("Agenda cleared!", {
+        style: { borderRadius: '12px', background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', fontSize: '13px', fontWeight: 'bold' }
+      });
+    } catch(e) {
+      setTasks(previousTasks);
+      toast.error("Could not delete task");
+    }
+  };
+
   const confettiTrigger = () => {
     import('canvas-confetti').then((confetti) => {
       confetti.default({
@@ -122,46 +137,62 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                 You have no tasks in your agenda. Start planning!
              </div>
           ) : (
-            tasks.map(task => {
-              const isPastDue = !task.is_completed && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0));
-              return (
-                <div 
-                  key={task.id} 
-                  className={`group flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all ${
-                    task.is_completed 
-                      ? 'bg-slate-50 border-slate-100 opacity-70' 
-                      : isPastDue 
-                        ? 'bg-amber-50/50 border-amber-200 shadow-sm' 
-                        : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
-                  }`}
-                >
-                  <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                    <button 
-                      onClick={() => handleToggle(task.id, task.is_completed)}
-                      className={`shrink-0 transition-colors ${task.is_completed ? 'text-sage-green' : 'text-slate-300 hover:text-sage-green'}`}
-                    >
-                      {task.is_completed ? <CheckCircle2 className="w-7 h-7" /> : <Circle className="w-7 h-7" />}
-                    </button>
-                    <div className="flex flex-col truncate pr-4">
-                      <span className={`font-bold truncate text-lg ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-800'}`}>
-                        {task.task_title}
-                      </span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${
-                          task.is_completed ? 'bg-slate-200 text-slate-600' : isPastDue ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'
-                        }`}>
-                          {isPastDue && !task.is_completed ? <Flag className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                          {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            <AnimatePresence>
+              {tasks.map(task => {
+                const isPastDue = !task.is_completed && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0));
+                return (
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    key={task.id} 
+                    className={`group flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all ${
+                      task.is_completed 
+                        ? 'bg-slate-50 border-slate-100 opacity-70' 
+                        : isPastDue 
+                          ? 'bg-amber-50/50 border-amber-200 shadow-sm' 
+                          : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                      <button 
+                        onClick={() => handleToggle(task.id, task.is_completed)}
+                        className={`shrink-0 transition-colors ${task.is_completed ? 'text-sage-green' : 'text-slate-300 hover:text-sage-green'}`}
+                      >
+                        {task.is_completed ? <CheckCircle2 className="w-7 h-7" /> : <Circle className="w-7 h-7" />}
+                      </button>
+                      <div className="flex flex-col truncate pr-4">
+                        <span className={`font-bold truncate text-lg ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-800'}`}>
+                          {task.task_title}
                         </span>
-                        {isPastDue && !task.is_completed && (
-                          <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Past Due</span>
-                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${
+                            task.is_completed ? 'bg-slate-200 text-slate-600' : isPastDue ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'
+                          }`}>
+                            {isPastDue && !task.is_completed ? <Flag className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          {isPastDue && !task.is_completed && (
+                            <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Past Due</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })
+                    <motion.button
+                      onClick={() => handleDelete(task.id)}
+                      whileHover={{ scale: 1.1, rotate: [0, -15, 15, -15, 15, 0] }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors ml-4 shrink-0"
+                      title="Delete Task"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </motion.button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           )}
         </div>
 
