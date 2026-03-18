@@ -30,7 +30,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     // Teachers see all projects with student info
     const { data } = await supabase
       .from('projects')
-      .select('*, profiles:user_id(full_name)')
+      .select('*, profiles(full_name)')
       .order('created_at', { ascending: false });
     
     let allProjects = data || [];

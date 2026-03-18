@@ -23,9 +23,9 @@ export async function createProject(formData: FormData) {
     user_id: user.id,
     title,
     description,
-    github_link,
-    start_date,
-    end_date,
+    github_link: github_link || null,
+    start_date: start_date || null,
+    end_date: end_date || null,
     progress_percentage,
   });
 
