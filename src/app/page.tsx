@@ -4,10 +4,10 @@ import MouseGlow from "@/components/ui/MouseGlow";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen relative">
-      <MouseGlow />
+    <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen relative overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0" />
       {/* Hero Section */}
-      <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden">
+      <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden z-10">
         {/* Background Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-indigo-600/20 blur-[120px] rounded-full -z-10 pointer-events-none" />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-600/10 blur-[100px] rounded-full -z-10 pointer-events-none" />
@@ -20,12 +20,12 @@ export default function Home() {
         <div className="relative mb-6">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-2xl rounded-full scale-110 pointer-events-none" />
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl relative z-10 drop-shadow-[0_15px_35px_rgba(0,0,0,0.1)]">
-            The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-[0_10px_25px_rgba(99,102,241,0.6)]">Engineering Hub</span>
+            The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-[0_10px_25px_rgba(99,102,241,0.6)]">Project & Mentorship Hub</span>
           </h1>
         </div>
         
         <p className="text-lg md:text-xl text-slate-600 max-w-2xl mb-10 leading-relaxed font-medium">
-          More than just a tracking tool. Steply is the ultimate <strong>Engineering Hub</strong> for students and mentors to collaborate, build, and scale their portfolio together.
+          More than just a tracking tool. Steply is the ultimate <strong>Project & Mentorship Hub</strong> for students and mentors to collaborate, build, and scale their portfolio together.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">

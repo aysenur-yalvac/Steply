@@ -142,7 +142,7 @@ export default function ProfileForm({
           type="text" 
           name="institution"
           defaultValue={profile?.institution || ''}
-          placeholder={profile?.role === 'teacher' ? "University of Technology" : "Engineering Faculty"}
+          placeholder="Enter your school or institution..."
           className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
         />
       </div>
