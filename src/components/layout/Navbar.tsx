@@ -50,10 +50,10 @@ export default function Navbar() {
         <div className="flex items-center gap-4 md:hidden">
           <button 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-400 hover:text-amber-300 transition-colors"
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm"
             aria-label="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5" fill="currentColor" /> : <Moon className="w-5 h-5" fill="currentColor" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           
           <button 
@@ -70,10 +70,10 @@ export default function Navbar() {
         
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-400 hover:text-amber-300 transition-colors hidden md:block"
+          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm hidden md:block"
           aria-label="Toggle Theme"
         >
-          {theme === 'dark' ? <Sun className="w-5 h-5" fill="currentColor" /> : <Moon className="w-5 h-5" fill="currentColor" />}
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
         {!loading && (
@@ -101,9 +101,9 @@ export default function Navbar() {
                 </button>
                 <button 
                   onClick={() => signOut()}
-                  className="w-full md:w-auto text-sm font-bold text-center text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                  className="w-full md:w-auto text-sm font-extrabold text-center tracking-wide text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <LogOut className="w-4 h-4" /> Sign Out
+                  <LogOut className="w-4 h-4 text-red-500 dark:text-red-400" strokeWidth={2.5} /> Sign Out
                 </button>
               </div>
             ) : (

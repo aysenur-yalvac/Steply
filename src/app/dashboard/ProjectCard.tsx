@@ -25,12 +25,14 @@ export default function ProjectCard({
   isTeacher,
   isWatched: initialIsWatched = false,
   teacherNote: initialTeacherNote = '',
+  teacherNameForNote,
   currentUserId
 }: { 
   project: Project; 
   isTeacher?: boolean;
   isWatched?: boolean;
   teacherNote?: string;
+  teacherNameForNote?: string;
   currentUserId?: string;
 }) {
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);

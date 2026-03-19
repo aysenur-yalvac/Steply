@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import Link from 'next/link';
-import { Plus, FolderOpen } from 'lucide-react';
+import { Plus, FolderOpen, Search } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -22,10 +22,9 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
 
   const isTeacher = profile?.role === 'teacher';
 
-  // Fetch projects
   let projects = [];
   let watchedIds = new Set<string>();
-  let projectNotes: Record<string, string> = {};
+  let projectNotes: Record<string, { content: string, teacherName?: string }> = {};
   // Fetch watched projects for EVERYONE (persistence fix)
   const { data: mentoredData } = await supabase
     .from('mentored_projects')
@@ -36,32 +35,29 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
   // Fetch notes for EVERYONE
   const { data: notesData } = await supabase
     .from('project_notes')
-    .select('project_id, content')
-    .eq('teacher_id', user?.id);
+    .select('project_id, content, profiles!teacher_id(full_name)');
   if (notesData) {
     notesData.forEach((n: any) => {
-      projectNotes[n.project_id] = n.content;
+      projectNotes[n.project_id] = { content: n.content, teacherName: n.profiles?.full_name };
     });
   }
   
   if (isTeacher) {
-    // Teachers see all projects with student info
-    const { data } = await supabase
-      .from('projects')
-      .select('*, profiles!student_id(full_name)')
-      .order('created_at', { ascending: false });
-    
-    let allProjects = data || [];
-    if (q) {
+    if (!q) {
+      projects = [];
+    } else {
+      const { data } = await supabase
+        .from('projects')
+        .select('*, profiles!student_id(full_name)')
+        .order('created_at', { ascending: false });
+      
+      let allProjects = data || [];
       allProjects = allProjects.filter((p: any) => 
         p.title.toLowerCase().includes(q) || 
         (p.profiles?.full_name || '').toLowerCase().includes(q)
       );
+      projects = allProjects;
     }
-    projects = allProjects;
-
-
-
   } else {
     // Students see their own projects
     const { data, error } = await supabase
@@ -109,10 +105,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       {projects.length === 0 ? (
         <div className="flex justify-center mt-6">
           <EmptyState 
-            icon={FolderOpen}
-            title={isTeacher ? "No student projects yet" : "No active projects"}
+            icon={isTeacher ? Search : FolderOpen}
+            title={isTeacher ? "Search Projects" : "No active projects"}
             description={isTeacher 
-              ? "Students haven't started any projects yet. They will appear here once created." 
+              ? "Use the search bar above to look up projects by student name or title to begin reviewing." 
               : "Start by creating a new project to organize your development work."}
             action={!isTeacher ? (
               <Link href="/dashboard/projects/new" className="inline-flex items-center text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors group">
@@ -129,7 +125,8 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
               project={project} 
               isTeacher={isTeacher} 
               isWatched={watchedIds.has(project.id)}
-              teacherNote={projectNotes[project.id]}
+              teacherNote={projectNotes[project.id]?.content}
+              teacherNameForNote={projectNotes[project.id]?.teacherName}
               currentUserId={user?.id}
             />
           ))}
