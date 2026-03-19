@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, Layers, Users } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen">
       {/* Hero Section */}
       <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden">
         {/* Background Glows */}
@@ -15,11 +15,11 @@ export default function Home() {
           <span>Redesigned for Education</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mb-6">
-          Streamline <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Project Management</span>
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl mb-6">
+          The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Engineering Hub</span>
         </h1>
         
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
+        <p className="text-lg md:text-xl text-slate-600 max-w-2xl mb-10 leading-relaxed font-medium">
           More than just a tracking tool. Steply is the ultimate <strong>Engineering Hub</strong> for students and mentors to collaborate, build, and scale their portfolio together.
         </p>
 
@@ -36,12 +36,12 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="w-full max-w-6xl mx-auto py-20 px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm">
+        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-slate-100 shadow-2xl hover:-translate-y-1 transition-transform">
           <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6">
             <Users className="w-7 h-7 text-indigo-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">Role-Based Mentorship</h3>
-          <p className="text-slate-400">
+          <h3 className="text-xl font-bold text-slate-800 mb-3">Role-Based Mentorship</h3>
+          <p className="text-slate-500 font-medium">
             Increase your productivity with different experiences and tools tailored for distinct roles.
           </p>
         </div>
@@ -50,8 +50,8 @@ export default function Home() {
           <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
             <Layers className="w-7 h-7 text-purple-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">Real-time Progress Tracking</h3>
-          <p className="text-slate-400">
+          <h3 className="text-xl font-bold text-slate-800 mb-3">Real-time Progress Tracking</h3>
+          <p className="text-slate-500 font-medium">
             Update the progress percentage of your projects natively. Mentors can see the status of projects live.
           </p>
         </div>
@@ -71,8 +71,8 @@ export default function Home() {
               <path d="M9 18c-4.51 2-5-2-7-2" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">GitHub Integration</h3>
-          <p className="text-slate-400">
+          <h3 className="text-xl font-bold text-slate-800 mb-3">GitHub Integration</h3>
+          <p className="text-slate-500 font-medium">
             Integrate your code with one click. Strengthen teamwork by easily sharing your project repo links.
           </p>
         </div>

@@ -6,21 +6,21 @@ import { updateProfileAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
 import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
 const TEACHER_AVATARS = [
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=f8fafc", // female
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Jocelyn&backgroundColor=f8fafc", // female
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Jasper&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Destiny&backgroundColor=f8fafc" // female
+  "https://api.dicebear.com/7.x/personas/svg?seed=Robert&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/personas/svg?seed=Mary&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/personas/svg?seed=William&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/personas/svg?seed=Patricia&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/personas/svg?seed=Richard&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/personas/svg?seed=Linda&backgroundColor=f8fafc"
 ];
 
 const STUDENT_AVATARS = [
-  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Felix&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Aneka&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jocelyn&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Jasper&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Destiny&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/micah/svg?seed=Leo&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Mia&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Zoe&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Ryan&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Chloe&backgroundColor=f8fafc"
 ];
 
 export default function ProfileForm({ 
