@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, Layers, Users } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen">
+    <div className="flex flex-col items-center w-full bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 min-h-screen">
       {/* Hero Section */}
       <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden">
         {/* Background Glows */}
@@ -28,7 +28,7 @@ export default function Home() {
             Get Started
             <ArrowRight className="w-5 h-5" />
           </Link>
-          <Link href="/auth/login" className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-medium px-8 py-4 rounded-xl transition-colors border border-slate-700 hover:border-slate-600">
+          <Link href="/auth/login" className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-extrabold px-8 py-4 rounded-xl transition-all border border-slate-200 shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
             Log In
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="w-full max-w-6xl mx-auto py-20 px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-slate-100 shadow-2xl hover:-translate-y-1 transition-transform">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
           <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6">
             <Users className="w-7 h-7 text-indigo-400" />
           </div>
@@ -46,7 +46,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
           <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
             <Layers className="w-7 h-7 text-purple-400" />
           </div>
@@ -56,7 +56,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
           <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-6">
             <svg
               viewBox="0 0 24 24"
