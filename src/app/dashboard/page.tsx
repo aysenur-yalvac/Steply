@@ -92,7 +92,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             <p className="text-slate-500 text-sm md:text-base max-w-xl">
               {isTeacher 
                 ? "Monitor the latest milestones of all projects uploaded by students." 
-                : "Manage your active tasks and keep your engineering portfolio up to date."}
+                : "Manage your active projects and keep your portfolio up to date."}
             </p>
           </div>
         

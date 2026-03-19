@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Layers, Users } from "lucide-react";
-import MouseGlow from "@/components/ui/MouseGlow";
+import CanvasParticles from "@/components/ui/CanvasParticles";
 
 export default function Home() {
   return (
     <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0" />
+      <CanvasParticles />
       {/* Hero Section */}
       <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden z-10">
         {/* Background Glows */}
