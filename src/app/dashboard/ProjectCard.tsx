@@ -295,7 +295,10 @@ export default function ProjectCard({
                  </>
                ) : (
                  <div className="flex justify-between items-start gap-4 p-1">
-                   <p className="text-sm font-medium text-slate-700 whitespace-pre-wrap">{noteContent}</p>
+                   <div className="flex flex-col gap-0.5">
+                     {teacherNameForNote && !isTeacher && <span className="text-[10px] text-dusty-rose font-bold uppercase tracking-wider">Note by: {teacherNameForNote}</span>}
+                     <p className="text-sm font-medium text-slate-700 whitespace-pre-wrap">{noteContent}</p>
+                   </div>
                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                      <button onClick={() => setIsEditingNote(true)} className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Note">
                        <Edit3 className="w-4 h-4" />
