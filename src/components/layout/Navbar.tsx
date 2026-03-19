@@ -38,11 +38,11 @@ export default function Navbar() {
 
 
   return (
-    <nav className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
+    <nav className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-200/50 dark:border-white/10 bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl sticky top-0 z-50 transition-colors duration-300 shadow-sm">
       <div className="flex justify-between items-center w-full md:w-auto">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
-            <BookOpen className="w-7 h-7 text-indigo-500" />
+            <img src="/image_5.png" alt="Steply Logo" className="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
             <span className="font-bold text-2xl tracking-tight">Steply</span>
           </Link>
         </div>

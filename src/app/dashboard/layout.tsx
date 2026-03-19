@@ -36,13 +36,13 @@ export default async function DashboardLayout({
   return (
     <div className="flex flex-col min-h-screen">
       {/* Sleeker Navbar Area with Glassmorphism */}
-      <div className="bg-white/80 backdrop-blur-2xl border-b border-slate-200 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-40 shadow-sm">
+      <div className="bg-white/80 backdrop-blur-2xl border-b border-slate-200 p-6 md:px-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 sticky top-0 z-40 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-800 mb-1">
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-1 leading-none">
             {isTeacher ? "All Student Projects" : "Community & Projects"}
           </h2>
-          <p className="text-sm font-medium text-slate-500">
-            Welcome back, <span className="text-dusty-rose">{profile?.full_name || user.email}</span> <span className="text-slate-400 font-normal">({roleName})</span>
+          <p className="text-sm font-semibold text-slate-500 mt-1">
+            Welcome back, <span className="text-dusty-rose font-bold">{profile?.full_name || user.email}</span> <span className="text-slate-400 font-medium">({roleName})</span>
           </p>
         </div>
         
