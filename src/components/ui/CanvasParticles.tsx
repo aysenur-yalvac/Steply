@@ -84,8 +84,18 @@ export default function CanvasParticles() {
 
     draw();
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animRef.current);
+      } else {
+        draw();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelAnimationFrame(animRef.current);
     };
   }, []);
@@ -94,6 +104,7 @@ export default function CanvasParticles() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none z-0"
+      style={{ willChange: "transform" }}
       aria-hidden="true"
     />
   );

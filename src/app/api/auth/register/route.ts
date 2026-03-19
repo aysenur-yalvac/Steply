@@ -9,6 +9,7 @@ export async function POST(request: Request) {
   const password = String(formData.get('password'))
   const fullName = String(formData.get('fullName'))
   const role = String(formData.get('role'))
+  const institution = formData.get('institution') ? String(formData.get('institution')) : null
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       data: {
         full_name: fullName,
         role: role,
+        institution: institution,
       },
     },
   })
@@ -64,6 +66,13 @@ export async function POST(request: Request) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 1 week
     })
+    // Persist institution to profile if provided
+    if (institution && data.user) {
+      await supabase
+        .from('profiles')
+        .update({ institution })
+        .eq('id', data.user.id)
+    }
     return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
       status: 303,
     })

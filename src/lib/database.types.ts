@@ -16,6 +16,13 @@ export interface Database {
           role: 'student' | 'teacher' | null
           steply_score: number
           created_at: string
+          institution: string | null
+          avatar_url: string | null
+          bio: string | null
+          phone_number: string | null
+          github_url: string | null
+          linkedin_url: string | null
+          email: string | null
         }
         Insert: {
           id: string
@@ -23,6 +30,13 @@ export interface Database {
           role?: 'student' | 'teacher' | null
           steply_score?: number
           created_at?: string
+          institution?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          phone_number?: string | null
+          github_url?: string | null
+          linkedin_url?: string | null
+          email?: string | null
         }
         Update: {
           id?: string
@@ -30,6 +44,13 @@ export interface Database {
           role?: 'student' | 'teacher' | null
           steply_score?: number
           created_at?: string
+          institution?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          phone_number?: string | null
+          github_url?: string | null
+          linkedin_url?: string | null
+          email?: string | null
         }
       }
       projects: {

@@ -100,6 +100,9 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                     <div className="overflow-hidden flex-1">
                       <div className="font-semibold text-slate-200 text-sm truncate group-hover:text-white transition-colors">{user.full_name}</div>
                       <div className="text-xs text-slate-500 truncate mt-0.5">{user.email}</div>
+                      {user.institution && (
+                        <div className="text-xs text-slate-400 truncate mt-0.5">{user.institution}</div>
+                      )}
                     </div>
                     {user.steply_score !== undefined && (
                       <div className="shrink-0 text-[10px] font-bold px-2 py-1 rounded bg-slate-50 border border-slate-100 text-dusty-rose shadow-inner tracking-wider">

@@ -8,6 +8,7 @@ export type UserSearchResult = {
   email: string;
   role: string;
   steply_score: number;
+  institution: string | null;
 };
 
 export type Message = {

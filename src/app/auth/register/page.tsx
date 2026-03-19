@@ -68,6 +68,17 @@ export default async function RegisterPage({
           </div>
 
           <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium" htmlFor="institution">
+              Institution <span className="text-slate-400 font-normal">(optional)</span>
+            </label>
+            <input
+              className="px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
+              name="institution"
+              placeholder="e.g. Istanbul Technical University"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" htmlFor="role">
               Your Role
             </label>
