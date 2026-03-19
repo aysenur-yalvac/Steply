@@ -7,11 +7,11 @@ import toast from 'react-hot-toast';
 import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
 
 const AVATARS = [
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Mimi&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Lola&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Mimi&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Jack&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/bottts/svg?seed=Robot&backgroundColor=f8fafc"
 ];
 
 export default function ProfileForm({ 

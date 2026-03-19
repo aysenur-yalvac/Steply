@@ -48,10 +48,9 @@ export default function Navbar() {
         </div>
         
         <div className="flex items-center gap-4 md:hidden">
-          {/* Mobile Theme Toggle */}
           <button 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 transition-colors"
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500 dark:text-amber-400 hover:text-amber-600 transition-colors"
             aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -69,10 +68,9 @@ export default function Navbar() {
       {/* Navigation Links & Actions */}
       <div className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row items-center gap-6 mt-4 md:mt-0`}>
         
-        {/* Theme Toggle (Desktop) */}
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors hidden md:block"
+          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition-colors hidden md:block"
           aria-label="Toggle Theme"
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -103,7 +101,7 @@ export default function Navbar() {
                 </button>
                 <button 
                   onClick={() => signOut()}
-                  className="w-full md:w-auto text-sm font-medium text-center text-red-600 dark:text-red-400 hover:text-red-700 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                  className="w-full md:w-auto text-sm font-bold text-center text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>

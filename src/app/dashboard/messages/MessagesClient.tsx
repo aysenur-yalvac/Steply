@@ -29,12 +29,12 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper>
-      <div className="flex-1 flex flex-col md:flex-row !h-[85vh] !w-[95vw] !max-w-none mx-auto border border-slate-200/80 rounded-3xl overflow-hidden !bg-white shadow-xl !text-slate-900">
+      <div className="flex-1 flex flex-col md:flex-row h-full max-h-[70vh] w-[95vw] md:max-w-6xl mx-auto border border-slate-200/80 rounded-3xl overflow-hidden bg-white shadow-xl text-slate-900">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-200/80 !bg-[#f8fafc] flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-5 border-b border-slate-200/80 space-y-4 !bg-white">
-             <h2 className="text-xl font-bold tracking-tight !text-slate-900 flex items-center gap-2">
+        <div className={`w-full md:w-80 border-r border-slate-200/80 bg-slate-50 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 sm:p-5 border-b border-slate-200/80 space-y-3 bg-white">
+             <h2 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
                <MessageSquare className="w-5 h-5 text-dusty-rose" /> Inbox
              </h2>
              <UserSearch onSelectUser={handleSelectUser} placeholder="Search network..." />
@@ -57,9 +57,9 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                     <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
                       <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
                     </div>
-                    <div className="flex flex-col overflow-hidden w-full pt-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className={`font-semibold text-sm truncate ${selectedUser?.id === conv.other_user.id ? 'text-slate-900' : 'text-slate-700'}`}>
+                    <div className="flex flex-col overflow-hidden w-full">
+                      <div className="flex justify-between items-center mb-0.5">
+                        <span className={`font-semibold text-sm truncate ${selectedUser?.id === conv.other_user.id ? 'text-slate-900' : 'text-slate-600'}`}>
                           {conv.other_user.full_name || 'Unnamed'}
                         </span>
                         {conv.last_message && (

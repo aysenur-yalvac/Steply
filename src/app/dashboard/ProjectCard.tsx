@@ -129,14 +129,14 @@ export default function ProjectCard({
   };
   
   return (
-    <div className="group bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 sm:p-8 hover:bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex flex-col gap-6 w-full relative overflow-hidden">
+    <div className="group bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl py-3 px-4 sm:px-5 hover:bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-2 w-full relative overflow-hidden">
       
       {/* Subtle Light Leak Effect - Spring Breeze Style */}
       <div className="absolute -top-24 -left-24 w-64 h-64 bg-dusty-rose/5 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-      <div className="flex flex-col gap-2 relative z-10 w-full overflow-hidden">
-        <div className="flex items-start justify-between gap-4">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-800 tracking-tight group-hover:text-slate-900 transition-colors flex-1 leading-tight mt-1">
+      <div className="flex flex-col gap-1 relative z-10 w-full overflow-hidden">
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight group-hover:text-slate-900 transition-colors flex-1 truncate">
             {project.title}
           </h3>
           <div className="flex items-center gap-2 shrink-0">
@@ -163,6 +163,19 @@ export default function ProjectCard({
                 <Bookmark className="w-4 h-4" fill={isWatched ? "currentColor" : "none"} strokeWidth={isWatched ? 2.5 : 2} />
               </button>
             )}
+
+            {currentUserId === project.student_id && (
+              <motion.button 
+                onClick={handleDeleteProject}
+                disabled={isDeleting}
+                whileHover={{ scale: 1.05, rotate: [0, -5, 5, -5, 0] }}
+                whileTap={{ scale: 0.95 }}
+                className="transition-all p-1.5 rounded-full border shadow-sm bg-white text-slate-300 border-slate-200 hover:text-red-500 hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+                title="Delete Project"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              </motion.button>
+            )}
           </div>
         </div>
 
@@ -171,12 +184,12 @@ export default function ProjectCard({
             Student: {project.profiles.full_name}
           </p>
         )}
-        <p className="text-slate-500 text-sm leading-snug line-clamp-2">
+        <p className="text-slate-500 text-sm truncate w-full">
           {project.description}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mt-2">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
          {project.end_date && (
           <div className="flex items-center gap-2 bg-slate-100/50 px-3 py-1.5 rounded-lg border border-slate-200/60">
             <Calendar className="w-4 h-4 text-slate-400" />
@@ -190,7 +203,7 @@ export default function ProjectCard({
          )}
       </div>
 
-      <div className="mt-auto pt-4 border-t border-slate-100 relative z-10 w-full">
+      <div className="mt-1 pt-3 border-t border-slate-100 relative z-10 w-full">
         <div className="flex justify-between items-center mb-2">
            <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">Progress</span>
            <span className="text-xs font-extrabold text-slate-700">{localProgress}%</span>
@@ -245,20 +258,7 @@ export default function ProjectCard({
              <div className="flex-1"></div>
           )}
 
-          {/* View Details AND Delete Button */}
-          <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
-            {currentUserId === project.student_id && (
-              <motion.button 
-                onClick={handleDeleteProject}
-                disabled={isDeleting}
-                whileHover={{ scale: 1.05, rotate: [0, -5, 5, -5, 0] }}
-                whileTap={{ scale: 0.95 }}
-                className="text-sm font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-3 py-2 rounded-xl transition-colors hover:shadow-sm shrink-0 flex items-center justify-center disabled:opacity-50"
-                title="Delete Project"
-              >
-                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              </motion.button>
-            )}
+           <div className="flex gap-2 items-center justify-end">
             <a href={`/dashboard/projects/${project.id}`} className="flex-1 text-[13px] font-bold bg-white hover:bg-slate-50 text-slate-600 border border-slate-200/80 px-4 py-2 rounded-xl transition-all text-center shrink-0 hover:shadow-sm tracking-wide">
               View Details
             </a>
@@ -266,9 +266,9 @@ export default function ProjectCard({
         </div>
       </div>
       
-      {/* Quick Private Note (Inline Luminous Style) */}
+      {/* Quick Private Note */}
       {canAddNote && (
-        <div className="mt-2 pt-4 border-t border-slate-100 relative z-10 w-full">
+        <div className="mt-1 pt-2 border-t border-slate-100 relative z-10 w-full">
            <div className={`flex items-start gap-3 bg-slate-50/80 border border-slate-200/60 rounded-xl p-2.5 focus-within:ring-2 focus-within:ring-violet-200 focus-within:bg-white transition-all ${isEditingNote ? 'shadow-inner' : 'shadow-sm'}`}>
              <MessageSquarePlus className="w-4 h-4 text-soft-lavender shrink-0 mt-1.5" />
              <div className="flex-1 flex flex-col gap-2">
