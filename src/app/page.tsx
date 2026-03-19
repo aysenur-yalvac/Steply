@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Layers, Users } from "lucide-react";
+import MouseGlow from "@/components/ui/MouseGlow";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center w-full bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 min-h-screen">
+    <div className="flex flex-col items-center w-full bg-slate-50 min-h-screen relative">
+      <MouseGlow />
       {/* Hero Section */}
       <section className="w-full py-24 md:py-32 flex flex-col items-center text-center px-6 relative overflow-hidden">
         {/* Background Glows */}
@@ -15,8 +17,8 @@ export default function Home() {
           <span>Redesigned for Education</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl mb-6">
-          The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Engineering Hub</span>
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl mb-6 relative">
+          The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-[0_0_25px_rgba(99,102,241,0.5)]">Engineering Hub</span>
         </h1>
         
         <p className="text-lg md:text-xl text-slate-600 max-w-2xl mb-10 leading-relaxed font-medium">
@@ -36,7 +38,8 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="w-full max-w-6xl mx-auto py-20 px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 backdrop-blur-xl border border-indigo-400/40 shadow-xl hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.6)] hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-indigo-400/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6">
             <Users className="w-7 h-7 text-indigo-400" />
           </div>
@@ -46,7 +49,8 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/5 backdrop-blur-xl border border-purple-400/40 shadow-xl hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.6)] hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-purple-400/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
             <Layers className="w-7 h-7 text-purple-400" />
           </div>
@@ -56,7 +60,8 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white/40 backdrop-blur-md border border-white/80 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+        <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-gradient-to-br from-blue-500/10 to-cyan-500/5 backdrop-blur-xl border border-blue-400/40 shadow-xl hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.6)] hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-blue-400/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-6">
             <svg
               viewBox="0 0 24 24"
