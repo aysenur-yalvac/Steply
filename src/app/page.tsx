@@ -17,9 +17,12 @@ export default function Home() {
           <span>Redesigned for Education</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl mb-6 relative">
-          The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-[0_0_25px_rgba(99,102,241,0.5)]">Engineering Hub</span>
-        </h1>
+        <div className="relative mb-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-2xl rounded-full scale-110 pointer-events-none" />
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 max-w-4xl relative z-10 drop-shadow-[0_15px_35px_rgba(0,0,0,0.1)]">
+            The Ultimate <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 drop-shadow-[0_10px_25px_rgba(99,102,241,0.6)]">Engineering Hub</span>
+          </h1>
+        </div>
         
         <p className="text-lg md:text-xl text-slate-600 max-w-2xl mb-10 leading-relaxed font-medium">
           More than just a tracking tool. Steply is the ultimate <strong>Engineering Hub</strong> for students and mentors to collaborate, build, and scale their portfolio together.

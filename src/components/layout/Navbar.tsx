@@ -113,7 +113,7 @@ export default function Navbar() {
                 <Link 
                   href="/auth/login" 
                   onClick={closeMenus}
-                  className="w-full md:w-auto text-sm font-medium text-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors py-2 md:px-4"
+                  className="w-full md:w-auto text-sm font-extrabold text-center text-slate-900 dark:text-white hover:text-indigo-600 transition-colors py-2 md:px-4"
                 >
                   Log In
                 </Link>
