@@ -2,8 +2,8 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star } from 'lucide-react';
-import { createReview } from '../../actions';
+import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star, Trash2 } from 'lucide-react';
+import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
@@ -156,10 +156,21 @@ export default async function ProjectDetailPage({
                           {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
-                      <div className="flex gap-1 text-amber-400 shrink-0">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
-                        ))}
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <div className="flex gap-1 text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
+                          ))}
+                        </div>
+                        {user.id === review.reviewer_id && (
+                          <form action={deleteReviewAction}>
+                            <input type="hidden" name="id" value={review.id} />
+                            <input type="hidden" name="project_id" value={project.id} />
+                            <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Delete Review">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </form>
+                        )}
                       </div>
                    </div>
                    <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap">{review.comment}</p>

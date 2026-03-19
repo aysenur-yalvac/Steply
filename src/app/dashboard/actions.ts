@@ -79,6 +79,25 @@ export async function createReview(formData: FormData) {
   return redirect(`/dashboard/projects/${projectId}`);
 }
 
+export async function deleteReviewAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return redirect("/auth/login");
+
+  const reviewId = formData.get("id") as string;
+  const projectId = formData.get("project_id") as string;
+
+  const { error } = await supabase.from("reviews").delete().match({ id: reviewId, reviewer_id: user.id });
+
+  if (error) {
+    console.error("Error deleting review:", error);
+    return redirect(`/dashboard/projects/${projectId}?error=Could not delete review.`);
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return redirect(`/dashboard/projects/${projectId}`);
+}
+
 export async function deleteProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
