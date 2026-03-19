@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
             <div className="w-7 h-7 relative overflow-hidden flex items-center justify-center rounded-sm">
-              <img src="/image_5.png" alt="Steply Logo" className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+              <img src="/image_5.png" alt="Steply Logo" className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_12px_rgba(59,130,246,0.5)] [clip-path:inset(2px)]" />
             </div>
             <span className="font-bold text-2xl tracking-tight">Steply</span>
           </Link>
@@ -103,9 +103,9 @@ export default function Navbar() {
                 </button>
                 <button 
                   onClick={() => signOut()}
-                  className="w-full md:w-auto text-sm font-extrabold text-center tracking-wide text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                  className="w-full md:w-auto text-sm font-extrabold text-center tracking-wide text-white hover:text-red-100 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <LogOut className="w-4 h-4 text-red-600 dark:text-red-500" strokeWidth={2.5} /> Sign Out
+                  <LogOut className="w-4 h-4 text-white" strokeWidth={2.5} /> Sign Out
                 </button>
               </div>
             ) : (

@@ -5,14 +5,22 @@ import { useRouter } from 'next/navigation';
 import { updateProfileAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
 import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
+const TEACHER_AVATARS = [
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=f8fafc", // female
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jocelyn&backgroundColor=f8fafc", // female
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jasper&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Destiny&backgroundColor=f8fafc" // female
+];
 
-const AVATARS = [
+const STUDENT_AVATARS = [
   "https://api.dicebear.com/7.x/open-peeps/svg?seed=Felix&backgroundColor=f8fafc",
   "https://api.dicebear.com/7.x/open-peeps/svg?seed=Aneka&backgroundColor=f8fafc",
   "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=f8fafc",
   "https://api.dicebear.com/7.x/avataaars/svg?seed=Jocelyn&backgroundColor=f8fafc",
   "https://api.dicebear.com/7.x/bottts/svg?seed=Jasper&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Destiny&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Destiny&backgroundColor=f8fafc"
 ];
 
 export default function ProfileForm({ 
@@ -24,8 +32,9 @@ export default function ProfileForm({
   email: string;
   userId: string;
 }) {
+  const avatars = profile?.role === 'teacher' ? TEACHER_AVATARS : STUDENT_AVATARS;
   const [isPending, setIsPending] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || AVATARS[0]);
+  const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || avatars[0]);
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
@@ -57,7 +66,7 @@ export default function ProfileForm({
             <ImageIcon className="w-4 h-4 text-dusty-rose" /> Choose Avatar
          </label>
          <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-2xl border border-slate-100">
-            {AVATARS.map(avatar => (
+            {avatars.map(avatar => (
                <button 
                  key={avatar} 
                  type="button"

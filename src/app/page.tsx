@@ -20,7 +20,7 @@ export default function Home() {
         </h1>
         
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
-          Track your projects, share your GitHub links, and manage your progress in one place with Steply, specifically designed for students and teachers.
+          More than just a tracking tool. Steply is the ultimate <strong>Engineering Hub</strong> for students and mentors to collaborate, build, and scale their portfolio together.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -40,9 +40,9 @@ export default function Home() {
           <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6">
             <Users className="w-7 h-7 text-indigo-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">Role-Based System</h3>
+          <h3 className="text-xl font-bold text-white mb-3">Role-Based Mentorship</h3>
           <p className="text-slate-400">
-            Register as a student or teacher. Increase your productivity with different experiences and tools tailored for each role.
+            Increase your productivity with different experiences and tools tailored for distinct roles.
           </p>
         </div>
 
@@ -50,9 +50,9 @@ export default function Home() {
           <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-6">
             <Layers className="w-7 h-7 text-purple-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">Progress Tracking</h3>
+          <h3 className="text-xl font-bold text-white mb-3">Real-time Progress Tracking</h3>
           <p className="text-slate-400">
-            Update the progress percentage of your projects. Teachers can see the status of projects live.
+            Update the progress percentage of your projects natively. Mentors can see the status of projects live.
           </p>
         </div>
 

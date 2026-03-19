@@ -45,7 +45,7 @@ export default function ProjectCard({
   
   const isCompleted = localProgress === 100;
 
-  const canAddNote = true;
+  const canAddNote = currentUserId === project.student_id;
   const canWatchlist = true;
 
   const handleUpdate = async (formData: FormData) => {
