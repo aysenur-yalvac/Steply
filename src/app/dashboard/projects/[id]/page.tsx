@@ -72,7 +72,7 @@ export default async function ProjectDetailPage({
     const nameMap = new Map(reviewerProfiles?.map((p) => [p.id, p.full_name]) ?? []);
     reviews = rawReviews.map((r) => ({
       ...r,
-      reviewer_name: nameMap.get(r.reviewer_id) ?? 'Unknown Reviewer',
+      reviewer_name: nameMap.get(r.reviewer_id),
     }));
   }
 
@@ -150,7 +150,7 @@ export default async function ProjectDetailPage({
                    <div className="flex justify-between items-start mb-3">
                       <div>
                         <span className="font-bold text-slate-700">
-                          {review.reviewer_name ?? 'Unknown Reviewer'}
+                          {review.reviewer_name}
                         </span>
                         <p className="text-xs text-slate-400 mt-0.5 font-medium">
                           {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}

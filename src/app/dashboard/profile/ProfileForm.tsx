@@ -8,10 +8,11 @@ import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as 
 
 const AVATARS = [
   "https://api.dicebear.com/7.x/open-peeps/svg?seed=Felix&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Jack&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Robot&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Aneka&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jocelyn&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/bottts/svg?seed=Jasper&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Destiny&backgroundColor=f8fafc"
 ];
 
 export default function ProfileForm({ 

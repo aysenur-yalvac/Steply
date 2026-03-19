@@ -44,7 +44,12 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
   
   if (isTeacher) {
     if (!q) {
-      projects = [];
+      const { data } = await supabase
+        .from('projects')
+        .select('*, profiles!student_id(full_name)')
+        .in('id', Array.from(watchedIds))
+        .order('created_at', { ascending: false });
+      projects = data || [];
     } else {
       const { data } = await supabase
         .from('projects')

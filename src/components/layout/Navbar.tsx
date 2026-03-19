@@ -42,7 +42,9 @@ export default function Navbar() {
       <div className="flex justify-between items-center w-full md:w-auto">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-80 transition-opacity" onClick={closeMenus}>
-            <img src="/image_5.png" alt="Steply Logo" className="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+            <div className="w-7 h-7 relative overflow-hidden flex items-center justify-center rounded-sm">
+              <img src="/image_5.png" alt="Steply Logo" className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+            </div>
             <span className="font-bold text-2xl tracking-tight">Steply</span>
           </Link>
         </div>
@@ -50,7 +52,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4 md:hidden">
           <button 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm"
+            className="p-2 rounded-lg bg-slate-200/20 dark:bg-white/10 backdrop-blur-md border border-slate-200/50 dark:border-white/10 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm"
             aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -70,7 +72,7 @@ export default function Navbar() {
         
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm hidden md:block"
+          className="p-2 rounded-lg bg-slate-200/20 dark:bg-white/10 backdrop-blur-md border border-slate-200/50 dark:border-white/10 text-amber-500/80 dark:text-amber-200/40 hover:text-amber-400 dark:hover:text-amber-200 transition-colors drop-shadow-sm hidden md:block"
           aria-label="Toggle Theme"
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -101,9 +103,9 @@ export default function Navbar() {
                 </button>
                 <button 
                   onClick={() => signOut()}
-                  className="w-full md:w-auto text-sm font-extrabold text-center tracking-wide text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
+                  className="w-full md:w-auto text-sm font-extrabold text-center tracking-wide text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
-                  <LogOut className="w-4 h-4 text-red-500 dark:text-red-400" strokeWidth={2.5} /> Sign Out
+                  <LogOut className="w-4 h-4 text-red-600 dark:text-red-500" strokeWidth={2.5} /> Sign Out
                 </button>
               </div>
             ) : (
