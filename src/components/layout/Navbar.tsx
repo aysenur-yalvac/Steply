@@ -50,10 +50,10 @@ export default function Navbar() {
         <div className="flex items-center gap-4 md:hidden">
           <button 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500 dark:text-amber-400 hover:text-amber-600 transition-colors"
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-400 hover:text-amber-300 transition-colors"
             aria-label="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5" fill="currentColor" /> : <Moon className="w-5 h-5" fill="currentColor" />}
           </button>
           
           <button 
@@ -70,10 +70,10 @@ export default function Navbar() {
         
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition-colors hidden md:block"
+          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-amber-400 hover:text-amber-300 transition-colors hidden md:block"
           aria-label="Toggle Theme"
         >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {theme === 'dark' ? <Sun className="w-5 h-5" fill="currentColor" /> : <Moon className="w-5 h-5" fill="currentColor" />}
         </button>
 
         {!loading && (

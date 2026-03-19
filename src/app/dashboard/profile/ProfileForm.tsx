@@ -7,10 +7,10 @@ import toast from 'react-hot-toast';
 import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
 
 const AVATARS = [
-  "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Mimi&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Jack&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Felix&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/open-peeps/svg?seed=Jack&backgroundColor=f8fafc",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi&backgroundColor=f8fafc",
   "https://api.dicebear.com/7.x/bottts/svg?seed=Robot&backgroundColor=f8fafc"
 ];
 
@@ -37,9 +37,6 @@ export default function ProfileForm({
         toast.error(result.error);
       } else {
         toast.success('Profile updated successfully!', { icon: '✨' });
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
       }
     } catch(e) {
       toast.error('An error occurred');

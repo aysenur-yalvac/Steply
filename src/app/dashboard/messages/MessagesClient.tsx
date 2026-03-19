@@ -90,12 +90,10 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                selectedUser={selectedUser} 
              />
            ) : (
-             <div className="h-full flex flex-col items-center justify-center p-6">
-                <EmptyState 
-                  icon={Send}
-                  title="Your Inbox"
-                  description="Select a person from the list on the left or search above to start a conversation. Realtime connectivity powers your engineering hub."
-                />
+             <div className="h-full flex flex-col items-center justify-center p-6 text-center text-slate-400">
+               <Send className="w-12 h-12 text-slate-200 mb-4" />
+               <h3 className="text-lg font-bold text-slate-700 mb-2">Your Inbox</h3>
+               <p className="max-w-md">Select a person from the list on the left or search above to start a conversation. Realtime connectivity powers your engineering hub.</p>
              </div>
            )}
         </div>

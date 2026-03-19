@@ -26,13 +26,23 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
   let projects = [];
   let watchedIds = new Set<string>();
   let projectNotes: Record<string, string> = {};
-
   // Fetch watched projects for EVERYONE (persistence fix)
   const { data: mentoredData } = await supabase
     .from('mentored_projects')
     .select('project_id')
     .eq('teacher_id', user?.id);
   watchedIds = new Set(mentoredData?.map((m: any) => m.project_id) || []);
+
+  // Fetch notes for EVERYONE
+  const { data: notesData } = await supabase
+    .from('project_notes')
+    .select('project_id, content')
+    .eq('teacher_id', user?.id);
+  if (notesData) {
+    notesData.forEach((n: any) => {
+      projectNotes[n.project_id] = n.content;
+    });
+  }
   
   if (isTeacher) {
     // Teachers see all projects with student info
@@ -51,16 +61,6 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     projects = allProjects;
 
 
-    // Fetch notes
-    const { data: notesData } = await supabase
-      .from('project_notes')
-      .select('project_id, content')
-      .eq('teacher_id', user?.id);
-    if (notesData) {
-      notesData.forEach((n: any) => {
-        projectNotes[n.project_id] = n.content;
-      });
-    }
 
   } else {
     // Students see their own projects
