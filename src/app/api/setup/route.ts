@@ -1,13 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { initializeStorage } from "@/lib/init-storage";
 
 /**
  * GET /api/setup
  * Initializes storage bucket and DB on first deploy.
- * This endpoint is called automatically by the app on startup
- * (via layout.tsx server-side fetch) when SUPABASE_SERVICE_ROLE_KEY is set.
+ * Requires Authorization: Bearer <SETUP_SECRET> header.
+ * Set SETUP_SECRET in your environment variables.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const secret = process.env.SETUP_SECRET;
+  const authHeader = request.headers.get("authorization");
+
+  if (!secret || authHeader !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const storageResult = await initializeStorage();
 
   return NextResponse.json({

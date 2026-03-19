@@ -245,6 +245,10 @@ export async function updateProfileAction(formData: FormData) {
 
   if (!id) return { error: "User ID missing" };
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "Unauthorized" };
+  if (user.id !== id) return { error: "Forbidden: cannot modify another user's profile" };
+
   const { error } = await supabase.from('profiles').update({
     full_name,
     phone_number,
