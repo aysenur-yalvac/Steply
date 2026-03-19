@@ -15,12 +15,12 @@ const TEACHER_AVATARS = [
 ];
 
 const STUDENT_AVATARS = [
-  "https://api.dicebear.com/7.x/micah/svg?seed=Leo&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Mia&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Zoe&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Ryan&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Chloe&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/personas/svg?seed=James&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/personas/svg?seed=Barbara&backgroundColor=f8fafc", // female
+  "https://api.dicebear.com/7.x/personas/svg?seed=John&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/personas/svg?seed=Elizabeth&backgroundColor=f8fafc", // female
+  "https://api.dicebear.com/7.x/personas/svg?seed=Michael&backgroundColor=f8fafc", // male
+  "https://api.dicebear.com/7.x/personas/svg?seed=Jennifer&backgroundColor=f8fafc" // female
 ];
 
 export default function ProfileForm({ 

@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import PageWrapper from '@/components/layout/PageWrapper';
+import GlobalSearch from '@/components/dashboard/GlobalSearch';
+import { Suspense } from 'react';
 
 export default async function DashboardLayout({
   children,
@@ -47,14 +49,9 @@ export default async function DashboardLayout({
         </div>
         
         <div className="flex items-center gap-4 w-full sm:w-auto">
-          {isTeacher && (
-            <Link 
-              href="/dashboard/projects/new" 
-              className="flex items-center gap-2 bg-dusty-rose/10 hover:bg-dusty-rose/20 text-rose-600 font-bold px-5 py-2.5 rounded-2xl transition-all shadow-sm shrink-0 border border-dusty-rose/20"
-            >
-              <Plus className="w-5 h-5" /> New Project
-            </Link>
-          )}
+          <Suspense fallback={<div className="w-64 h-10 bg-slate-100 animate-pulse rounded-2xl"></div>}>
+            <GlobalSearch />
+          </Suspense>
 
           {!isTeacher && (
             <Link href="/dashboard/agenda" className="text-sm font-bold text-slate-500 hover:text-sage-green px-2 fallback-hidden sm:block transition-colors">

@@ -5,7 +5,6 @@ import { Plus, FolderOpen, Search } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
-import TeacherSearch from '@/components/dashboard/TeacherSearch';
 
 export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
   const searchParams = await props.searchParams;
@@ -71,7 +70,13 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       .eq('student_id', user?.id)
       .order('created_at', { ascending: false });
 
-    projects = data || [];
+    let allProjects = data || [];
+    if (q) {
+      allProjects = allProjects.filter((p: any) => 
+        p.title.toLowerCase().includes(q)
+      );
+    }
+    projects = allProjects;
   }
 
   return (
@@ -105,7 +110,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
         </div>
       </div>
 
-      {isTeacher && <TeacherSearch />}
+
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
