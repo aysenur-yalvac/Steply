@@ -4,23 +4,23 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateProfileAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
-import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon, Landmark } from 'lucide-react';
 const TEACHER_AVATARS = [
-  "https://api.dicebear.com/7.x/personas/svg?seed=Robert&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/personas/svg?seed=Mary&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/personas/svg?seed=William&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/personas/svg?seed=Patricia&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/personas/svg?seed=Richard&backgroundColor=f8fafc",
-  "https://api.dicebear.com/7.x/personas/svg?seed=Linda&backgroundColor=f8fafc"
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Robert&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Mary&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=William&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Patricia&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Richard&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Linda&backgroundColor=transparent"
 ];
 
 const STUDENT_AVATARS = [
-  "https://api.dicebear.com/7.x/personas/svg?seed=James&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/personas/svg?seed=Barbara&backgroundColor=f8fafc", // female
-  "https://api.dicebear.com/7.x/personas/svg?seed=John&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/personas/svg?seed=Elizabeth&backgroundColor=f8fafc", // female
-  "https://api.dicebear.com/7.x/personas/svg?seed=Michael&backgroundColor=f8fafc", // male
-  "https://api.dicebear.com/7.x/personas/svg?seed=Jennifer&backgroundColor=f8fafc" // female
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Leo&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Mia&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Ryan&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Chloe&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Wyatt&backgroundColor=transparent",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Zoe&backgroundColor=transparent"
 ];
 
 export default function ProfileForm({ 
@@ -131,6 +131,19 @@ export default function ProfileForm({
           placeholder="Tell us a little bit about yourself..."
           rows={4}
           className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm resize-none"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 relative z-0">
+        <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
+           <Landmark className="w-4 h-4 text-dusty-rose" /> School / Institution
+        </label>
+        <input 
+          type="text" 
+          name="institution"
+          defaultValue={profile?.institution || ''}
+          placeholder={profile?.role === 'teacher' ? "University of Technology" : "Engineering Faculty"}
+          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
         />
       </div>
 

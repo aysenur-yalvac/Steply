@@ -21,6 +21,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
   
   const { theme, setTheme } = useTheme();
   const { user, signOut, loading } = useAuth();
@@ -110,20 +111,24 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                <Link 
-                  href="/auth/login" 
-                  onClick={closeMenus}
-                  className="w-full md:w-auto text-sm font-extrabold text-center text-slate-900 dark:text-white hover:text-indigo-600 transition-colors py-2 md:px-4"
-                >
-                  Log In
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  onClick={closeMenus}
-                  className="w-full md:w-auto text-sm font-medium text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 px-6 transition-all shadow-[0_4px_20px_-5px_rgba(79,70,229,0.5)] active:scale-95"
-                >
-                  Sign Up
-                </Link>
+                {!pathname.startsWith('/auth') && (
+                  <Link 
+                    href="/auth/login" 
+                    onClick={closeMenus}
+                    className="w-full md:w-auto text-sm font-extrabold text-center text-slate-900 dark:text-white hover:text-indigo-600 transition-colors py-2 md:px-4"
+                  >
+                    Log In
+                  </Link>
+                )}
+                {!pathname.startsWith('/auth') && (
+                  <Link 
+                    href="/auth/register" 
+                    onClick={closeMenus}
+                    className="w-full md:w-auto text-sm font-medium text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 px-6 transition-all shadow-[0_4px_20px_-5px_rgba(79,70,229,0.5)] active:scale-95"
+                  >
+                    Sign Up
+                  </Link>
+                )}
               </div>
             )}
           </>

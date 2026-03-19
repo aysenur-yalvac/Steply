@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowLeft } from "lucide-react";
 
 export default async function RegisterPage({
   searchParams,
@@ -10,8 +10,13 @@ export default async function RegisterPage({
   const message = resolvedSearchParams?.message;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 w-full max-w-md mx-auto">
-      <div className="flex flex-col items-center mb-8">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 w-full max-w-md mx-auto relative">
+      <Link href="/" className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-semibold mb-8 group transition-colors">
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
+        Go Back
+      </Link>
+      
+      <div className="flex flex-col items-center mb-8 mt-12">
          <Link href="/" className="flex items-center gap-2 text-slate-800 hover:opacity-80 transition-opacity mb-6">
           <BookOpen className="w-8 h-8 text-indigo-500" />
           <span className="font-bold text-3xl tracking-tight">Steply</span>

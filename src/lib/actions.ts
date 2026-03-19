@@ -241,6 +241,7 @@ export async function updateProfileAction(formData: FormData) {
   const github_url = formData.get('github_url') as string;
   const linkedin_url = formData.get('linkedin_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
+  const institution = formData.get('institution') as string;
 
   if (!id) return { error: "User ID missing" };
 
@@ -250,7 +251,8 @@ export async function updateProfileAction(formData: FormData) {
     bio,
     github_url,
     linkedin_url,
-    avatar_url
+    avatar_url,
+    institution,
   }).eq('id', id);
 
   if (error) return { error: error.message };
