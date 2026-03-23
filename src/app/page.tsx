@@ -237,13 +237,7 @@ export default function Home() {
           PROCESS STEPS
       ══════════════════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-4xl mx-auto px-4 md:px-8 pb-14 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
-
-          {/* Connecting line (desktop only) */}
-          <div
-            className="hidden md:block absolute top-9 left-[calc(16.67%+20px)] right-[calc(16.67%+20px)] h-px"
-            style={{ background: "linear-gradient(90deg, rgba(160,32,240,0.45) 0%, rgba(255,127,80,0.45) 100%)" }}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
           {STEPS.map(({ icon: Icon, step, title, desc, color }, i) => (
             <motion.div
@@ -253,8 +247,10 @@ export default function Home() {
               transition={{ duration: 0.45, delay: 0.15 + i * 0.12 }}
               className="flex flex-col items-center text-center p-6 rounded-2xl"
               style={{
-                background: "rgba(13,17,30,0.62)",
-                border: `1px solid ${color.bar}22`,
+                background: "rgba(15,20,40,0.72)",
+                border: "1px solid rgba(255,255,255,0.05)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
               }}
             >
               <div
