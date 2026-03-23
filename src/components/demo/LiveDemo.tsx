@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShoppingCart, Bot, LayoutDashboard, Database, Globe,
-  Shield, CheckCircle, Star, Bell, Send,
+  BookOpen, ShoppingCart, LayoutDashboard, Users, Database,
+  Shield, CheckCircle, Star, Bell, Send, ArrowRight,
 } from "lucide-react";
+import { PROJECTS_DATA } from "@/data/projects";
+import type { ProjectStatus } from "@/data/projects";
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const AURA = [
@@ -24,35 +27,48 @@ const STATUS = {
   submitted: { label: "New Submission",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
 } as const;
 
-type StatusKey = keyof typeof STATUS;
-
 // ── Approval stages ───────────────────────────────────────────────────────────
 const STAGES = ["Submitted", "Review", "Grade", "Finalized"];
 
-// ── Demo data ─────────────────────────────────────────────────────────────────
-const PROJECTS = [
-  { id: 1, title: "E-Commerce Platform", student: "Ahmet Y.",  Icon: ShoppingCart,    stage: 3, grade: "92/100",  lastAction: "Teacher graded 1d ago",    status: "approved"  as StatusKey, color: AURA[0] },
-  { id: 2, title: "AI Chatbot",           student: "Sara M.",   Icon: Bot,             stage: 1, grade: "Pending", lastAction: "Submitted 2h ago",         status: "review"    as StatusKey, color: AURA[1] },
-  { id: 3, title: "Mobile Dashboard",    student: "Kerem A.",  Icon: LayoutDashboard, stage: 4, grade: "88/100",  lastAction: "Finalized 3d ago",         status: "approved"  as StatusKey, color: AURA[2] },
-  { id: 4, title: "ETL Pipeline",         student: "Lena K.",   Icon: Database,        stage: 1, grade: "Pending", lastAction: "Changes requested 5h ago", status: "changes"   as StatusKey, color: AURA[3] },
-  { id: 5, title: "Portfolio Website",   student: "Cem D.",    Icon: Globe,           stage: 0, grade: "Pending", lastAction: "New submission 30m ago",   status: "submitted" as StatusKey, color: AURA[4] },
+function stageFromStatus(status: ProjectStatus): number {
+  switch (status) {
+    case "submitted": return 1;
+    case "review":    return 2;
+    case "changes":   return 1;
+    case "approved":  return 4;
+  }
+}
+
+const LAST_ACTIONS = [
+  "Teacher graded 1d ago",
+  "Teacher graded 2d ago",
+  "Submitted 3h ago",
+  "Finalized 4d ago",
+  "Changes requested 1d ago",
 ];
 
+// Icons for the 5 demo projects
+const DEMO_ICONS = [BookOpen, ShoppingCart, LayoutDashboard, Users, Database];
+
+// First 5 projects for the demo panel
+const DEMO_PROJECTS = PROJECTS_DATA.slice(0, 5);
+
+// ── Teacher feedback (static demo) ───────────────────────────────────────────
 const FEEDBACK = [
-  { id: 1, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "E-Commerce Platform", rating: 5,    comment: "Architecture is solid. Payment flow tested and approved. Moving to Grade stage.", color: AURA[0] },
-  { id: 2, avatar: "DL", teacher: "Dr. Lee",      tag: "Teacher Note",   project: "ETL Pipeline",         rating: null, comment: "Batch size optimisation needed before approval. Please revise and resubmit.",       color: AURA[3] },
-  { id: 3, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "Mobile Dashboard",     rating: 5,    comment: "Visual design is exceptional. Marking milestone complete. Final grade issued.",      color: AURA[2] },
-  { id: 4, avatar: "DM", teacher: "Dr. Martinez", tag: "Teacher Note",   project: "AI Chatbot",            rating: null, comment: "Good NLP progress. Add retry logic for API timeouts before the next review.",       color: AURA[1] },
+  { id: 1, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "OOP Not Hesaplayıcı",   rating: 5,    comment: "Encapsulation mükemmel uygulanmış. CRUD işlemleri temiz ve test edilmiş. Onaylıyorum.", color: AURA[0] },
+  { id: 2, avatar: "DL", teacher: "Dr. Lee",      tag: "Teacher Note",   project: "Kütüphane Otomasyonu",  rating: null, comment: "Enum kullanımı doğru ama tarih farkı hesabında edge case hatası var. Lütfen düzeltin.", color: AURA[3] },
+  { id: 3, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "Personel Takip Sistemi",rating: 5,    comment: "Interface kullanımı çok başarılı. Loglama yapısı da kurumsal standartlarda. Final.", color: AURA[2] },
+  { id: 4, avatar: "DM", teacher: "Dr. Martinez", tag: "Teacher Note",   project: "Geometrik Form Aracı",  rating: null, comment: "Polymorphism doğru kurulmuş. Virtual method override'ları gözden geçirilmeli.", color: AURA[1] },
 ];
 
 const REQUESTS = [
-  { id: 1, student: "Cem D.",  project: "Portfolio Website", milestone: "Final Deploy",    time: "30m ago", color: AURA[4] },
-  { id: 2, student: "Sara M.", project: "AI Chatbot",         milestone: "NLP Module v2",  time: "2h ago",  color: AURA[1] },
-  { id: 3, student: "Lena K.", project: "ETL Pipeline",       milestone: "Data Validation",time: "5h ago",  color: AURA[3] },
+  { id: 1, student: "Cem D.",   project: "Kütüphane Otomasyonu",  milestone: "Enum & Date Logic",   time: "1d ago",  color: AURA[4] },
+  { id: 2, student: "Kerem A.", project: "Geometrik Form Aracı",  milestone: "Polymorphism Module", time: "3h ago",  color: AURA[1] },
+  { id: 3, student: "Sara M.",  project: "Sipariş Yönetimi",      milestone: "Inheritance Layer",   time: "5h ago",  color: AURA[3] },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: StatusKey }) {
+function StatusBadge({ status }: { status: ProjectStatus }) {
   const s = STATUS[status];
   return (
     <span
@@ -123,7 +139,7 @@ export default function LiveDemo() {
     >
 
       {/* ════════════════════════════════════════════════════════════════════
-          LEFT — Academic Review Board
+          LEFT — Academic Review Board (first 5 of 50)
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex-1 min-w-0 flex flex-col">
 
@@ -142,11 +158,11 @@ export default function LiveDemo() {
           <div className="ml-auto flex items-center gap-2">
             <span className="text-[10px] font-bold px-2 py-1 rounded-md"
               style={{ color: "#22C55E", background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.22)" }}>
-              3 Approved
+              18 Approved
             </span>
             <span className="text-[10px] font-bold px-2 py-1 rounded-md"
               style={{ color: "#F59E0B", background: "rgba(245,158,11,0.10)", border: "1px solid rgba(245,158,11,0.22)" }}>
-              2 Pending
+              32 Pending
             </span>
           </div>
         </div>
@@ -161,11 +177,13 @@ export default function LiveDemo() {
           <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 hidden md:block">Last Action</span>
         </div>
 
-        {/* Project rows */}
+        {/* Project rows — first 5 only */}
         <div className="flex flex-col px-3 py-2 gap-1.5 flex-1">
-          {PROJECTS.map((proj, idx) => {
-            const { Icon } = proj;
+          {DEMO_PROJECTS.map((proj, idx) => {
+            const Icon = DEMO_ICONS[idx];
+            const color = AURA[idx % AURA.length];
             const isApproved = proj.status === "approved";
+            const stage = stageFromStatus(proj.status);
             return (
               <motion.div
                 key={proj.id}
@@ -177,15 +195,15 @@ export default function LiveDemo() {
                   background: "rgba(255,255,255,0.025)",
                   border: "1px solid rgba(255,255,255,0.07)",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${proj.color.bar}55`)}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${color.bar}55`)}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}
               >
                 {/* Icon */}
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: `${proj.color.bar}18`, border: `1px solid ${proj.color.bar}33` }}
+                  style={{ background: `${color.bar}18`, border: `1px solid ${color.bar}33` }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: proj.color.label }} />
+                  <Icon className="w-4 h-4" style={{ color: color.label }} />
                 </div>
 
                 {/* Title + student + approval progress */}
@@ -202,9 +220,9 @@ export default function LiveDemo() {
                     )}
                   </div>
                   <span className="text-[10px] text-slate-500 block leading-tight mb-1">
-                    Student: {proj.student}
+                    Student: {proj.studentName}
                   </span>
-                  <ApprovalProgress stage={proj.stage} color={proj.color} />
+                  <ApprovalProgress stage={stage} color={color} />
                 </div>
 
                 {/* Status + grade */}
@@ -212,15 +230,37 @@ export default function LiveDemo() {
                   <StatusBadge status={proj.status} />
                   <span
                     className="text-[10px] font-bold"
-                    style={{ color: proj.grade === "Pending" ? "rgba(255,255,255,0.22)" : proj.color.label }}
+                    style={{ color: proj.grade === "Pending" ? "rgba(255,255,255,0.22)" : color.label }}
                   >
                     {proj.grade}
                   </span>
-                  <span className="text-[9px] text-slate-600 hidden md:block">{proj.lastAction}</span>
+                  <span className="text-[9px] text-slate-600 hidden md:block">{LAST_ACTIONS[idx]}</span>
                 </div>
               </motion.div>
             );
           })}
+        </div>
+
+        {/* ── View All button ─────────────────────────────────────────────── */}
+        <div className="px-3 pb-3 shrink-0">
+          <Link
+            href="/all-projects"
+            className="group flex items-center justify-center gap-2.5 w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            style={{
+              background: "rgba(160,32,240,0.10)",
+              border: "1px solid rgba(160,32,240,0.30)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <span className="text-slate-300">Tüm Projeleri Göster</span>
+            <span
+              className="text-[11px] font-black px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(160,32,240,0.30)", color: "#C97EFF", border: "1px solid rgba(160,32,240,0.45)" }}
+            >
+              50
+            </span>
+            <ArrowRight className="w-4 h-4 text-purple-400 group-hover:translate-x-0.5 transition-transform duration-200" />
+          </Link>
         </div>
 
         {/* Stage legend */}
@@ -307,7 +347,6 @@ export default function LiveDemo() {
                     className="px-4 py-3.5 flex flex-col gap-1.5 hover:bg-white/[0.015] transition-colors"
                     style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.04)" }}
                   >
-                    {/* Teacher row */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <div
@@ -328,8 +367,6 @@ export default function LiveDemo() {
                       </div>
                       {item.rating != null && <StarRow rating={item.rating} />}
                     </div>
-
-                    {/* Comment */}
                     <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-2 pl-9">
                       <span className="font-bold" style={{ color: item.color.label }}>{item.project}: </span>
                       {item.comment}
