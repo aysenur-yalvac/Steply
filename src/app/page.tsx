@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import Link from "next/link";
-import {
-  ArrowRight, BookOpen, Github, Calendar, CheckCircle,
-  Clock, Star, MessageSquare, TrendingUp, Users, Zap, Upload, Award,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, BookOpen, CheckCircle, TrendingUp, Users, Zap, Upload, Award } from "lucide-react";
+import { motion } from "framer-motion";
 import CanvasParticles from "@/components/ui/CanvasParticles";
+import LiveDemo from "@/components/demo/LiveDemo";
 
 // ── Aura palette ──────────────────────────────────────────────────────────────
 const AURA = [
@@ -16,64 +13,6 @@ const AURA = [
   { bar: "#7C3AFF", glow: "rgba(124,58,255,0.55)",  track: "rgba(124,58,255,0.10)",  label: "#A78BFA" },
   { bar: "#FF4F8B", glow: "rgba(255,79,139,0.55)",  track: "rgba(255,79,139,0.10)",  label: "#FF8FB3" },
   { bar: "#00C2CB", glow: "rgba(0,194,203,0.55)",   track: "rgba(0,194,203,0.10)",   label: "#5EE7EC" },
-];
-
-// ── Demo data ─────────────────────────────────────────────────────────────────
-function daysFromNow(n: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d;
-}
-
-const DEMO_PROJECTS = [
-  {
-    id: 1, title: "E-Commerce Platform", student: "Alex K.", role: "Full-Stack",
-    start: daysFromNow(-62), end: daysFromNow(28),  progress: 75,  github: true,
-    desc: "Next.js storefront with Stripe payments and real-time inventory sync.",
-  },
-  {
-    id: 2, title: "AI Chatbot", student: "Sarah M.", role: "ML Engineer",
-    start: daysFromNow(-32), end: daysFromNow(58),  progress: 42,  github: true,
-    desc: "LLM-powered support agent with RAG pipeline and custom embeddings.",
-  },
-  {
-    id: 3, title: "Mobile Dashboard", student: "James R.", role: "UI/UX",
-    start: daysFromNow(-47), end: daysFromNow(-4),  progress: 100, github: false,
-    desc: "React Native analytics dashboard. Delivered ahead of schedule.",
-  },
-  {
-    id: 4, title: "ETL Pipeline", student: "Lena P.", role: "Data Eng.",
-    start: daysFromNow(-18), end: daysFromNow(42),  progress: 22,  github: true,
-    desc: "Apache Airflow DAGs for multi-source ingestion into data warehouse.",
-  },
-  {
-    id: 5, title: "Portfolio Website", student: "Omar T.", role: "Frontend",
-    start: daysFromNow(-72), end: daysFromNow(-22), progress: 100, github: false,
-    desc: "Blazing-fast Astro site with MDX blog and Lighthouse score 100/100.",
-  },
-];
-
-const DEMO_ACTIVITY = [
-  {
-    id: 1, reviewer: "Prof. Chen", avatar: "PC", project: "E-Commerce Platform",
-    rating: 5, comment: "Excellent architecture! The payment flow is seamless and well-tested.",
-    time: "2h ago", color: AURA[0],
-  },
-  {
-    id: 2, reviewer: "Dr. Martinez", avatar: "DM", project: "AI Chatbot",
-    rating: 4, comment: "Great NLP layer progress. Consider adding retry logic for API timeouts.",
-    time: "5h ago", color: AURA[1],
-  },
-  {
-    id: 3, reviewer: "Prof. Chen", avatar: "PC", project: "Mobile Dashboard",
-    rating: 5, comment: "Stunning visual design. Marking as Completed — flawless delivery!",
-    time: "1d ago", color: AURA[4],
-  },
-  {
-    id: 4, reviewer: "Dr. Lee", avatar: "DL", project: "ETL Pipeline",
-    rating: 3, comment: "Batch sizes need optimisation for large dataset loads. Promising start.",
-    time: "2d ago", color: AURA[2],
-  },
 ];
 
 // ── Process steps ─────────────────────────────────────────────────────────────
@@ -95,38 +34,8 @@ const STEPS = [
   },
 ];
 
-// ── Date math ─────────────────────────────────────────────────────────────────
-function getRange(projects: typeof DEMO_PROJECTS) {
-  const starts = projects.map(p => p.start.getTime());
-  const ends   = projects.map(p => p.end.getTime());
-  const mn = new Date(Math.min(...starts));
-  const mx = new Date(Math.max(...ends));
-  mn.setDate(mn.getDate() - 8);
-  mx.setDate(mx.getDate() + 16);
-  return { min: mn, max: mx };
-}
-
-function pct(date: Date, min: Date, max: Date) {
-  const total = max.getTime() - min.getTime();
-  return Math.max(0, Math.min(100, ((date.getTime() - min.getTime()) / total) * 100));
-}
-
-function getMonths(min: Date, max: Date): Date[] {
-  const months: Date[] = [];
-  const cur = new Date(min.getFullYear(), min.getMonth(), 1);
-  while (cur <= max) {
-    months.push(new Date(cur));
-    cur.setMonth(cur.getMonth() + 1);
-  }
-  return months;
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const { min, max } = useMemo(() => getRange(DEMO_PROJECTS), []);
-  const months        = useMemo(() => getMonths(min, max), [min, max]);
-  const todayPct      = useMemo(() => pct(new Date(), min, max), [min, max]);
 
   return (
     <div
@@ -281,316 +190,18 @@ export default function Home() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          GANTT + ACTIVITY FEED
+          LIVE DEMO
       ══════════════════════════════════════════════════════════════════════ */}
       <section className="w-full max-w-7xl mx-auto px-4 md:px-8 pb-16 relative z-10">
-        <div className="flex gap-4 items-start">
-
-          {/* ── Gantt Timeline ─────────────────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex-1 min-w-0 rounded-2xl overflow-visible"
-            style={{
-              background: "rgba(13,17,30,0.75)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-            }}
-          >
-            {/* Window chrome */}
-            <div className="px-5 py-3.5 flex items-center gap-2"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <div className="flex items-center gap-1.5 mr-2">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,79,139,0.55)" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,127,80,0.55)" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(0,194,203,0.55)" }} />
-              </div>
-              <TrendingUp className="w-4 h-4" style={{ color: "#A020F0" }} />
-              <span className="text-sm font-bold text-white tracking-wide">Project Timeline</span>
-              <div className="ml-auto flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full animate-pulse"
-                  style={{ background: "#FF7F50", boxShadow: "0 0 6px #FF7F50" }} />
-                <span className="text-[10px] text-slate-500 font-medium">Today</span>
-              </div>
-            </div>
-
-            {/* Month ruler */}
-            <div className="relative pt-3 pb-1 pr-5" style={{ paddingLeft: "176px" }}>
-              <div className="relative w-full h-5">
-                {months.map((m, i) => {
-                  const x = pct(m, min, max);
-                  return (
-                    <span
-                      key={i}
-                      className="absolute text-[10px] font-semibold text-slate-500 -translate-x-1/2"
-                      style={{ left: `${x}%` }}
-                    >
-                      {m.toLocaleDateString("en-US", { month: "short" })}
-                    </span>
-                  );
-                })}
-                <div className="absolute top-0 bottom-0 w-px"
-                  style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.90)", boxShadow: "0 0 6px rgba(255,127,80,0.70)" }} />
-              </div>
-            </div>
-
-            {/* Rows */}
-            <div className="pb-4 flex flex-col pr-5" style={{ paddingLeft: "176px" }}>
-              {DEMO_PROJECTS.map((proj, idx) => {
-                const color  = AURA[idx % AURA.length];
-                const lPct   = pct(proj.start, min, max);
-                const rPct   = pct(proj.end,   min, max);
-                const wPct   = Math.max(2, rPct - lPct);
-                const isHov  = hoveredId === proj.id;
-                const isDone = proj.progress === 100;
-
-                return (
-                  <div
-                    key={proj.id}
-                    className="relative flex items-center h-14"
-                    style={{ borderBottom: idx < DEMO_PROJECTS.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}
-                  >
-                    {/* Left label */}
-                    <div className="absolute flex flex-col items-end" style={{ right: "calc(100% + 14px)", width: "154px" }}>
-                      <span className="text-[11px] font-bold text-white/90 truncate max-w-full text-right leading-none">
-                        {proj.title}
-                      </span>
-                      <span className="text-[9px] font-medium mt-0.5 truncate" style={{ color: color.label }}>
-                        {proj.student} · {proj.role}
-                      </span>
-                    </div>
-
-                    {/* Track */}
-                    <div
-                      className="relative w-full h-3 rounded-full"
-                      style={{ background: "rgba(255,255,255,0.04)" }}
-                    >
-                      {/* Today line */}
-                      <div
-                        className="absolute top-1/2 -translate-y-1/2 w-px h-10 -mt-3.5 z-20"
-                        style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.85)", boxShadow: "0 0 8px rgba(255,127,80,0.55)" }}
-                      />
-
-                      {/* Bar */}
-                      <motion.div
-                        className="absolute top-0 h-full rounded-full cursor-pointer z-10"
-                        style={{
-                          left:  `${lPct}%`,
-                          width: `${wPct}%`,
-                          background: `linear-gradient(90deg, ${color.bar}EE 0%, ${color.bar}99 100%)`,
-                          boxShadow: isHov
-                            ? `0 0 28px ${color.glow}, 0 0 52px ${color.glow}`
-                            : `0 0 10px ${color.glow}`,
-                        }}
-                        animate={{ scaleY: isHov ? 1.55 : 1 }}
-                        transition={{ duration: 0.18 }}
-                        onMouseEnter={() => setHoveredId(proj.id)}
-                        onMouseLeave={() => setHoveredId(null)}
-                      />
-
-                      {/* Progress fill */}
-                      <div
-                        className="absolute top-0 h-full rounded-full opacity-50 pointer-events-none z-10"
-                        style={{
-                          left:  `${lPct}%`,
-                          width: `${wPct * proj.progress / 100}%`,
-                          background: color.bar,
-                        }}
-                      />
-
-                      {/* % label on bar (only if wide enough) */}
-                      {wPct > 14 && (
-                        <div
-                          className="absolute top-1/2 z-20 pointer-events-none"
-                          style={{
-                            left: `${lPct + wPct / 2}%`,
-                            transform: "translate(-50%, -50%)",
-                          }}
-                        >
-                          <span className="text-[8px] font-bold text-white/90">
-                            {isDone ? "✓" : `${proj.progress}%`}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Hover tooltip */}
-                    <AnimatePresence>
-                      {isHov && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                          transition={{ duration: 0.16 }}
-                          className="absolute top-full mt-2 z-50 rounded-xl p-3.5 pointer-events-none min-w-[230px]"
-                          style={{
-                            left: `${Math.min(lPct, 62)}%`,
-                            background: "rgba(11,14,20,0.98)",
-                            border: `1px solid ${color.bar}66`,
-                            boxShadow: `0 14px 44px rgba(0,0,0,0.65), 0 0 26px ${color.glow}`,
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <span className="text-xs font-bold text-white leading-tight">{proj.title}</span>
-                            {isDone
-                              ? <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0"
-                                  style={{ background: "rgba(0,194,203,0.15)", color: "#00C2CB", border: "1px solid rgba(0,194,203,0.25)" }}>
-                                  <CheckCircle className="w-2.5 h-2.5" /> Done
-                                </span>
-                              : <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0"
-                                  style={{ background: "rgba(255,127,80,0.12)", color: "#FF9A6C", border: "1px solid rgba(255,127,80,0.22)" }}>
-                                  <Clock className="w-2.5 h-2.5" /> {proj.progress}%
-                                </span>
-                            }
-                          </div>
-                          <p className="text-[10px] text-slate-400 leading-relaxed mb-2">{proj.desc}</p>
-                          <div className="flex items-center gap-3 text-[9px] text-slate-600">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-2.5 h-2.5" />
-                              {proj.start.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                              {" → "}
-                              {proj.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            </span>
-                            {proj.github && (
-                              <span className="flex items-center gap-1" style={{ color: "#FFA880" }}>
-                                <Github className="w-2.5 h-2.5" /> GitHub
-                              </span>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div
-              className="pb-4 pr-5 flex items-center gap-5 flex-wrap"
-              style={{
-                paddingLeft: "176px",
-                borderTop: "1px solid rgba(255,255,255,0.04)",
-                paddingTop: "12px",
-              }}
-            >
-              <span className="text-[9px] text-slate-600 font-medium uppercase tracking-widest">Legend:</span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-8 h-2 rounded-full" style={{ background: "rgba(160,32,240,0.55)" }} />
-                <span className="text-[9px] text-slate-500">Span</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-8 h-2 rounded-full opacity-60" style={{ background: "#A020F0" }} />
-                <span className="text-[9px] text-slate-500">Progress</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-px h-3.5 animate-pulse" style={{ background: "rgba(255,127,80,0.6)" }} />
-                <span className="text-[9px] text-slate-500">Today</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* ── Activity Feed ───────────────────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.18 }}
-            className="w-72 shrink-0 rounded-2xl overflow-hidden hidden lg:flex flex-col"
-            style={{
-              background: "rgba(13,17,30,0.75)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-            }}
-          >
-            {/* Window chrome */}
-            <div className="px-4 py-3.5 flex items-center gap-2"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <div className="flex items-center gap-1.5 mr-1">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,79,139,0.55)" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,127,80,0.55)" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(0,194,203,0.55)" }} />
-              </div>
-              <MessageSquare className="w-4 h-4" style={{ color: "#FF7F50" }} />
-              <span className="text-sm font-bold text-white tracking-wide">Activity Feed</span>
-              <span
-                className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
-                style={{
-                  background: "rgba(255,127,80,0.12)",
-                  color: "#FFA880",
-                  border: "1px solid rgba(255,127,80,0.22)",
-                }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#FF7F50" }} />
-                Live
-              </span>
-            </div>
-
-            {/* Feed items */}
-            <div className="flex-1 flex flex-col">
-              {DEMO_ACTIVITY.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 + i * 0.09 }}
-                  className="px-4 py-3.5 flex flex-col gap-1.5 hover:bg-white/[0.02] transition-colors"
-                  style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.04)" }}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                        style={{
-                          background: `linear-gradient(135deg, ${item.color.bar}CC 0%, ${item.color.bar}55 100%)`,
-                        }}
-                      >
-                        {item.avatar}
-                      </div>
-                      <span className="text-xs font-bold text-white">{item.reviewer}</span>
-                    </div>
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, si) => (
-                        <Star
-                          key={si}
-                          className="w-2.5 h-2.5"
-                          fill={si < item.rating ? "#FF7F50" : "none"}
-                          style={{ color: si < item.rating ? "#FF7F50" : "rgba(255,255,255,0.15)" }}
-                          strokeWidth={1.5}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-semibold tracking-wider uppercase" style={{ color: item.color.label }}>
-                    {item.project}
-                  </span>
-                  <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">{item.comment}</p>
-                  <span className="text-[10px] text-slate-500">{item.time}</span>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div
-              className="px-4 py-3 text-[10px] text-slate-600 text-center"
-              style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-            >
-              Real-time mentor feedback · Powered by{" "}
-              <a
-                href="https://must-b.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold hover:opacity-80 transition-opacity"
-                style={{ color: "#A020F0" }}
-              >
-                Must-b
-              </a>
-            </div>
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+        >
+          <LiveDemo />
+        </motion.div>
       </section>
+
 
       {/* ══════════════════════════════════════════════════════════════════════
           FEATURE CARDS
