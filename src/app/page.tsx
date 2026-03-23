@@ -175,12 +175,12 @@ export default function Home() {
           transition={{ duration: 0.55, delay: 0.08 }}
           className="text-5xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mb-6 leading-[1.06]"
         >
-          From first commit{" "}
+          Bring your projects to deploy{" "}
           <span
             className="bg-clip-text text-transparent"
             style={{ backgroundImage: "linear-gradient(135deg, #A020F0 0%, #7C3AFF 50%, #FF7F50 100%)" }}
           >
-            to final portfolio.
+            with Steply.
           </span>
         </motion.h1>
 
@@ -190,7 +190,7 @@ export default function Home() {
           transition={{ duration: 0.55, delay: 0.16 }}
           className="text-base md:text-lg text-slate-400 max-w-lg mb-10 leading-relaxed"
         >
-          Steply is where students track every project milestone on a live Gantt timeline — and mentors deliver real-time feedback that builds careers.
+          Enjoy unparalleled project presentation. Track every milestone on a live Gantt timeline — mentors deliver real-time feedback that builds careers.
         </motion.p>
 
         {/* CTAs */}
