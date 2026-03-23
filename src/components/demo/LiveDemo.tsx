@@ -56,7 +56,7 @@ export default function LiveDemo() {
 
   return (
     <div
-      className="flex rounded-2xl overflow-hidden"
+      className="flex items-stretch rounded-2xl overflow-hidden"
       style={{
         background: "rgba(13,17,23,0.80)",
         border: "1px solid rgba(255,255,255,0.06)",
@@ -93,7 +93,7 @@ export default function LiveDemo() {
         </div>
 
         {/* Project rows */}
-        <div className="flex flex-col px-4 py-3 gap-2 flex-1">
+        <div className="flex flex-col px-4 py-3 gap-1.5 flex-1">
           {PROJECTS.map((proj, idx) => {
             const { Icon } = proj;
             return (
@@ -102,7 +102,7 @@ export default function LiveDemo() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.35, delay: 0.05 + idx * 0.07 }}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer"
+                className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -241,7 +241,7 @@ export default function LiveDemo() {
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: i * 0.07 }}
-                    className="px-4 py-3 flex flex-col gap-1.5 hover:bg-white/[0.015] transition-colors"
+                    className="px-4 py-4 flex flex-col gap-1.5 hover:bg-white/[0.015] transition-colors"
                     style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.04)" }}
                   >
                     {/* Reviewer row */}
