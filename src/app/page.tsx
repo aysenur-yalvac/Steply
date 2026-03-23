@@ -224,7 +224,7 @@ export default function Home() {
           transition={{ duration: 0.4, delay: 0.38 }}
           className="flex flex-wrap justify-center items-center gap-5 text-xs text-slate-600"
         >
-          {["Free forever for students", "GitHub integration", "Real-time feedback"].map((txt, i) => (
+          {["GitHub integration", "Real-time feedback", "Student & Teacher roles"].map((txt, i) => (
             <span key={i} className="flex items-center gap-1.5">
               <CheckCircle className="w-3.5 h-3.5 text-green-500/70" />
               {txt}
