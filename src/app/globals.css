@@ -1,121 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fcfaf6; /* Creamy Latte */
-  --foreground: #1e293b;
-  
-  --color-linen: #f8fafc;
-  --color-dusty-rose: #f43f5e;
-  --color-sage-green: #10b981;
-  --color-soft-lavender: #a78bfa;
-  
-  --charcoal-card: rgba(255, 255, 255, 0.8);
-  --charcoal-card-hover: rgba(255, 255, 255, 0.95);
-  --charcoal-border: rgba(226, 232, 240, 0.6);
-  --charcoal-border-hover: rgba(226, 232, 240, 1);
-  --primary-electric: var(--color-dusty-rose);
+  --background: #0B0E14;
+  --foreground: #F1F5F9;
+
+  --aura-purple: #A020F0;
+  --aura-coral:  #FF7F50;
+  --aura-violet: #7C3AFF;
+
+  --charcoal-card:       rgba(15, 20, 40, 0.72);
+  --charcoal-card-hover: rgba(20, 28, 52, 0.92);
+  --charcoal-border:     rgba(255, 255, 255, 0.06);
+  --charcoal-border-hover: rgba(160, 32, 240, 0.38);
+  --primary-electric: var(--aura-purple);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-charcoal-card: var(--charcoal-card);
-  --color-charcoal-card-hover: var(--charcoal-card-hover);
-  --color-charcoal-border: var(--charcoal-border);
+  --color-background:            var(--background);
+  --color-foreground:            var(--foreground);
+  --color-charcoal-card:         var(--charcoal-card);
+  --color-charcoal-card-hover:   var(--charcoal-card-hover);
+  --color-charcoal-border:       var(--charcoal-border);
   --color-charcoal-border-hover: var(--charcoal-border-hover);
-  --color-primary-electric: var(--primary-electric);
-  --color-vibrant-violet: var(--color-soft-lavender);
-  --color-vibrant-teal: var(--color-sage-green);
-  --color-dusty-rose: var(--color-dusty-rose);
-  --color-sage-green: var(--color-sage-green);
-  --color-soft-lavender: var(--color-soft-lavender);
+  --color-primary-electric:      var(--primary-electric);
+  --color-aura-purple:           var(--aura-purple);
+  --color-aura-coral:            var(--aura-coral);
+  --color-aura-violet:           var(--aura-violet);
+  /* legacy aliases kept for backward compat */
+  --color-vibrant-violet: var(--aura-purple);
+  --color-vibrant-teal:   #00C2CB;
+  --color-dusty-rose:     var(--aura-coral);
+  --color-sage-green:     #00C2CB;
+  --color-soft-lavender:  var(--aura-purple);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Keeping it light as per request for 'Luminous Minimalist' atmosphere */
-    --background: #fcfaf6; 
-    --foreground: #1e293b; 
-    
-    --charcoal-card: rgba(255, 255, 255, 0.8);
-    --charcoal-card-hover: rgba(255, 255, 255, 0.95);
-    --charcoal-border: rgba(226, 232, 240, 0.6);
-    --charcoal-border-hover: rgba(226, 232, 240, 1);
-    --primary-electric: #f43f5e;
-  }
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  
-  /* Extremely soft, warm luxury mesh background for light theme */
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.03) 0px, transparent 60%),
-    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.03) 0px, transparent 60%);
+
+  /* Aura Fortress — three-layer radial mesh */
+  background-image:
+    radial-gradient(ellipse at 0%   0%,   rgba(160, 32, 240, 0.13) 0px, transparent 55%),
+    radial-gradient(ellipse at 100% 0%,   rgba(124, 58, 255, 0.10) 0px, transparent 55%),
+    radial-gradient(ellipse at 50%  100%, rgba(255, 127, 80, 0.07) 0px, transparent 50%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
 }
 
-/* Custom Soft Shadows for floating effect */
+/* ── Utility: floating shadow ─────────────────────────────────────────────── */
 .shadow-floating {
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.4),
+              inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 30px -5px rgba(160, 32, 240, 0.35);
+}
+
+.shadow-glow-coral {
+  box-shadow: 0 0 30px -5px rgba(255, 127, 80, 0.35);
 }
 
 .text-glow {
-  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  text-shadow: 0 0 24px rgba(160, 32, 240, 0.55);
 }
 
-/* Skeleton Shimmer Animation */
+/* ── Aura button glow ─────────────────────────────────────────────────────── */
+.btn-aura {
+  background: linear-gradient(135deg, #A020F0 0%, #7C3AFF 100%);
+  box-shadow: 0 0 28px rgba(160, 32, 240, 0.50), 0 4px 16px rgba(0,0,0,0.35);
+  transition: box-shadow 0.25s, transform 0.15s;
+}
+.btn-aura:hover {
+  box-shadow: 0 0 40px rgba(160, 32, 240, 0.70), 0 6px 24px rgba(0,0,0,0.40);
+  transform: translateY(-1px);
+}
+.btn-aura:active { transform: scale(0.97); }
+
+/* ── Skeleton shimmer ─────────────────────────────────────────────────────── */
 @keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
 }
-
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right, rgba(255,255,255,0.02) 4%, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.02) 36%);
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0.02) 4%,
+    rgba(255,255,255,0.06) 25%,
+    rgba(255,255,255,0.02) 36%
+  );
   background-size: 1000px 100%;
 }
 
-/* Internal Progress Bar Shimmer */
+/* ── Progress bar shimmer ─────────────────────────────────────────────────── */
 @keyframes progress-shimmer {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(100%);
-  }
+  from { transform: translateX(-100%); }
+  to   { transform: translateX( 100%); }
 }
-
 .animate-progress-shimmer {
   animation: progress-shimmer 2.5s infinite linear;
 }
 
-/* Tooltip Animation */
+/* ── Tooltip ──────────────────────────────────────────────────────────────── */
 @keyframes fadeScaleUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);   }
 }
-
 .animate-tooltip {
   animation: fadeScaleUp 0.2s ease-out forwards;
 }

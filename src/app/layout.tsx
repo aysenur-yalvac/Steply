@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Steply | Student & Teacher Project Management",
-  description: "Steply is an education-focused platform where students and teachers can manage projects. This site is an Auto Step product.",
+  description: "Steply is an education-focused platform where students and teachers can manage projects. Powered by Must-b.",
 };
 
 export default function RootLayout({
