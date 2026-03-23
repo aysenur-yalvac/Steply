@@ -293,9 +293,10 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="flex-1 min-w-0 rounded-2xl overflow-visible"
             style={{
-              background: "rgba(13,17,30,0.82)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              backdropFilter: "blur(22px)",
+              background: "rgba(13,17,30,0.75)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             }}
           >
             {/* Window chrome */}
@@ -307,7 +308,7 @@ export default function Home() {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(0,194,203,0.55)" }} />
               </div>
               <TrendingUp className="w-4 h-4" style={{ color: "#A020F0" }} />
-              <span className="text-xs font-bold text-slate-300 tracking-wide">Project Timeline</span>
+              <span className="text-sm font-bold text-white tracking-wide">Project Timeline</span>
               <div className="ml-auto flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full animate-pulse"
                   style={{ background: "#FF7F50", boxShadow: "0 0 6px #FF7F50" }} />
@@ -323,7 +324,7 @@ export default function Home() {
                   return (
                     <span
                       key={i}
-                      className="absolute text-[10px] font-semibold text-slate-600 -translate-x-1/2"
+                      className="absolute text-[10px] font-semibold text-slate-500 -translate-x-1/2"
                       style={{ left: `${x}%` }}
                     >
                       {m.toLocaleDateString("en-US", { month: "short" })}
@@ -331,7 +332,7 @@ export default function Home() {
                   );
                 })}
                 <div className="absolute top-0 bottom-0 w-px"
-                  style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.55)" }} />
+                  style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.90)", boxShadow: "0 0 6px rgba(255,127,80,0.70)" }} />
               </div>
             </div>
 
@@ -369,7 +370,7 @@ export default function Home() {
                       {/* Today line */}
                       <div
                         className="absolute top-1/2 -translate-y-1/2 w-px h-10 -mt-3.5 z-20"
-                        style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.50)" }}
+                        style={{ left: `${todayPct}%`, background: "rgba(255,127,80,0.85)", boxShadow: "0 0 8px rgba(255,127,80,0.55)" }}
                       />
 
                       {/* Bar */}
@@ -408,7 +409,7 @@ export default function Home() {
                             transform: "translate(-50%, -50%)",
                           }}
                         >
-                          <span className="text-[8px] font-bold text-white/65">
+                          <span className="text-[8px] font-bold text-white/90">
                             {isDone ? "✓" : `${proj.progress}%`}
                           </span>
                         </div>
@@ -498,9 +499,10 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.18 }}
             className="w-72 shrink-0 rounded-2xl overflow-hidden hidden lg:flex flex-col"
             style={{
-              background: "rgba(13,17,30,0.82)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              backdropFilter: "blur(22px)",
+              background: "rgba(13,17,30,0.75)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             }}
           >
             {/* Window chrome */}
@@ -512,7 +514,7 @@ export default function Home() {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(0,194,203,0.55)" }} />
               </div>
               <MessageSquare className="w-4 h-4" style={{ color: "#FF7F50" }} />
-              <span className="text-xs font-bold text-slate-300 tracking-wide">Activity Feed</span>
+              <span className="text-sm font-bold text-white tracking-wide">Activity Feed</span>
               <span
                 className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
                 style={{
@@ -547,7 +549,7 @@ export default function Home() {
                       >
                         {item.avatar}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-300">{item.reviewer}</span>
+                      <span className="text-xs font-bold text-white">{item.reviewer}</span>
                     </div>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: 5 }).map((_, si) => (
@@ -564,8 +566,8 @@ export default function Home() {
                   <span className="text-[9px] font-semibold tracking-wider uppercase" style={{ color: item.color.label }}>
                     {item.project}
                   </span>
-                  <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{item.comment}</p>
-                  <span className="text-[9px] text-slate-600">{item.time}</span>
+                  <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">{item.comment}</p>
+                  <span className="text-[10px] text-slate-500">{item.time}</span>
                 </motion.div>
               ))}
             </div>
