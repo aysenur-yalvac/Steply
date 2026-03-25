@@ -46,6 +46,12 @@ function StatusBadge({ progress }: { progress: number }) {
 }
 
 // ── List view ──────────────────────────────────────────────────────────────────
+const trDateFmt = new Intl.DateTimeFormat("tr-TR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 function ListView({
   projects,
   isTeacher,
@@ -53,6 +59,14 @@ function ListView({
   projects: Project[];
   isTeacher: boolean;
 }) {
+  // Debug: log completed projects so we can verify end_date is populated
+  if (typeof window !== "undefined") {
+    const completed = projects.filter((p) => p.progress_percentage === 100);
+    if (completed.length > 0) {
+      console.log("[ListView] Completed projects:", completed.map((p) => ({ id: p.id, title: p.title, end_date: p.end_date })));
+    }
+  }
+
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       {/* Table header */}
@@ -108,11 +122,7 @@ function ListView({
             <div>
               {project.progress_percentage === 100 && project.end_date ? (
                 <span className="text-xs font-medium text-emerald-600">
-                  {new Date(project.end_date).toLocaleDateString("tr-TR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
+                  {trDateFmt.format(new Date(project.end_date))}
                 </span>
               ) : (
                 <span className="text-xs text-slate-300">—</span>

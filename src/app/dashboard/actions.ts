@@ -42,15 +42,22 @@ export async function updateProgress(formData: FormData) {
   const supabase = await createClient();
   const projectId = formData.get("id") as string;
   const newProgress = parseInt(formData.get("progress") as string);
-  
+
+  const updatePayload: Record<string, unknown> = { progress_percentage: newProgress };
+  if (newProgress === 100) {
+    updatePayload.end_date = new Date().toISOString().split("T")[0];
+  } else {
+    updatePayload.end_date = null;
+  }
+
   const { error } = await supabase.from("projects")
-    .update({ progress_percentage: newProgress })
+    .update(updatePayload)
     .eq('id', projectId);
-    
+
   if (error) {
     console.error("Update error", error);
   }
-  
+
   revalidatePath("/dashboard");
 }
 
