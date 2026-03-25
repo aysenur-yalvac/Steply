@@ -1,11 +1,9 @@
 import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import Link from 'next/link';
-import { Plus, FolderOpen, Search, SlidersHorizontal } from 'lucide-react';
-import { KanbanBoard } from '@/components/dashboard/KanbanBoard';
+import { Plus, FolderOpen, Search } from 'lucide-react';
 import EmptyState from '@/components/layout/EmptyState';
-import { Suspense } from 'react';
-import GlobalSearch from '@/components/dashboard/GlobalSearch';
+import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
 
 export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
   const searchParams = await props.searchParams;
@@ -21,6 +19,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     .single();
 
   const isTeacher = profile?.role === 'teacher';
+  const isStudent = profile?.role === 'student';
 
   let projects: any[] = [];
   let watchedIds = new Set<string>();
@@ -74,9 +73,8 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
 
   return (
     <div className="flex flex-col min-h-full">
-      {/* ── Top bar ───────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8">
-        {/* Breadcrumb */}
+      {/* ── Page header ───────────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Dashboard{' '}
           <span className="text-slate-300 mx-1">›</span>
@@ -84,93 +82,56 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             {isTeacher ? 'Portfolio Overview' : 'My Projects'}
           </span>
         </p>
-
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
-            {isTeacher ? 'Portfolio Overview' : 'My Projects'}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {isTeacher
-              ? 'Monitor the latest milestones of all watched student projects.'
-              : 'Manage your active projects and keep your portfolio up to date.'}
-          </p>
-        </div>
-
-        {/* Kanban tab row + search + filter */}
-        <div className="flex items-center justify-between gap-4 mt-5 flex-wrap">
-          {/* Tabs */}
-          <div className="flex items-center gap-1">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded-xl">
-              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="1" y="1" width="6" height="6" rx="1.5"/>
-                <rect x="9" y="1" width="6" height="6" rx="1.5"/>
-                <rect x="1" y="9" width="6" height="6" rx="1.5"/>
-                <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-              </svg>
-              Kanban
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
-              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <line x1="2" y1="4" x2="14" y2="4"/>
-                <line x1="2" y1="8" x2="14" y2="8"/>
-                <line x1="2" y1="12" x2="14" y2="12"/>
-              </svg>
-              List
-            </button>
-          </div>
-
-          {/* Search + Filter + New */}
-          <div className="flex items-center gap-3 flex-1 sm:flex-none justify-end">
-            <Suspense fallback={<div className="w-56 h-9 bg-slate-100 animate-pulse rounded-2xl" />}>
-              <GlobalSearch />
-            </Suspense>
-
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition-colors shrink-0">
-              <SlidersHorizontal className="w-4 h-4" />
-              Filter
-            </button>
-
-            {!isTeacher && (
-              <Link
-                href="/dashboard/projects/new"
-                className="btn-aura flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl shrink-0 active:scale-95 overflow-hidden"
-              >
-                <Plus className="w-4 h-4" strokeWidth={2.5} />
-                New
-              </Link>
-            )}
-          </div>
-        </div>
+        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
+          {isTeacher ? 'Portfolio Overview' : 'My Projects'}
+        </h1>
+        <p className="text-sm text-slate-500 mt-1 mb-5">
+          {isTeacher
+            ? 'Monitor the latest milestones of all watched student projects.'
+            : 'Manage your active projects and keep your portfolio up to date.'}
+        </p>
       </div>
 
-      {/* ── Kanban content ────────────────────────────────────────────────── */}
-      <div className="flex-1 p-6 lg:p-8 lg:pl-8">
+      {/* ── Content area ─────────────────────────────────────────────────── */}
+      <div className="flex-1 p-6 lg:p-8">
         {projects.length === 0 ? (
-          <div className="flex justify-center mt-8">
-            <EmptyState
-              icon={isTeacher ? Search : FolderOpen}
-              title={isTeacher ? 'Search Projects' : 'No active projects yet.'}
-              description={
-                isTeacher
-                  ? 'Use the search bar above to look up projects by student name or title.'
-                  : 'Every great project starts with a single step. Let\'s build something amazing.'
-              }
-              action={
-                profile?.role === 'student' ? (
-                  <Link
-                    href="/dashboard/projects/new"
-                    className="btn-aura inline-flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl"
-                  >
-                    <Plus className="w-4 h-4" /> Start Your First Project
-                  </Link>
-                ) : null
-              }
+          <>
+            {/* Controls even on empty state so user can switch/search */}
+            <DashboardViewSwitcher
+              projects={[]}
+              isTeacher={isTeacher}
+              isStudent={isStudent}
+              watchedIds={watchedIds}
+              projectNotes={projectNotes}
+              currentUserId={user?.id}
             />
-          </div>
+            <div className="flex justify-center mt-8">
+              <EmptyState
+                icon={isTeacher ? Search : FolderOpen}
+                title={isTeacher ? 'Search Projects' : 'No active projects yet.'}
+                description={
+                  isTeacher
+                    ? 'Use the search bar above to look up projects by student name or title.'
+                    : "Every great project starts with a single step. Let's build something amazing."
+                }
+                action={
+                  isStudent ? (
+                    <Link
+                      href="/dashboard/projects/new"
+                      className="btn-aura inline-flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl"
+                    >
+                      <Plus className="w-4 h-4" /> Start Your First Project
+                    </Link>
+                  ) : null
+                }
+              />
+            </div>
+          </>
         ) : (
-          <KanbanBoard
+          <DashboardViewSwitcher
             projects={projects}
             isTeacher={isTeacher}
+            isStudent={isStudent}
             watchedIds={watchedIds}
             projectNotes={projectNotes}
             currentUserId={user?.id}
