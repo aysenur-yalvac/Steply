@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Menu, X, User, LogOut, Bookmark } from 'lucide-react';
+import { Menu, X, User, LogOut, Bookmark } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import WatchlistDrawer from '@/components/dashboard/WatchlistDrawer';
 
@@ -64,12 +64,6 @@ export default function Navbar() {
           <>
             {user ? (
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                <Link
-                  href="/dashboard"
-                  className="w-full md:w-auto text-sm font-medium text-center text-slate-300 hover:text-white transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
-                >
-                  <BookOpen className="w-4 h-4" /> Projects
-                </Link>
                 <Link
                   href="/dashboard/profile"
                   className="w-full md:w-auto text-sm font-medium text-center text-slate-300 hover:text-white transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
