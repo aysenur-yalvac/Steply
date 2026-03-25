@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import Link from 'next/link';
 import { Plus, FolderOpen, Search } from 'lucide-react';
 import ProjectCard from './ProjectCard';
-import DashboardGanttTimeline from './DashboardGanttTimeline';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
 
@@ -121,37 +120,18 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             />
           </div>
         ) : (
-          <div className="flex flex-col gap-8 w-full">
-
-            {/* ── Gantt Timeline (desktop) ──────────────────────────────── */}
-            <div className="hidden md:block">
-              <DashboardGanttTimeline projects={projects} isTeacher={isTeacher} />
-            </div>
-
-            {/* ── Section divider ───────────────────────────────────────── */}
-            <div className="hidden md:flex items-center gap-3">
-              <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, rgba(160,32,240,0.28))" }} />
-              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">
-                Quick Actions
-              </span>
-              <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(160,32,240,0.28), transparent)" }} />
-            </div>
-
-            {/* ── Project Cards (progress, notes, delete) ───────────────── */}
-            <div className="flex flex-col gap-5 w-full">
-              {projects.map((project: any) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  isTeacher={isTeacher}
-                  isWatched={watchedIds.has(project.id)}
-                  teacherNote={projectNotes[project.id]?.content}
-                  teacherNameForNote={projectNotes[project.id]?.teacherName}
-                  currentUserId={user?.id}
-                />
-              ))}
-            </div>
-
+          <div className="flex flex-col gap-5 w-full">
+            {projects.map((project: any) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                isTeacher={isTeacher}
+                isWatched={watchedIds.has(project.id)}
+                teacherNote={projectNotes[project.id]?.content}
+                teacherNameForNote={projectNotes[project.id]?.teacherName}
+                currentUserId={user?.id}
+              />
+            ))}
           </div>
         )}
 
