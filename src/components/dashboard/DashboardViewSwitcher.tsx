@@ -15,7 +15,8 @@ type Project = {
   description: string;
   github_link: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
+  updated_at: string;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
@@ -63,7 +64,7 @@ function ListView({
   if (typeof window !== "undefined") {
     const completed = projects.filter((p) => p.progress_percentage === 100);
     if (completed.length > 0) {
-      console.log("[ListView] Completed projects:", completed.map((p) => ({ id: p.id, title: p.title, end_date: p.end_date })));
+      console.log("[ListView] Completed projects:", completed.map((p) => ({ id: p.id, title: p.title, end_date: p.end_date, updated_at: p.updated_at })));
     }
   }
 
@@ -120,9 +121,9 @@ function ListView({
 
             {/* Completion date — only shown when project is completed */}
             <div>
-              {project.progress_percentage === 100 && project.end_date ? (
+              {project.progress_percentage === 100 ? (
                 <span className="text-xs font-medium text-emerald-600">
-                  {trDateFmt.format(new Date(project.end_date))}
+                  {trDateFmt.format(new Date(project.end_date ?? project.updated_at))}
                 </span>
               ) : (
                 <span className="text-xs text-slate-300">—</span>
