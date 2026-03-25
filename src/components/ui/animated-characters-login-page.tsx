@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // ── Pupil (tracks mouse, no white eyeball) ────────────────────────────────────
 interface PupilProps {
@@ -209,6 +210,7 @@ export default function AnimatedCharactersLoginPage({
   const [showPassword, setShowPassword] = useState(false);
   const [email,        setEmail]        = useState("");
   const [password,     setPassword]     = useState("");
+  const [rememberMe,   setRememberMe]   = useState(false);
   const [role,         setRole]         = useState<"student" | "teacher">("student");
   const [hovSocial,    setHovSocial]    = useState<string | null>(null);
 
@@ -655,11 +657,6 @@ export default function AnimatedCharactersLoginPage({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Şifre</label>
-                {isLogin && (
-                  <a href="#" className="text-[10px] font-semibold transition-colors hover:text-purple-300" style={{ color: "#A78BFA" }}>
-                    Şifremi Unuttum
-                  </a>
-                )}
               </div>
               <div className="relative">
                 <input
@@ -686,6 +683,26 @@ export default function AnimatedCharactersLoginPage({
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+            </div>
+
+            {/* Remember Me + Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(v) => setRememberMe(v === true)}
+                  className="border-[#7C3AFF] data-[state=checked]:bg-[#7C3AFF] data-[state=checked]:border-[#7C3AFF]"
+                />
+                <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>
+                  Beni Hatırla
+                </span>
+              </label>
+              {isLogin && (
+                <a href="#" className="text-[11px] font-semibold transition-colors hover:text-purple-300" style={{ color: "#A78BFA" }}>
+                  Şifremi Unuttum
+                </a>
+              )}
             </div>
 
             {/* Error message */}
