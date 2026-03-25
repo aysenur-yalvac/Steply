@@ -13,10 +13,9 @@ type Project = {
   student_id?: string;
   title: string;
   description: string;
-  github_link: string;
-  start_date: string;
-  end_date: string | null;
-  updated_at: string;
+  github_link?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
@@ -47,12 +46,6 @@ function StatusBadge({ progress }: { progress: number }) {
 }
 
 // ── List view ──────────────────────────────────────────────────────────────────
-const trDateFmt = new Intl.DateTimeFormat("tr-TR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
-
 function ListView({
   projects,
   isTeacher,
@@ -64,7 +57,7 @@ function ListView({
   if (typeof window !== "undefined") {
     const completed = projects.filter((p) => p.progress_percentage === 100);
     if (completed.length > 0) {
-      console.log("[ListView] Completed projects:", completed.map((p) => ({ id: p.id, title: p.title, end_date: p.end_date, updated_at: p.updated_at })));
+      console.log("[ListView] Completed projects:", completed.map((p) => ({ id: p.id, title: p.title, end_date: p.end_date })));
     }
   }
 
@@ -121,9 +114,9 @@ function ListView({
 
             {/* Completion date — only shown when project is completed */}
             <div>
-              {project.progress_percentage === 100 ? (
+              {project.progress_percentage === 100 && project.end_date ? (
                 <span className="text-xs font-medium text-emerald-600">
-                  {trDateFmt.format(new Date(project.end_date ?? project.updated_at))}
+                  {new Date(project.end_date).toLocaleDateString("tr-TR")}
                 </span>
               ) : (
                 <span className="text-xs text-slate-300">—</span>
