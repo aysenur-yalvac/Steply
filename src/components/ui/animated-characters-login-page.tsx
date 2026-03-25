@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 
 // ── Pupil (tracks mouse, no white eyeball) ────────────────────────────────────
 interface PupilProps {
@@ -314,6 +315,11 @@ export default function AnimatedCharactersLoginPage({
 
   return (
     <div className="flex-1 grid lg:grid-cols-2" style={{ minHeight: "calc(100vh - 4rem)" }}>
+
+      {/* ── Back button — fixed top-left, above everything ─────────────── */}
+      <div className="fixed top-4 left-4 z-50">
+        <BackButton href="/" />
+      </div>
 
       {/* ── Left panel: Characters ────────────────────────────────────────── */}
       <div
