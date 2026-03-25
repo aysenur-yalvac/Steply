@@ -203,21 +203,8 @@ function KanbanCard({
           </div>
         )}
 
-        {/* Footer: avatars + stats + expand toggle */}
+        {/* Footer: stats + expand toggle */}
         <div className="flex items-center justify-between">
-          {/* Avatar group */}
-          <div className="flex items-center -space-x-1.5">
-            {avatarInitials.map((initial, i) => (
-              <div
-                key={i}
-                className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                style={{ background: avatarColor(initial + String(i)) }}
-              >
-                {initial}
-              </div>
-            ))}
-          </div>
-
           <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium">
             <span className="flex items-center gap-1">
               <Paperclip className="w-3.5 h-3.5" />
@@ -347,6 +334,26 @@ function KanbanCard({
                       : <Trash2 className="w-3.5 h-3.5" />}
                   </motion.button>
                 )}
+              </div>
+
+              {/* Team */}
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
+                <div className="flex items-center gap-3">
+                  {avatarInitials.map((initial, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                        style={{ background: avatarColor(initial + String(i)) }}
+                      >
+                        {initial}
+                      </div>
+                      <span className="text-xs text-slate-600 font-medium">
+                        {i === 0 ? studentName : "Member"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Quick private note (student only) */}

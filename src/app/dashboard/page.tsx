@@ -85,30 +85,15 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
           </span>
         </p>
 
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
-              {isTeacher ? 'Portfolio Overview' : 'My Projects'}
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              {isTeacher
-                ? 'Monitor the latest milestones of all watched student projects.'
-                : 'Manage your active projects and keep your portfolio up to date.'}
-            </p>
-          </div>
-
-          {/* Avatar group — right side decorative */}
-          <div className="hidden sm:flex items-center -space-x-2 shrink-0">
-            {['#7C3AFF', '#FF7F50', '#0EA5E9'].map((color, i) => (
-              <div
-                key={i}
-                className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-sm"
-                style={{ background: color }}
-              >
-                {['S', 'T', 'M'][i]}
-              </div>
-            ))}
-          </div>
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
+            {isTeacher ? 'Portfolio Overview' : 'My Projects'}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isTeacher
+              ? 'Monitor the latest milestones of all watched student projects.'
+              : 'Manage your active projects and keep your portfolio up to date.'}
+          </p>
         </div>
 
         {/* Kanban tab row + search + filter */}
