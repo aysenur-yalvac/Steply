@@ -15,7 +15,7 @@ export function GetStartedButton({ href = "/auth/register" }: { href?: string })
 
       {/* Label — fades out on hover */}
       <span className="relative z-10 mr-8 transition-opacity duration-500 group-hover:opacity-0 whitespace-nowrap">
-        Start Tracking Free
+        Get Started
       </span>
 
       {/* Expanding chevron panel */}
