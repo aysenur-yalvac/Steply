@@ -72,12 +72,12 @@ body {
 
 /* ── Aura button glow ─────────────────────────────────────────────────────── */
 .btn-aura {
-  background: linear-gradient(135deg, #A020F0 0%, #7C3AFF 100%);
-  box-shadow: 0 0 28px rgba(160, 32, 240, 0.50), 0 4px 16px rgba(0,0,0,0.35);
+  background: linear-gradient(135deg, #7C3AFF 0%, #6D28D9 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30);
   transition: box-shadow 0.25s, transform 0.15s;
 }
 .btn-aura:hover {
-  box-shadow: 0 0 40px rgba(160, 32, 240, 0.70), 0 6px 24px rgba(0,0,0,0.40);
+  box-shadow: 0 0 18px rgba(124, 58, 255, 0.20), 0 4px 12px rgba(0,0,0,0.35);
   transform: translateY(-1px);
 }
 .btn-aura:active { transform: scale(0.97); }
