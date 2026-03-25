@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle, TrendingUp, Users, Zap, Upload, Award } from "lucide-react";
+import { GetStartedButton } from "@/components/ui/get-started-button";
 import { motion } from "framer-motion";
 import CanvasParticles from "@/components/ui/CanvasParticles";
 import LiveDemo from "@/components/demo/LiveDemo";
@@ -109,14 +110,7 @@ export default function Home() {
           transition={{ duration: 0.45, delay: 0.24 }}
           className="flex flex-col sm:flex-row gap-3 mb-8"
         >
-          <Link
-            href="/auth/register"
-            className="btn-aura group relative flex items-center justify-center gap-2 text-white font-bold px-9 py-4 rounded-xl text-sm overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700" />
-            <span className="relative z-10">Start Tracking Free</span>
-            <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform duration-200" />
-          </Link>
+          <GetStartedButton href="/auth/register" />
           <Link
             href="/auth/login"
             className="flex items-center justify-center gap-2 text-slate-300 font-semibold px-9 py-4 rounded-xl text-sm transition-all hover:bg-white/5 active:scale-95"
