@@ -60,7 +60,7 @@ function ListView({
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project Name</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Due Date</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
         <span />
       </div>
 
@@ -104,11 +104,11 @@ function ListView({
               </span>
             </div>
 
-            {/* Due date */}
+            {/* Completion date — only shown when project is completed */}
             <div>
-              {project.end_date ? (
-                <span className="text-xs font-medium text-slate-500">
-                  {new Date(project.end_date).toLocaleDateString("en-GB", {
+              {project.progress_percentage === 100 && project.end_date ? (
+                <span className="text-xs font-medium text-emerald-600">
+                  {new Date(project.end_date).toLocaleDateString("tr-TR", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
