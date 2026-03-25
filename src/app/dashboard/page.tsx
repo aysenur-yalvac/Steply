@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import Link from 'next/link';
 import { Plus, FolderOpen, Search } from 'lucide-react';
-import ProjectCard from './ProjectCard';
+import { AnimatedProjectCards } from '@/components/ui/animated-project-cards';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
 
@@ -120,19 +120,13 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             />
           </div>
         ) : (
-          <div className="flex flex-col gap-5 w-full">
-            {projects.map((project: any) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                isTeacher={isTeacher}
-                isWatched={watchedIds.has(project.id)}
-                teacherNote={projectNotes[project.id]?.content}
-                teacherNameForNote={projectNotes[project.id]?.teacherName}
-                currentUserId={user?.id}
-              />
-            ))}
-          </div>
+          <AnimatedProjectCards
+            projects={projects}
+            isTeacher={isTeacher}
+            watchedIds={watchedIds}
+            projectNotes={projectNotes}
+            currentUserId={user?.id}
+          />
         )}
 
       </div>
