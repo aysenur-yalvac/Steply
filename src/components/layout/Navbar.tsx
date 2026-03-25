@@ -16,6 +16,7 @@ export default function Navbar() {
 
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
+  if (pathname.startsWith('/dashboard')) return null;
 
   const closeMenus = () => setIsMenuOpen(false);
 

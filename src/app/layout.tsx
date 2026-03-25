@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Footer from "@/components/layout/Footer";
+import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import Navbar from "@/components/layout/Navbar";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -43,7 +43,7 @@ export default function RootLayout({
             <main className="flex-grow flex flex-col">
               {children}
             </main>
-            <Footer />
+            <ConditionalFooter />
           </AuthProvider>
         </ThemeProvider>
       </body>
