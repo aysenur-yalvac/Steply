@@ -316,11 +316,6 @@ export default function AnimatedCharactersLoginPage({
   return (
     <div className="flex-1 grid lg:grid-cols-2" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
-      {/* ── Back button — fixed top-left, above everything ─────────────── */}
-      <div className="fixed top-4 left-4 z-50">
-        <BackButton href="/" />
-      </div>
-
       {/* ── Left panel: Characters ────────────────────────────────────────── */}
       <div
         className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden"
@@ -516,9 +511,15 @@ export default function AnimatedCharactersLoginPage({
 
       {/* ── Right panel: Form ─────────────────────────────────────────────── */}
       <div
-        className="flex items-center justify-center p-8 overflow-y-auto"
+        className="flex flex-col overflow-y-auto"
         style={{ background: "#0B0E14" }}
       >
+        {/* Back button — top of form panel */}
+        <div className="px-8 pt-10 pb-0">
+          <BackButton href="/" />
+        </div>
+
+        <div className="flex flex-1 items-center justify-center px-8 py-8">
         <div className="w-full max-w-[420px]">
 
           {/* Mobile logo */}
@@ -747,6 +748,7 @@ export default function AnimatedCharactersLoginPage({
               </>
             )}
           </p>
+        </div>
         </div>
       </div>
     </div>
