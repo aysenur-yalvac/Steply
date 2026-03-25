@@ -29,7 +29,7 @@ type Project = {
   description: string;
   github_link: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
