@@ -9,17 +9,29 @@ import {
   Layout,
   AlignLeft,
   BarChart3,
-  Loader2
+  Loader2,
+  Flag,
+  Monitor,
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
+type Priority = 'Low' | 'Medium' | 'High';
+type Platform = 'Web' | 'Mobile' | 'API';
+
+const PRIORITIES: Priority[] = ['Low', 'Medium', 'High'];
+const PLATFORMS: Platform[] = ['Web', 'Mobile', 'API'];
+
 export default function NewProjectPage() {
   const [isPending, setIsPending] = useState(false);
   const [progressPercentage, setProgressPercentage] = useState(0);
+  const [priority, setPriority] = useState<Priority>('Medium');
+  const [platform, setPlatform] = useState<Platform>('Web');
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
+    formData.set('priority', priority);
+    formData.set('platform', platform);
     setIsPending(true);
     try {
       await createProject(formData);
@@ -34,7 +46,7 @@ export default function NewProjectPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] p-6 sm:p-10 flex flex-col items-center justify-center">
-      <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-full max-w-xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex flex-col gap-4">
           <Link
@@ -54,7 +66,7 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        <div className="bg-white shadow-xl text-slate-900 rounded-[2rem] p-8 sm:p-12 w-full relative z-10">
+        <div className="bg-white shadow-xl text-slate-900 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
           <form action={handleSubmit} className="space-y-6">
             {/* Project Title */}
             <div className="space-y-2">
@@ -83,7 +95,62 @@ export default function NewProjectPage() {
               />
             </div>
 
-            {/* İlerleme Durumu */}
+            {/* Priority */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
+                <Flag className="w-4 h-4 text-indigo-500" /> Proje Önceliği
+              </label>
+              <div className="flex gap-2">
+                {PRIORITIES.map((p) => {
+                  const isSelected = priority === p;
+                  const isHigh = p === 'High';
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPriority(p)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                        isSelected
+                          ? isHigh
+                            ? 'bg-red-500 border-red-500 text-white shadow-[0_4px_12px_-2px_rgba(239,68,68,0.4)]'
+                            : 'bg-slate-800 border-slate-800 text-white shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Platform */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
+                <Monitor className="w-4 h-4 text-indigo-500" /> Proje Tipi
+              </label>
+              <div className="flex gap-2">
+                {PLATFORMS.map((p) => {
+                  const isSelected = platform === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPlatform(p)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                        isSelected
+                          ? 'bg-[#7C3AFF] border-[#7C3AFF] text-white shadow-[0_4px_12px_-2px_rgba(124,58,255,0.4)]'
+                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Initial Progress */}
             <div className="space-y-4">
               <div className="flex justify-between items-center ml-1">
                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -110,7 +177,7 @@ export default function NewProjectPage() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-4">
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isPending}
