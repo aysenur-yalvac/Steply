@@ -71,6 +71,16 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     projects = all;
   }
 
+  // Debug: log date fields to Vercel logs
+  console.log('[Dashboard] projects date fields:', projects.map((p: any) => ({
+    id: p.id,
+    title: p.title,
+    end_date: p.end_date,
+    updated_at: p.updated_at,
+    created_at: p.created_at,
+    progress: p.progress_percentage,
+  })));
+
   return (
     <div className="flex flex-col min-h-full">
       {/* ── Page header ───────────────────────────────────────────────────── */}

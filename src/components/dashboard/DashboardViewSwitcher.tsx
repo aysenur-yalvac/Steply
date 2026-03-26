@@ -16,6 +16,8 @@ type Project = {
   github_link?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  updated_at?: string | null;
+  created_at?: string | null;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
@@ -112,12 +114,19 @@ function ListView({
               </span>
             </div>
 
-            {/* Completion date — only shown when project is completed */}
+            {/* Completion date — with fallback chain: end_date → updated_at → created_at */}
             <div>
-              {project.progress_percentage === 100 && project.end_date ? (
-                <span className="text-xs font-medium text-emerald-600">
-                  {new Date(project.end_date).toLocaleDateString("tr-TR")}
-                </span>
+              {project.progress_percentage === 100 ? (
+                (() => {
+                  const dateStr = project.end_date || project.updated_at || project.created_at;
+                  return dateStr ? (
+                    <span className="text-xs font-medium text-emerald-600">
+                      {new Date(dateStr).toLocaleDateString("tr-TR")}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  );
+                })()
               ) : (
                 <span className="text-xs text-slate-300">—</span>
               )}
