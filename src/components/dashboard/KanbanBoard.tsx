@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
@@ -94,6 +94,9 @@ function KanbanCard({
 }) {
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
+  // savedProgress tracks the last value confirmed to the DB — independent of the
+  // prop so revalidation races don't flip hasUnsavedChanges back to true.
+  const [savedProgress, setSavedProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
@@ -103,7 +106,22 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted       = localProgress === 100;
-  const hasUnsavedChanges = localProgress !== project.progress_percentage;
+  // True only when user moved the slider but hasn't clicked Save yet.
+  // Compared against savedProgress (not the prop) to avoid race conditions
+  // during Next.js revalidation after other server actions.
+  // API is NEVER called from slider events — only from handleSave().
+  const hasUnsavedChanges = localProgress !== savedProgress;
+
+  // Warn the browser before the user navigates away with unsaved changes.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // triggers browser's built-in "Changes may not be saved" dialog
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
   const rawPriority       = getPriority(project);
   const priorityLabel     = rawPriority ?? "Medium";
   const priorityClasses   = getPriorityClasses(rawPriority);
@@ -131,14 +149,16 @@ function KanbanCard({
       formData.set("id", project.id);
       formData.set("progress", String(localProgress));
       await updateProgress(formData);
+      // Lock in the saved value so hasUnsavedChanges resets to false immediately.
+      setSavedProgress(localProgress);
       if (localProgress !== 100) {
-        toast.success("Progress saved!", {
+        toast.success("Saved successfully!", {
           style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
         });
       }
     } catch {
       toast.error("Failed to save progress");
-      setLocalProgress(project.progress_percentage);
+      setLocalProgress(savedProgress); // revert to last confirmed DB value
     } finally {
       setIsSaving(false);
     }
