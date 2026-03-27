@@ -158,6 +158,57 @@ export async function deleteReviewAction(formData: FormData) {
   return redirect(`/dashboard/projects/${projectId}`);
 }
 
+export async function updateProjectDetails(formData: FormData): Promise<{ success: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+
+  const projectId  = formData.get("project_id") as string;
+  const title      = (formData.get("title") as string)?.trim();
+  const description = (formData.get("description") as string)?.trim();
+  const start_date = (formData.get("start_date") as string) || null;
+  const end_date   = (formData.get("end_date") as string) || null;
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from("projects")
+    .select("student_id, description")
+    .eq("id", projectId)
+    .single();
+
+  if (!existing || existing.student_id !== user.id) {
+    throw new Error("Unauthorized");
+  }
+
+  // Preserve any embedded metadata tags ([Priority: ...], [Platform: ...], etc.)
+  const metaTags = ((existing.description ?? "").match(/\[[^\]]+\]/g) || []).join("\n");
+  const finalDescription = [description, metaTags].filter(Boolean).join("\n");
+
+  const { error } = await supabase
+    .from("projects")
+    .update({ title, description: finalDescription, start_date, end_date })
+    .eq("id", projectId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function searchProfilesAction(
+  query: string,
+): Promise<{ id: string; full_name: string }[]> {
+  if (!query || query.length < 2) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .ilike("full_name", `%${query}%`)
+    .limit(6);
+  return data || [];
+}
+
 export async function deleteProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

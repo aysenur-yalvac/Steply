@@ -2,9 +2,10 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Github, Calendar, CheckCircle, Clock, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
+import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { ProjectFile } from '@/lib/actions';
@@ -105,46 +106,27 @@ export default async function ProjectDetailPage({
         
         {/* Left Column: Project Details */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-            <div className="flex justify-between items-start mb-6">
-               <h3 className="text-xl font-bold text-slate-800">About Project</h3>
-               {isCompleted ? (
-                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sage-green/10 text-sage-green text-sm font-medium border border-sage-green/20 shrink-0">
-                   <CheckCircle className="w-4 h-4" /> Completed
-                 </div>
-               ) : (
-                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-medium border border-amber-500/20 shrink-0">
-                    <Clock className="w-4 h-4" /> In Progress
-                 </div>
-               )}
-            </div>
-            
-            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap mb-8">
-              {cleanedDescription || "No description has been entered for this project yet."}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-slate-50 border border-slate-100">
-              {project.github_link && (
-                <a href={project.github_link} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-dusty-rose hover:text-rose-600 transition-colors font-bold">
-                  <Github className="w-5 h-5" /> GitHub Repository
-                </a>
-               )}
-               <div className="flex items-center gap-2 text-slate-500 font-medium">
-                  <Calendar className="w-5 h-5 text-slate-400" />
-                  <span className="text-sm">Start: {project.start_date ? new Date(project.start_date).toLocaleDateString('en-US') : '-'}</span>
-               </div>
-               <div className="flex items-center gap-2 text-slate-500 font-medium">
-                  <Calendar className="w-5 h-5 text-slate-400" />
-                  <span className="text-sm">End: {project.end_date ? new Date(project.end_date).toLocaleDateString('en-US') : '-'}</span>
-               </div>
-            </div>
-          </div>
+          {/* Editable About Project + Team sections */}
+          <ProjectEditableContent
+            project={{
+              id:                 project.id,
+              title:              project.title,
+              cleanedDescription: cleanedDescription,
+              start_date:         project.start_date,
+              end_date:           project.end_date,
+              student_id:         project.student_id,
+              github_link:        project.github_link,
+              profiles:           project.profiles,
+            }}
+            currentUserId={user.id}
+            isCompleted={isCompleted}
+          />
 
           {/* File Management Section */}
-          <FileSection 
-            projectId={project.id} 
-            initialFiles={(project.files as ProjectFile[]) || []} 
-            isOwner={user.id === project.user_id} 
+          <FileSection
+            projectId={project.id}
+            initialFiles={(project.files as ProjectFile[]) || []}
+            isOwner={user.id === project.student_id}
           />
 
           {/* Reviews List */}

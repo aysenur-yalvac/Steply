@@ -76,10 +76,10 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   };
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+    <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          <HardDrive className="w-5 h-5 text-indigo-400" /> Project Files
+        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
         {isOwner && (
           <form action={handleUploadAction} className="relative">
@@ -112,49 +112,49 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
 
       {isUploading && (
         <div className="mb-6">
-          <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-            <div 
+          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+            <div
               className="h-full bg-indigo-500 transition-all duration-500"
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500 mt-1 text-center">Uploading via secure server...</p>
+          <p className="text-xs text-slate-400 mt-1 text-center">Uploading via secure server...</p>
         </div>
       )}
 
       <div className="space-y-3">
         {files.length === 0 ? (
-          <div className="text-center py-10 border-2 border-dashed border-slate-800 rounded-xl">
-            <File className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+          <div className="text-center py-10 border-2 border-dashed border-indigo-300 rounded-xl bg-indigo-50">
+            <File className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
             <p className="text-slate-500 text-sm">No files uploaded yet.</p>
           </div>
         ) : (
           files.map((file, idx) => (
-            <div key={idx} className="group flex items-center justify-between p-3 bg-slate-950/50 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors">
+            <div key={idx} className="group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors">
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-indigo-400 shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0">
                   <File className="w-5 h-5" />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-medium text-slate-200 truncate">{file.name}</p>
-                  <p className="text-xs text-slate-500">{formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}</p>
+                  <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                  <p className="text-xs text-slate-400">{formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <a 
-                  href={file.url} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  download 
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                   title="Download"
                 >
                   <Download className="w-4 h-4" />
                 </a>
                 {isOwner && (
-                  <button 
+                  <button
                     onClick={() => handleDelete(file.url)}
-                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
