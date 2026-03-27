@@ -30,7 +30,7 @@ export default function GlobalSearch() {
 
   return (
     <div className="relative flex items-center group w-full sm:w-64 transition-all">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors z-10">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-500 transition-colors z-10">
         <Search className="h-4 w-4" />
       </div>
       <input
@@ -38,7 +38,7 @@ export default function GlobalSearch() {
         placeholder="Search projects..."
         value={term}
         onChange={(e) => setTerm(e.target.value)}
-        className="w-full pl-10 pr-8 py-2.5 bg-slate-100/50 hover:bg-white backdrop-blur-md border border-slate-200/80 rounded-2xl text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all font-medium"
+        className="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:border-slate-300 border border-slate-200 rounded-2xl text-slate-800 text-sm placeholder-slate-400/80 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium"
       />
       {term && (
         <button 
