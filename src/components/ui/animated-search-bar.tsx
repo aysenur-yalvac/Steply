@@ -32,9 +32,12 @@ export const isUnsupportedBrowser = (): boolean => {
   return isSafari || ua.includes("crios");
 };
 
-// ── SVG Filter ─────────────────────────────────────────────────────────────────
+// ── SVG Filter (zero-size, outside flow) ───────────────────────────────────────
 const GooeyFilter = () => (
-  <svg aria-hidden="true" style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
+  <svg
+    aria-hidden="true"
+    style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+  >
     <defs>
       <filter id="goo-effect">
         <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
@@ -62,7 +65,8 @@ const SearchIcon = ({ isUnsupported }: { isUnsupported: boolean }) => (
   >
     <path
       d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z"
-      fillRule="evenodd" clipRule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
     />
   </motion.svg>
 );
@@ -76,13 +80,18 @@ const LoadingIcon = () => (
     role="status"
   >
     <rect width="256" height="256" fill="none" />
-    {[
-      [[128,32],[128,64]], [[195.88,60.12],[173.25,82.75]],
-      [[224,128],[192,128]], [[195.88,195.88],[173.25,173.25]],
-      [[128,224],[128,192]], [[60.12,195.88],[82.75,173.25]],
-      [[32,128],[64,128]], [[60.12,60.12],[82.75,82.75]],
-    ].map(([[x1,y1],[x2,y2]], i) => (
-      <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+    {([
+      [[128, 32], [128, 64]],
+      [[195.88, 60.12], [173.25, 82.75]],
+      [[224, 128], [192, 128]],
+      [[195.88, 195.88], [173.25, 173.25]],
+      [[128, 224], [128, 192]],
+      [[60.12, 195.88], [82.75, 173.25]],
+      [[32, 128], [64, 128]],
+      [[60.12, 60.12], [82.75, 82.75]],
+    ] as [number, number][][]).map(([[x1, y1], [x2, y2]], i) => (
+      <line
+        key={i} x1={x1} y1={y1} x2={x2} y2={y2}
         fill="none" stroke="rgba(255,255,255,0.8)"
         strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"
       />
@@ -90,61 +99,39 @@ const LoadingIcon = () => (
   </svg>
 );
 
-const InfoIcon = ({ index }: { index: number }) => (
-  <motion.svg
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ delay: index * 0.12 + 0.3 }}
-    viewBox="0 0 15 15"
-    className="gsb-info-icon"
-    aria-hidden="true"
-    fill="currentColor"
-  >
-    <path
-      d="M7.49991 0.876892C3.84222 0.876892 0.877075 3.84204 0.877075 7.49972C0.877075 11.1574 3.84222 14.1226 7.49991 14.1226C11.1576 14.1226 14.1227 11.1574 14.1227 7.49972C14.1227 3.84204 11.1576 0.876892 7.49991 0.876892ZM1.82707 7.49972C1.82707 4.36671 4.36689 1.82689 7.49991 1.82689C10.6329 1.82689 13.1727 4.36671 13.1727 7.49972C13.1727 10.6327 10.6329 13.1726 7.49991 13.1726C4.36689 13.1726 1.82707 10.6327 1.82707 7.49972ZM8.24992 4.49999C8.24992 4.91420 7.91413 5.24999 7.49992 5.24999C7.08571 5.24999 6.74992 4.91420 6.74992 4.49999C6.74992 4.08577 7.08571 3.74999 7.49992 3.74999C7.91413 3.74999 8.24992 4.08577 8.24992 4.49999ZM6.00003 5.99999H6.50003H7.50003C7.77618 5.99999 8.00003 6.22384 8.00003 6.49999V9.99999H8.50003H9.00003V11H8.50003H7.50003H6.50003H6.00003V9.99999H6.50003H7.00003V6.99999H6.50003H6.00003V5.99999Z"
-      fillRule="evenodd" clipRule="evenodd"
-    />
-  </motion.svg>
-);
-
-// ── Variants ───────────────────────────────────────────────────────────────────
+// ── Motion variants ────────────────────────────────────────────────────────────
+// Button pill: step1 = compact, step2 = expanded + shifted left
 const buttonVariants = {
-  initial: { x: 0, width: 110 },
-  step1:   { x: 0, width: 110 },
+  initial: { x: 0,   width: 110 },
+  step1:   { x: 0,   width: 110 },
   step2:   { x: -34, width: 190 },
 };
 
+// Icon circle: slides in flush against the right edge of the expanded pill
+// natural flex position = 190px (button width at step2)
+// button visual right edge = 190 - 34 = 156px
+// icon visual left  = 190 + x_visible
+// For a 4 px gap: 190 + x = 156 + 4  →  x = -30
 const iconVariants = {
   hidden:  { x: -50, opacity: 0 },
-  visible: { x: 16,  opacity: 1 },
+  visible: { x: -30, opacity: 1 },
 };
 
-const getResultItemVariants = (index: number, isUnsupported: boolean) => ({
-  initial: { y: 0, scale: 0.3, filter: isUnsupported ? "none" : "blur(10px)" },
-  animate: { y: (index + 1) * 48, scale: 1, filter: "blur(0px)" },
-  exit:    { y: isUnsupported ? 0 : -4, scale: 0.8, color: "#000000" },
-});
-
-const getResultItemTransition = (index: number) => ({
-  duration: 0.75,
-  delay: index * 0.1,
-  type: "spring" as const,
-  bounce: 0.35,
-  filter: { ease: "easeInOut" },
-});
-
 // ── Main component ─────────────────────────────────────────────────────────────
-export const GooeySearchBar = ({ data = [], placeholder = "Search projects..." }: GooeySearchBarProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+export const GooeySearchBar = ({
+  data = [],
+  placeholder = "Search projects...",
+}: GooeySearchBarProps) => {
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const isUnsupported = useMemo(() => isUnsupportedBrowser(), []);
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step,       setStep]       = useState<1 | 2>(1);
   const [searchText, setSearchText] = useState("");
   const [searchData, setSearchData] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading,  setIsLoading]  = useState(false);
 
-  const debouncedSearchText = useDebounce(searchText, 400);
+  const debouncedText = useDebounce(searchText, 350);
 
   // Focus / reset on step change
   useEffect(() => {
@@ -157,132 +144,150 @@ export const GooeySearchBar = ({ data = [], placeholder = "Search projects..." }
     }
   }, [step]);
 
-  // Filter on debounced text
+  // Filter on debounced input
   useEffect(() => {
     let cancelled = false;
-    if (debouncedSearchText) {
+    if (debouncedText.trim()) {
       setIsLoading(true);
-      const timer = setTimeout(() => {
+      const t = setTimeout(() => {
         if (!cancelled) {
-          const filtered = data.filter((item) =>
-            item.toLowerCase().includes(debouncedSearchText.trim().toLowerCase())
+          setSearchData(
+            data.filter((item) =>
+              item.toLowerCase().includes(debouncedText.trim().toLowerCase())
+            )
           );
-          setSearchData(filtered);
           setIsLoading(false);
         }
-      }, 300);
-      return () => { cancelled = true; clearTimeout(timer); };
+      }, 200);
+      return () => { cancelled = true; clearTimeout(t); };
     } else {
       setSearchData([]);
       setIsLoading(false);
     }
-  }, [debouncedSearchText, data]);
+  }, [debouncedText, data]);
 
-  // Close on outside click
+  // Close on outside click (scoped to the outer container, covers both blob + dropdown)
   useEffect(() => {
     if (step !== 2) return;
     const handle = (e: MouseEvent) => {
-      const el = (e.target as HTMLElement).closest(".gsb-wrapper");
-      if (!el) setStep(1);
+      if (!containerRef.current?.contains(e.target as Node)) setStep(1);
     };
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, [step]);
 
+  const showDropdown = step === 2 && (isLoading || searchData.length > 0 || debouncedText.length > 0);
+
   return (
-    <div className={clsx("gsb-wrapper", isUnsupported && "no-goo")}>
-      <GooeyFilter />
+    // Outer container — position:relative so the dropdown can anchor to it.
+    // NOT filtered — the filter is only on the inner goo wrapper.
+    <div ref={containerRef} style={{ position: "relative" }}>
 
-      <div className="gsb-button-content">
-        <motion.div
-          className="gsb-button-content-inner"
-          initial="initial"
-          animate={step === 1 ? "step1" : "step2"}
-          transition={{ duration: 0.7, type: "spring", bounce: 0.15 }}
-        >
-          {/* Results list */}
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key="results"
-              className="gsb-search-results"
-              role="listbox"
-              aria-label="Search results"
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ delay: isUnsupported ? 0.4 : 1.1, duration: 0.4 }}
-            >
-              <AnimatePresence mode="popLayout">
-                {searchData.map((item, index) => (
-                  <motion.div
-                    key={item}
-                    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-                    variants={getResultItemVariants(index, isUnsupported)}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={getResultItemTransition(index)}
-                    className="gsb-search-result"
-                    role="option"
-                  >
-                    <div className="gsb-search-result-title">
-                      <InfoIcon index={index} />
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.1 + 0.25 }}
-                      >
-                        {item}
-                      </motion.span>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Main button / input */}
+      {/* ── Dropdown results — lives OUTSIDE the goo filter stacking context ── */}
+      <AnimatePresence>
+        {showDropdown && (
           <motion.div
-            variants={buttonVariants}
-            onClick={() => setStep(2)}
-            whileHover={{ scale: step === 2 ? 1 : 1.05 }}
-            whileTap={{ scale: 0.96 }}
-            className="gsb-search-btn"
-            role="button"
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{
+              position:     "absolute",
+              top:          "calc(100% + 8px)",
+              right:        0,
+              minWidth:     "220px",
+              zIndex:       9999,
+              background:   "#ffffff",
+              borderRadius: "16px",
+              border:       "1px solid rgba(124,58,255,0.1)",
+              boxShadow:    "0 20px 40px -8px rgba(0,0,0,0.15), 0 0 0 1px rgba(124,58,255,0.06)",
+              overflow:     "hidden",
+            }}
+            role="listbox"
+            aria-label="Search results"
           >
-            {step === 1 ? (
-              <span className="gsb-search-text">Search</span>
+            {isLoading ? (
+              <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, color: "#7C3AFF", fontSize: 13, fontWeight: 600 }}>
+                <LoadingIcon />
+                Searching…
+              </div>
+            ) : searchData.length > 0 ? (
+              searchData.map((item, i) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.15 }}
+                  className="gsb-dropdown-item"
+                  role="option"
+                >
+                  <span className="gsb-dropdown-dot" />
+                  {item}
+                </motion.div>
+              ))
             ) : (
-              <input
-                ref={inputRef}
-                type="text"
-                className="gsb-search-input"
-                placeholder={placeholder}
-                aria-label="Search input"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
+              <div className="gsb-dropdown-empty">No projects found</div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Separate icon element (goo blob) */}
-          <AnimatePresence mode="wait">
-            {step === 2 && (
-              <motion.div
-                key="icon"
-                className="gsb-separate-element"
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={iconVariants}
-                transition={{ delay: 0.1, duration: 0.85, type: "spring", bounce: 0.15 }}
-              >
-                {!isLoading
-                  ? <SearchIcon isUnsupported={isUnsupported} />
-                  : <LoadingIcon />
-                }
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+      {/* ── Goo blob wrapper — button + icon only ───────────────────────────── */}
+      <div className={clsx("gsb-wrapper", isUnsupported && "no-goo")}>
+        <GooeyFilter />
+
+        <div className="gsb-button-content">
+          <motion.div
+            className="gsb-button-content-inner"
+            initial="initial"
+            animate={step === 1 ? "step1" : "step2"}
+            transition={{ duration: 0.7, type: "spring", bounce: 0.15 }}
+          >
+            {/* Pill: label or input */}
+            <motion.div
+              variants={buttonVariants}
+              onClick={() => setStep(2)}
+              whileHover={{ scale: step === 2 ? 1 : 1.05 }}
+              whileTap={{ scale: 0.96 }}
+              className="gsb-search-btn"
+              role="button"
+            >
+              {step === 1 ? (
+                <span className="gsb-search-text">Search</span>
+              ) : (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="gsb-search-input"
+                  placeholder={placeholder}
+                  aria-label="Search input"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              )}
+            </motion.div>
+
+            {/* Circular search / loading icon — goo-merges with pill */}
+            <AnimatePresence mode="wait">
+              {step === 2 && (
+                <motion.div
+                  key="icon"
+                  className="gsb-separate-element"
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={iconVariants}
+                  transition={{ delay: 0.08, duration: 0.8, type: "spring", bounce: 0.15 }}
+                >
+                  {!isLoading
+                    ? <SearchIcon isUnsupported={isUnsupported} />
+                    : <LoadingIcon />
+                  }
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
