@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
@@ -9,6 +9,7 @@ import {
   Loader2,
   Trash2,
   Save,
+  Check,
   Edit3,
   MessageSquarePlus,
   Paperclip,
@@ -16,7 +17,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
-import { deleteProjectAction } from "@/app/dashboard/actions";
+import { updateProgress, deleteProjectAction } from "@/app/dashboard/actions";
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import toast from "react-hot-toast";
@@ -94,7 +95,11 @@ function KanbanCard({
 }) {
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
+  // savedProgress = last value confirmed in DB; compared against localProgress
+  // to detect unsaved changes without being affected by Next.js revalidations.
+  const [savedProgress, setSavedProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
+  const [saveStatus,    setSaveStatus]    = useState<"idle" | "saving" | "done">("idle");
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
@@ -102,6 +107,16 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted       = localProgress === 100;
+  const hasUnsavedChanges = localProgress !== savedProgress;
+
+  // Warn before navigating away with unsaved progress changes.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
+
   const rawPriority       = getPriority(project);
   const priorityLabel     = rawPriority ?? "Medium";
   const priorityClasses   = getPriorityClasses(rawPriority);
@@ -111,6 +126,38 @@ function KanbanCard({
   const attachCount = (idSum % 5) + 1;
   const commentCount = ((idSum >> 2) % 6) + 1;
   const studentName = project.profiles?.full_name || "?";
+
+  const handleSave = async () => {
+    if (!hasUnsavedChanges || saveStatus === "saving") return;
+    setSaveStatus("saving");
+    try {
+      if (localProgress === 100 && savedProgress !== 100) {
+        toast.success("Congratulations! Project completed!", {
+          icon: "🎉",
+          style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
+        });
+        import("canvas-confetti").then((m) =>
+          m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#7C3AFF", "#FF7F50", "#A020F0"] })
+        );
+      }
+      const formData = new FormData();
+      formData.set("id", project.id);
+      formData.set("progress", String(localProgress));
+      await updateProgress(formData);
+      setSavedProgress(localProgress);
+      setSaveStatus("done");
+      setTimeout(() => setSaveStatus("idle"), 1000);
+      if (localProgress !== 100) {
+        toast.success("Saved!", {
+          style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
+        });
+      }
+    } catch {
+      toast.error("Failed to save progress");
+      setLocalProgress(savedProgress);
+      setSaveStatus("idle");
+    }
+  };
 
   const handleToggleWatch = async () => {
     const prev = isWatched;
@@ -274,7 +321,8 @@ function KanbanCard({
 
               {/* Progress slider for students */}
               {!isTeacher && (
-                <div className="relative">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
                     <AnimatePresence>
                       {isDragging && (
                         <motion.div
@@ -332,6 +380,33 @@ function KanbanCard({
                         background: `linear-gradient(to right, #7C3AFF 0%, #7C3AFF ${localProgress}%, #e2e8f0 ${localProgress}%, #e2e8f0 100%)`,
                       }}
                     />
+                  </div>
+
+                  {/* Save button — only triggered on click, never on slider events */}
+                  <motion.button
+                    onClick={handleSave}
+                    disabled={!hasUnsavedChanges || saveStatus === "saving"}
+                    animate={hasUnsavedChanges && saveStatus === "idle"
+                      ? { boxShadow: ["0 0 0px rgba(124,58,255,0)", "0 0 10px rgba(124,58,255,0.55)", "0 0 0px rgba(124,58,255,0)"] }
+                      : { boxShadow: "0 0 0px rgba(124,58,255,0)" }
+                    }
+                    transition={{ duration: 1.4, repeat: hasUnsavedChanges && saveStatus === "idle" ? Infinity : 0, ease: "easeInOut" }}
+                    whileTap={{ scale: 0.93 }}
+                    className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
+                      saveStatus === "saving"
+                        ? "bg-violet-400 text-white cursor-wait"
+                        : saveStatus === "done"
+                          ? "bg-emerald-500 text-white"
+                          : hasUnsavedChanges
+                            ? "bg-violet-600 text-white hover:bg-violet-700"
+                            : "bg-slate-100 text-slate-400 cursor-default"
+                    }`}
+                  >
+                    {saveStatus === "saving" && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {saveStatus === "done"   && <Check   className="w-3 h-3" />}
+                    {saveStatus === "idle"   && <Save    className="w-3 h-3" />}
+                    {saveStatus === "saving" ? "Saving…" : saveStatus === "done" ? "Saved" : "Save"}
+                  </motion.button>
                 </div>
               )}
 
