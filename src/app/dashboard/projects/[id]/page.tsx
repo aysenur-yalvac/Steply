@@ -46,6 +46,18 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
+  // Resolve owner name: join may be null if FK hint isn't wired in Supabase,
+  // so fall back to a direct profiles fetch via student_id.
+  let ownerName: string | null = (project.profiles as { full_name?: string } | null)?.full_name ?? null;
+  if (!ownerName && project.student_id) {
+    const { data: ownerProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", project.student_id)
+      .single();
+    ownerName = ownerProfile?.full_name ?? null;
+  }
+
   type Review = {
     id: string;
     rating: number;
@@ -97,9 +109,11 @@ export default async function ProjectDetailPage({
             <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
             <p className="text-slate-500 text-sm">
               Developed by{" "}
-              <span className="font-bold text-purple-600">
-                {project.profiles?.full_name ?? "Unknown"}
-              </span>
+              {ownerName ? (
+                <span className="font-bold" style={{ color: "#7C3AFF" }}>{ownerName}</span>
+              ) : (
+                <span className="inline-block w-24 h-3.5 rounded bg-slate-200 animate-pulse align-middle" />
+              )}
               .
             </p>
          </div>
