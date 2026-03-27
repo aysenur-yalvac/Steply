@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import {
   Pencil,
   Check,
@@ -13,6 +13,7 @@ import {
   Github,
   CheckCircle,
   Clock,
+  Save,
 } from "lucide-react";
 import { updateProjectDetails, searchProfilesAction } from "@/app/dashboard/actions";
 import toast from "react-hot-toast";
@@ -93,6 +94,10 @@ export default function ProjectEditableContent({
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDesc,  setEditingDesc]  = useState(false);
 
+  // Refs to programmatically open the native date pickers
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef   = useRef<HTMLInputElement>(null);
+
   // Team
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [memberQuery,     setMemberQuery]     = useState("");
@@ -102,24 +107,26 @@ export default function ProjectEditableContent({
 
   const [isPending, startTransition] = useTransition();
 
-  // ── Save ───────────────────────────────────────────────────────────────────
-  const saveDetails = (overrides: {
-    t?: string;
-    d?: string;
-    sd?: string;
-    ed?: string;
-  } = {}) => {
+  // Dirty state — any field differs from the server-rendered initial value
+  const isDirty =
+    title       !== project.title ||
+    description !== project.cleanedDescription ||
+    startDate   !== (project.start_date ?? "") ||
+    endDate     !== (project.end_date ?? "");
+
+  // ── Save all ──────────────────────────────────────────────────────────────
+  const saveAll = () => {
     const fd = new FormData();
     fd.set("project_id",  project.id);
-    fd.set("title",       overrides.t  ?? title);
-    fd.set("description", overrides.d  ?? description);
-    fd.set("start_date",  overrides.sd ?? startDate);
-    fd.set("end_date",    overrides.ed ?? endDate);
+    fd.set("title",       title);
+    fd.set("description", description);
+    fd.set("start_date",  startDate);
+    fd.set("end_date",    endDate);
 
     startTransition(async () => {
       try {
         await updateProjectDetails(fd);
-        toast.success("Changes saved!");
+        toast.success("Project details saved!");
       } catch (err: any) {
         toast.error(err.message || "Failed to save");
       }
@@ -180,20 +187,22 @@ export default function ProjectEditableContent({
                   autoFocus
                   className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-indigo-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter")  { saveDetails({ t: title }); setEditingTitle(false); }
-                    if (e.key === "Escape") { setTitle(project.title);   setEditingTitle(false); }
+                    if (e.key === "Enter")  setEditingTitle(false);
+                    if (e.key === "Escape") { setTitle(project.title); setEditingTitle(false); }
                   }}
                 />
+                {/* ✓ just closes edit mode; actual DB save is via the big button */}
                 <button
-                  onClick={() => { saveDetails({ t: title }); setEditingTitle(false); }}
-                  disabled={isPending}
-                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-60"
+                  onClick={() => setEditingTitle(false)}
+                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  title="Apply"
                 >
-                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  <Check className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setTitle(project.title); setEditingTitle(false); }}
                   className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
+                  title="Cancel"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -231,13 +240,12 @@ export default function ProjectEditableContent({
                 >
                   Cancel
                 </button>
+                {/* "Apply" = commit to local state only; no DB save here */}
                 <button
-                  onClick={() => { saveDetails({ d: description }); setEditingDesc(false); }}
-                  disabled={isPending}
-                  className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                  onClick={() => setEditingDesc(false)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
                 >
-                  {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                  Save
+                  <Check className="w-3.5 h-3.5" /> Apply
                 </button>
               </div>
             </div>
@@ -273,15 +281,29 @@ export default function ProjectEditableContent({
 
           {/* Start date */}
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-            <span className="text-xs font-semibold text-slate-500">Start</span>
+            {isOwner ? (
+              /* Clickable label area triggers native date picker */
+              <button
+                type="button"
+                onClick={() => startDateRef.current?.showPicker()}
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors group/cal"
+                title="Pick start date"
+              >
+                <Calendar className="w-4 h-4 text-indigo-400 group-hover/cal:text-indigo-600 transition-colors" />
+                Start
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <Calendar className="w-4 h-4 text-slate-400" /> Start
+              </span>
+            )}
             {isOwner ? (
               <input
+                ref={startDateRef}
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                onBlur={(e) => saveDetails({ sd: e.target.value })}
-                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer"
+                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer hover:border-indigo-300"
               />
             ) : (
               <span className="text-sm text-slate-600 font-medium">
@@ -292,15 +314,28 @@ export default function ProjectEditableContent({
 
           {/* End date */}
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-            <span className="text-xs font-semibold text-slate-500">End</span>
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={() => endDateRef.current?.showPicker()}
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors group/cal"
+                title="Pick end date"
+              >
+                <Calendar className="w-4 h-4 text-indigo-400 group-hover/cal:text-indigo-600 transition-colors" />
+                End
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <Calendar className="w-4 h-4 text-slate-400" /> End
+              </span>
+            )}
             {isOwner ? (
               <input
+                ref={endDateRef}
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                onBlur={(e) => saveDetails({ ed: e.target.value })}
-                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer"
+                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer hover:border-indigo-300"
               />
             ) : (
               <span className="text-sm text-slate-600 font-medium">
@@ -309,6 +344,33 @@ export default function ProjectEditableContent({
             )}
           </div>
         </div>
+
+        {/* ── Save Project Details button (owner only) ─────────────────────── */}
+        {isOwner && (
+          <div className="mt-6 pt-5 border-t border-slate-100">
+            <button
+              onClick={saveAll}
+              disabled={isPending || !isDirty}
+              className={`w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-sm transition-all active:scale-[.98] ${
+                isDirty
+                  ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_8px_24px_-6px_rgba(79,70,229,0.45)]"
+                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              }`}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {isDirty ? "Save Project Details" : "No unsaved changes"}
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Team Members card ────────────────────────────────────────────── */}
