@@ -26,6 +26,25 @@ type Project = {
 
 type ViewMode = "kanban" | "list";
 
+// ── Priority badge helpers ──────────────────────────────────────────────────────
+const PRIORITY_CLASSES: Record<string, string> = {
+  Low:    "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Medium: "bg-orange-100  text-orange-700  border-orange-200",
+  High:   "bg-red-100     text-red-700     border-red-200",
+};
+const PRIORITY_DOT: Record<string, string> = {
+  Low:    "bg-emerald-500",
+  Medium: "bg-orange-500",
+  High:   "bg-red-500",
+};
+
+function cleanDescription(raw: string): string {
+  return raw
+    .replace(/\[Priority:[^\]]*\]/g, "")
+    .replace(/\[Platform:[^\]]*\]/g, "")
+    .trim();
+}
+
 // ── Status helpers ─────────────────────────────────────────────────────────────
 function StatusBadge({ progress }: { progress: number }) {
   if (progress === 100) {
@@ -96,9 +115,9 @@ function ListView({
                   {project.profiles.full_name}
                 </p>
               )}
-              {project.description && (
+              {project.description && cleanDescription(project.description) && (
                 <p className="text-[11px] text-slate-400 mt-0.5 truncate hidden sm:block">
-                  {project.description}
+                  {cleanDescription(project.description)}
                 </p>
               )}
             </div>
@@ -108,12 +127,19 @@ function ListView({
               <StatusBadge progress={project.progress_percentage} />
             </div>
 
-            {/* Priority */}
+            {/* Priority — dynamic color */}
             <div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
-                High
-              </span>
+              {(() => {
+                const p = project.priority ?? "Medium";
+                const cls = PRIORITY_CLASSES[p] ?? PRIORITY_CLASSES["Medium"];
+                const dot = PRIORITY_DOT[p]    ?? PRIORITY_DOT["Medium"];
+                return (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cls}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full inline-block ${dot}`} />
+                    {p}
+                  </span>
+                );
+              })()}
             </div>
 
             {/* Completion date — with fallback chain: end_date → updated_at → created_at */}
