@@ -53,13 +53,19 @@ function projectStatus(p: Project): string {
   return "To Do";
 }
 
+// Mirror KanbanBoard's getPriority: column first, then [Priority: X] in description,
+// then "Medium" as display default — so filter always matches the visible badge.
+function getEffectivePriority(p: Project): string {
+  if (p.priority?.trim()) return p.priority.trim();
+  const match = (p.description ?? "").match(/\[Priority:\s*([^\]]+)\]/i);
+  if (match) return match[1].trim();
+  return "Medium";
+}
+
 function applyFilters(projects: Project[], filters: Filters): Project[] {
   return projects.filter((p) => {
     if (filters.status.length > 0 && !filters.status.includes(projectStatus(p))) return false;
-    if (filters.priority.length > 0) {
-      const pri = p.priority ?? "Medium";
-      if (!filters.priority.includes(pri)) return false;
-    }
+    if (filters.priority.length > 0 && !filters.priority.includes(getEffectivePriority(p))) return false;
     return true;
   });
 }
@@ -245,7 +251,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
               <div><StatusBadge progress={project.progress_percentage} /></div>
               <div>
                 {(() => {
-                  const p   = project.priority ?? "Medium";
+                  const p   = getEffectivePriority(project);
                   const cls = PRIORITY_CLASSES[p] ?? PRIORITY_CLASSES["Medium"];
                   const dot = PRIORITY_DOT[p]    ?? PRIORITY_DOT["Medium"];
                   return (
