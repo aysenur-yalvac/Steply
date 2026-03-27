@@ -6,8 +6,8 @@ import { ArrowLeft, Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
+import ProgressSliderCard from '@/components/projects/ProgressSliderCard';
 import PageWrapper from '@/components/layout/PageWrapper';
-import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
@@ -170,13 +170,11 @@ export default async function ProjectDetailPage({
 
         {/* Right Column: Progress & Review Form */}
         <div className="flex flex-col gap-8">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Progress Status</h3>
-             <div className="flex justify-between items-end mb-2">
-                 <span className="text-3xl font-black text-slate-800">%{project.progress_percentage}</span>
-             </div>
-             <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
-          </div>
+          <ProgressSliderCard
+            projectId={project.id}
+            initialProgress={project.progress_percentage}
+            isOwner={user.id === project.student_id}
+          />
 
           {/* Only teachers can comment */}
           {isTeacher && (
