@@ -177,12 +177,10 @@ function KanbanCard({
             <span className={`w-1.5 h-1.5 rounded-full inline-block ${priorityClasses.dot}`} />
             {priorityLabel}
           </span>
-          {/* Platform badge */}
-          {project.platform && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
-              {project.platform}
-            </span>
-          )}
+          {/* Platform badge — always visible; falls back to 'Genel' */}
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
+            {project.platform ? project.platform : "Genel"}
+          </span>
           {isTeacher && project.profiles?.full_name && (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[100px]">
               {project.profiles.full_name}
