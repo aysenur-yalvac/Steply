@@ -2,8 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import { redirect } from 'next/navigation';
 import AgendaClient from '@/app/dashboard/agenda/AgendaClient';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 
 export default async function AgendaPage() {
   const supabase = await createClient();
@@ -34,12 +33,9 @@ export default async function AgendaPage() {
 
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Link 
-        href="/dashboard" 
-        className="flex items-center gap-2 text-slate-500 hover:text-indigo-500 transition-colors w-fit mb-6 ml-1"
-      >
-        <ArrowLeft className="w-4 h-4" /> Go Back
-      </Link>
+      <div className="mb-6">
+        <BackButton href="/dashboard" variant="light" />
+      </div>
       <AgendaClient initialTasks={tasks || []} />
     </div>
   );

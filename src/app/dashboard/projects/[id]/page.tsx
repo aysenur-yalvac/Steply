@@ -2,12 +2,13 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Star, Trash2 } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
+import { BackButton } from '@/components/ui/back-button';
 import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
@@ -91,9 +92,7 @@ export default async function ProjectDetailPage({
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-2">
-           <Link href="/dashboard" className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 shrink-0 shadow-sm">
-             <ArrowLeft className="w-5 h-5" />
-           </Link>
+           <BackButton href="/dashboard" variant="light" />
          <div>
             <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
             <p className="text-slate-500 text-sm">

@@ -1,8 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { User, Mail, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { User, Mail, ShieldAlert } from 'lucide-react';
 import ProfileForm from './ProfileForm';
-import Link from 'next/link';
+import { BackButton } from '@/components/ui/back-button';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -26,12 +26,9 @@ export default async function ProfilePage() {
     <div className="min-h-screen w-full bg-[#f8fafc] p-6 md:p-10 flex flex-col items-center">
       <div className="w-full max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <Link 
-          href="/dashboard" 
-          className="flex items-center gap-2 text-slate-500 hover:text-indigo-500 transition-colors w-fit mb-6 ml-1"
-        >
-          <ArrowLeft className="w-4 h-4" /> Go Back
-        </Link>
+        <div className="mb-6">
+          <BackButton href="/dashboard" variant="light" />
+        </div>
 
       <div className="flex items-center gap-3 mb-8">
         <div className="p-3 rounded-2xl bg-dusty-rose/10 text-dusty-rose border border-dusty-rose/20">

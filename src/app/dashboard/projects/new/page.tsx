@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createProject } from '../../actions';
 import {
   Plus,
-  ArrowLeft,
   Layout,
   AlignLeft,
   BarChart3,
@@ -13,7 +12,8 @@ import {
   Flag,
   Monitor,
 } from 'lucide-react';
-import Link from 'next/link';
+import { BackButton } from '@/components/ui/back-button';
+
 import toast from 'react-hot-toast';
 
 type Priority = 'Low' | 'Medium' | 'High';
@@ -64,12 +64,7 @@ export default function NewProjectPage() {
       <div className="w-full max-w-xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex flex-col gap-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-500 transition-colors w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" /> Go Back
-          </Link>
+          <BackButton href="/dashboard" variant="light" />
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
               <Plus className="w-7 h-7" />
