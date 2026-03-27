@@ -115,3 +115,135 @@ body {
 .animate-tooltip {
   animation: fadeScaleUp 0.2s ease-out forwards;
 }
+
+/* ── Gooey Search Bar ─────────────────────────────────────────────────────── */
+.gsb-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  filter: url('#goo-effect');
+}
+.gsb-wrapper.no-goo {
+  filter: none;
+}
+
+.gsb-button-content {
+  position: relative;
+}
+
+.gsb-button-content-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+/* Results: absolutely stacked below the button */
+.gsb-search-results {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.gsb-search-result {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  background-color: #7C3AFF;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: all;
+}
+
+.gsb-search-result-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+}
+
+/* Main pill button */
+.gsb-search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 40px;
+  background-color: #7C3AFF;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #ffffff;
+  overflow: hidden;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.gsb-search-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  user-select: none;
+  white-space: nowrap;
+  padding: 0 20px;
+  letter-spacing: 0.01em;
+}
+
+.gsb-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+  padding: 0 16px;
+  caret-color: rgba(255, 255, 255, 0.8);
+}
+
+.gsb-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Circular icon blob */
+.gsb-separate-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #7C3AFF;
+  border-radius: 50%;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Loading spinner */
+.gsb-loading-icon {
+  width: 18px;
+  height: 18px;
+  animation: gsb-spin 1s linear infinite;
+}
+
+.gsb-info-icon {
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+}
+
+@keyframes gsb-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

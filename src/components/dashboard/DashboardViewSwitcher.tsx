@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Plus, SlidersHorizontal, CheckCircle, Clock, Minus, ExternalLink } from "lucide-react";
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
-import GlobalSearch from "@/components/dashboard/GlobalSearch";
+import { GooeySearchBar } from "@/components/ui/animated-search-bar";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Project = {
@@ -253,9 +253,7 @@ export default function DashboardViewSwitcher({
 
         {/* Search + Filter + New */}
         <div className="flex items-center gap-3 flex-1 sm:flex-none justify-end">
-          <Suspense fallback={<div className="w-56 h-9 bg-slate-100 animate-pulse rounded-2xl" />}>
-            <GlobalSearch />
-          </Suspense>
+          <GooeySearchBar data={projects.map((p) => p.title)} />
 
           <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition-colors shrink-0">
             <SlidersHorizontal className="w-4 h-4" />
