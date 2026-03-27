@@ -316,8 +316,39 @@ function KanbanCard({
                       onMouseLeave={() => setIsDragging(false)}
                       onTouchStart={() => setIsDragging(true)}
                       onTouchEnd={() => setIsDragging(false)}
-                      className="w-full cursor-grab active:cursor-grabbing h-1.5 rounded-lg appearance-none"
-                      style={{ accentColor: "#7C3AFF" }}
+                      className="
+                        w-full cursor-grab active:cursor-grabbing appearance-none
+                        [&::-webkit-slider-runnable-track]:h-2
+                        [&::-webkit-slider-runnable-track]:rounded-full
+                        [&::-webkit-slider-runnable-track]:bg-slate-200
+                        [&::-webkit-slider-thumb]:appearance-none
+                        [&::-webkit-slider-thumb]:w-5
+                        [&::-webkit-slider-thumb]:h-5
+                        [&::-webkit-slider-thumb]:rounded-full
+                        [&::-webkit-slider-thumb]:bg-violet-600
+                        [&::-webkit-slider-thumb]:shadow-xl
+                        [&::-webkit-slider-thumb]:ring-2
+                        [&::-webkit-slider-thumb]:ring-violet-500
+                        [&::-webkit-slider-thumb]:ring-offset-2
+                        [&::-webkit-slider-thumb]:cursor-grab
+                        [&::-webkit-slider-thumb]:transition-transform
+                        [&::-webkit-slider-thumb]:hover:scale-110
+                        [&::-moz-range-track]:h-2
+                        [&::-moz-range-track]:rounded-full
+                        [&::-moz-range-track]:bg-slate-200
+                        [&::-moz-range-thumb]:w-5
+                        [&::-moz-range-thumb]:h-5
+                        [&::-moz-range-thumb]:rounded-full
+                        [&::-moz-range-thumb]:bg-violet-600
+                        [&::-moz-range-thumb]:border-none
+                        [&::-moz-range-thumb]:shadow-xl
+                        [&::-moz-range-progress]:bg-violet-600
+                        [&::-moz-range-progress]:rounded-full
+                        [&::-moz-range-progress]:h-2
+                      "
+                      style={{
+                        background: `linear-gradient(to right, #7C3AFF 0%, #7C3AFF ${localProgress}%, #e2e8f0 ${localProgress}%, #e2e8f0 100%)`,
+                      }}
                     />
                   </div>
                   <button
