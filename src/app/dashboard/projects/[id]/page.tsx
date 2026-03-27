@@ -96,7 +96,11 @@ export default async function ProjectDetailPage({
          <div>
             <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
             <p className="text-slate-500 text-sm">
-              Developed by <span className="font-medium text-dusty-rose">{project.profiles?.full_name}</span>.
+              Developed by{" "}
+              <span className="font-bold text-purple-600">
+                {project.profiles?.full_name ?? "Unknown"}
+              </span>
+              .
             </p>
          </div>
       </div>
