@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
@@ -16,7 +16,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
-import { updateProgress, deleteProjectAction } from "@/app/dashboard/actions";
+import { deleteProjectAction } from "@/app/dashboard/actions";
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import toast from "react-hot-toast";
@@ -94,11 +94,7 @@ function KanbanCard({
 }) {
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
-  // savedProgress tracks the last value confirmed to the DB — independent of the
-  // prop so revalidation races don't flip hasUnsavedChanges back to true.
-  const [savedProgress, setSavedProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
-  const [isSaving,      setIsSaving]      = useState(false);
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
@@ -106,22 +102,6 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted       = localProgress === 100;
-  // True only when user moved the slider but hasn't clicked Save yet.
-  // Compared against savedProgress (not the prop) to avoid race conditions
-  // during Next.js revalidation after other server actions.
-  // API is NEVER called from slider events — only from handleSave().
-  const hasUnsavedChanges = localProgress !== savedProgress;
-
-  // Warn the browser before the user navigates away with unsaved changes.
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = ""; // triggers browser's built-in "Changes may not be saved" dialog
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [hasUnsavedChanges]);
   const rawPriority       = getPriority(project);
   const priorityLabel     = rawPriority ?? "Medium";
   const priorityClasses   = getPriorityClasses(rawPriority);
@@ -131,38 +111,6 @@ function KanbanCard({
   const attachCount = (idSum % 5) + 1;
   const commentCount = ((idSum >> 2) % 6) + 1;
   const studentName = project.profiles?.full_name || "?";
-
-  const handleSave = async () => {
-    if (!hasUnsavedChanges || isSaving) return;
-    setIsSaving(true);
-    try {
-      if (localProgress === 100 && project.progress_percentage !== 100) {
-        toast.success("Congratulations! Project completed!", {
-          icon: "🎉",
-          style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
-        });
-        import("canvas-confetti").then((m) =>
-          m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#7C3AFF", "#FF7F50", "#A020F0"] })
-        );
-      }
-      const formData = new FormData();
-      formData.set("id", project.id);
-      formData.set("progress", String(localProgress));
-      await updateProgress(formData);
-      // Lock in the saved value so hasUnsavedChanges resets to false immediately.
-      setSavedProgress(localProgress);
-      if (localProgress !== 100) {
-        toast.success("Saved successfully!", {
-          style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
-        });
-      }
-    } catch {
-      toast.error("Failed to save progress");
-      setLocalProgress(savedProgress); // revert to last confirmed DB value
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleToggleWatch = async () => {
     const prev = isWatched;
@@ -326,8 +274,7 @@ function KanbanCard({
 
               {/* Progress slider for students */}
               {!isTeacher && (
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
+                <div className="relative">
                     <AnimatePresence>
                       {isDragging && (
                         <motion.div
@@ -385,30 +332,6 @@ function KanbanCard({
                         background: `linear-gradient(to right, #7C3AFF 0%, #7C3AFF ${localProgress}%, #e2e8f0 ${localProgress}%, #e2e8f0 100%)`,
                       }}
                     />
-                  </div>
-                  <motion.button
-                    onClick={handleSave}
-                    disabled={!hasUnsavedChanges || isSaving}
-                    animate={hasUnsavedChanges && !isSaving
-                      ? { boxShadow: ["0 0 0px rgba(124,58,255,0)", "0 0 10px rgba(124,58,255,0.6)", "0 0 0px rgba(124,58,255,0)"] }
-                      : { boxShadow: "0 0 0px rgba(124,58,255,0)" }
-                    }
-                    transition={{ duration: 1.4, repeat: hasUnsavedChanges && !isSaving ? Infinity : 0, ease: "easeInOut" }}
-                    whileTap={{ scale: 0.93 }}
-                    className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
-                      isSaving
-                        ? "bg-violet-400 text-white cursor-wait"
-                        : hasUnsavedChanges
-                          ? "bg-violet-600 text-white hover:bg-violet-700"
-                          : "bg-slate-100 text-slate-400 cursor-default"
-                    }`}
-                  >
-                    {isSaving
-                      ? <Loader2 className="w-3 h-3 animate-spin" />
-                      : <Save className="w-3 h-3" />
-                    }
-                    {isSaving ? "Saving…" : "Save"}
-                  </motion.button>
                 </div>
               )}
 
