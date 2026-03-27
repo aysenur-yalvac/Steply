@@ -324,6 +324,7 @@ function KanbanCard({
                         [&::-webkit-slider-thumb]:appearance-none
                         [&::-webkit-slider-thumb]:w-4
                         [&::-webkit-slider-thumb]:h-4
+                        [&::-webkit-slider-thumb]:-mt-[5px]
                         [&::-webkit-slider-thumb]:rounded-full
                         [&::-webkit-slider-thumb]:bg-violet-600
                         [&::-webkit-slider-thumb]:shadow-md
