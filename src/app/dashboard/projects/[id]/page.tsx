@@ -78,6 +78,12 @@ export default async function ProjectDetailPage({
 
   const isCompleted = project.progress_percentage === 100;
 
+  // Strip any [Priority: ...] / [Platform: ...] metadata that may have been
+  // embedded in description as a DB-column fallback by the server action.
+  const cleanedDescription = (project.description ?? "")
+    .replace(/\[.*?\]/g, "")
+    .trim();
+
   return (
     <PageWrapper>
       <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full p-6 md:p-10 lg:p-12">
@@ -114,7 +120,7 @@ export default async function ProjectDetailPage({
             </div>
             
             <p className="text-slate-600 leading-relaxed whitespace-pre-wrap mb-8">
-              {project.description || "No description has been entered for this project yet."}
+              {cleanedDescription || "No description has been entered for this project yet."}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-slate-50 border border-slate-100">

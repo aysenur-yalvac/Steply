@@ -47,12 +47,9 @@ function getPriorityClasses(priority?: string | null) {
   return PRIORITY_CLASSES[priority ?? ""] ?? PRIORITY_CLASSES["Medium"];
 }
 
-// Strip fallback metadata embedded in description by the server action
+// Strip any bracketed metadata tags embedded in description (e.g. [Priority: High])
 function cleanDescription(raw: string): string {
-  return raw
-    .replace(/\[Priority:[^\]]*\]/g, "")
-    .replace(/\[Platform:[^\]]*\]/g, "")
-    .trim();
+  return raw.replace(/\[.*?\]/g, "").trim();
 }
 
 function strHash(s: string) {

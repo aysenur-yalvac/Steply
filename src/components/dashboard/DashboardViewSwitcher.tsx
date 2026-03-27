@@ -39,10 +39,7 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 function cleanDescription(raw: string): string {
-  return raw
-    .replace(/\[Priority:[^\]]*\]/g, "")
-    .replace(/\[Platform:[^\]]*\]/g, "")
-    .trim();
+  return raw.replace(/\[.*?\]/g, "").trim();
 }
 
 // ── Status helpers ─────────────────────────────────────────────────────────────
