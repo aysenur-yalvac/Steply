@@ -362,19 +362,21 @@ function KanbanCard({
                 )}
               </div>
 
-              {/* Team — only real student, no ghost members */}
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                    style={{ background: avatarColor(studentName.charAt(0)) }}
-                  >
-                    {studentName.charAt(0).toUpperCase()}
+              {/* Team — only rendered when a real student name is available */}
+              {project.profiles?.full_name && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                      style={{ background: avatarColor(studentName.charAt(0)) }}
+                    >
+                      {studentName.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-xs text-slate-600 font-medium">{studentName}</span>
                   </div>
-                  <span className="text-xs text-slate-600 font-medium">{studentName}</span>
                 </div>
-              </div>
+              )}
 
               {/* Quick private note (student only) */}
               {canAddNote && (
