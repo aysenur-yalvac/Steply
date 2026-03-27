@@ -17,21 +17,21 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 type Priority = 'Low' | 'Medium' | 'High';
-type Platform = 'Web' | 'Mobile' | 'API';
 
-const PRIORITIES: Priority[] = ['Low', 'Medium', 'High'];
-const PLATFORMS: Platform[] = ['Web', 'Mobile', 'API'];
+const PRIORITIES: { value: Priority; activeClass: string }[] = [
+  { value: 'Low',    activeClass: 'bg-emerald-500 border-emerald-500 text-white shadow-[0_4px_12px_-2px_rgba(16,185,129,0.4)]' },
+  { value: 'Medium', activeClass: 'bg-orange-500  border-orange-500  text-white shadow-[0_4px_12px_-2px_rgba(249,115,22,0.4)]'  },
+  { value: 'High',   activeClass: 'bg-red-500     border-red-500     text-white shadow-[0_4px_12px_-2px_rgba(239,68,68,0.4)]'   },
+];
 
 export default function NewProjectPage() {
   const [isPending, setIsPending] = useState(false);
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [priority, setPriority] = useState<Priority>('Medium');
-  const [platform, setPlatform] = useState<Platform>('Web');
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     formData.set('priority', priority);
-    formData.set('platform', platform);
     setIsPending(true);
     try {
       await createProject(formData);
@@ -101,53 +101,34 @@ export default function NewProjectPage() {
                 <Flag className="w-4 h-4 text-indigo-500" /> Proje Önceliği
               </label>
               <div className="flex gap-2">
-                {PRIORITIES.map((p) => {
-                  const isSelected = priority === p;
-                  const isHigh = p === 'High';
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPriority(p)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                        isSelected
-                          ? isHigh
-                            ? 'bg-red-500 border-red-500 text-white shadow-[0_4px_12px_-2px_rgba(239,68,68,0.4)]'
-                            : 'bg-slate-800 border-slate-800 text-white shadow-sm'
-                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
+                {PRIORITIES.map(({ value, activeClass }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPriority(value)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                      priority === value
+                        ? activeClass
+                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Platform */}
-            <div className="space-y-3">
+            {/* Platform (free text) */}
+            <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
                 <Monitor className="w-4 h-4 text-indigo-500" /> Proje Tipi
               </label>
-              <div className="flex gap-2">
-                {PLATFORMS.map((p) => {
-                  const isSelected = platform === p;
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPlatform(p)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                        isSelected
-                          ? 'bg-[#7C3AFF] border-[#7C3AFF] text-white shadow-[0_4px_12px_-2px_rgba(124,58,255,0.4)]'
-                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-              </div>
+              <input
+                name="platform"
+                type="text"
+                placeholder="e.g.: React Native, Next.js, REST API..."
+                className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm"
+              />
             </div>
 
             {/* Initial Progress */}

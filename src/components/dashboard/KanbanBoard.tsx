@@ -30,25 +30,25 @@ type Project = {
   github_link?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  priority?: string | null;
+  platform?: string | null;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
 
-// ── Platform tag helpers ───────────────────────────────────────────────────────
-const PLATFORMS = ["Mobile", "Desktop", "Web", "API"] as const;
-const PLATFORM_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Mobile:  { bg: "#EFF6FF", text: "#2563EB", border: "#BFDBFE" },
-  Desktop: { bg: "#F5F3FF", text: "#7C3AED", border: "#DDD6FE" },
-  Web:     { bg: "#ECFDF5", text: "#059669", border: "#A7F3D0" },
-  API:     { bg: "#FFF7ED", text: "#EA580C", border: "#FED7AA" },
+// ── Priority badge helpers ─────────────────────────────────────────────────────
+const PRIORITY_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  Low:    { bg: "#ECFDF5", text: "#059669", border: "#A7F3D0", dot: "#10B981" },
+  Medium: { bg: "#FFF7ED", text: "#EA580C", border: "#FED7AA", dot: "#F97316" },
+  High:   { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA", dot: "#EF4444" },
 };
+
+function getPriorityStyle(priority?: string | null) {
+  return PRIORITY_STYLES[priority ?? ""] ?? PRIORITY_STYLES["High"];
+}
 
 function strHash(s: string) {
   return s.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-}
-
-function getPlatform(id: string) {
-  return PLATFORMS[strHash(id) % PLATFORMS.length];
 }
 
 // ── Avatar group helpers ───────────────────────────────────────────────────────
@@ -82,8 +82,7 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted = localProgress === 100;
-  const platform = getPlatform(project.id);
-  const platformStyle = PLATFORM_STYLES[platform];
+  const priorityStyle = getPriorityStyle(project.priority);
   const canAddNote = currentUserId === project.student_id;
   const idSum = strHash(project.id);
   const attachCount = (idSum % 5) + 1;
@@ -166,15 +165,17 @@ function KanbanCard({
       <div className="p-4">
         {/* Tags row */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {project.platform && (
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 truncate max-w-[110px]">
+              {project.platform}
+            </span>
+          )}
           <span
-            className="text-[11px] font-bold px-2.5 py-1 rounded-full border"
-            style={{ background: platformStyle.bg, color: platformStyle.text, borderColor: platformStyle.border }}
+            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+            style={{ background: priorityStyle.bg, color: priorityStyle.text, borderColor: priorityStyle.border }}
           >
-            {platform}
-          </span>
-          <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
-            High
+            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: priorityStyle.dot }} />
+            {project.priority ?? "High"}
           </span>
           {isTeacher && project.profiles?.full_name && (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[100px]">

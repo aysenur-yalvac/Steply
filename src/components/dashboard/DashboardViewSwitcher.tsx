@@ -18,6 +18,8 @@ type Project = {
   end_date?: string | null;
   updated_at?: string | null;
   created_at?: string | null;
+  priority?: string | null;
+  platform?: string | null;
   progress_percentage: number;
   profiles?: { full_name: string };
 };
