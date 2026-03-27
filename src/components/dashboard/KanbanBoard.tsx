@@ -95,34 +95,53 @@ function KanbanCard({
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
+  const [isSaving,      setIsSaving]      = useState(false);
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
-  const isCompleted = localProgress === 100;
-  const rawPriority = getPriority(project);
-  const priorityLabel = rawPriority ?? "Medium";
-  const priorityClasses = getPriorityClasses(rawPriority);
+  const isCompleted       = localProgress === 100;
+  const hasUnsavedChanges = localProgress !== project.progress_percentage;
+  const rawPriority       = getPriority(project);
+  const priorityLabel     = rawPriority ?? "Medium";
+  const priorityClasses   = getPriorityClasses(rawPriority);
   const displayDescription = cleanDescription(project.description ?? "");
-  const canAddNote = currentUserId === project.student_id;
-  const idSum = strHash(project.id);
+  const canAddNote  = currentUserId === project.student_id;
+  const idSum       = strHash(project.id);
   const attachCount = (idSum % 5) + 1;
   const commentCount = ((idSum >> 2) % 6) + 1;
   const studentName = project.profiles?.full_name || "?";
 
-  const handleUpdate = async (formData: FormData) => {
-    if (localProgress === 100 && project.progress_percentage !== 100) {
-      toast.success("Congratulations! Project completed!", {
-        icon: "🎉",
-        style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
-      });
-      import("canvas-confetti").then((m) =>
-        m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#7C3AFF", "#FF7F50", "#A020F0"] })
-      );
+  const handleSave = async () => {
+    if (!hasUnsavedChanges || isSaving) return;
+    setIsSaving(true);
+    try {
+      if (localProgress === 100 && project.progress_percentage !== 100) {
+        toast.success("Congratulations! Project completed!", {
+          icon: "🎉",
+          style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
+        });
+        import("canvas-confetti").then((m) =>
+          m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#7C3AFF", "#FF7F50", "#A020F0"] })
+        );
+      }
+      const formData = new FormData();
+      formData.set("id", project.id);
+      formData.set("progress", String(localProgress));
+      await updateProgress(formData);
+      if (localProgress !== 100) {
+        toast.success("Progress saved!", {
+          style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
+        });
+      }
+    } catch {
+      toast.error("Failed to save progress");
+      setLocalProgress(project.progress_percentage);
+    } finally {
+      setIsSaving(false);
     }
-    await updateProgress(formData);
   };
 
   const handleToggleWatch = async () => {
@@ -287,8 +306,7 @@ function KanbanCard({
 
               {/* Progress slider for students */}
               {!isTeacher && (
-                <form action={handleUpdate} className="flex items-center gap-2">
-                  <input type="hidden" name="id" value={project.id} />
+                <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <AnimatePresence>
                       {isDragging && (
@@ -305,7 +323,6 @@ function KanbanCard({
                     </AnimatePresence>
                     <input
                       type="range"
-                      name="progress"
                       min="0"
                       max="100"
                       step="5"
@@ -349,13 +366,30 @@ function KanbanCard({
                       }}
                     />
                   </div>
-                  <button
-                    type="submit"
-                    className="text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 active:scale-95 transition-all shrink-0"
+                  <motion.button
+                    onClick={handleSave}
+                    disabled={!hasUnsavedChanges || isSaving}
+                    animate={hasUnsavedChanges && !isSaving
+                      ? { boxShadow: ["0 0 0px rgba(124,58,255,0)", "0 0 10px rgba(124,58,255,0.6)", "0 0 0px rgba(124,58,255,0)"] }
+                      : { boxShadow: "0 0 0px rgba(124,58,255,0)" }
+                    }
+                    transition={{ duration: 1.4, repeat: hasUnsavedChanges && !isSaving ? Infinity : 0, ease: "easeInOut" }}
+                    whileTap={{ scale: 0.93 }}
+                    className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
+                      isSaving
+                        ? "bg-violet-400 text-white cursor-wait"
+                        : hasUnsavedChanges
+                          ? "bg-violet-600 text-white hover:bg-violet-700"
+                          : "bg-slate-100 text-slate-400 cursor-default"
+                    }`}
                   >
-                    Save
-                  </button>
-                </form>
+                    {isSaving
+                      ? <Loader2 className="w-3 h-3 animate-spin" />
+                      : <Save className="w-3 h-3" />
+                    }
+                    {isSaving ? "Saving…" : "Save"}
+                  </motion.button>
+                </div>
               )}
 
               {/* Action buttons */}
