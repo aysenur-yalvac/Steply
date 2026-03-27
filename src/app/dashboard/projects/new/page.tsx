@@ -31,7 +31,22 @@ export default function NewProjectPage() {
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
-    formData.set('priority', priority);
+    const title = (formData.get('title') as string)?.trim();
+    if (!title) {
+      toast.error('Project title is required.');
+      return;
+    }
+
+    // Ensure client-controlled fields are always present
+    formData.set('priority', priority || 'Medium');
+    if (!formData.get('platform')) {
+      formData.set('platform', 'General');
+    }
+    const progress = formData.get('progress_percentage');
+    if (!progress) {
+      formData.set('progress_percentage', '0');
+    }
+
     setIsPending(true);
     try {
       await createProject(formData);

@@ -19,7 +19,7 @@ export async function createProject(formData: FormData): Promise<{ success: bool
   const end_date = formData.get("end_date") as string;
   const progress_percentage = parseInt(formData.get("progress_percentage") as string) || 0;
   const priority = (formData.get("priority") as string) || "Medium";
-  const platform = (formData.get("platform") as string) || "Web";
+  const platform = (formData.get("platform") as string) || "General";
 
   const { error } = await supabase.from("projects").insert({
     student_id: user.id,
