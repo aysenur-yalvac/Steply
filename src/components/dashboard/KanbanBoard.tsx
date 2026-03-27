@@ -218,11 +218,19 @@ function KanbanCard({
           </p>
         )}
 
-        {/* Due date */}
-        {project.end_date && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-3 font-medium">
-            <Flag className="w-3 h-3" />
-            {new Date(project.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}
+        {/* Dates — only rendered when at least one date exists */}
+        {(project.start_date || project.end_date) && (
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-3 font-medium">
+            <Flag className="w-3 h-3 shrink-0" />
+            {project.start_date && (
+              <span>{new Date(project.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+            )}
+            {project.start_date && project.end_date && (
+              <span className="text-slate-300">→</span>
+            )}
+            {project.end_date && (
+              <span>{new Date(project.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+            )}
           </div>
         )}
 

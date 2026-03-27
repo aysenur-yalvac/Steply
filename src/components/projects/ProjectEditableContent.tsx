@@ -282,14 +282,13 @@ export default function ProjectEditableContent({
           {/* Start date */}
           <div className="flex items-center gap-2">
             {isOwner ? (
-              /* Clickable label area triggers native date picker */
               <button
                 type="button"
                 onClick={() => startDateRef.current?.showPicker()}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors group/cal"
+                className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors group/cal"
                 title="Pick start date"
               >
-                <Calendar className="w-4 h-4 text-indigo-400 group-hover/cal:text-indigo-600 transition-colors" />
+                <Calendar className="w-4 h-4 group-hover/cal:scale-110 transition-transform" />
                 Start
               </button>
             ) : (
@@ -303,7 +302,7 @@ export default function ProjectEditableContent({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer hover:border-indigo-300"
+                className="text-sm text-slate-700 font-medium bg-white border border-indigo-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer hover:border-indigo-400"
               />
             ) : (
               <span className="text-sm text-slate-600 font-medium">
@@ -312,16 +311,21 @@ export default function ProjectEditableContent({
             )}
           </div>
 
-          {/* End date */}
+          {/* End date — disabled until a start date is selected */}
           <div className="flex items-center gap-2">
             {isOwner ? (
               <button
                 type="button"
-                onClick={() => endDateRef.current?.showPicker()}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors group/cal"
-                title="Pick end date"
+                onClick={() => startDate && endDateRef.current?.showPicker()}
+                disabled={!startDate}
+                className={`flex items-center gap-1.5 text-xs font-bold transition-colors group/cal ${
+                  startDate
+                    ? "text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                    : "text-slate-300 cursor-not-allowed"
+                }`}
+                title={startDate ? "Pick end date" : "Select a start date first"}
               >
-                <Calendar className="w-4 h-4 text-indigo-400 group-hover/cal:text-indigo-600 transition-colors" />
+                <Calendar className={`w-4 h-4 transition-transform ${startDate ? "group-hover/cal:scale-110" : ""}`} />
                 End
               </button>
             ) : (
@@ -334,8 +338,14 @@ export default function ProjectEditableContent({
                 ref={endDateRef}
                 type="date"
                 value={endDate}
+                min={startDate || undefined}
+                disabled={!startDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="text-sm text-slate-700 font-medium bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer hover:border-indigo-300"
+                className={`text-sm font-medium bg-white border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+                  startDate
+                    ? "text-slate-700 border-indigo-200 cursor-pointer hover:border-indigo-400"
+                    : "text-slate-300 border-slate-100 cursor-not-allowed bg-slate-50"
+                }`}
               />
             ) : (
               <span className="text-sm text-slate-600 font-medium">
