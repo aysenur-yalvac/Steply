@@ -253,7 +253,7 @@ export default function DashboardViewSwitcher({
 
         {/* Search + Filter + New */}
         <div className="flex items-center gap-3 flex-1 sm:flex-none justify-end">
-          <GooeySearchBar data={projects.map((p) => p.title)} />
+          <GooeySearchBar />
 
           <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition-colors shrink-0">
             <SlidersHorizontal className="w-4 h-4" />

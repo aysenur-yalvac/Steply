@@ -2,11 +2,16 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import clsx from "clsx";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
+interface SearchResult {
+  id: string;
+  title: string;
+}
+
 interface GooeySearchBarProps {
-  data?: string[];
   placeholder?: string;
 }
 
@@ -100,18 +105,12 @@ const LoadingIcon = () => (
 );
 
 // ── Motion variants ────────────────────────────────────────────────────────────
-// Button pill: step1 = compact, step2 = expanded + shifted left
 const buttonVariants = {
   initial: { x: 0,   width: 110 },
   step1:   { x: 0,   width: 110 },
   step2:   { x: -34, width: 190 },
 };
 
-// Icon circle: slides in flush against the right edge of the expanded pill
-// natural flex position = 190px (button width at step2)
-// button visual right edge = 190 - 34 = 156px
-// icon visual left  = 190 + x_visible
-// For a 4 px gap: 190 + x = 156 + 4  →  x = -30
 const iconVariants = {
   hidden:  { x: -50, opacity: 0 },
   visible: { x: -30, opacity: 1 },
@@ -119,16 +118,15 @@ const iconVariants = {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export const GooeySearchBar = ({
-  data = [],
   placeholder = "Search projects...",
 }: GooeySearchBarProps) => {
-  const inputRef    = useRef<HTMLInputElement>(null);
+  const inputRef     = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isUnsupported = useMemo(() => isUnsupportedBrowser(), []);
 
   const [step,       setStep]       = useState<1 | 2>(1);
   const [searchText, setSearchText] = useState("");
-  const [searchData, setSearchData] = useState<string[]>([]);
+  const [results,    setResults]    = useState<SearchResult[]>([]);
   const [isLoading,  setIsLoading]  = useState(false);
 
   const debouncedText = useDebounce(searchText, 350);
@@ -139,34 +137,35 @@ export const GooeySearchBar = ({
       inputRef.current?.focus();
     } else {
       setSearchText("");
-      setSearchData([]);
+      setResults([]);
       setIsLoading(false);
     }
   }, [step]);
 
-  // Filter on debounced input
+  // Global search via API on debounced input
   useEffect(() => {
     let cancelled = false;
-    if (debouncedText.trim()) {
+    if (debouncedText.trim().length >= 1) {
       setIsLoading(true);
-      const t = setTimeout(() => {
-        if (!cancelled) {
-          setSearchData(
-            data.filter((item) =>
-              item.toLowerCase().includes(debouncedText.trim().toLowerCase())
-            )
-          );
-          setIsLoading(false);
-        }
-      }, 200);
-      return () => { cancelled = true; clearTimeout(t); };
+      fetch(`/api/search?q=${encodeURIComponent(debouncedText.trim())}`)
+        .then((r) => r.json())
+        .then((data: SearchResult[]) => {
+          if (!cancelled) {
+            setResults(data);
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setIsLoading(false);
+        });
     } else {
-      setSearchData([]);
+      setResults([]);
       setIsLoading(false);
     }
-  }, [debouncedText, data]);
+    return () => { cancelled = true; };
+  }, [debouncedText]);
 
-  // Close on outside click (scoped to the outer container, covers both blob + dropdown)
+  // Close on outside click
   useEffect(() => {
     if (step !== 2) return;
     const handle = (e: MouseEvent) => {
@@ -176,11 +175,9 @@ export const GooeySearchBar = ({
     return () => document.removeEventListener("mousedown", handle);
   }, [step]);
 
-  const showDropdown = step === 2 && (isLoading || searchData.length > 0 || debouncedText.length > 0);
+  const showDropdown = step === 2 && (isLoading || results.length > 0 || debouncedText.length > 0);
 
   return (
-    // Outer container — position:relative so the dropdown can anchor to it.
-    // NOT filtered — the filter is only on the inner goo wrapper.
     <div ref={containerRef} style={{ position: "relative" }}>
 
       {/* ── Dropdown results — lives OUTSIDE the goo filter stacking context ── */}
@@ -211,18 +208,23 @@ export const GooeySearchBar = ({
                 <LoadingIcon />
                 Searching…
               </div>
-            ) : searchData.length > 0 ? (
-              searchData.map((item, i) => (
+            ) : results.length > 0 ? (
+              results.map((item, i) => (
                 <motion.div
-                  key={item}
+                  key={item.id}
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.15 }}
-                  className="gsb-dropdown-item"
                   role="option"
                 >
-                  <span className="gsb-dropdown-dot" />
-                  {item}
+                  <Link
+                    href={`/dashboard/projects/${item.id}`}
+                    className="gsb-dropdown-item"
+                    onClick={() => setStep(1)}
+                  >
+                    <span className="gsb-dropdown-dot" />
+                    {item.title}
+                  </Link>
                 </motion.div>
               ))
             ) : (
