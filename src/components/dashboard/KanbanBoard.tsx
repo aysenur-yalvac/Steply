@@ -110,12 +110,7 @@ function KanbanCard({
   const idSum = strHash(project.id);
   const attachCount = (idSum % 5) + 1;
   const commentCount = ((idSum >> 2) % 6) + 1;
-  const studentName = project.profiles?.full_name || "S";
-
-  const avatarInitials = [
-    studentName.charAt(0).toUpperCase(),
-    String.fromCharCode(65 + (idSum % 26)),
-  ];
+  const studentName = project.profiles?.full_name || "?";
 
   const handleUpdate = async (formData: FormData) => {
     if (localProgress === 100 && project.progress_percentage !== 100) {
@@ -367,23 +362,17 @@ function KanbanCard({
                 )}
               </div>
 
-              {/* Team */}
+              {/* Team — only real student, no ghost members */}
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
-                <div className="flex items-center gap-3">
-                  {avatarInitials.map((initial, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                        style={{ background: avatarColor(initial + String(i)) }}
-                      >
-                        {initial}
-                      </div>
-                      <span className="text-xs text-slate-600 font-medium">
-                        {i === 0 ? studentName : "Member"}
-                      </span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                    style={{ background: avatarColor(studentName.charAt(0)) }}
+                  >
+                    {studentName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs text-slate-600 font-medium">{studentName}</span>
                 </div>
               </div>
 

@@ -375,7 +375,7 @@ export default function ProjectEditableContent({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {isDirty ? "Save Project Details" : "No unsaved changes"}
+                  {isDirty ? "Save Changes" : "No unsaved changes"}
                 </>
               )}
             </button>
