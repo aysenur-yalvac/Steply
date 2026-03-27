@@ -52,6 +52,13 @@ function cleanDescription(raw: string): string {
   return raw.replace(/\[.*?\]/g, "").trim();
 }
 
+// Extract platform: prefer project.platform field, then fall back to [Platform: ...] in description
+function getPlatform(project: { platform?: string | null; description?: string | null }): string | null {
+  if (project.platform?.trim()) return project.platform.trim();
+  const match = (project.description ?? "").match(/\[Platform:\s*([^\]]+)\]/i);
+  return match ? match[1].trim() : null;
+}
+
 function strHash(s: string) {
   return s.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 }
@@ -177,10 +184,12 @@ function KanbanCard({
             <span className={`w-1.5 h-1.5 rounded-full inline-block ${priorityClasses.dot}`} />
             {priorityLabel}
           </span>
-          {/* Platform badge — always visible; falls back to 'Genel' */}
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
-            {project.platform ? project.platform : "Genel"}
-          </span>
+          {/* Platform badge — extracted from field or description metadata */}
+          {getPlatform(project) && (
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
+              {getPlatform(project)}
+            </span>
+          )}
           {isTeacher && project.profiles?.full_name && (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[100px]">
               {project.profiles.full_name}
