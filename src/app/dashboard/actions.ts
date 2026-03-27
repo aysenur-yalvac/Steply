@@ -17,25 +17,71 @@ export async function createProject(formData: FormData): Promise<{ success: bool
   const github_link = formData.get("github_link") as string;
   const start_date = formData.get("start_date") as string;
   const end_date = formData.get("end_date") as string;
-  const progress_percentage = parseInt(formData.get("progress_percentage") as string) || 0;
+  const progress_percentage = Number(formData.get("progress_percentage")) || 0;
   const priority = (formData.get("priority") as string) || "Medium";
   const platform = (formData.get("platform") as string) || "General";
 
+  // Helper: safe serializable error message
+  function safeMsg(err: unknown): string {
+    if (!err) return "Unknown error";
+    if (typeof err === "object") {
+      const e = err as Record<string, unknown>;
+      return [e.message, e.details, e.hint, e.code]
+        .filter(Boolean)
+        .join(" | ") || "Database error";
+    }
+    return String(err);
+  }
+
+  // Attempt 1: insert with priority + platform columns
   const { error } = await supabase.from("projects").insert({
     student_id: user.id,
     title,
     description,
-    github_link: github_link === "" ? null : github_link,
-    start_date: start_date === "" ? null : start_date,
-    end_date: end_date === "" ? null : end_date,
+    github_link: github_link || null,
+    start_date: start_date || null,
+    end_date: end_date || null,
     progress_percentage,
     priority,
     platform,
   });
 
   if (error) {
-    console.error("FULL_DATABASE_ERROR:", error);
-    throw new Error(`Database Error: ${JSON.stringify(error)}`);
+    const msg = safeMsg(error);
+    const isMissingColumn =
+      msg.toLowerCase().includes("priority") ||
+      msg.toLowerCase().includes("platform") ||
+      (error as any).code === "PGRST204" ||
+      (error as any).code === "42703";
+
+    if (isMissingColumn) {
+      // Columns not yet in schema — embed metadata in description as fallback
+      const augmentedDesc = [
+        description,
+        `[Priority: ${priority}]`,
+        platform !== "General" ? `[Platform: ${platform}]` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const { error: error2 } = await supabase.from("projects").insert({
+        student_id: user.id,
+        title,
+        description: augmentedDesc,
+        github_link: github_link || null,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        progress_percentage,
+      });
+
+      if (error2) {
+        console.error("FALLBACK_INSERT_ERROR:", error2);
+        throw new Error(safeMsg(error2));
+      }
+    } else {
+      console.error("FULL_DATABASE_ERROR:", error);
+      throw new Error(msg);
+    }
   }
 
   revalidatePath("/dashboard");
