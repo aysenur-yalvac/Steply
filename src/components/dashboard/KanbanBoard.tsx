@@ -59,6 +59,14 @@ function getPlatform(project: { platform?: string | null; description?: string |
   return match ? match[1].trim() : null;
 }
 
+// Extract priority: prefer project.priority field, then fall back to [Priority: ...] in description
+// Never silently default to "Medium" — return null if genuinely unknown
+function getPriority(project: { priority?: string | null; description?: string | null }): string | null {
+  if (project.priority?.trim()) return project.priority.trim();
+  const match = (project.description ?? "").match(/\[Priority:\s*([^\]]+)\]/i);
+  return match ? match[1].trim() : null;
+}
+
 function strHash(s: string) {
   return s.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 }
@@ -94,8 +102,9 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted = localProgress === 100;
-  const priorityLabel = project.priority ?? "Medium";
-  const priorityClasses = getPriorityClasses(project.priority);
+  const rawPriority = getPriority(project);
+  const priorityLabel = rawPriority ?? "Medium";
+  const priorityClasses = getPriorityClasses(rawPriority);
   const displayDescription = cleanDescription(project.description ?? "");
   const canAddNote = currentUserId === project.student_id;
   const idSum = strHash(project.id);

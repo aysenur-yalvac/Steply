@@ -56,10 +56,13 @@ export async function createProject(formData: FormData): Promise<{ success: bool
 
     if (isMissingColumn) {
       // Columns not yet in schema — embed metadata in description as fallback
+      // Use formData values directly to guarantee the exact user-selected priority (e.g. "Low") is stored
+      const embeddedPriority = (formData.get("priority") as string) || priority;
+      const embeddedPlatform = (formData.get("platform") as string) || platform;
       const augmentedDesc = [
         description,
-        `[Priority: ${priority}]`,
-        platform !== "General" ? `[Platform: ${platform}]` : "",
+        `[Priority: ${embeddedPriority}]`,
+        embeddedPlatform && embeddedPlatform !== "General" ? `[Platform: ${embeddedPlatform}]` : "",
       ]
         .filter(Boolean)
         .join("\n");

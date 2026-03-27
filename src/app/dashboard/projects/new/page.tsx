@@ -37,8 +37,8 @@ export default function NewProjectPage() {
       return;
     }
 
-    // Ensure client-controlled fields are always present
-    formData.set('priority', priority || 'Medium');
+    // Ensure client-controlled fields are always present — use exact state value, no override
+    formData.set('priority', priority);
     if (!formData.get('platform')) {
       formData.set('platform', 'General');
     }
