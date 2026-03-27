@@ -280,9 +280,9 @@ function KanbanCard({
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
-                  <span className="text-xs font-extrabold text-violet-600">{localProgress}%</span>
+                  <span className="text-xs font-bold text-indigo-700">{localProgress}%</span>
                 </div>
-                <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-1.5" />
+                <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-1.5" variant="indigo" />
               </div>
 
               {/* Progress slider for students */}
