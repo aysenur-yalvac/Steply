@@ -37,14 +37,22 @@ type Project = {
 };
 
 // ── Priority badge helpers ─────────────────────────────────────────────────────
-const PRIORITY_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  Low:    { bg: "#ECFDF5", text: "#059669", border: "#A7F3D0", dot: "#10B981" },
-  Medium: { bg: "#FFF7ED", text: "#EA580C", border: "#FED7AA", dot: "#F97316" },
-  High:   { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA", dot: "#EF4444" },
+const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
+  Low:    { badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  Medium: { badge: "bg-orange-100  text-orange-700  border-orange-200",  dot: "bg-orange-500"  },
+  High:   { badge: "bg-red-100     text-red-700     border-red-200",     dot: "bg-red-500"     },
 };
 
-function getPriorityStyle(priority?: string | null) {
-  return PRIORITY_STYLES[priority ?? ""] ?? PRIORITY_STYLES["High"];
+function getPriorityClasses(priority?: string | null) {
+  return PRIORITY_CLASSES[priority ?? ""] ?? PRIORITY_CLASSES["Medium"];
+}
+
+// Strip fallback metadata embedded in description by the server action
+function cleanDescription(raw: string): string {
+  return raw
+    .replace(/\[Priority:[^\]]*\]/g, "")
+    .replace(/\[Platform:[^\]]*\]/g, "")
+    .trim();
 }
 
 function strHash(s: string) {
@@ -82,7 +90,9 @@ function KanbanCard({
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
   const isCompleted = localProgress === 100;
-  const priorityStyle = getPriorityStyle(project.priority);
+  const priorityLabel = project.priority ?? "Medium";
+  const priorityClasses = getPriorityClasses(project.priority);
+  const displayDescription = cleanDescription(project.description ?? "");
   const canAddNote = currentUserId === project.student_id;
   const idSum = strHash(project.id);
   const attachCount = (idSum % 5) + 1;
@@ -165,18 +175,17 @@ function KanbanCard({
       <div className="p-4">
         {/* Tags row */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {/* Priority badge — dynamic color */}
+          <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border ${priorityClasses.badge}`}>
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${priorityClasses.dot}`} />
+            {priorityLabel}
+          </span>
+          {/* Platform badge */}
           {project.platform && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 truncate max-w-[110px]">
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
               {project.platform}
             </span>
           )}
-          <span
-            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
-            style={{ background: priorityStyle.bg, color: priorityStyle.text, borderColor: priorityStyle.border }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: priorityStyle.dot }} />
-            {project.priority ?? "High"}
-          </span>
           {isTeacher && project.profiles?.full_name && (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[100px]">
               {project.profiles.full_name}
@@ -189,10 +198,10 @@ function KanbanCard({
           {project.title}
         </h3>
 
-        {/* Description snippet */}
-        {project.description && (
+        {/* Description snippet — cleaned of embedded metadata tags */}
+        {displayDescription && (
           <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-3">
-            {project.description}
+            {displayDescription}
           </p>
         )}
 
