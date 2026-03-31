@@ -48,6 +48,13 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
+  // ── Privacy gate ─────────────────────────────────────────────────────────────
+  // If the project is private, only the owner and teachers can access it.
+  const isPrivateProject = (project as any).is_private === true;
+  if (isPrivateProject && !isTeacher && project.student_id !== user.id) {
+    notFound();
+  }
+
   // ── Owner identity ──────────────────────────────────────────────────────────
   // Always fetch via admin so RLS on profiles never blocks a cross-user read.
   let ownerName: string | null = null;
@@ -168,6 +175,7 @@ export default async function ProjectDetailPage({
                 end_date:           project.end_date,
                 student_id:         project.student_id,
                 github_link:        project.github_link,
+                is_private:         (project as any).is_private ?? false,
                 profiles:           ownerName
                   ? { full_name: ownerName, avatar_url: ownerAvatarUrl }
                   : null,
@@ -181,6 +189,7 @@ export default async function ProjectDetailPage({
               projectId={project.id}
               initialFiles={(project.files as ProjectFile[]) || []}
               isOwner={user.id === project.student_id}
+              isTeacher={isTeacher}
             />
 
             {/* Reviews */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { Upload, File, Loader2, Download, Trash2, HardDrive } from 'lucide-react';
+import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock, Globe } from 'lucide-react';
 import { uploadFileAction, deleteFileAction, ProjectFile } from '@/lib/actions';
 import { toast } from 'react-hot-toast';
 
@@ -9,12 +9,14 @@ interface FileSectionProps {
   projectId: string;
   initialFiles: ProjectFile[];
   isOwner: boolean;
+  isTeacher?: boolean;
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner }: FileSectionProps) {
+export default function FileSection({ projectId, initialFiles, isOwner, isTeacher = false }: FileSectionProps) {
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [makePrivate, setMakePrivate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadAction = async (formData: FormData) => {
@@ -31,10 +33,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
 
     try {
       setUploadProgress(50);
-
-      // Call Server Action — handles Storage upload + DB update server-side
       const result = await uploadFileAction(formData);
-
       setUploadProgress(100);
 
       if (result?.file) {
@@ -75,6 +74,12 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Privacy filter: hide private files from non-owner, non-teacher viewers
+  const visibleFiles = files.filter(file => {
+    if (!file.isPrivate) return true;
+    return isOwner || isTeacher;
+  });
+
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
@@ -82,10 +87,27 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
         {isOwner && (
-          <form action={handleUploadAction} className="relative">
+          <form
+            action={handleUploadAction}
+            className="flex items-center gap-3"
+          >
             <input type="hidden" name="projectId" value={projectId} />
-            <input 
-              type="file" 
+            <input type="hidden" name="isPrivate" value={makePrivate ? "true" : "false"} />
+
+            {/* Privacy checkbox */}
+            <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={makePrivate}
+                onChange={(e) => setMakePrivate(e.target.checked)}
+                className="rounded border-slate-300 accent-[#7C3AFF] cursor-pointer"
+              />
+              <Lock className="w-3 h-3 text-slate-400" />
+              Private
+            </label>
+
+            <input
+              type="file"
               name="file"
               ref={fileInputRef}
               onChange={(e) => {
@@ -94,10 +116,10 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                   e.target.form?.requestSubmit();
                 }
               }}
-              className="hidden" 
+              className="hidden"
               disabled={isUploading}
             />
-            <button 
+            <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
@@ -123,20 +145,35 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       )}
 
       <div className="space-y-3">
-        {files.length === 0 ? (
+        {visibleFiles.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed border-indigo-300 rounded-xl bg-indigo-50">
             <File className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
             <p className="text-slate-500 text-sm">No files uploaded yet.</p>
           </div>
         ) : (
-          files.map((file, idx) => (
-            <div key={idx} className="group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors">
+          visibleFiles.map((file, idx) => (
+            <div
+              key={file.id ?? idx}
+              className="group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors"
+            >
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0 relative">
                   <File className="w-5 h-5" />
+                  {file.isPrivate && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#7C3AFF] flex items-center justify-center">
+                      <Lock className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                    {file.isPrivate && (
+                      <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 uppercase tracking-wide">
+                        <Lock className="w-2.5 h-2.5" /> Private
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-400">{formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}</p>
                 </div>
               </div>
@@ -165,6 +202,14 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           ))
         )}
       </div>
+
+      {/* Show count of hidden private files to non-owners */}
+      {!isOwner && !isTeacher && files.some(f => f.isPrivate) && (
+        <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
+          <Lock className="w-3 h-3" />
+          {files.filter(f => f.isPrivate).length} private file(s) hidden from view.
+        </p>
+      )}
     </div>
   );
 }

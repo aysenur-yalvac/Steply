@@ -14,8 +14,10 @@ import {
   CheckCircle,
   Clock,
   Save,
+  Lock,
+  Globe,
 } from "lucide-react";
-import { updateProjectDetails, searchProfilesAction } from "@/app/dashboard/actions";
+import { updateProjectDetails, searchProfilesAction, toggleProjectPrivacyAction } from "@/app/dashboard/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -32,6 +34,7 @@ interface Props {
     student_id?: string;
     github_link?: string | null;
     profiles?: { full_name: string; avatar_url?: string | null } | null;
+    is_private?: boolean;
   };
   initialTeamMembers: Member[];
   currentUserId: string;
@@ -76,6 +79,10 @@ export default function ProjectEditableContent({
   isCompleted,
 }: Props) {
   const isOwner = currentUserId === project.student_id;
+
+  // Privacy state
+  const [isPrivate,        setIsPrivate]        = useState(project.is_private ?? false);
+  const [isPrivacyPending, setIsPrivacyPending] = useState(false);
 
   // Editable field state
   const [title,       setTitle]       = useState(project.title);
@@ -134,6 +141,27 @@ export default function ProjectEditableContent({
         toast.error(err instanceof Error ? err.message : "Failed to save");
       }
     });
+  };
+
+  // ── Privacy toggle ─────────────────────────────────────────────────────────
+  const handlePrivacyToggle = async () => {
+    const next = !isPrivate;
+    setIsPrivate(next);
+    setIsPrivacyPending(true);
+    try {
+      const result = await toggleProjectPrivacyAction(project.id, next);
+      if (result && (result as any).columnMissing) {
+        toast.error("Privacy feature requires a DB migration. Contact your admin.");
+        setIsPrivate(!next); // revert
+      } else {
+        toast.success(next ? "Project is now private." : "Project is now public.");
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update privacy.");
+      setIsPrivate(!next); // revert
+    } finally {
+      setIsPrivacyPending(false);
+    }
   };
 
   // ── Member search ──────────────────────────────────────────────────────────
@@ -355,6 +383,46 @@ export default function ProjectEditableContent({
             )}
           </div>
         </div>
+
+        {/* ── Privacy Toggle (owner only) ──────────────────────────────────── */}
+        {isOwner && (
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isPrivate ? (
+                  <Lock className="w-4 h-4 text-[#7C3AFF]" />
+                ) : (
+                  <Globe className="w-4 h-4 text-emerald-500" />
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {isPrivate ? "Private Project" : "Public Project"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {isPrivate
+                      ? "Only teachers and you can view this project."
+                      : "Everyone with the link can view this project."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrivacyToggle}
+                disabled={isPrivacyPending}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                  isPrivate ? "bg-[#7C3AFF]" : "bg-slate-200"
+                }`}
+                title={isPrivate ? "Make public" : "Make private"}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    isPrivate ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Save Project Details button (owner only) ─────────────────────── */}
         {isOwner && (

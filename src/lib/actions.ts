@@ -5,11 +5,13 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
 
 export type ProjectFile = {
+  id?: string;
   name: string;
   url: string;
   size: number;
   type: string;
   uploaded_at: string;
+  isPrivate?: boolean;
 };
 
 /**
@@ -98,12 +100,15 @@ export async function uploadFileAction(formData: FormData) {
       .getPublicUrl(filePath);
 
     // Save metadata to DB
+    const isPrivate = formData.get("isPrivate") === "true";
     const newFile: ProjectFile = {
+      id: `${Date.now()}`,
       name: file.name,
       url: publicUrl,
       size: file.size,
       type: file.type,
       uploaded_at: new Date().toISOString(),
+      isPrivate,
     };
 
     const existingFiles = (project.files as ProjectFile[]) || [];

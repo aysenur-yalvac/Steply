@@ -227,6 +227,37 @@ export async function searchProfilesAction(
   }));
 }
 
+export async function toggleProjectPrivacyAction(projectId: string, isPrivate: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("student_id")
+    .eq("id", projectId)
+    .single();
+
+  if (!project || project.student_id !== user.id) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("projects")
+    .update({ is_private: isPrivate })
+    .eq("id", projectId);
+
+  if (error) {
+    if ((error as any).code === "42703" || error.message.toLowerCase().includes("is_private")) {
+      console.warn("is_private column not found — skipping privacy toggle.");
+      return { success: false, columnMissing: true };
+    }
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function deleteProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
