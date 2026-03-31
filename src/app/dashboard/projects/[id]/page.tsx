@@ -49,10 +49,12 @@ export default async function ProjectDetailPage({
   if (!project) notFound();
 
   // ── Privacy gate ─────────────────────────────────────────────────────────────
-  // If the project is private, only the owner and teachers can access it.
+  // If the project is private, ONLY the owner OR a team member can access it.
+  // Teachers, other students — everyone else gets notFound().
   const isPrivateProject = (project as any).is_private === true;
-  if (isPrivateProject && !isTeacher && project.student_id !== user.id) {
-    notFound();
+  if (isPrivateProject && project.student_id !== user.id) {
+    const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+    if (!rawTeamIds.includes(user.id)) notFound();
   }
 
   // ── Owner identity ──────────────────────────────────────────────────────────
@@ -189,7 +191,6 @@ export default async function ProjectDetailPage({
               projectId={project.id}
               initialFiles={(project.files as ProjectFile[]) || []}
               isOwner={user.id === project.student_id}
-              isTeacher={isTeacher}
             />
 
             {/* Reviews */}

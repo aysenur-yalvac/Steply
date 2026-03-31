@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock, Globe } from 'lucide-react';
+import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
 import { uploadFileAction, deleteFileAction, ProjectFile } from '@/lib/actions';
 import { toast } from 'react-hot-toast';
 
@@ -9,10 +9,9 @@ interface FileSectionProps {
   projectId: string;
   initialFiles: ProjectFile[];
   isOwner: boolean;
-  isTeacher?: boolean;
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner, isTeacher = false }: FileSectionProps) {
+export default function FileSection({ projectId, initialFiles, isOwner }: FileSectionProps) {
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -34,17 +33,19 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
     try {
       setUploadProgress(50);
       const result = await uploadFileAction(formData);
-      setUploadProgress(100);
 
-      if (result?.file) {
+      if ('error' in result) {
+        console.error("[FileSection] Upload error:", result.error);
+        toast.error("Upload failed: " + result.error);
+      } else {
+        setUploadProgress(100);
         setFiles(prev => [...prev, result.file]);
+        toast.success("File uploaded successfully.");
       }
-
-      toast.success("File uploaded successfully.");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("[FileSection] Upload error:", error);
-      toast.error("Upload failed: " + errorMessage);
+    } catch (err: unknown) {
+      // Network-level failure — server action itself crashed
+      console.error("[FileSection] Unexpected upload error:", err);
+      toast.error("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -74,11 +75,8 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Privacy filter: hide private files from non-owner, non-teacher viewers
-  const visibleFiles = files.filter(file => {
-    if (!file.isPrivate) return true;
-    return isOwner || isTeacher;
-  });
+  // Absolute privacy: private files visible ONLY to the project owner
+  const visibleFiles = files.filter(file => !file.isPrivate || isOwner);
 
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
@@ -87,14 +85,10 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
           <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
         {isOwner && (
-          <form
-            action={handleUploadAction}
-            className="flex items-center gap-3"
-          >
+          <form action={handleUploadAction} className="flex items-center gap-3">
             <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="isPrivate" value={makePrivate ? "true" : "false"} />
 
-            {/* Privacy checkbox */}
             <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none whitespace-nowrap">
               <input
                 type="checkbox"
@@ -112,9 +106,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
               ref={fileInputRef}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) {
-                  e.target.form?.requestSubmit();
-                }
+                if (file) e.target.form?.requestSubmit();
               }}
               className="hidden"
               disabled={isUploading}
@@ -174,7 +166,9 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400">{formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}</p>
+                  <p className="text-xs text-slate-400">
+                    {formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -203,11 +197,10 @@ export default function FileSection({ projectId, initialFiles, isOwner, isTeache
         )}
       </div>
 
-      {/* Show count of hidden private files to non-owners */}
-      {!isOwner && !isTeacher && files.some(f => f.isPrivate) && (
+      {!isOwner && files.some(f => f.isPrivate) && (
         <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
           <Lock className="w-3 h-3" />
-          {files.filter(f => f.isPrivate).length} private file(s) hidden from view.
+          {files.filter(f => f.isPrivate).length} private file(s) are hidden.
         </p>
       )}
     </div>
