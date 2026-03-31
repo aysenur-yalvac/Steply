@@ -1,7 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
 import { Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
@@ -37,23 +36,28 @@ export default async function ProjectDetailPage({
 
   const { data: project } = await supabase
     .from('projects')
-    .select(`
-      *,
-      profiles!student_id (full_name, email)
-    `)
+    .select('*')
     .eq('id', projectId)
     .single();
 
   if (!project) notFound();
 
-  // Resolve owner name: join may be null if FK hint isn't wired in Supabase,
-  // so fall back to a direct profiles fetch via student_id.
-  let ownerName: string | null = (project.profiles as { full_name?: string } | null)?.full_name ?? null;
-  if (!ownerName && project.student_id) {
+  // Owner name resolution — layered strategy for reliability:
+  // 1. If the viewer IS the owner, reuse the already-fetched profile (no extra query, no RLS ambiguity).
+  // 2. Otherwise (teacher viewing a student's project) do an explicit profiles fetch.
+  // 3. Final guard: auth user_metadata if the DB profile has no full_name stored.
+  let ownerName: string | null = null;
+
+  if (project.student_id === user.id) {
+    // Fastest path — we already have this profile.
+    ownerName = profile?.full_name
+      ?? (user.user_metadata?.full_name as string | undefined)
+      ?? null;
+  } else {
     const { data: ownerProfile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", project.student_id)
+      .from('profiles')
+      .select('full_name')
+      .eq('id', project.student_id)
       .single();
     ownerName = ownerProfile?.full_name ?? null;
   }
@@ -131,7 +135,7 @@ export default async function ProjectDetailPage({
               end_date:           project.end_date,
               student_id:         project.student_id,
               github_link:        project.github_link,
-              profiles:           project.profiles,
+              profiles:           ownerName ? { full_name: ownerName } : null,
             }}
             currentUserId={user.id}
             isCompleted={isCompleted}
