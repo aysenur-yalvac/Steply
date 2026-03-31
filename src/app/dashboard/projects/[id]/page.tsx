@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
 import { Star, Trash2 } from 'lucide-react';
@@ -24,9 +25,12 @@ export default async function ProjectDetailPage({
   const error = resolvedSearchParams?.error;
 
   const supabase = await createClient();
+  const admin    = createAdminClient();          // bypasses RLS for all profile reads
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
+  // Current viewer's profile (uses anon client — viewer reads their own row: always works)
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -35,7 +39,8 @@ export default async function ProjectDetailPage({
 
   const isTeacher = profile?.role === 'teacher';
 
-  const { data: project } = await supabase
+  // Project row
+  const { data: project } = await admin
     .from('projects')
     .select('*')
     .eq('id', projectId)
@@ -44,21 +49,22 @@ export default async function ProjectDetailPage({
   if (!project) notFound();
 
   // ── Owner identity ──────────────────────────────────────────────────────────
-  // Strategy: reuse already-fetched profile when viewer IS the owner (no extra
-  // query, no RLS ambiguity). For teacher view, fetch the student's profile.
+  // Always fetch via admin so RLS on profiles never blocks a cross-user read.
   let ownerName: string | null = null;
   let ownerAvatarUrl: string | null = null;
 
   if (project.student_id === user.id) {
-    ownerName      = profile?.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? null;
-    ownerAvatarUrl = profile?.avatar_url ?? null;
+    // Viewer IS the owner — reuse already-fetched profile.
+    ownerName      = profile?.full_name      ?? (user.user_metadata?.full_name as string | undefined) ?? null;
+    ownerAvatarUrl = profile?.avatar_url     ?? null;
   } else {
-    const { data: ownerProfile } = await supabase
+    const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
       .select('full_name, avatar_url')
       .eq('id', project.student_id)
       .single();
-    ownerName      = ownerProfile?.full_name ?? null;
+    if (ownerErr) console.error('owner fetch error:', ownerErr);
+    ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
   }
 
@@ -71,7 +77,7 @@ export default async function ProjectDetailPage({
 
   if (rawTeamMembers.length > 0) {
     const memberIds = rawTeamMembers.map((m) => m.id);
-    const { data: memberProfiles } = await supabase
+    const { data: memberProfiles } = await admin
       .from('profiles')
       .select('id, full_name, avatar_url')
       .in('id', memberIds);
@@ -91,12 +97,12 @@ export default async function ProjectDetailPage({
     comment: string;
     created_at: string;
     reviewer_id: string;
-    reviewer_name?: string;
-    reviewer_role?: string;
-    reviewer_avatar?: string | null;
+    reviewer_name: string;
+    reviewer_role: string | null;
+    reviewer_avatar: string | null;
   };
 
-  const { data: rawReviews } = await supabase
+  const { data: rawReviews } = await admin
     .from('reviews')
     .select('id, rating, comment, created_at, reviewer_id')
     .eq('project_id', projectId)
@@ -105,7 +111,7 @@ export default async function ProjectDetailPage({
   let reviews: Review[] = [];
   if (rawReviews && rawReviews.length > 0) {
     const reviewerIds = [...new Set(rawReviews.map((r) => r.reviewer_id))];
-    const { data: reviewerProfiles } = await supabase
+    const { data: reviewerProfiles } = await admin
       .from('profiles')
       .select('id, full_name, role, avatar_url')
       .in('id', reviewerIds);
@@ -113,9 +119,9 @@ export default async function ProjectDetailPage({
     const revMap = new Map(reviewerProfiles?.map((p) => [p.id, p]) ?? []);
     reviews = rawReviews.map((r) => ({
       ...r,
-      reviewer_name:   revMap.get(r.reviewer_id)?.full_name   ?? undefined,
-      reviewer_role:   revMap.get(r.reviewer_id)?.role        ?? undefined,
-      reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url  ?? null,
+      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Steply Member',
+      reviewer_role:   revMap.get(r.reviewer_id)?.role       ?? null,
+      reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url ?? null,
     }));
   }
 
@@ -133,7 +139,7 @@ export default async function ProjectDetailPage({
         <div className="flex items-center gap-4 mb-2">
           <BackButton href="/dashboard" variant="light" />
           <div className="flex items-center gap-3">
-            <Avatar src={ownerAvatarUrl} name={ownerName ?? "?"} size="md" />
+            <Avatar src={ownerAvatarUrl} name={ownerName ?? "S"} size="md" />
             <div>
               <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
                 {project.title}
@@ -183,17 +189,17 @@ export default async function ProjectDetailPage({
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Teacher Evaluations</h3>
                 {reviews.map((review) => (
                   <div key={review.id} className="bg-white/90 border border-slate-200 rounded-2xl p-6 shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <Avatar
                           src={review.reviewer_avatar}
-                          name={review.reviewer_name ?? "?"}
+                          name={review.reviewer_name}
                           size="md"
                         />
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-slate-700">
-                              {review.reviewer_name ?? "Unknown"}
+                              {review.reviewer_name}
                             </span>
                             {review.reviewer_role === 'teacher' && (
                               <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 tracking-wide uppercase">
@@ -208,6 +214,7 @@ export default async function ProjectDetailPage({
                           </p>
                         </div>
                       </div>
+
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <div className="flex gap-1 text-amber-400">
                           {[...Array(5)].map((_, i) => (

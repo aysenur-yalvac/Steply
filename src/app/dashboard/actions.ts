@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -210,14 +211,20 @@ export async function searchProfilesAction(
   query: string,
 ): Promise<{ id: string; full_name: string; avatar_url: string | null }[]> {
   if (!query || query.length < 2) return [];
-  const supabase = await createClient();
-  const { data } = await supabase
+  // Use the admin (service-role) client so RLS never blocks profile reads.
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from("profiles")
-    .select("id, full_name, avatar_url")
+    .select("id, full_name, avatar_url, role")
     .ilike("full_name", `%${query}%`)
     .eq("role", "student")
     .limit(6);
-  return (data ?? []).map((p) => ({ ...p, avatar_url: p.avatar_url ?? null }));
+  if (error) console.error("searchProfilesAction error:", error);
+  return (data ?? []).map((p) => ({
+    id:         p.id,
+    full_name:  p.full_name  ?? "",
+    avatar_url: p.avatar_url ?? null,
+  }));
 }
 
 export async function deleteProjectAction(projectId: string) {
