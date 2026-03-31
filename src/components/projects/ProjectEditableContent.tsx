@@ -17,8 +17,11 @@ import {
 } from "lucide-react";
 import { updateProjectDetails, searchProfilesAction } from "@/app/dashboard/actions";
 import toast from "react-hot-toast";
+import { Avatar } from "@/components/ui/avatar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+type Member = { id: string; full_name: string; avatar_url?: string | null };
+
 interface Props {
   project: {
     id: string;
@@ -28,39 +31,28 @@ interface Props {
     end_date?: string | null;
     student_id?: string;
     github_link?: string | null;
-    profiles?: { full_name: string } | null;
+    profiles?: { full_name: string; avatar_url?: string | null } | null;
   };
+  initialTeamMembers: Member[];
   currentUserId: string;
   isCompleted: boolean;
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────────
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 function MemberRow({
-  name,
+  member,
   role,
   onRemove,
 }: {
-  name: string;
+  member: Member;
   role: string;
   onRemove?: () => void;
 }) {
   return (
     <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-      <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
-        {initials(name)}
-      </div>
+      <Avatar src={member.avatar_url} name={member.full_name} size="sm" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-700 truncate">{name}</p>
+        <p className="text-sm font-semibold text-slate-700 truncate">{member.full_name}</p>
         <p className="text-xs text-slate-400">{role}</p>
       </div>
       {onRemove && (
@@ -79,6 +71,7 @@ function MemberRow({
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ProjectEditableContent({
   project,
+  initialTeamMembers,
   currentUserId,
   isCompleted,
 }: Props) {
@@ -101,18 +94,24 @@ export default function ProjectEditableContent({
   // Team
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [memberQuery,     setMemberQuery]     = useState("");
-  const [searchResults,   setSearchResults]   = useState<{ id: string; full_name: string }[]>([]);
+  const [searchResults,   setSearchResults]   = useState<Member[]>([]);
   const [isSearching,     setIsSearching]     = useState(false);
-  const [addedMembers,    setAddedMembers]    = useState<{ id: string; full_name: string }[]>([]);
+  const [addedMembers,    setAddedMembers]    = useState<Member[]>(initialTeamMembers);
 
   const [isPending, startTransition] = useTransition();
 
-  // Dirty state — any field differs from the server-rendered initial value
-  const isDirty =
+  // Dirty state — field changes OR member list changes
+  const fieldsDirty =
     title       !== project.title ||
     description !== project.cleanedDescription ||
     startDate   !== (project.start_date ?? "") ||
     endDate     !== (project.end_date ?? "");
+
+  const membersDirty =
+    addedMembers.map((m) => m.id).join(",") !==
+    initialTeamMembers.map((m) => m.id).join(",");
+
+  const isDirty = fieldsDirty || membersDirty;
 
   // ── Save all ──────────────────────────────────────────────────────────────
   const saveAll = () => {
@@ -122,13 +121,17 @@ export default function ProjectEditableContent({
     fd.set("description", description);
     fd.set("start_date",  startDate);
     fd.set("end_date",    endDate);
+    fd.set(
+      "team_members",
+      JSON.stringify(addedMembers.map((m) => ({ id: m.id, full_name: m.full_name }))),
+    );
 
     startTransition(async () => {
       try {
         await updateProjectDetails(fd);
         toast.success("Project details saved!");
-      } catch (err: any) {
-        toast.error(err.message || "Failed to save");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Failed to save");
       }
     });
   };
@@ -150,7 +153,7 @@ export default function ProjectEditableContent({
     }
   };
 
-  const addMember = (m: { id: string; full_name: string }) => {
+  const addMember = (m: Member) => {
     setAddedMembers((prev) => [...prev, m]);
     setSearchResults([]);
     setMemberQuery("");
@@ -191,7 +194,6 @@ export default function ProjectEditableContent({
                     if (e.key === "Escape") { setTitle(project.title); setEditingTitle(false); }
                   }}
                 />
-                {/* ✓ just closes edit mode; actual DB save is via the big button */}
                 <button
                   onClick={() => setEditingTitle(false)}
                   className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -240,7 +242,6 @@ export default function ProjectEditableContent({
                 >
                   Cancel
                 </button>
-                {/* "Apply" = commit to local state only; no DB save here */}
                 <button
                   onClick={() => setEditingDesc(false)}
                   className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
@@ -401,16 +402,25 @@ export default function ProjectEditableContent({
 
         {/* Member list */}
         <div className="flex flex-col gap-1">
+          {/* Owner row */}
           <MemberRow
-            name={project.profiles?.full_name || "Project Owner"}
+            member={{
+              id: project.student_id ?? "",
+              full_name: project.profiles?.full_name || "Project Owner",
+              avatar_url: project.profiles?.avatar_url,
+            }}
             role="Owner"
           />
           {addedMembers.map((m) => (
             <MemberRow
               key={m.id}
-              name={m.full_name}
+              member={m}
               role="Member"
-              onRemove={isOwner ? () => setAddedMembers((prev) => prev.filter((x) => x.id !== m.id)) : undefined}
+              onRemove={
+                isOwner
+                  ? () => setAddedMembers((prev) => prev.filter((x) => x.id !== m.id))
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -424,7 +434,7 @@ export default function ProjectEditableContent({
                 type="text"
                 value={memberQuery}
                 onChange={(e) => handleMemberSearch(e.target.value)}
-                placeholder="Search members by name..."
+                placeholder="Search students by name..."
                 className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
               />
               {isSearching && (
@@ -440,9 +450,7 @@ export default function ProjectEditableContent({
                     onClick={() => addMember(r)}
                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 text-left transition-colors group"
                   >
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
-                      {initials(r.full_name)}
-                    </div>
+                    <Avatar src={r.avatar_url} name={r.full_name} size="sm" />
                     <span className="text-sm text-slate-700 font-medium flex-1 group-hover:text-indigo-700">
                       {r.full_name}
                     </span>
@@ -453,7 +461,7 @@ export default function ProjectEditableContent({
             )}
 
             {memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-              <p className="text-xs text-slate-400 text-center mt-3">No members found.</p>
+              <p className="text-xs text-slate-400 text-center mt-3">No students found.</p>
             )}
           </div>
         )}

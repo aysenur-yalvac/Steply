@@ -163,11 +163,13 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const projectId  = formData.get("project_id") as string;
-  const title      = (formData.get("title") as string)?.trim();
+  const projectId   = formData.get("project_id") as string;
+  const title       = (formData.get("title") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
-  const start_date = (formData.get("start_date") as string) || null;
-  const end_date   = (formData.get("end_date") as string) || null;
+  const start_date  = (formData.get("start_date") as string) || null;
+  const end_date    = (formData.get("end_date") as string) || null;
+  const teamRaw     = formData.get("team_members") as string | null;
+  const team_members = teamRaw ? JSON.parse(teamRaw) : undefined;
 
   // Verify ownership
   const { data: existing } = await supabase
@@ -184,9 +186,17 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
   const metaTags = ((existing.description ?? "").match(/\[[^\]]+\]/g) || []).join("\n");
   const finalDescription = [description, metaTags].filter(Boolean).join("\n");
 
+  const updatePayload: Record<string, unknown> = {
+    title,
+    description: finalDescription,
+    start_date,
+    end_date,
+  };
+  if (team_members !== undefined) updatePayload.team_members = team_members;
+
   const { error } = await supabase
     .from("projects")
-    .update({ title, description: finalDescription, start_date, end_date })
+    .update(updatePayload)
     .eq("id", projectId);
 
   if (error) throw new Error(error.message);
@@ -198,15 +208,16 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
 
 export async function searchProfilesAction(
   query: string,
-): Promise<{ id: string; full_name: string }[]> {
+): Promise<{ id: string; full_name: string; avatar_url: string | null }[]> {
   if (!query || query.length < 2) return [];
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, avatar_url")
     .ilike("full_name", `%${query}%`)
+    .eq("role", "student")
     .limit(6);
-  return data || [];
+  return (data ?? []).map((p) => ({ ...p, avatar_url: p.avatar_url ?? null }));
 }
 
 export async function deleteProjectAction(projectId: string) {

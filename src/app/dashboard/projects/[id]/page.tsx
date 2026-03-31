@@ -8,6 +8,7 @@ import ProjectEditableContent from '@/components/projects/ProjectEditableContent
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
+import { Avatar } from '@/components/ui/avatar';
 import { ProjectFile } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
@@ -42,26 +43,48 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // Owner name resolution — layered strategy for reliability:
-  // 1. If the viewer IS the owner, reuse the already-fetched profile (no extra query, no RLS ambiguity).
-  // 2. Otherwise (teacher viewing a student's project) do an explicit profiles fetch.
-  // 3. Final guard: auth user_metadata if the DB profile has no full_name stored.
+  // ── Owner identity ──────────────────────────────────────────────────────────
+  // Strategy: reuse already-fetched profile when viewer IS the owner (no extra
+  // query, no RLS ambiguity). For teacher view, fetch the student's profile.
   let ownerName: string | null = null;
+  let ownerAvatarUrl: string | null = null;
 
   if (project.student_id === user.id) {
-    // Fastest path — we already have this profile.
-    ownerName = profile?.full_name
-      ?? (user.user_metadata?.full_name as string | undefined)
-      ?? null;
+    ownerName      = profile?.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? null;
+    ownerAvatarUrl = profile?.avatar_url ?? null;
   } else {
     const { data: ownerProfile } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, avatar_url')
       .eq('id', project.student_id)
       .single();
-    ownerName = ownerProfile?.full_name ?? null;
+    ownerName      = ownerProfile?.full_name ?? null;
+    ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
   }
 
+  // ── Team members ─────────────────────────────────────────────────────────────
+  type TeamMember = { id: string; full_name: string; avatar_url: string | null };
+  let teamMembers: TeamMember[] = [];
+
+  const rawTeamMembers =
+    (project.team_members as { id: string; full_name: string }[] | null) ?? [];
+
+  if (rawTeamMembers.length > 0) {
+    const memberIds = rawTeamMembers.map((m) => m.id);
+    const { data: memberProfiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', memberIds);
+
+    const profileMap = new Map(memberProfiles?.map((p) => [p.id, p]) ?? []);
+    teamMembers = rawTeamMembers.map((m) => ({
+      id:         m.id,
+      full_name:  profileMap.get(m.id)?.full_name  ?? m.full_name,
+      avatar_url: profileMap.get(m.id)?.avatar_url ?? null,
+    }));
+  }
+
+  // ── Reviews ───────────────────────────────────────────────────────────────────
   type Review = {
     id: string;
     rating: number;
@@ -69,35 +92,35 @@ export default async function ProjectDetailPage({
     created_at: string;
     reviewer_id: string;
     reviewer_name?: string;
+    reviewer_role?: string;
+    reviewer_avatar?: string | null;
   };
 
-  // Step 1: Fetch reviews (no FK join needed)
   const { data: rawReviews } = await supabase
     .from('reviews')
     .select('id, rating, comment, created_at, reviewer_id')
     .eq('project_id', projectId)
     .order('created_at', { ascending: false });
 
-  // Step 2: Fetch reviewer names separately by their IDs
   let reviews: Review[] = [];
   if (rawReviews && rawReviews.length > 0) {
     const reviewerIds = [...new Set(rawReviews.map((r) => r.reviewer_id))];
     const { data: reviewerProfiles } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, role, avatar_url')
       .in('id', reviewerIds);
 
-    const nameMap = new Map(reviewerProfiles?.map((p) => [p.id, p.full_name]) ?? []);
+    const revMap = new Map(reviewerProfiles?.map((p) => [p.id, p]) ?? []);
     reviews = rawReviews.map((r) => ({
       ...r,
-      reviewer_name: nameMap.get(r.reviewer_id),
+      reviewer_name:   revMap.get(r.reviewer_id)?.full_name   ?? undefined,
+      reviewer_role:   revMap.get(r.reviewer_id)?.role        ?? undefined,
+      reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url  ?? null,
     }));
   }
 
   const isCompleted = project.progress_percentage === 100;
 
-  // Strip any [Priority: ...] / [Platform: ...] metadata that may have been
-  // embedded in description as a DB-column fallback by the server action.
   const cleanedDescription = (project.description ?? "")
     .replace(/\[.*?\]/g, "")
     .trim();
@@ -105,145 +128,189 @@ export default async function ProjectDetailPage({
   return (
     <PageWrapper>
       <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full p-6 md:p-10 lg:p-12">
-        
+
         {/* Header */}
         <div className="flex items-center gap-4 mb-2">
-           <BackButton href="/dashboard" variant="light" />
-         <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
-            <p className="text-slate-500 text-sm">
-              Developed by{" "}
-              <span className="font-bold" style={{ color: "#7C3AFF" }}>
-                {ownerName ?? "Steply Member"}
-              </span>
-              .
-            </p>
-         </div>
-      </div>
+          <BackButton href="/dashboard" variant="light" />
+          <div className="flex items-center gap-3">
+            <Avatar src={ownerAvatarUrl} name={ownerName ?? "?"} size="md" />
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
+                {project.title}
+              </h2>
+              <p className="text-slate-500 text-sm">
+                Developed by{" "}
+                <span className="font-bold" style={{ color: "#7C3AFF" }}>
+                  {ownerName ?? "Steply Member"}
+                </span>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Project Details */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          {/* Editable About Project + Team sections */}
-          <ProjectEditableContent
-            project={{
-              id:                 project.id,
-              title:              project.title,
-              cleanedDescription: cleanedDescription,
-              start_date:         project.start_date,
-              end_date:           project.end_date,
-              student_id:         project.student_id,
-              github_link:        project.github_link,
-              profiles:           ownerName ? { full_name: ownerName } : null,
-            }}
-            currentUserId={user.id}
-            isCompleted={isCompleted}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* File Management Section */}
-          <FileSection
-            projectId={project.id}
-            initialFiles={(project.files as ProjectFile[]) || []}
-            isOwner={user.id === project.student_id}
-          />
+          {/* Left Column */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <ProjectEditableContent
+              project={{
+                id:                 project.id,
+                title:              project.title,
+                cleanedDescription: cleanedDescription,
+                start_date:         project.start_date,
+                end_date:           project.end_date,
+                student_id:         project.student_id,
+                github_link:        project.github_link,
+                profiles:           ownerName
+                  ? { full_name: ownerName, avatar_url: ownerAvatarUrl }
+                  : null,
+              }}
+              initialTeamMembers={teamMembers}
+              currentUserId={user.id}
+              isCompleted={isCompleted}
+            />
 
-          {/* Reviews List */}
-          {reviews && reviews.length > 0 && (
-            <div className="flex flex-col gap-4 mt-2">
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Teacher Evaluations</h3>
-              {reviews.map((review: Review) => (
-                <div key={review.id} className="bg-white/90 border border-slate-200 rounded-2xl p-6 shadow-sm">
-                   <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="font-bold text-slate-700">
-                          {review.reviewer_name}
-                        </span>
-                        <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                          {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </p>
+            <FileSection
+              projectId={project.id}
+              initialFiles={(project.files as ProjectFile[]) || []}
+              isOwner={user.id === project.student_id}
+            />
+
+            {/* Reviews */}
+            {reviews.length > 0 && (
+              <div className="flex flex-col gap-4 mt-2">
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Teacher Evaluations</h3>
+                {reviews.map((review) => (
+                  <div key={review.id} className="bg-white/90 border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={review.reviewer_avatar}
+                          name={review.reviewer_name ?? "?"}
+                          size="md"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-700">
+                              {review.reviewer_name ?? "Unknown"}
+                            </span>
+                            {review.reviewer_role === 'teacher' && (
+                              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 tracking-wide uppercase">
+                                Teacher
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                            {new Date(review.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                            })}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <div className="flex gap-1 text-amber-400">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`}
+                            />
                           ))}
                         </div>
                         {user.id === review.reviewer_id && (
                           <form action={deleteReviewAction}>
                             <input type="hidden" name="id" value={review.id} />
                             <input type="hidden" name="project_id" value={project.id} />
-                            <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Delete Review">
+                            <button
+                              type="submit"
+                              className="text-slate-300 hover:text-red-500 transition-colors p-1"
+                              title="Delete Review"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </form>
                         )}
                       </div>
-                   </div>
-                   <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap">{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Progress & Review Form */}
-        <div className="flex flex-col gap-8">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Progress Status</h3>
-             <div className="flex justify-between items-end mb-2">
-                 <span className="text-3xl font-black text-slate-800">%{project.progress_percentage}</span>
-             </div>
-             <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
+                    </div>
+                    <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap pl-[52px]">
+                      {review.comment}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Only teachers can comment */}
-          {isTeacher && (
-             <div className="bg-white/90 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+          {/* Right Column */}
+          <div className="flex flex-col gap-8">
+            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                Progress Status
+              </h3>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-3xl font-black text-slate-800">
+                  %{project.progress_percentage}
+                </span>
+              </div>
+              <AnimatedProgressBar
+                progress={project.progress_percentage}
+                isCompleted={isCompleted}
+                className="h-3"
+              />
+            </div>
+
+            {isTeacher && (
+              <div className="bg-white/90 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                   <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
                 </h3>
                 <form action={createReview} className="flex flex-col gap-5">
-                   <input type="hidden" name="project_id" value={project.id} />
-                   
-                   <div className="flex flex-col gap-2">
-                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
-                     <input 
-                       type="number" 
-                       name="rating" 
-                       min="1" max="5" 
-                       defaultValue="5"
-                       className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold"
-                       required 
-                     />
-                   </div>
- 
-                   <div className="flex flex-col gap-2">
-                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
-                     <textarea 
-                       name="comment" 
-                       rows={4}
-                       placeholder="Write your thoughts about the project..."
-                       className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400"
-                       required 
-                     />
-                   </div>
- 
-                   <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">
-                     Submit Review
-                   </button>
- 
-                   {error && (
-                      <div className="mt-2 p-3 text-red-500 text-xs bg-red-50 border border-red-100 rounded-xl text-center font-medium">
-                        {error}
-                      </div>
-                   )}
-                </form>
-             </div>
-          )}
+                  <input type="hidden" name="project_id" value={project.id} />
 
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Rating (1-5)
+                    </label>
+                    <input
+                      type="number"
+                      name="rating"
+                      min="1" max="5"
+                      defaultValue="5"
+                      className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Comment / Feedback
+                    </label>
+                    <textarea
+                      name="comment"
+                      rows={4}
+                      placeholder="Write your thoughts about the project..."
+                      className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    Submit Review
+                  </button>
+
+                  {error && (
+                    <div className="mt-2 p-3 text-red-500 text-xs bg-red-50 border border-red-100 rounded-xl text-center font-medium">
+                      {error}
+                    </div>
+                  )}
+                </form>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </PageWrapper>
   );
