@@ -109,11 +109,9 @@ export default async function ProjectDetailPage({
             <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">{project.title}</h2>
             <p className="text-slate-500 text-sm">
               Developed by{" "}
-              {ownerName ? (
-                <span className="font-bold" style={{ color: "#7C3AFF" }}>{ownerName}</span>
-              ) : (
-                <span className="inline-block w-24 h-3.5 rounded bg-slate-200 animate-pulse align-middle" />
-              )}
+              <span className="font-bold" style={{ color: "#7C3AFF" }}>
+                {ownerName ?? "Steply Member"}
+              </span>
               .
             </p>
          </div>
