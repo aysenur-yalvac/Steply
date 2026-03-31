@@ -32,15 +32,18 @@ export async function uploadFileAction(
     return { error: "File size must be less than 5MB." };
   }
 
-  // Auth check
+  // Auth check (user session still needed to identify the caller)
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return { error: "You must be logged in." };
   }
 
+  // All DB operations via admin client — bypasses RLS on projects table
+  const admin = createAdminClient();
+
   // Ownership check
-  const { data: project, error: projectError } = await supabase
+  const { data: project, error: projectError } = await admin
     .from("projects")
     .select("student_id, files")
     .eq("id", projectId)
@@ -48,9 +51,6 @@ export async function uploadFileAction(
 
   if (projectError || !project) return { error: "Project not found." };
   if (project.student_id !== user.id) return { error: "You do not have permission for this action." };
-
-  // Admin client for storage — bypasses RLS entirely
-  const admin = createAdminClient();
   const fileName = `${Date.now()}-${file.name}`;
   const filePath = `${projectId}/${fileName}`;
 
@@ -91,7 +91,7 @@ export async function uploadFileAction(
   };
 
   const existingFiles = (project.files as ProjectFile[]) || [];
-  const { error: updateError } = await supabase
+  const { error: updateError } = await admin
     .from("projects")
     .update({ files: [...existingFiles, newFile] })
     .eq("id", projectId);
