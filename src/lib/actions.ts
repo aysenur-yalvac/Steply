@@ -25,11 +25,20 @@ export async function uploadFileAction(
   const projectId = formData.get("projectId") as string;
   const file = formData.get("file") as File;
 
-  if (!projectId || !file) {
-    return { error: "Missing projectId or file." };
+  // Diagnostic: projectId presence check
+  if (!projectId || projectId.trim() === "") {
+    return { error: "Kritik Hata: Proje ID forma ulaşmadı." };
+  }
+  if (!file) {
+    return { error: "Missing file." };
   }
   if (file.size > 5 * 1024 * 1024) {
     return { error: "File size must be less than 5MB." };
+  }
+
+  // Diagnostic: Vercel environment variable check
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { error: "Sunucu Hatası: Vercel üzerinde SUPABASE_SERVICE_ROLE_KEY eksik!" };
   }
 
   // Auth check (user session still needed to identify the caller)
@@ -49,7 +58,8 @@ export async function uploadFileAction(
     .eq("id", projectId)
     .single();
 
-  if (projectError || !project) return { error: "Project not found." };
+  if (projectError) return { error: `DB Select Hatası: ${projectError.message || "Bilinmiyor"} (Code: ${projectError.code})` };
+  if (!project) return { error: `DB Select Hatası: Proje bulunamadı (projectId: ${projectId})` };
   if (project.student_id !== user.id) return { error: "You do not have permission for this action." };
   const fileName = `${Date.now()}-${file.name}`;
   const filePath = `${projectId}/${fileName}`;
@@ -97,7 +107,7 @@ export async function uploadFileAction(
     .eq("id", projectId)
     .select();
 
-  if (updateError) return { error: "Database could not be updated: " + updateError.message };
+  if (updateError) return { error: `DB Update Hatası: ${updateError.message || "Bilinmiyor"} (Code: ${updateError.code})` };
   if (!updatedRow || updatedRow.length === 0) return { error: "Veritabanı güncellenemedi: Proje ID eşleşmedi." };
 
   revalidatePath("/dashboard/projects");
