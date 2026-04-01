@@ -32,8 +32,8 @@ export async function uploadFileAction(
   if (!file) {
     return { error: "Missing file." };
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return { error: "File size must be less than 5MB." };
+  if (file.size > 100 * 1024 * 1024) {
+    return { error: "File size must be less than 100MB." };
   }
 
   // Diagnostic: Vercel environment variable check
@@ -71,15 +71,17 @@ export async function uploadFileAction(
     .replace(/[^a-zA-Z0-9.-]/g, '_');
   const filePath = `${projectId}/${Date.now()}-${safeName}`;
 
-  // Ensure bucket exists
+  // Ensure bucket exists with correct size limit
   const { data: buckets } = await admin.storage.listBuckets();
   const bucketExists = buckets?.some((b) => b.id === "project-files");
   if (!bucketExists) {
     const { error: bucketErr } = await admin.storage.createBucket("project-files", {
       public: true,
-      fileSizeLimit: 5 * 1024 * 1024,
+      fileSizeLimit: 100 * 1024 * 1024,
     });
     if (bucketErr) return { error: "Storage bucket could not be created: " + bucketErr.message };
+  } else {
+    await admin.storage.updateBucket("project-files", { public: true, fileSizeLimit: 100 * 1024 * 1024 });
   }
 
   // Upload

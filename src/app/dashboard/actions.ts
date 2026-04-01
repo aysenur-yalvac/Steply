@@ -202,6 +202,20 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
 
   if (error) throw new Error(error.message);
 
+  // Sync project_members table when team changes
+  if (team_members !== undefined) {
+    const admin = createAdminClient();
+    await admin.from("project_members").delete().eq("project_id", projectId);
+    if (team_members.length > 0) {
+      const rows = (team_members as { id: string }[]).map((m) => ({
+        project_id: projectId,
+        user_id: m.id,
+        role: "member",
+      }));
+      await admin.from("project_members").insert(rows);
+    }
+  }
+
   revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath("/dashboard");
   return { success: true };

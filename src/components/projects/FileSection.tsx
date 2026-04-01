@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
 import { uploadFileAction, deleteFileAction, ProjectFile } from '@/lib/actions';
 import { toast } from 'react-hot-toast';
+
+type PendingFile = ProjectFile & { pending?: boolean };
 
 interface FileSectionProps {
   projectId: string;
@@ -18,14 +20,33 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   const [makePrivate, setMakePrivate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [optimisticFiles, addOptimisticFile] = useOptimistic<PendingFile[], PendingFile>(
+    files as PendingFile[],
+    (state, pending) => [...state, pending],
+  );
+
   const handleUploadAction = async (formData: FormData) => {
     const file = formData.get("file") as File;
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB.");
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("File size must be less than 100MB.");
       return;
     }
+
+    // Show pending file immediately in the list
+    startTransition(() => {
+      addOptimisticFile({
+        id: `pending-${Date.now()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: '',
+        uploaded_at: new Date().toISOString(),
+        isPrivate: makePrivate,
+        pending: true,
+      });
+    });
 
     setIsUploading(true);
     setUploadProgress(20);
@@ -76,7 +97,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   };
 
   // Absolute privacy: private files visible ONLY to the project owner
-  const visibleFiles = files.filter(file => !file.isPrivate || isOwner);
+  const visibleFiles = optimisticFiles.filter(file => !file.isPrivate || isOwner);
 
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
@@ -146,7 +167,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           visibleFiles.map((file, idx) => (
             <div
               key={file.id ?? idx}
-              className="group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors"
+              className={`group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors ${(file as PendingFile).pending ? 'opacity-60 animate-pulse pointer-events-none' : ''}`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0 relative">
@@ -172,24 +193,30 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <a
-                  href={file.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  download
-                  className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  title="Download"
-                >
-                  <Download className="w-4 h-4" />
-                </a>
-                {isOwner && (
-                  <button
-                    onClick={() => handleDelete(file.url)}
-                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                {(file as PendingFile).pending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                ) : (
+                  <>
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      download
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                    {isOwner && (
+                      <button
+                        onClick={() => handleDelete(file.url)}
+                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
