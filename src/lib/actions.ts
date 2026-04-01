@@ -91,13 +91,16 @@ export async function uploadFileAction(
   };
 
   const existingFiles = (project.files as ProjectFile[]) || [];
-  const { error: updateError } = await admin
+  const { data: updatedRow, error: updateError } = await admin
     .from("projects")
     .update({ files: [...existingFiles, newFile] })
-    .eq("id", projectId);
+    .eq("id", projectId)
+    .select();
 
   if (updateError) return { error: "Database could not be updated: " + updateError.message };
+  if (!updatedRow || updatedRow.length === 0) return { error: "Veritabanı güncellenemedi: Proje ID eşleşmedi." };
 
+  revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, file: newFile };
 }
