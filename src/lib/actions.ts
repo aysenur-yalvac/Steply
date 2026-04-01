@@ -61,8 +61,15 @@ export async function uploadFileAction(
   if (projectError) return { error: `DB Select Hatası: ${projectError.message || "Bilinmiyor"} (Code: ${projectError.code})` };
   if (!project) return { error: `DB Select Hatası: Proje bulunamadı (projectId: ${projectId})` };
   if (project.student_id !== user.id) return { error: "You do not have permission for this action." };
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = `${projectId}/${fileName}`;
+  const safeName = file.name
+    .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+    .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+    .replace(/ş/g, 's').replace(/Ş/g, 'S')
+    .replace(/ı/g, 'i').replace(/İ/g, 'I')
+    .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+    .replace(/ç/g, 'c').replace(/Ç/g, 'C')
+    .replace(/[^a-zA-Z0-9.-]/g, '_');
+  const filePath = `${projectId}/${Date.now()}-${safeName}`;
 
   // Ensure bucket exists
   const { data: buckets } = await admin.storage.listBuckets();
