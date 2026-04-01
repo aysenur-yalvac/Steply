@@ -2,15 +2,30 @@
 
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
-import { uploadFileAction, deleteFileAction, ProjectFile } from '@/lib/actions';
+import { saveFileRecordAction, deleteFileAction, ProjectFile } from '@/lib/actions';
+import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 
-type PendingFile = ProjectFile & { pending?: boolean };
+const BUCKET_ID = "project-files";
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
 interface FileSectionProps {
   projectId: string;
   initialFiles: ProjectFile[];
   isOwner: boolean;
+}
+
+type PendingFile = ProjectFile & { pending?: boolean };
+
+function sanitizeName(name: string): string {
+  return name
+    .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+    .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+    .replace(/ş/g, 's').replace(/Ş/g, 'S')
+    .replace(/ı/g, 'i').replace(/İ/g, 'I')
+    .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+    .replace(/ç/g, 'c').replace(/Ç/g, 'C')
+    .replace(/[^a-zA-Z0-9.-]/g, '_');
 }
 
 export default function FileSection({ projectId, initialFiles, isOwner }: FileSectionProps) {
@@ -25,16 +40,17 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     (state, pending) => [...state, pending],
   );
 
-  const handleUploadAction = async (formData: FormData) => {
-    const file = formData.get("file") as File;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error("File size must be less than 100MB.");
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`Dosya boyutu 100MB'ı geçemez. (${(file.size / 1024 / 1024).toFixed(1)} MB)`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    // Show pending file immediately in the list
+    // Optimistic: add pending card immediately
     startTransition(() => {
       addOptimisticFile({
         id: `pending-${Date.now()}`,
@@ -49,24 +65,53 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     });
 
     setIsUploading(true);
-    setUploadProgress(20);
+    setUploadProgress(10);
 
     try {
-      setUploadProgress(50);
-      const result = await uploadFileAction(formData);
+      // ── Step 1: Upload directly browser → Supabase Storage ──────────────
+      const safeName = sanitizeName(file.name);
+      const filePath = `${projectId}/${Date.now()}-${safeName}`;
+
+      const supabase = createClient();
+      setUploadProgress(30);
+
+      const { error: storageError } = await supabase.storage
+        .from(BUCKET_ID)
+        .upload(filePath, file, {
+          contentType: file.type || 'application/octet-stream',
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (storageError) {
+        toast.error(`Storage Upload Hatası: ${storageError.message}`);
+        return;
+      }
+
+      setUploadProgress(75);
+
+      // ── Step 2: Persist record to DB via server action ────────────────────
+      const result = await saveFileRecordAction(
+        projectId,
+        file.name,
+        file.size,
+        file.type,
+        filePath,
+        makePrivate,
+      );
+
+      setUploadProgress(100);
 
       if ('error' in result) {
-        console.error("[FileSection] Upload error:", result.error);
-        toast.error("Upload failed: " + result.error);
+        toast.error('Kayıt hatası: ' + result.error);
       } else {
-        setUploadProgress(100);
         setFiles(prev => [...prev, result.file]);
-        toast.success("File uploaded successfully.");
+        toast.success('Dosya başarıyla yüklendi.');
       }
     } catch (err: unknown) {
-      // Network-level failure — server action itself crashed
-      console.error("[FileSection] Unexpected upload error:", err);
-      toast.error("Upload failed. Please try again.");
+      const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
+      console.error('[FileSection] upload error:', err);
+      toast.error('Yükleme başarısız: ' + msg);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -75,16 +120,15 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
   };
 
   const handleDelete = async (fileUrl: string) => {
-    if (!confirm("Are you sure you want to delete this file?")) return;
+    if (!confirm('Bu dosyayı silmek istediğinize emin misiniz?')) return;
 
     try {
       await deleteFileAction(projectId, fileUrl);
       setFiles(prev => prev.filter(f => f.url !== fileUrl));
-      toast.success("File deleted.");
+      toast.success('Dosya silindi.');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("[FileSection] Delete error:", error);
-      toast.error("Could not delete file: " + errorMessage);
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+      toast.error('Dosya silinemedi: ' + errorMessage);
     }
   };
 
@@ -96,7 +140,6 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Absolute privacy: private files visible ONLY to the project owner
   const visibleFiles = optimisticFiles.filter(file => !file.isPrivate || isOwner);
 
   return (
@@ -106,10 +149,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
           <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
         {isOwner && (
-          <form action={handleUploadAction} className="flex items-center gap-3">
-            <input type="hidden" name="projectId" value={projectId} />
-            <input type="hidden" name="isPrivate" value={makePrivate ? "true" : "false"} />
-
+          <div className="flex items-center gap-3">
             <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none whitespace-nowrap">
               <input
                 type="checkbox"
@@ -123,12 +163,8 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
 
             <input
               type="file"
-              name="file"
               ref={fileInputRef}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) e.target.form?.requestSubmit();
-              }}
+              onChange={handleFileChange}
               className="hidden"
               disabled={isUploading}
             />
@@ -139,9 +175,9 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white rounded-xl text-sm font-medium transition-all"
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              {isUploading ? 'Uploading...' : 'Upload File'}
+              {isUploading ? 'Yükleniyor...' : 'Dosya Yükle'}
             </button>
-          </form>
+          </div>
         )}
       </div>
 
@@ -153,7 +189,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400 mt-1 text-center">Uploading via secure server...</p>
+          <p className="text-xs text-slate-400 mt-1 text-center">Doğrudan Supabase'e yükleniyor...</p>
         </div>
       )}
 
@@ -161,7 +197,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
         {visibleFiles.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed border-indigo-300 rounded-xl bg-indigo-50">
             <File className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">No files uploaded yet.</p>
+            <p className="text-slate-500 text-sm">Henüz dosya yüklenmedi.</p>
           </div>
         ) : (
           visibleFiles.map((file, idx) => (
@@ -188,7 +224,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                     )}
                   </div>
                   <p className="text-xs text-slate-400">
-                    {formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('en-US')}
+                    {formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('tr-TR')}
                   </p>
                 </div>
               </div>
@@ -203,7 +239,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                       rel="noreferrer"
                       download
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                      title="Download"
+                      title="İndir"
                     >
                       <Download className="w-4 h-4" />
                     </a>
@@ -211,7 +247,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                       <button
                         onClick={() => handleDelete(file.url)}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
-                        title="Delete"
+                        title="Sil"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -227,7 +263,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
       {!isOwner && files.some(f => f.isPrivate) && (
         <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
           <Lock className="w-3 h-3" />
-          {files.filter(f => f.isPrivate).length} private file(s) are hidden.
+          {files.filter(f => f.isPrivate).length} gizli dosya gizlendi.
         </p>
       )}
     </div>
