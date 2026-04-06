@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { User, Settings as SettingsIcon, Save, Lock } from "lucide-react";
+import { useState } from "react";
+import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 
 interface SettingsClientProps {
@@ -21,6 +22,13 @@ const fadeUp: Variants = {
 };
 
 export default function SettingsClient({ email, fullName, updateProfile }: SettingsClientProps) {
+  const [isPublic, setIsPublic] = useState(true);
+
+  async function handlePrivacyChange(value: boolean) {
+    setIsPublic(value);
+    // TODO: wire up to updateUserPrivacyAction(value)
+  }
+
   return (
     <div className="relative flex-1 w-full max-w-4xl mx-auto p-6 md:p-12 overflow-hidden">
 
@@ -107,6 +115,49 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
               </button>
             </div>
           </form>
+        </motion.section>
+
+        {/* Privacy card */}
+        <motion.section
+          variants={fadeUp}
+          className="rounded-3xl p-8 shadow-xl shadow-violet-100/30"
+          style={{
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            background: "rgba(255,255,255,0.40)",
+            border: "1px solid rgba(255,255,255,0.55)",
+          }}
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <ShieldCheck className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
+            <h2 className="text-lg font-semibold text-slate-900">Profile Privacy</h2>
+          </div>
+
+          <div className="flex items-center justify-between gap-6 max-w-md">
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-1">Public Profile</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {isPublic
+                  ? "Anyone with your link can view your profile and active projects."
+                  : "Only you can see your profile and projects. Others will see a private profile message."}
+              </p>
+            </div>
+
+            {/* Toggle switch */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isPublic}
+              onClick={() => handlePrivacyChange(!isPublic)}
+              className="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AFF]/40"
+              style={{ background: isPublic ? "#7C3AFF" : "rgba(203,213,225,1)" }}
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                style={{ transform: isPublic ? "translateX(24px)" : "translateX(0)" }}
+              />
+            </button>
+          </div>
         </motion.section>
 
         {/* Security card */}
