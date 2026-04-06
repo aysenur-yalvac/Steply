@@ -198,7 +198,7 @@ export default async function ProjectDetailPage({
               <div className="flex flex-col gap-4 mt-2">
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Teacher Evaluations</h3>
                 {reviews.map((review) => (
-                  <div key={review.id} className="bg-white/90 border border-slate-200 rounded-2xl p-6 shadow-sm">
+                  <div key={review.id} className="rounded-2xl p-6 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <Avatar
@@ -260,7 +260,7 @@ export default async function ProjectDetailPage({
 
           {/* Right Column */}
           <div className="flex flex-col gap-8">
-            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+            <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
                 Progress Status
               </h3>
@@ -277,7 +277,7 @@ export default async function ProjectDetailPage({
             </div>
 
             {isTeacher && (
-              <div className="bg-white/90 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+              <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                   <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
                 </h3>

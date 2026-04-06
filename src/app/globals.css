@@ -82,6 +82,15 @@ body {
 }
 .btn-aura:active { transform: scale(0.97); }
 
+/* ── Purple blob background animation (dashboard-wide) ───────────────────── */
+@keyframes blobSpin {
+  from { transform: rotate(0deg)   scale(1);    }
+  50%  { transform: rotate(180deg) scale(1.08); }
+  to   { transform: rotate(360deg) scale(1);    }
+}
+.blob-spin-slow    { animation: blobSpin 18s linear infinite;         }
+.blob-spin-slower  { animation: blobSpin 24s linear infinite reverse; }
+
 /* ── Skeleton shimmer ─────────────────────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: -1000px 0; }

@@ -216,7 +216,7 @@ export default function DashboardSidebar(props: SidebarProps) {
       </button>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-white border-r border-slate-100 h-full overflow-hidden">
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full overflow-hidden border-r border-white/60" style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <NavContent
           {...props}
           onClose={() => {}}
@@ -241,7 +241,8 @@ export default function DashboardSidebar(props: SidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: -288 }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
-              className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-[70] lg:hidden"
+              className="fixed top-0 left-0 h-full w-72 shadow-2xl z-[70] lg:hidden border-r border-white/60"
+              style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
             >
               <button
                 onClick={() => setMobileOpen(false)}
