@@ -122,7 +122,6 @@ function KanbanCard({
   const displayDescription = cleanDescription(project.description ?? "");
   const canAddNote  = currentUserId === project.student_id;
   const idSum       = strHash(project.id);
-  const attachCount = (idSum % 5) + 1;
   const commentCount = ((idSum >> 2) % 6) + 1;
   const studentName = project.profiles?.full_name || "?";
 

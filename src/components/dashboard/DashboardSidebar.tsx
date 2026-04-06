@@ -115,6 +115,7 @@ function NavContent({
               <Link
                 key={label}
                 href={href}
+                prefetch={true}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
                   isActive
@@ -137,6 +138,7 @@ function NavContent({
         <div className="space-y-0.5">
           <Link
             href="/dashboard/messages"
+            prefetch={true}
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 relative ${
               pathname === "/dashboard/messages"
@@ -156,6 +158,7 @@ function NavContent({
           {!isTeacher && (
             <Link
               href="/dashboard/projects/new"
+              prefetch={true}
               onClick={onClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-all duration-150"
             >
