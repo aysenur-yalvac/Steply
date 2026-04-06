@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 interface BackButtonProps {
   href?: string;
@@ -43,14 +43,14 @@ export function BackButton({ href = "/", label = "Geri", variant = "dark" }: Bac
             }
       }
     >
-      {/* Icon — always visible */}
-      <ArrowLeft
-        size={15}
-        strokeWidth={2.2}
-        className={`shrink-0 transition-colors duration-300 ${
+      {/* Icon — slides left on hover */}
+      <ChevronLeft
+        size={16}
+        strokeWidth={2}
+        className={`shrink-0 transition-all duration-300 group-hover:-translate-x-0.5 ${
           isDark
             ? "text-white/50 group-hover:text-white/90"
-            : "text-slate-400 group-hover:text-slate-700"
+            : "text-slate-400 group-hover:text-violet-600"
         }`}
         aria-hidden="true"
       />

@@ -90,7 +90,7 @@ function NavContent({
                   onClick={() => { onOpenWatchlist(); onClose(); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150"
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                   {label}
                 </button>
               );
@@ -102,7 +102,7 @@ function NavContent({
                   key={label}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 cursor-default"
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                   {label}
                   <span className="ml-auto text-[9px] font-bold uppercase tracking-wider text-slate-300 bg-slate-100 px-1.5 py-0.5 rounded-full">
                     Soon
@@ -122,9 +122,9 @@ function NavContent({
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                 {label}
-                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-60" />}
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-60" strokeWidth={1.5} />}
               </Link>
             );
           })}
@@ -144,7 +144,7 @@ function NavContent({
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
             }`}
           >
-            <MessageSquare className="w-4 h-4 shrink-0" />
+            <MessageSquare className="w-4 h-4 shrink-0" strokeWidth={1.5} />
             Messages
             {(unreadCount || 0) > 0 && (
               <span className="ml-auto min-w-[20px] h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1">
@@ -159,7 +159,7 @@ function NavContent({
               onClick={onClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-all duration-150"
             >
-              <Plus className="w-4 h-4 shrink-0" />
+              <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               New Project
             </Link>
           )}
@@ -192,7 +192,7 @@ function NavContent({
           onClick={() => signOut()}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
         >
-          <LogOut className="w-4 h-4 shrink-0" />
+          <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Sign Out
         </button>
       </div>
