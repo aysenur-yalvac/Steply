@@ -26,6 +26,7 @@ interface SidebarProps {
   role?: string;
   unreadCount?: number;
   isTeacher?: boolean;
+  avatarUrl?: string | null;
 }
 
 const NAV_ITEMS = [
@@ -42,6 +43,7 @@ function NavContent({
   role,
   unreadCount,
   isTeacher,
+  avatarUrl,
   onClose,
   onOpenWatchlist,
 }: SidebarProps & { onClose: () => void; onOpenWatchlist: () => void }) {
@@ -176,12 +178,20 @@ function NavContent({
           onClick={onClose}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors mb-1"
         >
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-            style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #A020F0 100%)" }}
-          >
-            {(userName || userEmail || "?").charAt(0).toUpperCase()}
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+              style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #A020F0 100%)" }}
+            >
+              {(userName || userEmail || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-slate-800 truncate">
               {userName || userEmail}
