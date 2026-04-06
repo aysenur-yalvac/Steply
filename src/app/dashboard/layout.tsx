@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import DashboardBackground from '@/components/dashboard/DashboardBackground';
 
 export default async function DashboardLayout({
   children,
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
   return (
     <div
       className="fixed inset-0 z-[60] flex"
-      style={{ background: '#F8F9FA' }}
+      style={{ background: '#f5f3ff' }}
     >
       <DashboardSidebar
         userName={profile?.full_name}
@@ -43,8 +44,11 @@ export default async function DashboardLayout({
       />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Purple blobs — hidden on /dashboard, visible on all other sub-pages */}
+        <DashboardBackground />
+
+        <div className="flex-1 overflow-y-auto relative z-10">
           {children}
         </div>
       </div>
