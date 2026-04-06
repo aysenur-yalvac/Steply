@@ -12,7 +12,6 @@ import {
   Check,
   Edit3,
   MessageSquarePlus,
-  Paperclip,
   MessageCircle,
   ChevronDown,
 } from "lucide-react";
@@ -266,10 +265,6 @@ function KanbanCard({
         {/* Footer: stats + expand toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1">
-              <Paperclip className="w-3.5 h-3.5" />
-              {attachCount}
-            </span>
             <span className="flex items-center gap-1">
               <MessageCircle className="w-3.5 h-3.5" />
               {commentCount}
