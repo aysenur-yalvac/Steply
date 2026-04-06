@@ -63,16 +63,14 @@ export default function NewProjectPage() {
     <div className="min-h-screen w-full bg-[#f8fafc] p-6 sm:p-10 flex flex-col items-center justify-center">
       <div className="w-full max-w-xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
-        <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
           <BackButton href="/dashboard" variant="light" />
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
-              <Plus className="w-7 h-7" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Start New Project</h1>
-              <p className="text-slate-500">Take the first step towards your goals now.</p>
-            </div>
+          <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+            <Plus className="w-7 h-7" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Start New Project</h1>
+            <p className="text-slate-500">Take the first step towards your goals now.</p>
           </div>
         </div>
 
