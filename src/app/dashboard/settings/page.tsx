@@ -48,6 +48,7 @@ export default async function SettingsPage() {
     <SettingsClient
       email={user.email ?? ""}
       fullName={profile?.full_name || user.user_metadata?.full_name || ""}
+      initialIsPublic={profile?.is_public ?? true}
       updateProfile={updateProfile}
     />
   );

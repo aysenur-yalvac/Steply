@@ -265,6 +265,22 @@ export async function deleteAgendaTaskAction(taskId: string) {
   return { success: true };
 }
 
+export async function updateUserPrivacyAction(isPublic: boolean): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_public: isPublic })
+    .eq('id', user.id);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/dashboard/settings', 'page');
+  return { success: true };
+}
+
 export async function getWatchlistAction() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -285,3 +301,4 @@ export async function getWatchlistAction() {
 
   return { success: true, data: formattedData };
 }
+

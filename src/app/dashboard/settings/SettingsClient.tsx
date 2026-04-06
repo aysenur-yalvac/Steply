@@ -4,10 +4,13 @@ import { motion, type Variants } from "framer-motion";
 import { useState } from "react";
 import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { updateUserPrivacyAction } from "@/lib/actions";
+import toast from "react-hot-toast";
 
 interface SettingsClientProps {
   email: string;
   fullName: string;
+  initialIsPublic: boolean;
   updateProfile: (formData: FormData) => Promise<void>;
 }
 
@@ -21,12 +24,31 @@ const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
-export default function SettingsClient({ email, fullName, updateProfile }: SettingsClientProps) {
-  const [isPublic, setIsPublic] = useState(true);
+const glassCard = {
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  background: "rgba(255,255,255,0.40)",
+  border: "1px solid rgba(255,255,255,0.55)",
+} as const;
+
+export default function SettingsClient({ email, fullName, initialIsPublic, updateProfile }: SettingsClientProps) {
+  const [isPublic, setIsPublic] = useState(initialIsPublic);
+  const [privacyLoading, setPrivacyLoading] = useState(false);
 
   async function handlePrivacyChange(value: boolean) {
-    setIsPublic(value);
-    // TODO: wire up to updateUserPrivacyAction(value)
+    setPrivacyLoading(true);
+    const prev = isPublic;
+    setIsPublic(value); // optimistic
+    const res = await updateUserPrivacyAction(value);
+    setPrivacyLoading(false);
+    if (!res.success) {
+      setIsPublic(prev); // rollback
+      toast.error("Failed to update privacy setting.");
+    } else {
+      toast.success(value ? "Profile set to Public." : "Profile set to Private.", {
+        style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(124,58,255,0.4)", fontSize: "13px", fontWeight: "bold" },
+      });
+    }
   }
 
   return (
@@ -59,16 +81,7 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
         className="grid gap-6 relative z-10"
       >
         {/* Profile card */}
-        <motion.section
-          variants={fadeUp}
-          className="rounded-3xl p-8 shadow-xl shadow-violet-100/30"
-          style={{
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            background: "rgba(255,255,255,0.40)",
-            border: "1px solid rgba(255,255,255,0.55)",
-          }}
-        >
+        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
           <div className="flex items-center gap-2 mb-6">
             <User className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
             <h2 className="text-lg font-semibold text-slate-900">Profile Information</h2>
@@ -76,9 +89,7 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
 
           <form action={updateProfile} className="space-y-6 max-w-md">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-slate-600">
-                Email Address
-              </label>
+              <label htmlFor="email" className="text-sm font-medium text-slate-600">Email Address</label>
               <input
                 id="email"
                 type="email"
@@ -90,9 +101,7 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium text-slate-600">
-                Full Name
-              </label>
+              <label htmlFor="fullName" className="text-sm font-medium text-slate-600">Full Name</label>
               <input
                 id="fullName"
                 name="fullName"
@@ -118,16 +127,7 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
         </motion.section>
 
         {/* Privacy card */}
-        <motion.section
-          variants={fadeUp}
-          className="rounded-3xl p-8 shadow-xl shadow-violet-100/30"
-          style={{
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            background: "rgba(255,255,255,0.40)",
-            border: "1px solid rgba(255,255,255,0.55)",
-          }}
-        >
+        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
           <div className="flex items-center gap-2 mb-6">
             <ShieldCheck className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
             <h2 className="text-lg font-semibold text-slate-900">Profile Privacy</h2>
@@ -143,13 +143,13 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
               </p>
             </div>
 
-            {/* Toggle switch */}
             <button
               type="button"
               role="switch"
               aria-checked={isPublic}
+              disabled={privacyLoading}
               onClick={() => handlePrivacyChange(!isPublic)}
-              className="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AFF]/40"
+              className="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AFF]/40 disabled:opacity-50"
               style={{ background: isPublic ? "#7C3AFF" : "rgba(203,213,225,1)" }}
             >
               <span
@@ -161,16 +161,7 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
         </motion.section>
 
         {/* Security card */}
-        <motion.section
-          variants={fadeUp}
-          className="rounded-3xl p-8 shadow-xl shadow-violet-100/30"
-          style={{
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            background: "rgba(255,255,255,0.40)",
-            border: "1px solid rgba(255,255,255,0.55)",
-          }}
-        >
+        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
           <div className="flex items-center gap-2 mb-4">
             <Lock className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
             <h2 className="text-lg font-semibold text-slate-900">Account Security</h2>
