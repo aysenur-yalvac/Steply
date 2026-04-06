@@ -23,7 +23,17 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
   return (
     <div className="relative flex-1 w-full max-w-4xl mx-auto p-6 md:p-12 overflow-hidden">
 
-      {/* Blobs come from the layout — no local blobs needed here */}
+      {/* Animated purple gradient blobs — settings page only */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full opacity-20 blur-3xl blob-spin-slow"
+        style={{ background: "radial-gradient(circle at 40% 40%, #7C3AFF 0%, #a855f7 45%, transparent 70%)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 right-0 w-[380px] h-[380px] rounded-full opacity-15 blur-3xl blob-spin-slower"
+        style={{ background: "radial-gradient(circle at 60% 60%, #6d28d9 0%, #c026d3 50%, transparent 70%)" }}
+      />
 
       {/* Header */}
       <motion.div
