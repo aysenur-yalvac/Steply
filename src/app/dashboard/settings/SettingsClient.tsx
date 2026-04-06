@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import { User, Settings as SettingsIcon, Save, Lock } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 
 interface SettingsClientProps {
   email: string;
@@ -30,8 +31,9 @@ export default function SettingsClient({ email, fullName, updateProfile }: Setti
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center gap-3 mb-10 relative z-10"
+        className="flex items-center gap-4 mb-10 relative z-10"
       >
+        <BackButton href="/dashboard" variant="light" />
         <div className="p-3 rounded-2xl bg-[#7C3AFF]/10 text-[#7C3AFF] shadow-lg shadow-violet-200/40">
           <SettingsIcon className="w-7 h-7" strokeWidth={1.5} />
         </div>
