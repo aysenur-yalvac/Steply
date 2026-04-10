@@ -48,52 +48,56 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // ── Owner profile (always fetch first — needed for privacy gate) ──────────────
-  // Use admin client so RLS never blocks cross-user profile reads.
+  // ── Ownership check — must be explicit string comparison ──────────────────────
+  const ownerUserId: string = (project as any).student_id as string;
+  const isOwner: boolean = ownerUserId === user.id;
+
+  // ── Owner identity ────────────────────────────────────────────────────────────
   let ownerName: string | null = null;
   let ownerAvatarUrl: string | null = null;
 
-  const isOwner = project.student_id === user.id;
-
   if (isOwner) {
+    // Viewer is the owner — use their already-fetched profile, skip all privacy gates.
     ownerName      = profile?.full_name  ?? (user.user_metadata?.full_name as string | undefined) ?? null;
     ownerAvatarUrl = profile?.avatar_url ?? null;
   } else {
+    // Viewer is NOT the owner — fetch owner profile and apply privacy gates.
     const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
       .select('full_name, avatar_url, is_public')
-      .eq('id', project.student_id)
+      .eq('id', ownerUserId)
       .single();
     if (ownerErr) console.error('owner fetch error:', ownerErr);
     ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
 
     // ── Privacy gate — account-level ─────────────────────────────────────────
-    // If the owner's profile is private, ONLY team members can access the project.
+    // Owner has set their account to private → only team members can view projects.
     if (ownerProfile?.is_public === false) {
-      const memberIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-      // Also check relational project_members table
+      const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
       const { data: memberRow } = await admin
         .from('project_members')
         .select('id')
         .eq('project_id', projectId)
         .eq('user_id', user.id)
         .maybeSingle();
-      if (!memberIds.includes(user.id) && !memberRow) notFound();
+      const isTeamMember = jsonTeamIds.includes(user.id) || !!memberRow;
+      if (!isTeamMember) notFound();
     }
-  }
 
-  // ── Privacy gate — project-level (is_private flag) ────────────────────────────
-  const isPrivateProject = (project as any).is_private === true;
-  if (isPrivateProject && !isOwner) {
-    const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-    const { data: memberRow } = await admin
-      .from('project_members')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (!rawTeamIds.includes(user.id) && !memberRow) notFound();
+    // ── Privacy gate — project-level (is_private flag) ────────────────────────
+    const isPrivateProject = (project as any).is_private === true;
+    if (isPrivateProject) {
+      const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+      const { data: memberRow } = await admin
+        .from('project_members')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      const isTeamMember = jsonTeamIds.includes(user.id) || !!memberRow;
+      if (!isTeamMember) notFound();
+    }
   }
 
   // ── Team members ─────────────────────────────────────────────────────────────
