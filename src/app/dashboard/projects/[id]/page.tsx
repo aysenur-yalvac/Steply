@@ -57,35 +57,22 @@ export default async function ProjectDetailPage({
   let ownerAvatarUrl: string | null = null;
 
   if (isOwner) {
-    // Viewer is the owner — use their already-fetched profile, skip all privacy gates.
+    // Viewer IS the owner — always allow access, skip all gates.
     ownerName      = profile?.full_name  ?? (user.user_metadata?.full_name as string | undefined) ?? null;
     ownerAvatarUrl = profile?.avatar_url ?? null;
   } else {
-    // Viewer is NOT the owner — fetch owner profile and apply privacy gates.
+    // Viewer is NOT the owner — fetch owner profile for display.
     const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
-      .select('full_name, avatar_url, is_public')
+      .select('full_name, avatar_url')
       .eq('id', ownerUserId)
       .single();
     if (ownerErr) console.error('owner fetch error:', ownerErr);
     ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
 
-    // ── Privacy gate — account-level ─────────────────────────────────────────
-    // Owner has set their account to private → only team members can view projects.
-    if (ownerProfile?.is_public === false) {
-      const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-      const { data: memberRow } = await admin
-        .from('project_members')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      const isTeamMember = jsonTeamIds.includes(user.id) || !!memberRow;
-      if (!isTeamMember) notFound();
-    }
-
-    // ── Privacy gate — project-level (is_private flag) ────────────────────────
+    // ── Privacy gate — project-level only ────────────────────────────────────
+    // If the project is marked private, only team members can access it.
     const isPrivateProject = (project as any).is_private === true;
     if (isPrivateProject) {
       const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
