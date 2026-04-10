@@ -288,16 +288,18 @@ export async function getWatchlistAction() {
 
   const { data, error } = await supabase
     .from('mentored_projects')
-    .select('project_id, projects(id, title, profiles(full_name))')
+    .select('project_id, projects(id, title, profiles!student_id(full_name, is_public))')
     .eq('teacher_id', user.id);
-  
+
   if (error) return { success: false, data: [] };
-  
-  const formattedData = data.map((item: any) => ({
-     id: item.projects?.id,
-     title: item.projects?.title,
-     studentName: item.projects?.profiles?.full_name || 'Unknown'
-  })).filter((i: any) => i.id);
+
+  const formattedData = data
+    .filter((item: any) => item.projects?.profiles?.is_public !== false)
+    .map((item: any) => ({
+       id: item.projects?.id,
+       title: item.projects?.title,
+       studentName: item.projects?.profiles?.full_name || 'Unknown'
+    })).filter((i: any) => i.id);
 
   return { success: true, data: formattedData };
 }

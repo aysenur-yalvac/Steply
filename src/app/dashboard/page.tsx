@@ -44,10 +44,11 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     if (!q) {
       const { data } = await supabase
         .from('projects')
-        .select('*, profiles!student_id(full_name)')
+        .select('*, profiles!student_id(full_name, is_public)')
         .in('id', Array.from(watchedIds))
         .order('created_at', { ascending: false });
-      projects = data || [];
+      // Strip projects whose owner went private after being watched
+      projects = (data || []).filter((p: any) => p.profiles?.is_public !== false);
     } else {
       const { data } = await supabase
         .from('projects')

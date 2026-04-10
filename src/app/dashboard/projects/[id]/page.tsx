@@ -48,24 +48,16 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  // ── Privacy gate ─────────────────────────────────────────────────────────────
-  // If the project is private, ONLY the owner OR a team member can access it.
-  // Teachers, other students — everyone else gets notFound().
-  const isPrivateProject = (project as any).is_private === true;
-  if (isPrivateProject && project.student_id !== user.id) {
-    const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-    if (!rawTeamIds.includes(user.id)) notFound();
-  }
-
-  // ── Owner identity ──────────────────────────────────────────────────────────
-  // Always fetch via admin so RLS on profiles never blocks a cross-user read.
+  // ── Owner profile (always fetch first — needed for privacy gate) ──────────────
+  // Use admin client so RLS never blocks cross-user profile reads.
   let ownerName: string | null = null;
   let ownerAvatarUrl: string | null = null;
 
-  if (project.student_id === user.id) {
-    // Viewer IS the owner — reuse already-fetched profile.
-    ownerName      = profile?.full_name      ?? (user.user_metadata?.full_name as string | undefined) ?? null;
-    ownerAvatarUrl = profile?.avatar_url     ?? null;
+  const isOwner = project.student_id === user.id;
+
+  if (isOwner) {
+    ownerName      = profile?.full_name  ?? (user.user_metadata?.full_name as string | undefined) ?? null;
+    ownerAvatarUrl = profile?.avatar_url ?? null;
   } else {
     const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
@@ -73,15 +65,35 @@ export default async function ProjectDetailPage({
       .eq('id', project.student_id)
       .single();
     if (ownerErr) console.error('owner fetch error:', ownerErr);
-
-    // If the owner has set their account to private, only team members can access
-    if (ownerProfile?.is_public === false) {
-      const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-      if (!rawTeamIds.includes(user.id)) notFound();
-    }
-
     ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
+
+    // ── Privacy gate — account-level ─────────────────────────────────────────
+    // If the owner's profile is private, ONLY team members can access the project.
+    if (ownerProfile?.is_public === false) {
+      const memberIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+      // Also check relational project_members table
+      const { data: memberRow } = await admin
+        .from('project_members')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!memberIds.includes(user.id) && !memberRow) notFound();
+    }
+  }
+
+  // ── Privacy gate — project-level (is_private flag) ────────────────────────────
+  const isPrivateProject = (project as any).is_private === true;
+  if (isPrivateProject && !isOwner) {
+    const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+    const { data: memberRow } = await admin
+      .from('project_members')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!rawTeamIds.includes(user.id) && !memberRow) notFound();
   }
 
   // ── Team members ─────────────────────────────────────────────────────────────
