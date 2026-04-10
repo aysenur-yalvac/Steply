@@ -51,9 +51,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     } else {
       const { data } = await supabase
         .from('projects')
-        .select('*, profiles!student_id(full_name)')
+        .select('*, profiles!student_id(full_name, is_public)')
         .order('created_at', { ascending: false });
-      let all = data || [];
+      // Exclude projects whose owner has set their account to private
+      let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
       all = all.filter((p: any) =>
         p.title.toLowerCase().includes(q) ||
         (p.profiles?.full_name || '').toLowerCase().includes(q),

@@ -69,10 +69,17 @@ export default async function ProjectDetailPage({
   } else {
     const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
-      .select('full_name, avatar_url')
+      .select('full_name, avatar_url, is_public')
       .eq('id', project.student_id)
       .single();
     if (ownerErr) console.error('owner fetch error:', ownerErr);
+
+    // If the owner has set their account to private, only team members can access
+    if (ownerProfile?.is_public === false) {
+      const rawTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+      if (!rawTeamIds.includes(user.id)) notFound();
+    }
+
     ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
   }
