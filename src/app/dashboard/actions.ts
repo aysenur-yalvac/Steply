@@ -211,30 +211,28 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
 
     // Sync project_members relational table when team changes
     if (team_members !== undefined) {
-      try {
-        const { error: deleteError } = await admin
-          .from("project_members")
-          .delete()
-          .eq("project_id", projectId);
+      const { error: deleteError } = await admin
+        .from("project_members")
+        .delete()
+        .eq("project_id", projectId);
 
-        if (deleteError) {
-          console.error("[updateProjectDetails] project_members delete error:", deleteError);
-        } else if (team_members.length > 0) {
-          const rows = team_members.map((m) => ({
-            project_id: projectId,
-            user_id: m.id,
-            role: "member",
-          }));
-          const { error: insertError } = await admin
-            .from("project_members")
-            .insert(rows);
-          if (insertError) {
-            console.error("[updateProjectDetails] project_members insert error:", insertError);
-          }
+      if (deleteError) {
+        return { error: `Üye silme hatası: ${deleteError.message} [${deleteError.code}]` };
+      }
+
+      if (team_members.length > 0) {
+        const rows = team_members.map((m) => ({
+          project_id: projectId,
+          user_id: m.id,
+          role: "member",
+        }));
+        const { error: insertError } = await admin
+          .from("project_members")
+          .insert(rows);
+
+        if (insertError) {
+          return { error: `Üye ekleme hatası: ${insertError.message} [${insertError.code}]` };
         }
-      } catch (syncErr) {
-        // Non-fatal: project fields were already saved; only relational sync failed
-        console.error("[updateProjectDetails] project_members sync exception:", syncErr);
       }
     }
 
