@@ -6,9 +6,20 @@ import Link from "next/link";
 import clsx from "clsx";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-interface SearchResult {
+interface ProjectResult {
   id: string;
   title: string;
+}
+
+interface UserResult {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
+interface SearchResults {
+  projects: ProjectResult[];
+  users: UserResult[];
 }
 
 interface GooeySearchBarProps {
@@ -126,7 +137,7 @@ export const GooeySearchBar = ({
 
   const [step,       setStep]       = useState<1 | 2>(1);
   const [searchText, setSearchText] = useState("");
-  const [results,    setResults]    = useState<SearchResult[]>([]);
+  const [results,    setResults]    = useState<SearchResults>({ projects: [], users: [] });
   const [isLoading,  setIsLoading]  = useState(false);
 
   const debouncedText = useDebounce(searchText, 350);
@@ -137,7 +148,7 @@ export const GooeySearchBar = ({
       inputRef.current?.focus();
     } else {
       setSearchText("");
-      setResults([]);
+      setResults({ projects: [], users: [] });
       setIsLoading(false);
     }
   }, [step]);
@@ -149,7 +160,7 @@ export const GooeySearchBar = ({
       setIsLoading(true);
       fetch(`/api/search?q=${encodeURIComponent(debouncedText.trim())}`)
         .then((r) => r.json())
-        .then((data: SearchResult[]) => {
+        .then((data: SearchResults) => {
           if (!cancelled) {
             setResults(data);
             setIsLoading(false);
@@ -159,7 +170,7 @@ export const GooeySearchBar = ({
           if (!cancelled) setIsLoading(false);
         });
     } else {
-      setResults([]);
+      setResults({ projects: [], users: [] });
       setIsLoading(false);
     }
     return () => { cancelled = true; };
@@ -175,7 +186,8 @@ export const GooeySearchBar = ({
     return () => document.removeEventListener("mousedown", handle);
   }, [step]);
 
-  const showDropdown = step === 2 && (isLoading || results.length > 0 || debouncedText.length > 0);
+  const hasResults = results.projects.length > 0 || results.users.length > 0;
+  const showDropdown = step === 2 && (isLoading || hasResults || debouncedText.length > 0);
 
   return (
     <div ref={containerRef} style={{ position: "relative" }}>
@@ -208,27 +220,85 @@ export const GooeySearchBar = ({
                 <LoadingIcon />
                 Searching…
               </div>
-            ) : results.length > 0 ? (
-              results.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.15 }}
-                  role="option"
-                >
-                  <Link
-                    href={`/dashboard/projects/${item.id}`}
-                    className="gsb-dropdown-item"
-                    onClick={() => setStep(1)}
-                  >
-                    <span className="gsb-dropdown-dot" />
-                    {item.title}
-                  </Link>
-                </motion.div>
-              ))
+            ) : hasResults ? (
+              <>
+                {/* ── Projects section ── */}
+                {results.projects.length > 0 && (
+                  <div>
+                    <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      Projects
+                    </div>
+                    {results.projects.map((item, i) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.04, duration: 0.14 }}
+                        role="option"
+                      >
+                        <Link
+                          href={`/dashboard/projects/${item.id}`}
+                          className="gsb-dropdown-item"
+                          onClick={() => setStep(1)}
+                        >
+                          <span className="gsb-dropdown-dot" />
+                          {item.title}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── Users section ── */}
+                {results.users.length > 0 && (
+                  <div>
+                    {results.projects.length > 0 && (
+                      <div style={{ margin: "4px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }} />
+                    )}
+                    <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      People
+                    </div>
+                    {results.users.map((u, i) => {
+                      const initials = u.full_name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
+                      return (
+                        <motion.div
+                          key={u.id}
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: (results.projects.length + i) * 0.04, duration: 0.14 }}
+                          role="option"
+                        >
+                          <Link
+                            href={`/user/${u.id}`}
+                            className="gsb-dropdown-item"
+                            onClick={() => setStep(1)}
+                          >
+                            {u.avatar_url ? (
+                              <img
+                                src={u.avatar_url}
+                                alt={u.full_name}
+                                style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                              />
+                            ) : (
+                              <div style={{ width: 24, height: 24, borderRadius: "50%", background: "linear-gradient(135deg,#7C3AFF,#9333ea)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+                                {initials || "?"}
+                              </div>
+                            )}
+                            {u.full_name}
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="gsb-dropdown-empty">No projects found</div>
+              <div className="gsb-dropdown-empty">No results found</div>
             )}
           </motion.div>
         )}
