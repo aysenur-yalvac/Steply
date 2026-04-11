@@ -87,29 +87,23 @@ export default async function ProjectDetailPage({
     }
   }
 
-  // ── Team members ─────────────────────────────────────────────────────────────
+  // ── Team members — read from relational project_members table (source of truth) ──
   type TeamMember = { id: string; full_name: string; avatar_url: string | null };
   let teamMembers: TeamMember[] = [];
 
-  const rawTeamMembers: { id: string; full_name: string }[] = Array.isArray(project.team_members)
-    ? (project.team_members as { id: string; full_name: string }[]).filter(
-        (m) => m && typeof m.id === "string",
-      )
-    : [];
+  const { data: memberRows } = await admin
+    .from('project_members')
+    .select('user_id, profiles!user_id(full_name, avatar_url)')
+    .eq('project_id', projectId);
 
-  if (rawTeamMembers.length > 0) {
-    const memberIds = rawTeamMembers.map((m) => m.id);
-    const { data: memberProfiles } = await admin
-      .from('profiles')
-      .select('id, full_name, avatar_url')
-      .in('id', memberIds);
-
-    const profileMap = new Map((memberProfiles ?? []).map((p) => [p.id, p]));
-    teamMembers = rawTeamMembers.map((m) => ({
-      id:         m.id,
-      full_name:  profileMap.get(m.id)?.full_name  ?? m.full_name ?? "Unknown",
-      avatar_url: profileMap.get(m.id)?.avatar_url ?? null,
-    }));
+  if (memberRows && memberRows.length > 0) {
+    teamMembers = memberRows
+      .map((row: any) => ({
+        id:         row.user_id as string,
+        full_name:  row.profiles?.full_name  ?? "Unknown",
+        avatar_url: row.profiles?.avatar_url ?? null,
+      }))
+      .filter((m) => m.id);
   }
 
   // ── Reviews ───────────────────────────────────────────────────────────────────
