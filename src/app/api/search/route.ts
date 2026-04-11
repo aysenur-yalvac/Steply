@@ -27,22 +27,36 @@ export async function GET(req: NextRequest) {
     .slice(0, 5)
     .map(({ id, title }) => ({ id, title }));
 
-  // ── Users (unaccent search for Turkish character support, exclude self) ──
-  const { data: userData, error: rpcError } = await admin
+  // ── Users: unaccent RPC with ilike fallback (exclude self by ID only) ────
+  let rawUsers: { id: string; full_name: string; avatar_url: string | null }[] = [];
+
+  const { data: rpcData, error: rpcError } = await admin
     .rpc("search_profiles_unaccent", { search_query: q });
 
   if (rpcError) {
-    console.error(`[search] RPC error for q="${q}":`, rpcError.message, rpcError);
+    // RPC not available yet — fall back to plain ilike (no Turkish normalisation)
+    console.warn(`[search] RPC unavailable, falling back to ilike. Error: ${rpcError.message}`);
+    const { data: fallbackData, error: fallbackError } = await admin
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .ilike("full_name", `%${q}%`)
+      .limit(10);
+    if (fallbackError) {
+      console.error(`[search] Fallback ilike also failed: ${fallbackError.message}`);
+    }
+    rawUsers = (fallbackData ?? []) as typeof rawUsers;
+  } else {
+    rawUsers = (rpcData ?? []) as typeof rawUsers;
   }
 
-  // Exclude only by ID — never by name (multiple accounts may share a name)
-  const filteredUsers = (userData ?? []).filter((p: { id: string }) => p.id !== user.id);
+  // Exclude only the currently logged-in user by ID — never filter by name
+  const filteredUsers = rawUsers.filter((p) => p.id !== user.id);
 
-  console.log(`[search] q="${q}" — RPC returned ${userData?.length ?? 0} total, ${filteredUsers.length} after self-exclusion:`, filteredUsers.map((u: { full_name: string }) => u.full_name));
+  console.log(`[search] q="${q}" — found ${rawUsers.length} total, ${filteredUsers.length} after self-exclusion:`, filteredUsers.map((u) => u.full_name));
 
   const users = filteredUsers
     .slice(0, 4)
-    .map(({ id, full_name, avatar_url }: { id: string; full_name: string; avatar_url: string | null }) => ({
+    .map(({ id, full_name, avatar_url }) => ({
       id,
       full_name: full_name ?? "",
       avatar_url: avatar_url ?? null,
