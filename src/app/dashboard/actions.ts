@@ -247,6 +247,67 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
   }
 }
 
+export async function addProjectMemberAction(
+  projectId: string,
+  userId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const admin = createAdminClient();
+
+  // Only the project owner can add members
+  const { data: project } = await admin
+    .from("projects")
+    .select("student_id")
+    .eq("id", projectId)
+    .single();
+
+  if (!project) return { error: "Project not found." };
+  if (project.student_id !== user.id) return { error: "Only the project owner can add members." };
+
+  const { error } = await admin
+    .from("project_members")
+    .upsert({ project_id: projectId, user_id: userId, role: "member" }, { onConflict: "project_id,user_id" });
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
+export async function removeProjectMemberAction(
+  projectId: string,
+  userId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const admin = createAdminClient();
+
+  const { data: project } = await admin
+    .from("projects")
+    .select("student_id")
+    .eq("id", projectId)
+    .single();
+
+  if (!project) return { error: "Project not found." };
+  if (project.student_id !== user.id) return { error: "Only the project owner can remove members." };
+
+  const { error } = await admin
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("user_id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
 export async function searchProfilesAction(
   query: string,
 ): Promise<{ id: string; full_name: string; avatar_url: string | null }[]> {

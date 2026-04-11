@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Pencil,
   Check,
@@ -17,7 +18,7 @@ import {
   Lock,
   Globe,
 } from "lucide-react";
-import { updateProjectDetails, searchProfilesAction, toggleProjectPrivacyAction } from "@/app/dashboard/actions";
+import { updateProjectDetails, searchProfilesAction, toggleProjectPrivacyAction, addProjectMemberAction, removeProjectMemberAction } from "@/app/dashboard/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -79,6 +80,7 @@ export default function ProjectEditableContent({
   isCompleted,
 }: Props) {
   const isOwner = currentUserId === project.student_id;
+  const router = useRouter();
 
   // Privacy state
   const [isPrivate,        setIsPrivate]        = useState(project.is_private ?? false);
@@ -107,6 +109,7 @@ export default function ProjectEditableContent({
   const [searchResults,   setSearchResults]   = useState<Member[]>([]);
   const [isSearching,     setIsSearching]     = useState(false);
   const [selectedMember,  setSelectedMember]  = useState<Member | null>(null);
+  const [memberPending,   setMemberPending]   = useState(false);
 
   const [isPending, startTransition] = useTransition();
 
@@ -196,34 +199,54 @@ export default function ProjectEditableContent({
     // Do NOT touch memberQuery here so the input doesn't re-fire onChange
   };
 
-  // User clicked "Projeye Ekle" — commit the selection into teamMembers
-  const confirmAddMember = () => {
-    // Capture into local const before any setState calls
+  // User clicked "Projeye Ekle" — persist immediately to DB then refresh
+  const confirmAddMember = async () => {
     const toAdd = selectedMember;
-    if (!toAdd) return;
+    if (!toAdd || memberPending) return;
 
-    // Explicitly normalize to flat Member shape so the rendered list
-    // always receives { id, full_name, avatar_url } regardless of the
-    // shape that the search action or any future data source returns.
     const normalized: Member = {
       id:         toAdd.id,
       full_name:  toAdd.full_name,
       avatar_url: toAdd.avatar_url ?? null,
     };
 
-    // Push into confirmed list using functional updater (no stale closure risk)
+    // Optimistic update
     setTeamMembers((prev) => [...prev, normalized]);
-
-    // Reset search UI
     setSelectedMember(null);
     setMemberQuery("");
     setSearchResults([]);
 
-    toast.success(`${normalized.full_name} added to team!`);
+    setMemberPending(true);
+    const result = await addProjectMemberAction(project.id, normalized.id);
+    setMemberPending(false);
+
+    if ("error" in result) {
+      // Roll back optimistic update
+      setTeamMembers((prev) => prev.filter((m) => m.id !== normalized.id));
+      toast.error(`Failed to add member: ${result.error}`);
+    } else {
+      toast.success(`${normalized.full_name} added to team!`);
+      router.refresh();
+    }
   };
 
-  const removeMember = (id: string) => {
+  const removeMember = async (id: string) => {
+    if (memberPending) return;
+    // Optimistic update
     setTeamMembers((prev) => prev.filter((m) => m.id !== id));
+
+    setMemberPending(true);
+    const result = await removeProjectMemberAction(project.id, id);
+    setMemberPending(false);
+
+    if ("error" in result) {
+      // Roll back
+      const restored = initialTeamMembers.find((m) => m.id === id);
+      if (restored) setTeamMembers((prev) => [...prev, restored]);
+      toast.error(`Failed to remove member: ${result.error}`);
+    } else {
+      router.refresh();
+    }
   };
 
   return (
@@ -595,14 +618,18 @@ export default function ProjectEditableContent({
                   </button>
                 </div>
 
-                {/* THE confirmation button — only this pushes to teamMembers */}
+                {/* THE confirmation button — persists immediately to DB */}
                 <button
                   type="button"
                   onClick={confirmAddMember}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-[.98] transition-all"
+                  disabled={memberPending}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-[.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Check className="w-4 h-4" />
-                  Projeye Ekle
+                  {memberPending
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Check className="w-4 h-4" />
+                  }
+                  {memberPending ? "Kaydediliyor..." : "Projeye Ekle"}
                 </button>
               </div>
             )}
