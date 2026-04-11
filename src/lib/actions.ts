@@ -82,15 +82,14 @@ export async function saveFileRecordAction(
 }
 
 export async function deleteFileAction(projectId: string, fileUrl: string) {
-  console.log("[deleteFileAction] Called:", { projectId });
-
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    throw new Error("You must be logged in.");
-  }
+  if (authError || !user) throw new Error("You must be logged in.");
 
-  const { data: project, error: projectError } = await supabase
+  // Use admin client for all DB operations so RLS never blocks ownership check or update
+  const admin = createAdminClient();
+
+  const { data: project, error: projectError } = await admin
     .from("projects")
     .select("student_id, files")
     .eq("id", projectId)
@@ -99,12 +98,10 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   if (projectError || !project) throw new Error("Project not found.");
   if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
 
-  // Delete from storage using admin client (bypasses RLS)
-  const admin = createAdminClient();
+  // Remove from Supabase Storage
   const pathParts = fileUrl.split("project-files/");
   if (pathParts.length > 1) {
     const filePath = pathParts[1];
-    console.log("[deleteFileAction] Removing from storage:", filePath);
     const { error: storageError } = await admin.storage.from("project-files").remove([filePath]);
     if (storageError) {
       console.error("[deleteFileAction] Storage removal error:", storageError);
@@ -114,16 +111,13 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   const existingFiles = (project.files as ProjectFile[]) || [];
   const updatedFiles = existingFiles.filter((f) => f.url !== fileUrl);
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await admin
     .from("projects")
     .update({ files: updatedFiles })
     .eq("id", projectId);
 
-  if (updateError) {
-    throw new Error("Database could not be updated: " + updateError.message);
-  }
+  if (updateError) throw new Error("Database could not be updated: " + updateError.message);
 
-  console.log("[deleteFileAction] ✅ Complete.");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
