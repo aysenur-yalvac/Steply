@@ -310,7 +310,7 @@ export async function removeProjectMemberAction(
 
 export async function searchProfilesAction(
   query: string,
-): Promise<{ id: string; full_name: string; avatar_url: string | null }[]> {
+): Promise<{ id: string; full_name: string; avatar_url: string | null; role: string | null }[]> {
   if (!query || query.length < 2) return [];
   // Use the admin (service-role) client so RLS never blocks profile reads.
   const admin = createAdminClient();
@@ -325,6 +325,7 @@ export async function searchProfilesAction(
     id:         p.id,
     full_name:  p.full_name  ?? "",
     avatar_url: p.avatar_url ?? null,
+    role:       p.role       ?? null,
   }));
 }
 

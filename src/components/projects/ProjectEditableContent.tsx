@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type Member = { id: string; full_name: string; avatar_url?: string | null };
+type Member = { id: string; full_name: string; avatar_url?: string | null; role?: string | null };
 
 interface Props {
   project: {
@@ -45,11 +45,13 @@ interface Props {
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 function MemberRow({
   member,
-  role,
+  roleLabel,
+  roleColor,
   onRemove,
 }: {
   member: Member;
-  role: string;
+  roleLabel: string;
+  roleColor?: string;
   onRemove?: () => void;
 }) {
   return (
@@ -57,7 +59,7 @@ function MemberRow({
       <Avatar src={member.avatar_url} name={member.full_name} size="sm" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-700 truncate">{member.full_name}</p>
-        <p className="text-xs text-slate-400">{role}</p>
+        <p className={`text-xs font-medium ${roleColor ?? "text-slate-400"}`}>{roleLabel}</p>
       </div>
       {onRemove && (
         <button
@@ -208,6 +210,7 @@ export default function ProjectEditableContent({
       id:         toAdd.id,
       full_name:  toAdd.full_name,
       avatar_url: toAdd.avatar_url ?? null,
+      role:       toAdd.role       ?? null,
     };
 
     // Optimistic update
@@ -538,13 +541,14 @@ export default function ProjectEditableContent({
               full_name: project.profiles?.full_name || "Project Owner",
               avatar_url: project.profiles?.avatar_url,
             }}
-            role="Owner"
+            roleLabel="Owner"
+            roleColor="text-[#7C3AFF] font-bold uppercase tracking-wide text-[11px]"
           />
           {teamMembers.map((m) => (
             <MemberRow
               key={m.id}
               member={m}
-              role="Member"
+              roleLabel={m.role ? (m.role.charAt(0).toUpperCase() + m.role.slice(1)) : "Member"}
               onRemove={isOwner ? () => removeMember(m.id) : undefined}
             />
           ))}

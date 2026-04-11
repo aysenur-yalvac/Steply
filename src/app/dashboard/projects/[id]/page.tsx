@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
-import { Star, Trash2, Users } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
@@ -93,7 +93,7 @@ export default async function ProjectDetailPage({
 
   const { data: memberRows } = await admin
     .from('project_members')
-    .select('user_id, profiles!user_id(full_name, avatar_url)')
+    .select('user_id, profiles!user_id(full_name, avatar_url, role)')
     .eq('project_id', projectId);
 
   if (memberRows && memberRows.length > 0) {
@@ -102,6 +102,7 @@ export default async function ProjectDetailPage({
         id:         row.user_id as string,
         full_name:  row.profiles?.full_name  ?? "Unknown",
         avatar_url: row.profiles?.avatar_url ?? null,
+        role:       row.profiles?.role       ?? null,
       }))
       .filter((m) => m.id);
   }
@@ -282,38 +283,6 @@ export default async function ProjectDetailPage({
                 className="h-3"
               />
             </div>
-
-            {/* ── Team Members card (right column) ─────────────────────── */}
-            {(isOwner || teamMembers.length > 0) && (
-              <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Team
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {/* Owner row */}
-                  <div className="flex items-center gap-3 py-1">
-                    <Avatar src={ownerAvatarUrl} name={ownerName ?? "O"} size="sm" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-700 truncate">{ownerName ?? "Project Owner"}</p>
-                      <p className="text-[11px] text-[#7C3AFF] font-bold uppercase tracking-wide">Owner</p>
-                    </div>
-                  </div>
-                  {/* Member rows */}
-                  {teamMembers.map((m) => (
-                    <div key={m.id} className="flex items-center gap-3 py-1">
-                      <Avatar src={m.avatar_url} name={m.full_name} size="sm" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-700 truncate">{m.full_name}</p>
-                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Member</p>
-                      </div>
-                    </div>
-                  ))}
-                  {teamMembers.length === 0 && (
-                    <p className="text-xs text-slate-400 mt-1">No collaborators yet.</p>
-                  )}
-                </div>
-              </div>
-            )}
 
             {isTeacher && (
               <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
