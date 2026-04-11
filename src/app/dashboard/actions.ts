@@ -159,66 +159,95 @@ export async function deleteReviewAction(formData: FormData) {
   return redirect(`/dashboard/projects/${projectId}`);
 }
 
-export async function updateProjectDetails(formData: FormData): Promise<{ success: boolean }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+export async function updateProjectDetails(formData: FormData): Promise<{ success: true } | { error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Oturum bulunamadı. Lütfen tekrar giriş yapın." };
 
-  const projectId   = formData.get("project_id") as string;
-  const title       = (formData.get("title") as string)?.trim();
-  const description = (formData.get("description") as string)?.trim();
-  const start_date  = (formData.get("start_date") as string) || null;
-  const end_date    = (formData.get("end_date") as string) || null;
-  const teamRaw     = formData.get("team_members") as string | null;
-  const team_members = teamRaw ? JSON.parse(teamRaw) : undefined;
+    const projectId   = formData.get("project_id") as string;
+    const title       = (formData.get("title") as string)?.trim();
+    const description = (formData.get("description") as string)?.trim();
+    const start_date  = (formData.get("start_date") as string) || null;
+    const end_date    = (formData.get("end_date") as string) || null;
+    const teamRaw     = formData.get("team_members") as string | null;
 
-  // Verify ownership
-  const { data: existing } = await supabase
-    .from("projects")
-    .select("student_id, description")
-    .eq("id", projectId)
-    .single();
-
-  if (!existing || existing.student_id !== user.id) {
-    throw new Error("Unauthorized");
-  }
-
-  // Preserve any embedded metadata tags ([Priority: ...], [Platform: ...], etc.)
-  const metaTags = ((existing.description ?? "").match(/\[[^\]]+\]/g) || []).join("\n");
-  const finalDescription = [description, metaTags].filter(Boolean).join("\n");
-
-  const updatePayload: Record<string, unknown> = {
-    title,
-    description: finalDescription,
-    start_date,
-    end_date,
-  };
-  if (team_members !== undefined) updatePayload.team_members = team_members;
-
-  const { error } = await supabase
-    .from("projects")
-    .update(updatePayload)
-    .eq("id", projectId);
-
-  if (error) throw new Error(error.message);
-
-  // Sync project_members table when team changes
-  if (team_members !== undefined) {
-    const admin = createAdminClient();
-    await admin.from("project_members").delete().eq("project_id", projectId);
-    if (team_members.length > 0) {
-      const rows = (team_members as { id: string }[]).map((m) => ({
-        project_id: projectId,
-        user_id: m.id,
-        role: "member",
-      }));
-      await admin.from("project_members").insert(rows);
+    let team_members: { id: string; full_name: string }[] | undefined;
+    try {
+      team_members = teamRaw ? JSON.parse(teamRaw) : undefined;
+    } catch {
+      return { error: "Geçersiz üye listesi formatı." };
     }
-  }
 
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  revalidatePath("/dashboard");
-  return { success: true };
+    // Verify ownership using admin client to avoid RLS policy failures during select
+    const admin = createAdminClient();
+    const { data: existing, error: selectError } = await admin
+      .from("projects")
+      .select("student_id, description")
+      .eq("id", projectId)
+      .single();
+
+    if (selectError) return { error: `Proje sorgu hatası: ${selectError.message}` };
+    if (!existing) return { error: "Proje bulunamadı." };
+    if (existing.student_id !== user.id) return { error: "Bu proje için yetkiniz yok." };
+
+    // Preserve any embedded metadata tags ([Priority: ...], [Platform: ...], etc.)
+    const metaTags = ((existing.description ?? "").match(/\[[^\]]+\]/g) || []).join("\n");
+    const finalDescription = [description, metaTags].filter(Boolean).join("\n");
+
+    const updatePayload: Record<string, unknown> = {
+      title,
+      description: finalDescription,
+      start_date,
+      end_date,
+    };
+    if (team_members !== undefined) updatePayload.team_members = team_members;
+
+    const { error: updateError } = await admin
+      .from("projects")
+      .update(updatePayload)
+      .eq("id", projectId);
+
+    if (updateError) return { error: `Güncelleme hatası: ${updateError.message}` };
+
+    // Sync project_members relational table when team changes
+    if (team_members !== undefined) {
+      try {
+        const { error: deleteError } = await admin
+          .from("project_members")
+          .delete()
+          .eq("project_id", projectId);
+
+        if (deleteError) {
+          console.error("[updateProjectDetails] project_members delete error:", deleteError);
+        } else if (team_members.length > 0) {
+          const rows = team_members.map((m) => ({
+            project_id: projectId,
+            user_id: m.id,
+            role: "member",
+          }));
+          const { error: insertError } = await admin
+            .from("project_members")
+            .insert(rows);
+          if (insertError) {
+            console.error("[updateProjectDetails] project_members insert error:", insertError);
+          }
+        }
+      } catch (syncErr) {
+        // Non-fatal: JSON team_members was already saved to the projects row
+        console.error("[updateProjectDetails] project_members sync exception:", syncErr);
+      }
+    }
+
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[updateProjectDetails] UNCAUGHT EXCEPTION:", e);
+    return { error: `Beklenmedik bir sunucu hatası: ${msg}` };
+  }
 }
 
 export async function searchProfilesAction(

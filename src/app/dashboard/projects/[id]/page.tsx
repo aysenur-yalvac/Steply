@@ -91,8 +91,11 @@ export default async function ProjectDetailPage({
   type TeamMember = { id: string; full_name: string; avatar_url: string | null };
   let teamMembers: TeamMember[] = [];
 
-  const rawTeamMembers =
-    (project.team_members as { id: string; full_name: string }[] | null) ?? [];
+  const rawTeamMembers: { id: string; full_name: string }[] = Array.isArray(project.team_members)
+    ? (project.team_members as { id: string; full_name: string }[]).filter(
+        (m) => m && typeof m.id === "string",
+      )
+    : [];
 
   if (rawTeamMembers.length > 0) {
     const memberIds = rawTeamMembers.map((m) => m.id);
@@ -101,10 +104,10 @@ export default async function ProjectDetailPage({
       .select('id, full_name, avatar_url')
       .in('id', memberIds);
 
-    const profileMap = new Map(memberProfiles?.map((p) => [p.id, p]) ?? []);
+    const profileMap = new Map((memberProfiles ?? []).map((p) => [p.id, p]));
     teamMembers = rawTeamMembers.map((m) => ({
       id:         m.id,
-      full_name:  profileMap.get(m.id)?.full_name  ?? m.full_name,
+      full_name:  profileMap.get(m.id)?.full_name  ?? m.full_name ?? "Unknown",
       avatar_url: profileMap.get(m.id)?.avatar_url ?? null,
     }));
   }

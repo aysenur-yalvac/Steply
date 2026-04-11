@@ -135,8 +135,12 @@ export default function ProjectEditableContent({
 
     startTransition(async () => {
       try {
-        await updateProjectDetails(fd);
-        toast.success("Project details saved!");
+        const result = await updateProjectDetails(fd);
+        if (result && "error" in result) {
+          toast.error(result.error);
+        } else {
+          toast.success("Project details saved!");
+        }
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Failed to save");
       }
