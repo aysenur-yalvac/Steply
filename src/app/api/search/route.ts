@@ -27,19 +27,17 @@ export async function GET(req: NextRequest) {
     .slice(0, 5)
     .map(({ id, title }) => ({ id, title }));
 
-  // ── Users (all profiles, exclude self) ───────────────────────────────────
+  // ── Users (unaccent search for Turkish character support, exclude self) ──
   const { data: userData } = await admin
-    .from("profiles")
-    .select("id, full_name, avatar_url, is_public, role")
-    .ilike("full_name", `%${q}%`)
-    .neq("id", user.id)
-    .limit(10);
+    .rpc("search_profiles_unaccent", { search_query: q });
 
-  console.log(`[search] q="${q}" — DB returned ${userData?.length ?? 0} user(s):`, userData?.map((u) => u.full_name));
+  const filteredUsers = (userData ?? []).filter((p: { id: string }) => p.id !== user.id);
 
-  const users = (userData ?? [])
+  console.log(`[search] q="${q}" — DB returned ${filteredUsers.length} user(s):`, filteredUsers.map((u: { full_name: string }) => u.full_name));
+
+  const users = filteredUsers
     .slice(0, 4)
-    .map(({ id, full_name, avatar_url }) => ({
+    .map(({ id, full_name, avatar_url }: { id: string; full_name: string; avatar_url: string | null }) => ({
       id,
       full_name: full_name ?? "",
       avatar_url: avatar_url ?? null,
