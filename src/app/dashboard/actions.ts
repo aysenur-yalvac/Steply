@@ -201,7 +201,6 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
       start_date,
       end_date,
     };
-    if (team_members !== undefined) updatePayload.team_members = team_members;
 
     const { error: updateError } = await admin
       .from("projects")
@@ -234,7 +233,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
           }
         }
       } catch (syncErr) {
-        // Non-fatal: JSON team_members was already saved to the projects row
+        // Non-fatal: project fields were already saved; only relational sync failed
         console.error("[updateProjectDetails] project_members sync exception:", syncErr);
       }
     }
