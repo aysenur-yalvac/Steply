@@ -20,12 +20,14 @@ export async function GET(req: NextRequest) {
     .order("title")
     .limit(20);
 
+  console.log(`[search] q="${q}" — DB returned ${projectData?.length ?? 0} project(s):`, projectData?.map((p) => p.title));
+
   const projects = (projectData ?? [])
     .filter((p) => p.student_id === user.id || !p.is_private)
     .slice(0, 5)
     .map(({ id, title }) => ({ id, title }));
 
-  // ── Users (public profiles only, exclude self) ────────────────────────────
+  // ── Users (all profiles, exclude self) ───────────────────────────────────
   const { data: userData } = await admin
     .from("profiles")
     .select("id, full_name, avatar_url, is_public, role")
@@ -33,8 +35,9 @@ export async function GET(req: NextRequest) {
     .neq("id", user.id)
     .limit(10);
 
+  console.log(`[search] q="${q}" — DB returned ${userData?.length ?? 0} user(s):`, userData?.map((u) => u.full_name));
+
   const users = (userData ?? [])
-    .filter((p) => p.is_public !== false)
     .slice(0, 4)
     .map(({ id, full_name, avatar_url }) => ({
       id,
