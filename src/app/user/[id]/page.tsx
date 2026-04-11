@@ -20,11 +20,13 @@ export default async function PublicProfilePage({
   const { id } = await params;
   const admin = createAdminClient();
 
-  const { data: profile } = await admin
+  const { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("id, full_name, avatar_url, bio, github_url, linkedin_url, twitter_url, website_url, institution, is_public, role, steply_score, created_at")
+    .select("id, full_name, avatar_url, bio, github_url, linkedin_url, institution, is_public, role, steply_score, created_at")
     .eq("id", id)
     .single();
+
+  if (profileError) console.error("[user/[id]] profile fetch error:", profileError.message);
 
   if (!profile) notFound();
 
