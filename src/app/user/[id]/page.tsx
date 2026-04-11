@@ -5,9 +5,8 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
 import {
-  Github, MapPin, FolderOpen, ExternalLink, Lock,
-  Linkedin, Globe, Twitter, Building2, BookOpen,
-  ShieldOff, CalendarDays,
+  Github, Linkedin, Globe, Twitter, Building2,
+  FolderOpen, ExternalLink, Lock, ShieldOff,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -20,45 +19,50 @@ export default async function PublicProfilePage({
   const { id } = await params;
   const admin = createAdminClient();
 
+  // Minimal, safe select — only columns guaranteed to exist
   const { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("id, full_name, avatar_url, bio, github_url, linkedin_url, institution, is_public, role, steply_score, created_at")
+    .select("id, full_name, avatar_url, is_public, bio, role, github_url, linkedin_url, institution")
     .eq("id", id)
     .single();
 
-  if (profileError) console.error("[user/[id]] profile fetch error:", profileError.message);
+  if (profileError) {
+    console.error(`[DEBUG] Profile fetch error for ID ${id}:`, profileError.message);
+  }
 
-  if (!profile) notFound();
+  if (!profile) {
+    console.error(`[DEBUG] Profile not found for ID: ${id}`);
+    notFound();
+  }
 
+  // Who is viewing?
   const supabase = await createClient();
   const { data: { user: viewer } } = await supabase.auth.getUser();
   const isSelf = viewer?.id === id;
 
-  // Hard privacy gate — if private and not owner, 404 entirely
-  if (profile.is_public === false && !isSelf) notFound();
-
-  // Fetch public projects only
-  const { data: projectRows } = await admin
-    .from("projects")
-    .select("id, title, description, progress_percentage, start_date, end_date, created_at")
-    .eq("student_id", id)
-    .eq("is_private", false)
-    .order("created_at", { ascending: false });
-
-  const projects = projectRows ?? [];
+  // is_public: true → public, false → private, null → treat as public
   const isPrivate = profile.is_public === false;
+
+  console.log(`[DEBUG] Profile ${id} | is_public=${profile.is_public} | isSelf=${isSelf}`);
+
+  // Fetch public projects — only when profile is public or viewer is owner
+  const projects = (!isPrivate || isSelf)
+    ? (await admin
+        .from("projects")
+        .select("id, title, description, progress_percentage")
+        .eq("student_id", id)
+        .eq("is_private", false)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => data ?? []))
+    : [];
 
   const cleanDesc = (raw: string) => raw.replace(/\[.*?\]/g, "").trim();
 
-  const joinYear = profile.created_at
-    ? new Date(profile.created_at).getFullYear()
-    : null;
-
   const socialLinks = [
-    { url: profile.github_url,   icon: <Github    className="w-4 h-4" />, label: "GitHub"   },
-    { url: profile.linkedin_url, icon: <Linkedin  className="w-4 h-4" />, label: "LinkedIn" },
-    { url: (profile as any).twitter_url,  icon: <Twitter   className="w-4 h-4" />, label: "Twitter"  },
-    { url: (profile as any).website_url,  icon: <Globe     className="w-4 h-4" />, label: "Website"  },
+    { url: profile.github_url,   icon: <Github   className="w-4 h-4" />, label: "GitHub"   },
+    { url: profile.linkedin_url, icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn" },
+    { url: (profile as any).twitter_url, icon: <Twitter className="w-4 h-4" />, label: "Twitter" },
+    { url: (profile as any).website_url, icon: <Globe   className="w-4 h-4" />, label: "Website" },
   ].filter((l) => !!l.url);
 
   return (
@@ -68,7 +72,6 @@ export default async function PublicProfilePage({
     >
       <div className="max-w-4xl mx-auto px-6 py-10">
 
-        {/* Back */}
         <div className="mb-8">
           <BackButton href="/dashboard" variant="light" />
         </div>
@@ -100,76 +103,62 @@ export default async function PublicProfilePage({
               )}
             </div>
 
-            {/* Name + meta */}
+            {/* Name + info */}
             <div className="flex-1 min-w-0 pt-1">
               <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
                 {profile.full_name ?? "Steply Member"}
               </h1>
 
-              {/* Meta row */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2">
-                {profile.institution && (
-                  <span className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    {profile.institution}
-                  </span>
-                )}
-                {joinYear && (
-                  <span className="flex items-center gap-1.5 text-sm text-slate-400 font-medium">
-                    <CalendarDays className="w-3.5 h-3.5 shrink-0" />
-                    Joined {joinYear}
-                  </span>
-                )}
-                {typeof profile.steply_score === "number" && (
-                  <span className="flex items-center gap-1.5 text-sm font-bold text-[#7C3AFF]">
-                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                    {profile.steply_score} pts
-                  </span>
-                )}
-              </div>
-
-              {/* Private mode — minimal view */}
-              {isPrivate && isSelf ? (
-                <p className="mt-3 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5" />
-                  Your profile is private — only you can see this page.
-                </p>
-              ) : null}
-
-              {/* Bio — only if public */}
-              {!isPrivate && profile.bio && (
-                <p className="mt-3 text-slate-600 text-sm leading-relaxed max-w-xl">
-                  {profile.bio}
-                </p>
+              {/* Private notice */}
+              {isPrivate && (
+                <div className="mt-3 flex items-start gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <ShieldOff className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                  <p className="text-sm text-slate-500 font-medium">
+                    This profile is private. You can only see the name and avatar.
+                  </p>
+                </div>
               )}
 
-              {/* Social links — only if public */}
-              {!isPrivate && socialLinks.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  {socialLinks.map(({ url, icon, label }) => (
-                    <a
-                      key={label}
-                      href={url!}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#7C3AFF] bg-[#7C3AFF]/8 border border-[#7C3AFF]/20 hover:bg-[#7C3AFF]/15 transition-colors"
-                    >
-                      {icon}
-                      {label}
-                    </a>
-                  ))}
-                </div>
+              {/* Public info */}
+              {!isPrivate && (
+                <>
+                  {profile.institution && (
+                    <span className="flex items-center gap-1.5 mt-2 text-sm text-slate-500 font-medium">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      {profile.institution}
+                    </span>
+                  )}
+
+                  {profile.bio && (
+                    <p className="mt-3 text-slate-600 text-sm leading-relaxed max-w-xl">
+                      {profile.bio}
+                    </p>
+                  )}
+
+                  {socialLinks.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 mt-4">
+                      {socialLinks.map(({ url, icon, label }) => (
+                        <a
+                          key={label}
+                          href={url!}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#7C3AFF] bg-[#7C3AFF]/10 border border-[#7C3AFF]/20 hover:bg-[#7C3AFF]/20 transition-colors"
+                        >
+                          {icon}
+                          {label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── Private mode notice (to other users — but they get 404 above; this is for isSelf viewing their own private) ── */}
-        {/* ── Projects section — only for public profiles ─────────────────── */}
-        {isPrivate ? (
-          /* isSelf already handled above; this branch should never render for non-owners (they got 404) */
-          null
-        ) : (
+        {/* ── Projects — only for public profiles ────────────────────────── */}
+        {!isPrivate && (
           <div>
             <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <FolderOpen className="w-5 h-5 text-[#7C3AFF]" />
@@ -209,7 +198,6 @@ export default async function PublicProfilePage({
                         border: "1px solid rgba(255,255,255,0.70)",
                       }}
                     >
-                      {/* Title row */}
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <h3 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-[#7C3AFF] transition-colors">
                           {p.title}
@@ -217,7 +205,6 @@ export default async function PublicProfilePage({
                         <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#7C3AFF] shrink-0 mt-0.5 transition-colors" />
                       </div>
 
-                      {/* Status badge */}
                       <div className="mb-3">
                         {isCompleted ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
@@ -236,7 +223,6 @@ export default async function PublicProfilePage({
                         </p>
                       )}
 
-                      {/* Progress bar */}
                       <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${isCompleted ? "bg-emerald-500" : "bg-[#7C3AFF]"}`}
@@ -244,7 +230,7 @@ export default async function PublicProfilePage({
                         />
                       </div>
                       <p className="text-[11px] text-slate-400 font-medium mt-1.5">
-                        {isCompleted ? "100% complete" : `${p.progress_percentage}% complete`}
+                        {p.progress_percentage}% complete
                       </p>
                     </Link>
                   );
