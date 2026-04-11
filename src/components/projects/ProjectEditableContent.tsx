@@ -99,11 +99,12 @@ export default function ProjectEditableContent({
   const endDateRef   = useRef<HTMLInputElement>(null);
 
   // Team
-  const [showMemberPanel, setShowMemberPanel] = useState(false);
-  const [memberQuery,     setMemberQuery]     = useState("");
-  const [searchResults,   setSearchResults]   = useState<Member[]>([]);
-  const [isSearching,     setIsSearching]     = useState(false);
-  const [addedMembers,    setAddedMembers]    = useState<Member[]>(initialTeamMembers);
+  const [showMemberPanel,  setShowMemberPanel]  = useState(false);
+  const [memberQuery,      setMemberQuery]      = useState("");
+  const [searchResults,    setSearchResults]    = useState<Member[]>([]);
+  const [isSearching,      setIsSearching]      = useState(false);
+  const [selectedMember,   setSelectedMember]   = useState<Member | null>(null);
+  const [addedMembers,     setAddedMembers]     = useState<Member[]>(initialTeamMembers);
 
   const [isPending, startTransition] = useTransition();
 
@@ -185,11 +186,19 @@ export default function ProjectEditableContent({
     }
   };
 
-  const addMember = (m: Member) => {
-    setAddedMembers((prev) => [...prev, m]);
+  const selectMember = (m: Member) => {
+    setSelectedMember(m);
+    setMemberQuery(m.full_name);
     setSearchResults([]);
+  };
+
+  const confirmAddMember = () => {
+    if (!selectedMember) return;
+    setAddedMembers((prev) => [...prev, selectedMember]);
+    setSelectedMember(null);
     setMemberQuery("");
-    toast.success(`${m.full_name} added to team!`);
+    setSearchResults([]);
+    toast.success(`${selectedMember.full_name} added to team!`);
   };
 
   return (
@@ -500,26 +509,48 @@ export default function ProjectEditableContent({
         {/* Search panel */}
         {showMemberPanel && isOwner && (
           <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={memberQuery}
-                onChange={(e) => handleMemberSearch(e.target.value)}
-                placeholder="Search students by name..."
-                className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-              />
-              {isSearching && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
-              )}
+            {/* Input row + Ekle button */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={memberQuery}
+                  onChange={(e) => {
+                    if (selectedMember) setSelectedMember(null);
+                    handleMemberSearch(e.target.value);
+                  }}
+                  placeholder="Search students by name..."
+                  className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={confirmAddMember}
+                disabled={!selectedMember}
+                title={selectedMember ? `Add ${selectedMember.full_name}` : "Select a student first"}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                  selectedMember
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-95"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                }`}
+              >
+                <Check className="w-4 h-4" />
+                Ekle
+              </button>
             </div>
 
+            {/* Search results — click to select, then confirm with Ekle */}
             {searchResults.length > 0 && (
               <div className="mt-2 flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
                 {searchResults.map((r) => (
                   <button
                     key={r.id}
-                    onClick={() => addMember(r)}
+                    type="button"
+                    onClick={() => selectMember(r)}
                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 text-left transition-colors group"
                   >
                     <Avatar src={r.avatar_url} name={r.full_name} size="sm" />
@@ -532,7 +563,16 @@ export default function ProjectEditableContent({
               </div>
             )}
 
-            {memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+            {/* Selected preview */}
+            {selectedMember && (
+              <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <Avatar src={selectedMember.avatar_url} name={selectedMember.full_name} size="sm" />
+                <span className="text-sm font-semibold text-indigo-700 flex-1">{selectedMember.full_name}</span>
+                <span className="text-xs text-indigo-400">Ekle butonuna bas</span>
+              </div>
+            )}
+
+            {memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && !selectedMember && (
               <p className="text-xs text-slate-400 text-center mt-3">No students found.</p>
             )}
           </div>
