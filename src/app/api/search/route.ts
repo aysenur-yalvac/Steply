@@ -28,12 +28,17 @@ export async function GET(req: NextRequest) {
     .map(({ id, title }) => ({ id, title }));
 
   // ── Users (unaccent search for Turkish character support, exclude self) ──
-  const { data: userData } = await admin
+  const { data: userData, error: rpcError } = await admin
     .rpc("search_profiles_unaccent", { search_query: q });
 
+  if (rpcError) {
+    console.error(`[search] RPC error for q="${q}":`, rpcError.message, rpcError);
+  }
+
+  // Exclude only by ID — never by name (multiple accounts may share a name)
   const filteredUsers = (userData ?? []).filter((p: { id: string }) => p.id !== user.id);
 
-  console.log(`[search] q="${q}" — DB returned ${filteredUsers.length} user(s):`, filteredUsers.map((u: { full_name: string }) => u.full_name));
+  console.log(`[search] q="${q}" — RPC returned ${userData?.length ?? 0} total, ${filteredUsers.length} after self-exclusion:`, filteredUsers.map((u: { full_name: string }) => u.full_name));
 
   const users = filteredUsers
     .slice(0, 4)
