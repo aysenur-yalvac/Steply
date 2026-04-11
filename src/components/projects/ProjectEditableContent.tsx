@@ -202,15 +202,24 @@ export default function ProjectEditableContent({
     const toAdd = selectedMember;
     if (!toAdd) return;
 
+    // Explicitly normalize to flat Member shape so the rendered list
+    // always receives { id, full_name, avatar_url } regardless of the
+    // shape that the search action or any future data source returns.
+    const normalized: Member = {
+      id:         toAdd.id,
+      full_name:  toAdd.full_name,
+      avatar_url: toAdd.avatar_url ?? null,
+    };
+
     // Push into confirmed list using functional updater (no stale closure risk)
-    setTeamMembers((prev) => [...prev, toAdd]);
+    setTeamMembers((prev) => [...prev, normalized]);
 
     // Reset search UI
     setSelectedMember(null);
     setMemberQuery("");
     setSearchResults([]);
 
-    toast.success(`${toAdd.full_name} added to team!`);
+    toast.success(`${normalized.full_name} added to team!`);
   };
 
   const removeMember = (id: string) => {
