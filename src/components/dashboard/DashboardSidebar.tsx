@@ -30,7 +30,7 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "My Projects", href: "/dashboard", icon: LayoutDashboard },
   { label: "Analytics", href: "#", icon: BarChart2, disabled: true },
   { label: "Watchlist", href: "#watchlist", icon: Bookmark, isWatchlist: true },
   { label: "Calendar", href: "/dashboard/agenda", icon: Calendar },

@@ -1,5 +1,10 @@
 import { createClient } from '@/utils/supabase/server';
+import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "My Projects | Steply",
+};
 import Link from 'next/link';
 import { Plus, FolderOpen, Search } from 'lucide-react';
 import EmptyState from '@/components/layout/EmptyState';
@@ -88,10 +93,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       {/* ── Page header ───────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
         <p className="text-xs font-semibold text-slate-400 mb-1">
-          Dashboard{' '}
+          My Projects{' '}
           <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600">
-            {isTeacher ? 'Portfolio Overview' : 'My Projects'}
+            {isTeacher ? 'Portfolio Overview' : 'All Projects'}
           </span>
         </p>
         <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
