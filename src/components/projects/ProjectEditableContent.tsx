@@ -98,13 +98,15 @@ export default function ProjectEditableContent({
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef   = useRef<HTMLInputElement>(null);
 
-  // Team
-  const [showMemberPanel,  setShowMemberPanel]  = useState(false);
-  const [memberQuery,      setMemberQuery]      = useState("");
-  const [searchResults,    setSearchResults]    = useState<Member[]>([]);
-  const [isSearching,      setIsSearching]      = useState(false);
-  const [selectedMember,   setSelectedMember]   = useState<Member | null>(null);
-  const [addedMembers,     setAddedMembers]     = useState<Member[]>(initialTeamMembers);
+  // ── Team state ────────────────────────────────────────────────────────────
+  // teamMembers: the confirmed list that will be saved
+  // selectedMember: the candidate picked from search, not yet confirmed
+  const [teamMembers,    setTeamMembers]    = useState<Member[]>(initialTeamMembers);
+  const [showMemberPanel, setShowMemberPanel] = useState(false);
+  const [memberQuery,     setMemberQuery]     = useState("");
+  const [searchResults,   setSearchResults]   = useState<Member[]>([]);
+  const [isSearching,     setIsSearching]     = useState(false);
+  const [selectedMember,  setSelectedMember]  = useState<Member | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -116,23 +118,23 @@ export default function ProjectEditableContent({
     endDate     !== (project.end_date ?? "");
 
   const membersDirty =
-    addedMembers.map((m) => m.id).join(",") !==
-    initialTeamMembers.map((m) => m.id).join(",");
+    teamMembers.map((m) => m.id).sort().join(",") !==
+    initialTeamMembers.map((m) => m.id).sort().join(",");
 
   const isDirty = fieldsDirty || membersDirty;
 
   // ── Save all ──────────────────────────────────────────────────────────────
+  // Snapshot teamMembers into FormData synchronously before entering the transition.
   const saveAll = () => {
+    const snapshot = teamMembers.map((m) => ({ id: m.id, full_name: m.full_name }));
+
     const fd = new FormData();
     fd.set("project_id",  project.id);
     fd.set("title",       title);
     fd.set("description", description);
     fd.set("start_date",  startDate);
     fd.set("end_date",    endDate);
-    fd.set(
-      "team_members",
-      JSON.stringify(addedMembers.map((m) => ({ id: m.id, full_name: m.full_name }))),
-    );
+    fd.set("team_members", JSON.stringify(snapshot));
 
     startTransition(async () => {
       try {
@@ -157,13 +159,13 @@ export default function ProjectEditableContent({
       const result = await toggleProjectPrivacyAction(project.id, next);
       if (result && (result as any).columnMissing) {
         toast.error("Privacy feature requires a DB migration. Contact your admin.");
-        setIsPrivate(!next); // revert
+        setIsPrivate(!next);
       } else {
         toast.success(next ? "Project is now private." : "Project is now public.");
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to update privacy.");
-      setIsPrivate(!next); // revert
+      setIsPrivate(!next);
     } finally {
       setIsPrivacyPending(false);
     }
@@ -176,9 +178,10 @@ export default function ProjectEditableContent({
     setIsSearching(true);
     try {
       const results = await searchProfilesAction(q);
+      // Filter out owner and already-confirmed members
       setSearchResults(
         results.filter(
-          (r) => r.id !== project.student_id && !addedMembers.some((m) => m.id === r.id),
+          (r) => r.id !== project.student_id && !teamMembers.some((m) => m.id === r.id),
         ),
       );
     } finally {
@@ -186,19 +189,32 @@ export default function ProjectEditableContent({
     }
   };
 
+  // User clicked a search result — move to "pending selection" state
   const selectMember = (m: Member) => {
     setSelectedMember(m);
-    setMemberQuery(m.full_name);
     setSearchResults([]);
+    // Do NOT touch memberQuery here so the input doesn't re-fire onChange
   };
 
+  // User clicked "Projeye Ekle" — commit the selection into teamMembers
   const confirmAddMember = () => {
-    if (!selectedMember) return;
-    setAddedMembers((prev) => [...prev, selectedMember]);
+    // Capture into local const before any setState calls
+    const toAdd = selectedMember;
+    if (!toAdd) return;
+
+    // Push into confirmed list using functional updater (no stale closure risk)
+    setTeamMembers((prev) => [...prev, toAdd]);
+
+    // Reset search UI
     setSelectedMember(null);
     setMemberQuery("");
     setSearchResults([]);
-    toast.success(`${selectedMember.full_name} added to team!`);
+
+    toast.success(`${toAdd.full_name} added to team!`);
+  };
+
+  const removeMember = (id: string) => {
+    setTeamMembers((prev) => prev.filter((m) => m.id !== id));
   };
 
   return (
@@ -473,6 +489,7 @@ export default function ProjectEditableContent({
           </h3>
           {isOwner && (
             <button
+              type="button"
               onClick={() => setShowMemberPanel((v) => !v)}
               className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors"
             >
@@ -481,9 +498,8 @@ export default function ProjectEditableContent({
           )}
         </div>
 
-        {/* Member list */}
+        {/* ── Confirmed member list — always maps over teamMembers state ── */}
         <div className="flex flex-col gap-1">
-          {/* Owner row */}
           <MemberRow
             member={{
               id: project.student_id ?? "",
@@ -492,21 +508,17 @@ export default function ProjectEditableContent({
             }}
             role="Owner"
           />
-          {addedMembers.map((m) => (
+          {teamMembers.map((m) => (
             <MemberRow
               key={m.id}
               member={m}
               role="Member"
-              onRemove={
-                isOwner
-                  ? () => setAddedMembers((prev) => prev.filter((x) => x.id !== m.id))
-                  : undefined
-              }
+              onRemove={isOwner ? () => removeMember(m.id) : undefined}
             />
           ))}
         </div>
 
-        {/* Search panel */}
+        {/* ── Search / add panel (owner only) ─────────────────────────────── */}
         {showMemberPanel && isOwner && (
           <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col gap-3">
 
@@ -517,9 +529,11 @@ export default function ProjectEditableContent({
                 type="text"
                 value={memberQuery}
                 onChange={(e) => {
-                  // Typing clears any previous selection so the user starts fresh
+                  const q = e.target.value;
+                  setMemberQuery(q);
+                  // Clear pending selection if user types again
                   if (selectedMember) setSelectedMember(null);
-                  handleMemberSearch(e.target.value);
+                  handleMemberSearch(q);
                 }}
                 placeholder="Öğrenci adıyla ara..."
                 className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
@@ -529,7 +543,7 @@ export default function ProjectEditableContent({
               )}
             </div>
 
-            {/* Step 2 — Search results (only when no selection yet) */}
+            {/* Step 2 — Search results dropdown (hidden once someone is selected) */}
             {!selectedMember && searchResults.length > 0 && (
               <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
                 {searchResults.map((r) => (
@@ -553,17 +567,15 @@ export default function ProjectEditableContent({
               <p className="text-xs text-slate-400 text-center">Öğrenci bulunamadı.</p>
             )}
 
-            {/* Step 3 — Selection preview + explicit confirm button */}
+            {/* Step 3 — Pending selection preview + explicit confirm button */}
             {selectedMember && (
               <div className="flex flex-col gap-2">
-                {/* Preview card */}
                 <div className="flex items-center gap-3 px-3 py-2.5 bg-white border border-indigo-200 rounded-xl">
                   <Avatar src={selectedMember.avatar_url} name={selectedMember.full_name} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{selectedMember.full_name}</p>
                     <p className="text-xs text-indigo-400">Seçildi — onaylamak için aşağıya bas</p>
                   </div>
-                  {/* Clear selection */}
                   <button
                     type="button"
                     onClick={() => { setSelectedMember(null); setMemberQuery(""); }}
@@ -574,7 +586,7 @@ export default function ProjectEditableContent({
                   </button>
                 </div>
 
-                {/* Projeye Ekle — the single explicit confirmation button */}
+                {/* THE confirmation button — only this pushes to teamMembers */}
                 <button
                   type="button"
                   onClick={confirmAddMember}
