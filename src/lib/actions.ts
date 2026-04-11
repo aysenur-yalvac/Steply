@@ -189,6 +189,8 @@ export async function updateProfileAction(formData: FormData) {
   const bio = formData.get('bio') as string;
   const github_url = formData.get('github_url') as string;
   const linkedin_url = formData.get('linkedin_url') as string;
+  const twitter_url = formData.get('twitter_url') as string;
+  const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
   const institution = formData.get('institution') as string;
 
@@ -204,6 +206,8 @@ export async function updateProfileAction(formData: FormData) {
     bio,
     github_url,
     linkedin_url,
+    twitter_url,
+    website_url,
     avatar_url,
     institution,
   }).eq('id', id);

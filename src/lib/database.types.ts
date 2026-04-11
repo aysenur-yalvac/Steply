@@ -22,6 +22,8 @@ export interface Database {
           phone_number: string | null
           github_url: string | null
           linkedin_url: string | null
+          twitter_url: string | null
+          website_url: string | null
           email: string | null
         }
         Insert: {
@@ -36,6 +38,8 @@ export interface Database {
           phone_number?: string | null
           github_url?: string | null
           linkedin_url?: string | null
+          twitter_url?: string | null
+          website_url?: string | null
           email?: string | null
         }
         Update: {
@@ -50,6 +54,8 @@ export interface Database {
           phone_number?: string | null
           github_url?: string | null
           linkedin_url?: string | null
+          twitter_url?: string | null
+          website_url?: string | null
           email?: string | null
         }
       }

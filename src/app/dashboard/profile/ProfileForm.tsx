@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProfileAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
-import { Save, Mail, User, Phone, FileText, Github, Linkedin, Loader2, Image as ImageIcon, Landmark, ChevronDown, Check } from 'lucide-react';
+import { Save, Mail, User, Phone, FileText, Github, Linkedin, Twitter, Globe, Loader2, Image as ImageIcon, Landmark, ChevronDown, Check } from 'lucide-react';
 
 const ALL_AVATARS = [
   "https://api.dicebear.com/7.x/notionists/svg?seed=Leo&backgroundColor=b6e3f4",
@@ -205,8 +205,8 @@ export default function ProfileForm({
           <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
              <Github className="w-4 h-4 text-dusty-rose" /> GitHub URL
           </label>
-          <input 
-            type="url" 
+          <input
+            type="url"
             name="github_url"
             defaultValue={profile?.github_url || ''}
             placeholder="https://github.com/username"
@@ -218,11 +218,39 @@ export default function ProfileForm({
           <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
              <Linkedin className="w-4 h-4 text-dusty-rose" /> LinkedIn URL
           </label>
-          <input 
-            type="url" 
+          <input
+            type="url"
             name="linkedin_url"
             defaultValue={profile?.linkedin_url || ''}
             placeholder="https://linkedin.com/in/username"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex-1 flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
+             <Twitter className="w-4 h-4 text-dusty-rose" /> Twitter / X URL
+          </label>
+          <input
+            type="url"
+            name="twitter_url"
+            defaultValue={profile?.twitter_url || ''}
+            placeholder="https://x.com/username"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          />
+        </div>
+
+        <div className="flex-1 flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
+             <Globe className="w-4 h-4 text-dusty-rose" /> Website URL
+          </label>
+          <input
+            type="url"
+            name="website_url"
+            defaultValue={profile?.website_url || ''}
+            placeholder="https://yourwebsite.com"
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
