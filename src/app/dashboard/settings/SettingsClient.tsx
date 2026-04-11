@@ -2,9 +2,10 @@
 
 import { motion, type Variants } from "framer-motion";
 import { useState } from "react";
-import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck } from "lucide-react";
+import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck, Loader2, KeyRound } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction } from "@/lib/actions";
+import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 
 interface SettingsClientProps {
@@ -34,6 +35,37 @@ const glassCard = {
 export default function SettingsClient({ email, fullName, initialIsPublic, updateProfile }: SettingsClientProps) {
   const [isPublic, setIsPublic] = useState(initialIsPublic);
   const [privacyLoading, setPrivacyLoading] = useState(false);
+
+  // Password change state
+  const [newPassword,     setNewPassword]     = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading,       setPwLoading]       = useState(false);
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("Şifre en az 6 karakter olmalıdır.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Şifreler eşleşmiyor.");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Şifreniz başarıyla güncellendi.");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } finally {
+      setPwLoading(false);
+    }
+  }
 
   async function handlePrivacyChange(value: boolean) {
     setPrivacyLoading(true);
@@ -162,19 +194,56 @@ export default function SettingsClient({ email, fullName, initialIsPublic, updat
 
         {/* Security card */}
         <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-6">
             <Lock className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
             <h2 className="text-lg font-semibold text-slate-900">Account Security</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-6">
-            Currently, password reset is handled manually via email.
-          </p>
-          <button
-            disabled
-            className="px-6 py-3 bg-white/50 border border-slate-200/60 text-slate-400 font-semibold rounded-xl cursor-not-allowed text-sm backdrop-blur-sm"
-          >
-            Change Password (Soon)
-          </button>
+
+          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+            <div className="space-y-2">
+              <label htmlFor="newPassword" className="text-sm font-medium text-slate-600">New Password</label>
+              <input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="En az 6 karakter"
+                required
+                minLength={6}
+                className="w-full px-4 py-3 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600">Confirm New Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Şifreyi tekrar girin"
+                required
+                minLength={6}
+                className="w-full px-4 py-3 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
+              />
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={pwLoading}
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/25 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+              >
+                {pwLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <KeyRound className="w-4 h-4" strokeWidth={1.5} />
+                )}
+                {pwLoading ? "Güncelleniyor..." : "Update Password"}
+              </button>
+            </div>
+          </form>
         </motion.section>
       </motion.div>
     </div>
