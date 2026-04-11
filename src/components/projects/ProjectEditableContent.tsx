@@ -508,44 +508,30 @@ export default function ProjectEditableContent({
 
         {/* Search panel */}
         {showMemberPanel && isOwner && (
-          <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-            {/* Input row + Ekle button */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={memberQuery}
-                  onChange={(e) => {
-                    if (selectedMember) setSelectedMember(null);
-                    handleMemberSearch(e.target.value);
-                  }}
-                  placeholder="Search students by name..."
-                  className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-                />
-                {isSearching && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={confirmAddMember}
-                disabled={!selectedMember}
-                title={selectedMember ? `Add ${selectedMember.full_name}` : "Select a student first"}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
-                  selectedMember
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-95"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                }`}
-              >
-                <Check className="w-4 h-4" />
-                Ekle
-              </button>
+          <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col gap-3">
+
+            {/* Step 1 — Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={memberQuery}
+                onChange={(e) => {
+                  // Typing clears any previous selection so the user starts fresh
+                  if (selectedMember) setSelectedMember(null);
+                  handleMemberSearch(e.target.value);
+                }}
+                placeholder="Öğrenci adıyla ara..."
+                className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+              />
+              {isSearching && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
+              )}
             </div>
 
-            {/* Search results — click to select, then confirm with Ekle */}
-            {searchResults.length > 0 && (
-              <div className="mt-2 flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {/* Step 2 — Search results (only when no selection yet) */}
+            {!selectedMember && searchResults.length > 0 && (
+              <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
                 {searchResults.map((r) => (
                   <button
                     key={r.id}
@@ -563,17 +549,41 @@ export default function ProjectEditableContent({
               </div>
             )}
 
-            {/* Selected preview */}
-            {selectedMember && (
-              <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-xl">
-                <Avatar src={selectedMember.avatar_url} name={selectedMember.full_name} size="sm" />
-                <span className="text-sm font-semibold text-indigo-700 flex-1">{selectedMember.full_name}</span>
-                <span className="text-xs text-indigo-400">Ekle butonuna bas</span>
-              </div>
+            {!selectedMember && memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+              <p className="text-xs text-slate-400 text-center">Öğrenci bulunamadı.</p>
             )}
 
-            {memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && !selectedMember && (
-              <p className="text-xs text-slate-400 text-center mt-3">No students found.</p>
+            {/* Step 3 — Selection preview + explicit confirm button */}
+            {selectedMember && (
+              <div className="flex flex-col gap-2">
+                {/* Preview card */}
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-white border border-indigo-200 rounded-xl">
+                  <Avatar src={selectedMember.avatar_url} name={selectedMember.full_name} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{selectedMember.full_name}</p>
+                    <p className="text-xs text-indigo-400">Seçildi — onaylamak için aşağıya bas</p>
+                  </div>
+                  {/* Clear selection */}
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedMember(null); setMemberQuery(""); }}
+                    className="p-1 text-slate-300 hover:text-slate-500 transition-colors rounded-lg"
+                    title="İptal"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Projeye Ekle — the single explicit confirmation button */}
+                <button
+                  type="button"
+                  onClick={confirmAddMember}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-[.98] transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  Projeye Ekle
+                </button>
+              </div>
             )}
           </div>
         )}
