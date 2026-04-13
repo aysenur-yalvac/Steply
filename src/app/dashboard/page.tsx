@@ -120,7 +120,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       </div>
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
-      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
+      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-8">
         {/* My Projects / Watched section */}
         {projects.length === 0 ? (
           <>
@@ -168,24 +168,24 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
         {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
         {collaboratorProjects.length > 0 && (
           <div>
+            {/* Section divider */}
+            <div className="h-px w-full bg-slate-100 mb-6" />
+
             <div className="flex items-center gap-2.5 mb-5">
-              <div
-                className="p-2 rounded-xl"
-                style={{ background: "rgba(124,58,255,0.12)", border: "1px solid rgba(124,58,255,0.20)" }}
-              >
-                <Users className="w-4 h-4" style={{ color: "#7C3AFF" }} />
+              <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
+                <Users className="w-4 h-4 text-violet-600" />
               </div>
               <div>
-                <h2 className="text-base font-extrabold text-slate-800 tracking-tight">
-                  Ortak Olduğum Projeler
+                <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+                  Collaborative Projects
                 </h2>
                 <p className="text-xs text-slate-400 font-medium">
-                  Ekibine dahil edildiğin projeler — görüntüleyebilir ve düzenleyebilirsin.
+                  Projects you've been added to — you can view and edit them.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
               {collaboratorProjects.map((p: any) => (
                 <ProjectCard
                   key={p.id}

@@ -14,6 +14,7 @@ import {
   MessageSquarePlus,
   MessageCircle,
   ChevronDown,
+  FolderOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { updateProgress, deleteProjectAction } from "@/app/dashboard/actions";
@@ -38,9 +39,9 @@ type Project = {
 
 // ── Priority badge helpers ─────────────────────────────────────────────────────
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
-  Low:    { badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-  Medium: { badge: "bg-orange-100  text-orange-700  border-orange-200",  dot: "bg-orange-500"  },
-  High:   { badge: "bg-red-100     text-red-700     border-red-200",     dot: "bg-red-500"     },
+  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200",     dot: "bg-teal-500"   },
+  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-500"  },
+  High:   { badge: "bg-rose-50  text-rose-700  border-rose-200",   dot: "bg-rose-500"   },
 };
 
 function getPriorityClasses(priority?: string | null) {
@@ -60,7 +61,6 @@ function getPlatform(project: { platform?: string | null; description?: string |
 }
 
 // Extract priority: prefer project.priority field, then fall back to [Priority: ...] in description
-// Never silently default to "Medium" — return null if genuinely unknown
 function getPriority(project: { priority?: string | null; description?: string | null }): string | null {
   if (project.priority?.trim()) return project.priority.trim();
   const match = (project.description ?? "").match(/\[Priority:\s*([^\]]+)\]/i);
@@ -94,8 +94,6 @@ function KanbanCard({
 }) {
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
-  // savedProgress = last value confirmed in DB; compared against localProgress
-  // to detect unsaved changes without being affected by Next.js revalidations.
   const [savedProgress, setSavedProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
   const [saveStatus,    setSaveStatus]    = useState<"idle" | "saving" | "done">("idle");
@@ -108,7 +106,6 @@ function KanbanCard({
   const isCompleted       = localProgress === 100;
   const hasUnsavedChanges = localProgress !== savedProgress;
 
-  // Warn before navigating away with unsaved progress changes.
   useEffect(() => {
     if (!hasUnsavedChanges) return;
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
@@ -116,14 +113,14 @@ function KanbanCard({
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasUnsavedChanges]);
 
-  const rawPriority       = getPriority(project);
-  const priorityLabel     = rawPriority ?? "Medium";
-  const priorityClasses   = getPriorityClasses(rawPriority);
+  const rawPriority        = getPriority(project);
+  const priorityLabel      = rawPriority ?? "Medium";
+  const priorityClasses    = getPriorityClasses(rawPriority);
   const displayDescription = cleanDescription(project.description ?? "");
-  const canAddNote  = currentUserId === project.student_id;
-  const idSum       = strHash(project.id);
-  const commentCount = ((idSum >> 2) % 6) + 1;
-  const studentName = project.profiles?.full_name || "?";
+  const canAddNote         = currentUserId === project.student_id;
+  const idSum              = strHash(project.id);
+  const commentCount       = ((idSum >> 2) % 6) + 1;
+  const studentName        = project.profiles?.full_name || "?";
 
   const handleSave = async () => {
     if (!hasUnsavedChanges || saveStatus === "saving") return;
@@ -207,22 +204,20 @@ function KanbanCard({
   return (
     <motion.div
       layout
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer"
-      whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(124,58,255,0.12), 0 0 0 1px rgba(124,58,255,0.10)" }}
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[130px] flex flex-col"
+      whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)" }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       onClick={() => setIsExpanded((v) => !v)}
     >
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         {/* Tags row */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          {/* Priority badge — dynamic color */}
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
           <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border ${priorityClasses.badge}`}>
             <span className={`w-1.5 h-1.5 rounded-full inline-block ${priorityClasses.dot}`} />
             {priorityLabel}
           </span>
-          {/* Platform badge — extracted from field or description metadata */}
           {getPlatform(project) && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 truncate max-w-[110px]">
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 truncate max-w-[110px]">
               {getPlatform(project)}
             </span>
           )}
@@ -238,17 +233,17 @@ function KanbanCard({
           {project.title}
         </h3>
 
-        {/* Description snippet — cleaned of embedded metadata tags */}
+        {/* Description */}
         {displayDescription && (
-          <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-3">
+          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
             {displayDescription}
           </p>
         )}
 
-        {/* Dates — only rendered when at least one date exists */}
+        {/* Dates */}
         {(project.start_date || project.end_date) && (
           <div className="flex items-center gap-2 text-xs text-slate-400 mb-3 font-medium">
-            <Flag className="w-3 h-3 shrink-0" />
+            <Flag className="w-3 h-3 shrink-0 text-slate-300" />
             {project.start_date && (
               <span>{new Date(project.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
@@ -262,7 +257,7 @@ function KanbanCard({
         )}
 
         {/* Footer: stats + expand toggle */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium">
             <span className="flex items-center gap-1">
               <MessageCircle className="w-3.5 h-3.5" />
@@ -376,7 +371,6 @@ function KanbanCard({
                     />
                   </div>
 
-                  {/* Save button — only triggered on click, never on slider events */}
                   <motion.button
                     onClick={handleSave}
                     disabled={!hasUnsavedChanges || saveStatus === "saving"}
@@ -437,7 +431,7 @@ function KanbanCard({
                 )}
               </div>
 
-              {/* Team — only rendered when a real student name is available */}
+              {/* Team */}
               {project.profiles?.full_name && (
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
@@ -527,19 +521,19 @@ const COLUMN_CONFIG = {
     label: "To Do",
     countBg: "#EDE9FE",
     countColor: "#7C3AED",
-    borderTop: "#7C3AED",
+    accentColor: "#7C3AED",
   },
   inreview: {
     label: "In Review",
     countBg: "#DBEAFE",
     countColor: "#2563EB",
-    borderTop: "#2563EB",
+    accentColor: "#2563EB",
   },
   completed: {
     label: "Completed",
     countBg: "#D1FAE5",
     countColor: "#059669",
-    borderTop: "#059669",
+    accentColor: "#059669",
   },
 } as const;
 
@@ -563,16 +557,16 @@ function KanbanColumn({
   const cfg = COLUMN_CONFIG[columnKey];
 
   return (
-    <div className="flex-1 min-w-[280px] max-w-sm flex flex-col gap-3">
+    <div className="flex-none w-[300px] flex flex-col gap-3.5">
       {/* Column header */}
       <div className="flex items-center gap-2 px-1 pb-1">
         <div
-          className="w-2 h-2 rounded-full"
-          style={{ background: cfg.borderTop }}
+          className="w-2 h-2 rounded-full shrink-0"
+          style={{ background: cfg.accentColor }}
         />
         <h3 className="text-sm font-bold text-slate-700">{cfg.label}</h3>
         <span
-          className="text-[11px] font-extrabold w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+          className="text-[11px] font-extrabold w-6 h-6 rounded-full flex items-center justify-center shrink-0 ml-0.5"
           style={{ background: cfg.countBg, color: cfg.countColor }}
         >
           {projects.length}
@@ -580,11 +574,11 @@ function KanbanColumn({
       </div>
 
       {/* Column divider */}
-      <div className="h-px w-full rounded-full" style={{ background: cfg.borderTop, opacity: 0.25 }} />
+      <div className="h-px w-full rounded-full" style={{ background: cfg.accentColor, opacity: 0.18 }} />
 
       {/* Cards */}
       <motion.div
-        className="flex flex-col gap-3"
+        className="flex flex-col gap-3.5"
         initial="hidden"
         animate="visible"
         variants={{
@@ -616,7 +610,10 @@ function KanbanColumn({
         ))}
 
         {projects.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 min-h-[130px] flex flex-col items-center justify-center gap-2 p-4">
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+              <FolderOpen className="w-4 h-4 text-slate-300" />
+            </div>
             <p className="text-xs text-slate-400 font-medium">No projects here</p>
           </div>
         )}
@@ -646,7 +643,7 @@ export function KanbanBoard({
   const common = { isTeacher, watchedIds, projectNotes, currentUserId };
 
   return (
-    <div className="flex gap-6 overflow-x-auto pb-6 pt-1 min-h-[400px] items-start">
+    <div className="flex gap-5 overflow-x-auto pb-6 pt-1 min-h-[480px] items-start">
       <KanbanColumn columnKey="todo"      projects={todo}      {...common} />
       <KanbanColumn columnKey="inreview"  projects={inReview}  {...common} />
       <KanbanColumn columnKey="completed" projects={completed} {...common} />
