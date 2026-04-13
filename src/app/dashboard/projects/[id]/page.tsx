@@ -87,23 +87,37 @@ export default async function ProjectDetailPage({
     }
   }
 
-  // ── Team members — read from relational project_members table (source of truth) ──
-  type TeamMember = { id: string; full_name: string; avatar_url: string | null };
+  // ── Team members — two-step fetch (project_members → profiles) ──────────────
+  // NOTE: project_members.user_id FK references auth.users, NOT profiles, so
+  // PostgREST cannot resolve profiles!user_id — we fetch separately instead.
+  type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null };
   let teamMembers: TeamMember[] = [];
 
   const { data: memberRows } = await admin
     .from('project_members')
-    .select('user_id, profiles!user_id(full_name, avatar_url, role)')
+    .select('user_id')
     .eq('project_id', projectId);
 
   if (memberRows && memberRows.length > 0) {
-    teamMembers = memberRows
-      .map((row: any) => ({
-        id:         row.user_id as string,
-        full_name:  row.profiles?.full_name  ?? "Unknown",
-        avatar_url: row.profiles?.avatar_url ?? null,
-        role:       row.profiles?.role       ?? null,
-      }))
+    const userIds = memberRows.map((r: any) => r.user_id as string);
+
+    const { data: profileRows } = await admin
+      .from('profiles')
+      .select('id, full_name, avatar_url, role')
+      .in('id', userIds);
+
+    const profileMap = new Map((profileRows ?? []).map((p: any) => [p.id, p]));
+
+    teamMembers = userIds
+      .map((uid) => {
+        const p = profileMap.get(uid);
+        return {
+          id:         uid,
+          full_name:  p?.full_name  ?? 'Unknown',
+          avatar_url: p?.avatar_url ?? null,
+          role:       p?.role       ?? null,
+        };
+      })
       .filter((m) => m.id);
   }
 
