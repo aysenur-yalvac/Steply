@@ -8,8 +8,8 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| BE-003 | Backend_Agent | `page.tsx` team members sorgusunu broken FK join'den iki adımlı fetch'e çevir | Tamamlandı | QA: OK |
-| BE-004 | Backend_Agent | Migration: `project_members.user_id` FK → `public.profiles(id)` düzeltmesi | Tamamlandı | QA: OK |
+| BE-005 | Backend_Agent | `searchProfilesAction` — role filtresi kaldırıldı, tüm roller + limit 10 | Tamamlandı | QA: OK |
+| FE-001 | Frontend_Agent | Arama sonuçlarında role badge + Öğretmenler/Öğrenciler grupları + copy güncellemeleri | Tamamlandı | QA: OK |
 
 ---
 
@@ -21,6 +21,8 @@
 | BE-002 | Backend_Agent | Root `middleware.ts` oluşturuldu, `updateSession` bağlandı | 2026-04-13 | QA: OK |
 | BE-003 | Backend_Agent | `page.tsx` iki adımlı fetch ile broken FK join kaldırıldı | 2026-04-13 | QA: OK |
 | BE-004 | Backend_Agent | Migration `20260413_project_members_fk_fix.sql` yazıldı | 2026-04-13 | QA: OK |
+| BE-005 | Backend_Agent | `searchProfilesAction` role filtresi kaldırıldı | 2026-04-13 | QA: OK |
+| FE-001 | Frontend_Agent | Arama sonuçları role badge + gruplama ile güncellendi | 2026-04-13 | QA: OK |
 
 ---
 
@@ -29,18 +31,19 @@
 | Tarih | Commit Hash | Açıklama | Deploy_Chef Notu |
 |-------|-------------|----------|-----------------|
 | 2026-04-13 | 7788e36 | fix(auth+backend): middleware aktif edildi, student_id düzeltmesi | Push OK |
-| 2026-04-13 | (beklemede) | fix(team-members): broken FK join düzeltildi + migration | Deploy_Chef tetiklendi |
+| 2026-04-13 | 18cbc14 | fix(team-members): broken FK join düzeltildi + migration | Push OK |
+| 2026-04-13 | (beklemede) | feat(team-members): öğretmen arama desteği + rol badge'leri | Deploy_Chef tetiklendi |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 4
-Tamamlandı      : 4
+Toplam Görev    : 6
+Tamamlandı      : 6
 Beklemede       : 0
 Yapılıyor       : 0
-QA Onaylı       : 4
+QA Onaylı       : 6
 Deploy Hazır    : EVET ✓
 ```
 

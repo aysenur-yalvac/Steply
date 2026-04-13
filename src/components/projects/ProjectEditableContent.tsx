@@ -571,7 +571,7 @@ export default function ProjectEditableContent({
                   if (selectedMember) setSelectedMember(null);
                   handleMemberSearch(q);
                 }}
-                placeholder="Öğrenci adıyla ara..."
+                placeholder="Ad ile ara... (öğrenci veya öğretmen)"
                 className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
               />
               {isSearching && (
@@ -580,27 +580,49 @@ export default function ProjectEditableContent({
             </div>
 
             {/* Step 2 — Search results dropdown (hidden once someone is selected) */}
-            {!selectedMember && searchResults.length > 0 && (
-              <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
-                {searchResults.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => selectMember(r)}
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 text-left transition-colors group"
-                  >
-                    <Avatar src={r.avatar_url} name={r.full_name} size="sm" />
-                    <span className="text-sm text-slate-700 font-medium flex-1 group-hover:text-indigo-700">
-                      {r.full_name}
-                    </span>
-                    <UserPlus className="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
-            )}
+            {!selectedMember && searchResults.length > 0 && (() => {
+              const teachers = searchResults.filter((r) => r.role === "teacher");
+              const students = searchResults.filter((r) => r.role !== "teacher");
+              const groups: { label: string; color: string; items: Member[] }[] = [];
+              if (teachers.length > 0) groups.push({ label: "Öğretmenler", color: "text-[#7C3AFF]", items: teachers });
+              if (students.length > 0) groups.push({ label: "Öğrenciler", color: "text-indigo-500", items: students });
+
+              return (
+                <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
+                  {groups.map((group) => (
+                    <div key={group.label}>
+                      <p className={`px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest ${group.color} bg-slate-50 border-b border-slate-100`}>
+                        {group.label}
+                      </p>
+                      {group.items.map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => selectMember(r)}
+                          className="flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 text-left transition-colors group w-full"
+                        >
+                          <Avatar src={r.avatar_url} name={r.full_name} size="sm" />
+                          <span className="text-sm text-slate-700 font-medium flex-1 group-hover:text-indigo-700">
+                            {r.full_name}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                            r.role === "teacher"
+                              ? "bg-[#7C3AFF]/10 text-[#7C3AFF] border-[#7C3AFF]/20"
+                              : "bg-indigo-50 text-indigo-500 border-indigo-200"
+                          }`}>
+                            {r.role === "teacher" ? "Öğretmen" : "Öğrenci"}
+                          </span>
+                          <UserPlus className="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {!selectedMember && memberQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-              <p className="text-xs text-slate-400 text-center">Öğrenci bulunamadı.</p>
+              <p className="text-xs text-slate-400 text-center">Kullanıcı bulunamadı.</p>
             )}
 
             {/* Step 3 — Pending selection preview + explicit confirm button */}

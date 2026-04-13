@@ -318,8 +318,7 @@ export async function searchProfilesAction(
     .from("profiles")
     .select("id, full_name, avatar_url, role")
     .ilike("full_name", `%${query}%`)
-    .eq("role", "student")
-    .limit(6);
+    .limit(10);
   if (error) console.error("searchProfilesAction error:", error);
   return (data ?? []).map((p) => ({
     id:         p.id,
