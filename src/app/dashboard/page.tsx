@@ -109,10 +109,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             {isTeacher ? 'Portfolio Overview' : 'All Projects'}
           </span>
         </p>
-        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">
+        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
           {isTeacher ? 'Portfolio Overview' : 'My Projects'}
         </h1>
-        <p className="text-sm text-slate-500 mt-1 mb-5">
+        <p className="text-sm text-slate-500 mt-1.5 mb-5">
           {isTeacher
             ? 'Monitor the latest milestones of all watched student projects.'
             : 'Manage your active projects and keep your portfolio up to date.'}
@@ -185,7 +185,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {collaboratorProjects.map((p: any) => (
                 <ProjectCard
                   key={p.id}

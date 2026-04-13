@@ -204,46 +204,46 @@ function KanbanCard({
   return (
     <motion.div
       layout
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[130px] flex flex-col"
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[160px] flex flex-col"
       whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)" }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       onClick={() => setIsExpanded((v) => !v)}
     >
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1">
         {/* Tags row */}
-        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-          <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border ${priorityClasses.badge}`}>
-            <span className={`w-1.5 h-1.5 rounded-full inline-block ${priorityClasses.dot}`} />
+        <div className="flex items-center gap-2 mb-3.5 flex-wrap">
+          <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${priorityClasses.badge}`}>
+            <span className={`w-2 h-2 rounded-full inline-block ${priorityClasses.dot}`} />
             {priorityLabel}
           </span>
           {getPlatform(project) && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 truncate max-w-[110px]">
+            <span className="text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 truncate max-w-[130px]">
               {getPlatform(project)}
             </span>
           )}
           {isTeacher && project.profiles?.full_name && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[100px]">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[120px]">
               {project.profiles.full_name}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-slate-800 text-sm mb-1.5 leading-snug line-clamp-2">
+        <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug line-clamp-2">
           {project.title}
         </h3>
 
         {/* Description */}
         {displayDescription && (
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
+          <p className="text-sm text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
             {displayDescription}
           </p>
         )}
 
         {/* Dates */}
         {(project.start_date || project.end_date) && (
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-3 font-medium">
-            <Flag className="w-3 h-3 shrink-0 text-slate-300" />
+          <div className="flex items-center gap-2 text-sm text-slate-400 mb-3 font-medium">
+            <Flag className="w-3.5 h-3.5 shrink-0 text-slate-300" />
             {project.start_date && (
               <span>{new Date(project.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
@@ -257,10 +257,10 @@ function KanbanCard({
         )}
 
         {/* Footer: stats + expand toggle */}
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <div className="flex items-center gap-3 text-sm text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5">
+              <MessageCircle className="w-4 h-4" />
               {commentCount}
             </span>
             <button
@@ -268,14 +268,14 @@ function KanbanCard({
               className="p-1 rounded-full transition-colors hover:text-violet-600"
               style={{ color: isWatched ? "#7C3AFF" : undefined }}
             >
-              <Bookmark className="w-3.5 h-3.5" fill={isWatched ? "currentColor" : "none"} />
+              <Bookmark className="w-4 h-4" fill={isWatched ? "currentColor" : "none"} />
             </button>
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
               className="text-slate-300"
             >
-              <ChevronDown className="w-3.5 h-3.5" />
+              <ChevronDown className="w-4 h-4" />
             </motion.div>
           </div>
         </div>
@@ -297,7 +297,7 @@ function KanbanCard({
               animate={{ y: 0 }}
               exit={{ y: 8 }}
               transition={{ duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] }}
-              className="px-4 pb-4 border-t border-slate-100 pt-3 flex flex-col gap-3"
+              className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4"
             >
               {/* Progress */}
               <div>
@@ -557,16 +557,16 @@ function KanbanColumn({
   const cfg = COLUMN_CONFIG[columnKey];
 
   return (
-    <div className="flex-none w-[300px] flex flex-col gap-3.5">
+    <div className="min-w-0 flex flex-col gap-4">
       {/* Column header */}
-      <div className="flex items-center gap-2 px-1 pb-1">
+      <div className="flex items-center gap-2.5 px-1 pb-1">
         <div
-          className="w-2 h-2 rounded-full shrink-0"
+          className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ background: cfg.accentColor }}
         />
-        <h3 className="text-sm font-bold text-slate-700">{cfg.label}</h3>
+        <h3 className="text-base font-bold text-slate-700">{cfg.label}</h3>
         <span
-          className="text-[11px] font-extrabold w-6 h-6 rounded-full flex items-center justify-center shrink-0 ml-0.5"
+          className="text-xs font-extrabold w-7 h-7 rounded-full flex items-center justify-center shrink-0 ml-0.5"
           style={{ background: cfg.countBg, color: cfg.countColor }}
         >
           {projects.length}
@@ -574,7 +574,7 @@ function KanbanColumn({
       </div>
 
       {/* Column divider */}
-      <div className="h-px w-full rounded-full" style={{ background: cfg.accentColor, opacity: 0.18 }} />
+      <div className="h-px w-full rounded-full" style={{ background: cfg.accentColor, opacity: 0.20 }} />
 
       {/* Cards */}
       <motion.div
@@ -610,11 +610,11 @@ function KanbanColumn({
         ))}
 
         {projects.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 min-h-[130px] flex flex-col items-center justify-center gap-2 p-4">
-            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-              <FolderOpen className="w-4 h-4 text-slate-300" />
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 min-h-[160px] flex flex-col items-center justify-center gap-3 p-6">
+            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+              <FolderOpen className="w-6 h-6 text-slate-300" />
             </div>
-            <p className="text-xs text-slate-400 font-medium">No projects here</p>
+            <p className="text-sm text-slate-400 font-medium">No projects here</p>
           </div>
         )}
       </motion.div>
@@ -643,7 +643,7 @@ export function KanbanBoard({
   const common = { isTeacher, watchedIds, projectNotes, currentUserId };
 
   return (
-    <div className="flex gap-5 overflow-x-auto pb-6 pt-1 min-h-[480px] items-start">
+    <div className="grid grid-cols-3 gap-6 pb-4 pt-1">
       <KanbanColumn columnKey="todo"      projects={todo}      {...common} />
       <KanbanColumn columnKey="inreview"  projects={inReview}  {...common} />
       <KanbanColumn columnKey="completed" projects={completed} {...common} />

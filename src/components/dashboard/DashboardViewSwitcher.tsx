@@ -358,10 +358,10 @@ export default function DashboardViewSwitcher({
       {/* ── Controls row ──────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {/* View tabs */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+        <div className="flex items-center gap-1 p-1.5 bg-slate-100 rounded-xl">
           <button
             onClick={() => setViewMode("kanban")}
-            className={`flex items-center gap-2 px-4 py-1.5 text-sm font-bold rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
               viewMode === "kanban" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -375,7 +375,7 @@ export default function DashboardViewSwitcher({
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-2 px-4 py-1.5 text-sm font-bold rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
               viewMode === "list" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -396,7 +396,7 @@ export default function DashboardViewSwitcher({
           <div ref={filterRef} className="relative">
             <button
               onClick={() => setFilterOpen((o) => !o)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
                 activeCount > 0
                   ? "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200"
                   : "text-slate-600 border-slate-200 bg-white hover:bg-slate-50"
@@ -433,7 +433,7 @@ export default function DashboardViewSwitcher({
           {isStudent && (
             <Link
               href="/dashboard/projects/new"
-              className="btn-aura flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl shrink-0 active:scale-95 overflow-hidden"
+              className="btn-aura flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl shrink-0 active:scale-95 overflow-hidden"
             >
               <Plus className="w-4 h-4" strokeWidth={2.5} />
               New

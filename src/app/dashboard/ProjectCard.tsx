@@ -117,39 +117,39 @@ export default function ProjectCard({
   return (
     <motion.div
       layout
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-h-[130px]"
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-h-[160px]"
       whileHover={{ y: -2, boxShadow: '0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)' }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
     >
       {/* ── Card body ─────────────────────────────────────────────────────── */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1">
 
         {/* Tags row */}
-        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 mb-3.5 flex-wrap">
           {isCollaborator && (
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200">
-              <Users className="w-3 h-3" /> Ortak
+            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200">
+              <Users className="w-3.5 h-3.5" /> Ortak
             </span>
           )}
           {isCompleted ? (
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
-              <CheckCircle className="w-3 h-3" /> Completed
+            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
+              <CheckCircle className="w-3.5 h-3.5" /> Completed
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
-              <Clock className="w-3 h-3" /> In Progress
+            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
+              <Clock className="w-3.5 h-3.5" /> In Progress
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-slate-800 text-sm mb-1.5 leading-snug line-clamp-2">
+        <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug line-clamp-2">
           {project.title}
         </h3>
 
         {/* Owner label for collaborator / teacher */}
         {(isTeacher || isCollaborator) && project.profiles?.full_name && (
-          <p className="text-xs text-slate-400 font-medium mb-1.5">
+          <p className="text-sm text-slate-400 font-medium mb-2">
             {isCollaborator ? 'Owner' : 'Student'}:{' '}
             <span className="text-slate-600 font-semibold">{project.profiles.full_name}</span>
           </p>
@@ -157,15 +157,15 @@ export default function ProjectCard({
 
         {/* Description */}
         {cleanDesc && (
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
+          <p className="text-sm text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
             {cleanDesc}
           </p>
         )}
 
         {/* Dates */}
         {(project.start_date || project.end_date) && (
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-3 font-medium">
-            <Flag className="w-3 h-3 shrink-0 text-slate-300" />
+          <div className="flex items-center gap-2 text-sm text-slate-400 mb-3 font-medium">
+            <Flag className="w-3.5 h-3.5 shrink-0 text-slate-300" />
             {project.start_date && (
               <span>
                 {new Date(project.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -218,7 +218,7 @@ export default function ProjectCard({
       </div>
 
       {/* ── Progress + actions panel ───────────────────────────────────────── */}
-      <div className="px-4 pb-4 border-t border-slate-100 pt-3 flex flex-col gap-3">
+      <div className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4">
 
         {/* Progress bar */}
         <div>
@@ -226,7 +226,7 @@ export default function ProjectCard({
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
             <span className="text-xs font-extrabold text-violet-600">{localProgress}%</span>
           </div>
-          <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-1.5" />
+          <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-2" />
         </div>
 
         {/* Slider for non-teachers */}
