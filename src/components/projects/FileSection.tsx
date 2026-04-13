@@ -13,6 +13,7 @@ interface FileSectionProps {
   projectId: string;
   initialFiles: ProjectFile[];
   isOwner: boolean;
+  isCollaborator?: boolean;
 }
 
 type PendingFile = ProjectFile & { pending?: boolean };
@@ -28,7 +29,9 @@ function sanitizeName(name: string): string {
     .replace(/[^a-zA-Z0-9.-]/g, '_');
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner }: FileSectionProps) {
+export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false }: FileSectionProps) {
+  // Collaborators have the same file management rights as the owner
+  const canManageFiles = isOwner || isCollaborator;
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -140,7 +143,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const visibleFiles = optimisticFiles.filter(file => !file.isPrivate || isOwner);
+  const visibleFiles = optimisticFiles.filter(file => !file.isPrivate || canManageFiles);
 
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
@@ -148,7 +151,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
         <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
-        {isOwner && (
+        {canManageFiles && (
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none whitespace-nowrap">
               <input
@@ -243,7 +246,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
                     >
                       <Download className="w-4 h-4" />
                     </a>
-                    {isOwner && (
+                    {canManageFiles && (
                       <button
                         onClick={() => handleDelete(file.url)}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
@@ -260,7 +263,7 @@ export default function FileSection({ projectId, initialFiles, isOwner }: FileSe
         )}
       </div>
 
-      {!isOwner && files.some(f => f.isPrivate) && (
+      {!canManageFiles && files.some(f => f.isPrivate) && (
         <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
           <Lock className="w-3 h-3" />
           {files.filter(f => f.isPrivate).length} gizli dosya gizlendi.

@@ -216,7 +216,8 @@ export default async function ProjectDetailPage({
             <FileSection
               projectId={project.id}
               initialFiles={(project.files as ProjectFile[]) || []}
-              isOwner={user.id === project.student_id}
+              isOwner={isOwner}
+              isCollaborator={isCollaborator}
             />
 
             {/* Reviews */}

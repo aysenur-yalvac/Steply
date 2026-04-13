@@ -45,7 +45,17 @@ export async function saveFileRecordAction(
 
     if (projectError) return { error: `DB Select Hatası: ${projectError.message} (Code: ${projectError.code})` };
     if (!project) return { error: `Proje bulunamadı (projectId: ${projectId})` };
-    if (project.student_id !== user.id) return { error: "Bu proje için yetkiniz yok." };
+
+    // Allow owner OR verified collaborator
+    if (project.student_id !== user.id) {
+      const { data: membership } = await admin
+        .from("project_members")
+        .select("id")
+        .eq("project_id", projectId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!membership) return { error: "Bu proje için yetkiniz yok." };
+    }
 
     const { data: { publicUrl } } = admin.storage.from(BUCKET_ID).getPublicUrl(filePath);
 
@@ -96,7 +106,17 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
     .single();
 
   if (projectError || !project) throw new Error("Project not found.");
-  if (project.student_id !== user.id) throw new Error("You do not have permission for this action.");
+
+  // Allow owner OR verified collaborator
+  if (project.student_id !== user.id) {
+    const { data: membership } = await admin
+      .from("project_members")
+      .select("id")
+      .eq("project_id", projectId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!membership) throw new Error("You do not have permission for this action.");
+  }
 
   // Remove from Supabase Storage
   const pathParts = fileUrl.split("project-files/");

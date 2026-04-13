@@ -192,6 +192,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
                   project={p}
                   isTeacher={isTeacher}
                   currentUserId={user?.id}
+                  isWatched={watchedIds.has(p.id)}
                   isCollaborator
                 />
               ))}
