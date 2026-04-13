@@ -8,9 +8,9 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| — | — | — | — | — |
-
-*Pipeline temiz. Yeni görev bekleniyor.*
+| BE-007 | Backend_Agent | Dashboard page: collaborator projeleri fetch et; project detail page: `isCollaborator` flag ekle | Yapılıyor | Beklemede |
+| FE-002 | Frontend_Agent | ProjectCard: `isCollaborator` badge + davranış; ProjectEditableContent: `canEdit` flag ile collaborator edit erişimi | Yapılıyor | Beklemede |
+| FE-003 | Frontend_Agent | Dashboard page: "Ortak Olduğum Projeler" section UI | Yapılıyor | Beklemede |
 
 ---
 
@@ -19,33 +19,21 @@
 | Görev ID | Departman | Görev Tanımı | Tamamlanma Tarihi | QA Onayı |
 |----------|-----------|--------------|-------------------|----------|
 | BE-001 | Backend_Agent | `user_id` → `student_id` düzeltmesi | 2026-04-13 | QA: OK |
-| BE-002 | Backend_Agent | Root `middleware.ts` oluşturuldu, `updateSession` bağlandı | 2026-04-13 | QA: OK |
-| BE-003 | Backend_Agent | `page.tsx` iki adımlı fetch ile broken FK join kaldırıldı | 2026-04-13 | QA: OK |
-| BE-004 | Backend_Agent | Migration `20260413_project_members_fk_fix.sql` yazıldı | 2026-04-13 | QA: OK |
+| BE-002 | Backend_Agent | Root `middleware.ts` → `updateSession` bağlandı | 2026-04-13 | QA: OK |
+| BE-003 | Backend_Agent | `page.tsx` iki adımlı fetch, broken FK join kaldırıldı | 2026-04-13 | QA: OK |
+| BE-004 | Backend_Agent | Migration `20260413_project_members_fk_fix.sql` | 2026-04-13 | QA: OK |
 | BE-005 | Backend_Agent | `searchProfilesAction` role filtresi kaldırıldı | 2026-04-13 | QA: OK |
-| FE-001 | Frontend_Agent | Arama sonuçları role badge + gruplama ile güncellendi | 2026-04-13 | QA: OK |
-| BE-006 | Backend_Agent | `middleware.ts` root → `src/middleware.ts` taşındı (Vercel NFT fix) | 2026-04-13 | QA: OK |
-
----
-
-## Deployment Geçmişi
-
-| Tarih | Commit Hash | Açıklama | Deploy_Chef Notu |
-|-------|-------------|----------|-----------------|
-| 2026-04-13 | 7788e36 | fix(auth+backend): middleware + student_id | Push OK |
-| 2026-04-13 | 18cbc14 | fix(team-members): broken FK join + migration | Push OK |
-| 2026-04-13 | b6c7f5a | feat(team-members): öğretmen arama + rol badge | Push OK |
-| 2026-04-13 | (beklemede) | fix(deployment): middleware src/ konumuna taşındı | Deploy_Chef tetiklendi |
+| BE-006 | Backend_Agent | middleware root → `src/middleware.ts` (Vercel NFT fix) | 2026-04-13 | QA: OK |
+| FE-001 | Frontend_Agent | Arama sonuçları role badge + gruplama | 2026-04-13 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 7
+Toplam Görev    : 10
 Tamamlandı      : 7
-Beklemede       : 0
-Yapılıyor       : 0
+Yapılıyor       : 3
 QA Onaylı       : 7
-Deploy Hazır    : EVET ✓
+Deploy Hazır    : HAYIR
 ```

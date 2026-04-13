@@ -121,6 +121,9 @@ export default async function ProjectDetailPage({
       .filter((m) => m.id);
   }
 
+  // Whether the current viewer is a collaborator (in project_members but not owner)
+  const isCollaborator = !isOwner && teamMembers.some((m) => m.id === user.id);
+
   // ── Reviews ───────────────────────────────────────────────────────────────────
   type Review = {
     id: string;
@@ -207,6 +210,7 @@ export default async function ProjectDetailPage({
               initialTeamMembers={teamMembers}
               currentUserId={user.id}
               isCompleted={isCompleted}
+              isCollaborator={isCollaborator}
             />
 
             <FileSection

@@ -40,6 +40,7 @@ interface Props {
   initialTeamMembers: Member[];
   currentUserId: string;
   isCompleted: boolean;
+  isCollaborator?: boolean;
 }
 
 // ── MemberRow ─────────────────────────────────────────────────────────────────
@@ -80,8 +81,12 @@ export default function ProjectEditableContent({
   initialTeamMembers,
   currentUserId,
   isCompleted,
+  isCollaborator = false,
 }: Props) {
   const isOwner = currentUserId === project.student_id;
+  // Collaborators can edit project details (title, description, dates) but not
+  // privacy settings or team membership — those remain owner-only.
+  const canEdit = isOwner || isCollaborator;
   const router = useRouter();
 
   // Privacy state
@@ -271,8 +276,8 @@ export default function ProjectEditableContent({
           )}
         </div>
 
-        {/* Editable project title (owner only) */}
-        {isOwner && (
+        {/* Editable project title (owner or collaborator) */}
+        {canEdit && (
           <div className="mb-5">
             {editingTitle ? (
               <div className="flex items-center gap-2">
@@ -318,7 +323,7 @@ export default function ProjectEditableContent({
 
         {/* Editable description */}
         <div className="mb-8">
-          {isOwner && editingDesc ? (
+          {canEdit && editingDesc ? (
             <div className="flex flex-col gap-2">
               <textarea
                 value={description}
@@ -344,13 +349,13 @@ export default function ProjectEditableContent({
             </div>
           ) : (
             <div
-              className={`relative group ${isOwner ? "cursor-pointer" : ""}`}
-              onClick={() => isOwner && setEditingDesc(true)}
+              className={`relative group ${canEdit ? "cursor-pointer" : ""}`}
+              onClick={() => canEdit && setEditingDesc(true)}
             >
               <p className="text-slate-600 leading-relaxed whitespace-pre-wrap pr-14">
                 {description || "No description has been entered for this project yet."}
               </p>
-              {isOwner && (
+              {canEdit && (
                 <span className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center gap-1 text-xs text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200">
                   <Pencil className="w-3 h-3" /> Edit
                 </span>
@@ -374,7 +379,7 @@ export default function ProjectEditableContent({
 
           {/* Start date */}
           <div className="flex items-center gap-2">
-            {isOwner ? (
+            {canEdit ? (
               <button
                 type="button"
                 onClick={() => startDateRef.current?.showPicker()}
@@ -389,7 +394,7 @@ export default function ProjectEditableContent({
                 <Calendar className="w-4 h-4 text-slate-400" /> Start
               </span>
             )}
-            {isOwner ? (
+            {canEdit ? (
               <input
                 ref={startDateRef}
                 type="date"
@@ -406,7 +411,7 @@ export default function ProjectEditableContent({
 
           {/* End date — disabled until a start date is selected */}
           <div className="flex items-center gap-2">
-            {isOwner ? (
+            {canEdit ? (
               <button
                 type="button"
                 onClick={() => startDate && endDateRef.current?.showPicker()}
@@ -426,7 +431,7 @@ export default function ProjectEditableContent({
                 <Calendar className="w-4 h-4 text-slate-400" /> End
               </span>
             )}
-            {isOwner ? (
+            {canEdit ? (
               <input
                 ref={endDateRef}
                 type="date"
@@ -488,8 +493,8 @@ export default function ProjectEditableContent({
           </div>
         )}
 
-        {/* ── Save Project Details button (owner only) ─────────────────────── */}
-        {isOwner && (
+        {/* ── Save Project Details button (owner or collaborator) ──────────── */}
+        {canEdit && (
           <div className="mt-6 pt-5 border-t border-slate-100">
             <button
               onClick={saveAll}

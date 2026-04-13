@@ -6,9 +6,10 @@ export const metadata: Metadata = {
   title: "My Projects | Steply",
 };
 import Link from 'next/link';
-import { Plus, FolderOpen, Search } from 'lucide-react';
+import { Plus, FolderOpen, Search, Users } from 'lucide-react';
 import EmptyState from '@/components/layout/EmptyState';
 import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
+import ProjectCard from '@/app/dashboard/ProjectCard';
 
 export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
   const searchParams = await props.searchParams;
@@ -78,15 +79,24 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     projects = all;
   }
 
-  // Debug: log date fields to Vercel logs
-  console.log('[Dashboard] projects date fields:', projects.map((p: any) => ({
-    id: p.id,
-    title: p.title,
-    end_date: p.end_date,
-    updated_at: p.updated_at,
-    created_at: p.created_at,
-    progress: p.progress_percentage,
-  })));
+  // ── Collaborator projects: projects where user is in project_members but NOT owner ──
+  let collaboratorProjects: any[] = [];
+  const { data: membershipRows } = await supabase
+    .from('project_members')
+    .select('project_id')
+    .eq('user_id', user?.id);
+
+  const collabProjectIds = (membershipRows ?? []).map((r: any) => r.project_id as string);
+
+  if (collabProjectIds.length > 0) {
+    const { data: collabData } = await supabase
+      .from('projects')
+      .select('*, profiles!student_id(full_name, avatar_url)')
+      .in('id', collabProjectIds)
+      .neq('student_id', user?.id)
+      .order('created_at', { ascending: false });
+    collaboratorProjects = collabData ?? [];
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -110,10 +120,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       </div>
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
-      <div className="flex-1 p-6 lg:p-8">
+      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
+        {/* My Projects / Watched section */}
         {projects.length === 0 ? (
           <>
-            {/* Controls even on empty state so user can switch/search */}
             <DashboardViewSwitcher
               projects={[]}
               isTeacher={isTeacher}
@@ -153,6 +163,40 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
             projectNotes={projectNotes}
             currentUserId={user?.id}
           />
+        )}
+
+        {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
+        {collaboratorProjects.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div
+                className="p-2 rounded-xl"
+                style={{ background: "rgba(124,58,255,0.12)", border: "1px solid rgba(124,58,255,0.20)" }}
+              >
+                <Users className="w-4 h-4" style={{ color: "#7C3AFF" }} />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-slate-800 tracking-tight">
+                  Ortak Olduğum Projeler
+                </h2>
+                <p className="text-xs text-slate-400 font-medium">
+                  Ekibine dahil edildiğin projeler — görüntüleyebilir ve düzenleyebilirsin.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {collaboratorProjects.map((p: any) => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  isTeacher={isTeacher}
+                  currentUserId={user?.id}
+                  isCollaborator
+                />
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>

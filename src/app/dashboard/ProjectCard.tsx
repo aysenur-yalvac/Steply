@@ -27,6 +27,7 @@ export default function ProjectCard({
   teacherNote: initialTeacherNote = '',
   teacherNameForNote,
   currentUserId,
+  isCollaborator = false,
 }: {
   project: Project;
   isTeacher?: boolean;
@@ -34,6 +35,7 @@ export default function ProjectCard({
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
+  isCollaborator?: boolean;
 }) {
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
@@ -136,12 +138,22 @@ export default function ProjectCard({
       {/* Title row */}
       <div className="flex items-start justify-between gap-4 relative z-10">
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-white tracking-tight truncate mb-0.5">
-            {project.title}
-          </h3>
-          {isTeacher && project.profiles?.full_name && (
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <h3 className="text-base font-bold text-white tracking-tight truncate">
+              {project.title}
+            </h3>
+            {isCollaborator && (
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                style={{ background: "rgba(124,58,255,0.18)", border: "1px solid rgba(124,58,255,0.30)", color: "#C97EFF" }}
+              >
+                Ortak
+              </span>
+            )}
+          </div>
+          {(isTeacher || isCollaborator) && project.profiles?.full_name && (
             <p className="text-xs font-bold tracking-wider" style={{ color: "#FF7F50" }}>
-              Student: {project.profiles.full_name}
+              {isCollaborator ? 'Sahibi' : 'Student'}: {project.profiles.full_name}
             </p>
           )}
           <p className="text-slate-400 text-sm truncate">{project.description}</p>
