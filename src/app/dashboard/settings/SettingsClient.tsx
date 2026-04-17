@@ -200,7 +200,8 @@ export default function SettingsClient({
     }
   }
 
-  async function handleSocialSave() {
+  async function handleSocialSave(e: React.FormEvent) {
+    e.preventDefault();
     setIsSocialSaving(true);
     try {
       const result = await updateSocialLinksAction({
@@ -460,7 +461,7 @@ export default function SettingsClient({
                     </div>
 
                     {/* Social accounts — editable, synced to DB */}
-                    <div className="space-y-3 pt-2">
+                    <form onSubmit={handleSocialSave} className="space-y-3 pt-2">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
                         <p className="text-xs text-slate-400">Synced with your Profile page</p>
@@ -490,8 +491,7 @@ export default function SettingsClient({
 
                       <div className="pt-2">
                         <button
-                          type="button"
-                          onClick={handleSocialSave}
+                          type="submit"
                           disabled={isSocialSaving}
                           className={primaryBtn}
                           style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
@@ -504,7 +504,7 @@ export default function SettingsClient({
                           {isSocialSaving ? "Saving..." : "Save Social Links"}
                         </button>
                       </div>
-                    </div>
+                    </form>
                   </div>
                 )}
 
