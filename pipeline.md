@@ -6,7 +6,9 @@
 
 ## Aktif Görevler
 
-_Tüm görevler tamamlandı._
+| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
+|----------|-----------|--------------|-------|----------|
+| FE-018 | Frontend_Agent | `SettingsClient.tsx`: Sidebar nav layout — Profile / Security / Notifications / Preferences sekmeli yapı | Yapılıyor | — |
 
 ---
 
@@ -38,10 +40,10 @@ _Tüm görevler tamamlandı._
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 26
+Toplam Görev    : 27
 Tamamlandı      : 26
-Yapılıyor       : 0
+Yapılıyor       : 1
 QA Onaylı       : 26
-Deploy Hazır    : EVET
-Son Deploy      : bekliyor
+Deploy Hazır    : HAYIR
+Son Deploy      : 7fd0655 — 2026-04-17
 ```

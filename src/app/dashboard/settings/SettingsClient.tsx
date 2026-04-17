@@ -1,8 +1,20 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useState } from "react";
-import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck, Loader2, KeyRound, Eye, EyeOff } from "lucide-react";
+import {
+  User,
+  Lock,
+  Bell,
+  Sliders,
+  Save,
+  ShieldCheck,
+  Loader2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
@@ -15,33 +27,78 @@ interface SettingsClientProps {
   updateProfile: (formData: FormData) => Promise<void>;
 }
 
-const stagger: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
+type Tab = "profile" | "security" | "notifications" | "preferences";
+
+const NAV_ITEMS: {
+  id: Tab;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    id: "profile",
+    label: "Profile",
+    description: "Name, email and public info",
+    icon: <User className="w-4 h-4" />,
+  },
+  {
+    id: "security",
+    label: "Account Security",
+    description: "Password and login settings",
+    icon: <Lock className="w-4 h-4" />,
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    description: "Alerts and email preferences",
+    icon: <Bell className="w-4 h-4" />,
+  },
+  {
+    id: "preferences",
+    label: "Preferences",
+    description: "Privacy and display options",
+    icon: <Sliders className="w-4 h-4" />,
+  },
+];
+
+const fadeIn: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    transition: { duration: 0.18 },
+  },
 };
 
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
-};
+const inputCls =
+  "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
-const glassCard = {
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  background: "rgba(255,255,255,0.40)",
-  border: "1px solid rgba(255,255,255,0.55)",
-} as const;
+const primaryBtn =
+  "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
 
-export default function SettingsClient({ email, fullName, initialIsPublic, updateProfile }: SettingsClientProps) {
+export default function SettingsClient({
+  email,
+  fullName,
+  initialIsPublic,
+  updateProfile,
+}: SettingsClientProps) {
+  const [activeTab, setActiveTab] = useState<Tab>("profile");
+
+  // Profile
   const [isPublic, setIsPublic] = useState(initialIsPublic);
   const [privacyLoading, setPrivacyLoading] = useState(false);
 
-  // Password change state
-  const [newPassword,     setNewPassword]     = useState("");
+  // Security
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [pwLoading,       setPwLoading]       = useState(false);
-  const [showNew,         setShowNew]         = useState(false);
-  const [showConfirm,     setShowConfirm]     = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +120,8 @@ export default function SettingsClient({ email, fullName, initialIsPublic, updat
         toast.success("Şifreniz başarıyla güncellendi.");
         setNewPassword("");
         setConfirmPassword("");
+        setShowNew(false);
+        setShowConfirm(false);
       }
     } finally {
       setPwLoading(false);
@@ -72,202 +131,287 @@ export default function SettingsClient({ email, fullName, initialIsPublic, updat
   async function handlePrivacyChange(value: boolean) {
     setPrivacyLoading(true);
     const prev = isPublic;
-    setIsPublic(value); // optimistic
+    setIsPublic(value);
     const res = await updateUserPrivacyAction(value);
     setPrivacyLoading(false);
     if (!res.success) {
-      setIsPublic(prev); // rollback
+      setIsPublic(prev);
       toast.error("Failed to update privacy setting.");
     } else {
       toast.success(value ? "Profile set to Public." : "Profile set to Private.", {
-        style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(124,58,255,0.4)", fontSize: "13px", fontWeight: "bold" },
+        style: {
+          borderRadius: "12px",
+          background: "#0f1428",
+          color: "#e2e8f0",
+          border: "1px solid rgba(124,58,255,0.4)",
+          fontSize: "13px",
+          fontWeight: "bold",
+        },
       });
     }
   }
 
+  const activeItem = NAV_ITEMS.find((n) => n.id === activeTab)!;
+
   return (
-    <div className="relative flex-1 w-full max-w-4xl mx-auto p-6 md:p-12 overflow-hidden">
-
-      {/* Blobs are provided by DashboardBackground in layout */}
-
-      {/* Header */}
+    <div className="flex-1 w-full max-w-5xl mx-auto p-4 md:p-10">
+      {/* Page header */}
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: -14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center gap-4 mb-10 relative z-10"
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="flex items-center gap-4 mb-8"
       >
         <BackButton href="/dashboard" variant="light" />
-        <div className="p-3 rounded-2xl bg-[#7C3AFF]/10 text-[#7C3AFF] shadow-lg shadow-violet-200/40">
-          <SettingsIcon className="w-7 h-7" strokeWidth={1.5} />
+        <div className="p-3 rounded-2xl bg-violet-100 text-[#7C3AFF] shadow shadow-violet-200/40">
+          <SettingsIcon className="w-6 h-6" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-          <p className="text-slate-500 text-sm">Manage your profile and account preferences.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+          <p className="text-slate-500 text-sm">Manage your account and preferences.</p>
         </div>
       </motion.div>
 
-      {/* Staggered cards */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid gap-6 relative z-10"
-      >
-        {/* Profile card */}
-        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
-          <div className="flex items-center gap-2 mb-6">
-            <User className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
-            <h2 className="text-lg font-semibold text-slate-900">Profile Information</h2>
-          </div>
+      {/* Shell: sidebar + content */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="flex flex-col md:flex-row min-h-[520px]">
 
-          <form action={updateProfile} className="space-y-6 max-w-md">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-slate-600">Email Address</label>
-              <input
-                id="email"
-                type="email"
-                disabled
-                value={email}
-                className="w-full px-4 py-3 rounded-xl bg-white/50 border border-slate-200/70 text-slate-400 cursor-not-allowed text-sm backdrop-blur-sm"
-              />
-              <p className="text-xs text-slate-400">Email address cannot be changed.</p>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium text-slate-600">Full Name</label>
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                defaultValue={fullName}
-                className="w-full px-4 py-3 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
-                placeholder="Your Name and Surname"
-                required
-              />
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/25 active:scale-95 hover:brightness-110"
-                style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
-              >
-                <Save className="w-4 h-4" strokeWidth={1.5} />
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </motion.section>
-
-        {/* Privacy card */}
-        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
-          <div className="flex items-center gap-2 mb-6">
-            <ShieldCheck className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
-            <h2 className="text-lg font-semibold text-slate-900">Profile Privacy</h2>
-          </div>
-
-          <div className="flex items-center justify-between gap-6 max-w-md">
-            <div>
-              <p className="text-sm font-medium text-slate-700 mb-1">Public Profile</p>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {isPublic
-                  ? "Anyone with your link can view your profile and active projects."
-                  : "Only you can see your profile and projects. Others will see a private profile message."}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isPublic}
-              disabled={privacyLoading}
-              onClick={() => handlePrivacyChange(!isPublic)}
-              className="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AFF]/40 disabled:opacity-50"
-              style={{ background: isPublic ? "#7C3AFF" : "rgba(203,213,225,1)" }}
-            >
-              <span
-                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
-                style={{ transform: isPublic ? "translateX(24px)" : "translateX(0)" }}
-              />
-            </button>
-          </div>
-        </motion.section>
-
-        {/* Security card */}
-        <motion.section variants={fadeUp} className="rounded-3xl p-8 shadow-xl shadow-violet-100/30" style={glassCard}>
-          <div className="flex items-center gap-2 mb-6">
-            <Lock className="w-5 h-5 text-[#7C3AFF]" strokeWidth={1.5} />
-            <h2 className="text-lg font-semibold text-slate-900">Account Security</h2>
-          </div>
-
-          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-            <div className="space-y-2">
-              <label htmlFor="newPassword" className="text-sm font-medium text-slate-600">New Password</label>
-              <div className="relative">
-                <input
-                  id="newPassword"
-                  type={showNew ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="En az 6 karakter"
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 pr-11 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
-                />
+          {/* ── Sidebar (desktop) / Tab bar (mobile) ── */}
+          <nav className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-slate-100">
+            {/* Mobile: horizontal scrollable row */}
+            <div className="flex md:hidden overflow-x-auto gap-1 p-2">
+              {NAV_ITEMS.map((item) => (
                 <button
-                  type="button"
-                  onClick={() => setShowNew((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                  aria-label={showNew ? "Şifreyi gizle" : "Şifreyi göster"}
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    activeTab === item.id
+                      ? "bg-violet-50 text-violet-600"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                  }`}
                 >
-                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {item.icon}
+                  {item.label}
                 </button>
-              </div>
+              ))}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600">Confirm New Password</label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  type={showConfirm ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Şifreyi tekrar girin"
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 pr-11 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
-                />
+            {/* Desktop: vertical list */}
+            <div className="hidden md:flex flex-col gap-1 p-3 pt-5">
+              {NAV_ITEMS.map((item) => (
                 <button
-                  type="button"
-                  onClick={() => setShowConfirm((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                  aria-label={showConfirm ? "Şifreyi gizle" : "Şifreyi göster"}
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors ${
+                    activeTab === item.id
+                      ? "bg-violet-50 text-violet-600"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                  }`}
                 >
-                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <span className="mt-0.5 shrink-0">{item.icon}</span>
+                  <span>
+                    <span className={`block text-sm font-medium ${activeTab === item.id ? "text-violet-700" : "text-slate-700"}`}>
+                      {item.label}
+                    </span>
+                    <span className="block text-xs text-slate-400 mt-0.5 leading-tight">
+                      {item.description}
+                    </span>
+                  </span>
                 </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* ── Content area ── */}
+          <div className="flex-1 p-6 md:p-8 overflow-hidden">
+            {/* Section heading */}
+            <div className="mb-6 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-[#7C3AFF] mb-1">
+                {activeItem.icon}
+                <h2 className="text-base font-semibold text-slate-900">{activeItem.label}</h2>
               </div>
+              <p className="text-sm text-slate-500">{activeItem.description}</p>
             </div>
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={pwLoading}
-                className="flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/25 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                variants={fadeIn}
+                initial="hidden"
+                animate="show"
+                exit="exit"
               >
-                {pwLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <KeyRound className="w-4 h-4" strokeWidth={1.5} />
+                {/* ── PROFILE ── */}
+                {activeTab === "profile" && (
+                  <form action={updateProfile} className="space-y-5 max-w-md">
+                    <div className="space-y-1.5">
+                      <label htmlFor="email" className="text-sm font-medium text-slate-600">
+                        Email Address
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        disabled
+                        value={email}
+                        className={`${inputCls} opacity-60 cursor-not-allowed`}
+                      />
+                      <p className="text-xs text-slate-400">Email address cannot be changed.</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="fullName" className="text-sm font-medium text-slate-600">
+                        Full Name
+                      </label>
+                      <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        defaultValue={fullName}
+                        className={inputCls}
+                        placeholder="Your Name and Surname"
+                        required
+                      />
+                    </div>
+
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        className={primaryBtn}
+                        style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                      >
+                        <Save className="w-4 h-4" strokeWidth={1.5} />
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
                 )}
-                {pwLoading ? "Güncelleniyor..." : "Update Password"}
-              </button>
-            </div>
-          </form>
-        </motion.section>
-      </motion.div>
+
+                {/* ── SECURITY ── */}
+                {activeTab === "security" && (
+                  <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
+                    <div className="space-y-1.5">
+                      <label htmlFor="newPassword" className="text-sm font-medium text-slate-600">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="newPassword"
+                          type={showNew ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="At least 6 characters"
+                          required
+                          minLength={6}
+                          className={`${inputCls} pr-11`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNew((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                          aria-label={showNew ? "Hide password" : "Show password"}
+                        >
+                          {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          type={showConfirm ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Repeat the password"
+                          required
+                          minLength={6}
+                          className={`${inputCls} pr-11`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirm((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                          aria-label={showConfirm ? "Hide password" : "Show password"}
+                        >
+                          {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={pwLoading}
+                        className={primaryBtn}
+                        style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                      >
+                        {pwLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <KeyRound className="w-4 h-4" strokeWidth={1.5} />
+                        )}
+                        {pwLoading ? "Updating..." : "Update Password"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* ── NOTIFICATIONS ── */}
+                {activeTab === "notifications" && (
+                  <div className="max-w-md">
+                    <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                      <Bell className="w-5 h-5 text-slate-400 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Notification preferences</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Notification settings will be available in a future update.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── PREFERENCES ── */}
+                {activeTab === "preferences" && (
+                  <div className="space-y-6 max-w-md">
+                    {/* Privacy toggle */}
+                    <div className="flex items-center justify-between gap-6 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck className="w-5 h-5 text-[#7C3AFF] mt-0.5 shrink-0" strokeWidth={1.5} />
+                        <div>
+                          <p className="text-sm font-medium text-slate-700">Public Profile</p>
+                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                            {isPublic
+                              ? "Anyone with your link can view your profile and active projects."
+                              : "Only you can see your profile. Others will see a private profile message."}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isPublic}
+                        disabled={privacyLoading}
+                        onClick={() => handlePrivacyChange(!isPublic)}
+                        className="relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 disabled:opacity-50"
+                        style={{ background: isPublic ? "#7C3AFF" : "rgb(203,213,225)" }}
+                      >
+                        <span
+                          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                          style={{ transform: isPublic ? "translateX(20px)" : "translateX(0)" }}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
