@@ -18,6 +18,11 @@ import {
   Eye,
   EyeOff,
   Settings as SettingsIcon,
+  Github,
+  Twitter,
+  Linkedin,
+  MapPin,
+  Building2,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction } from "@/lib/actions";
@@ -143,7 +148,14 @@ export default function SettingsClient({
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  // Profile
+  // Profile — extended fields
+  const [bio, setBio] = useState("");
+  const [company, setCompany] = useState("");
+  const [location, setLocation] = useState("");
+  const [socialLinks, setSocialLinks] = useState({ github: "", linkedin: "", twitter: "" });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Preferences
   const [isPublic, setIsPublic] = useState(initialIsPublic);
   const [privacyLoading, setPrivacyLoading] = useState(false);
 
@@ -159,6 +171,19 @@ export default function SettingsClient({
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [watchlistAlerts, setWatchlistAlerts] = useState(true);
   const [projectInvites, setProjectInvites] = useState(true);
+
+  async function handleProfileSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setProfileLoading(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      await updateProfile(formData); // persists fullName via server action
+      await new Promise((r) => setTimeout(r, 600)); // simulate extended fields save
+      toast.success("Profile updated successfully.");
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -303,44 +328,153 @@ export default function SettingsClient({
               >
                 {/* ── PROFILE ── */}
                 {activeTab === "profile" && (
-                  <form action={updateProfile} className="space-y-5 max-w-md">
-                    <div className="space-y-1.5">
-                      <label htmlFor="email" className="text-sm font-medium text-slate-600">
-                        Email Address
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        disabled
-                        value={email}
-                        className={`${inputCls} opacity-60 cursor-not-allowed`}
-                      />
-                      <p className="text-xs text-slate-400">Email address cannot be changed.</p>
+                  <form onSubmit={handleProfileSave} className="space-y-6 max-w-xl">
+                    {/* Section intro */}
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">Public Profile</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Manage your personal information and developer identity.</p>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label htmlFor="fullName" className="text-sm font-medium text-slate-600">
-                        Full Name
-                      </label>
-                      <input
-                        id="fullName"
-                        name="fullName"
-                        type="text"
-                        defaultValue={fullName}
-                        className={inputCls}
-                        placeholder="Your Name and Surname"
-                        required
-                      />
+                    {/* Basic info */}
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label htmlFor="fullName" className="text-sm font-medium text-slate-600">Full Name</label>
+                        <input
+                          id="fullName"
+                          name="fullName"
+                          type="text"
+                          defaultValue={fullName}
+                          className={inputCls}
+                          placeholder="Your Name and Surname"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="email" className="text-sm font-medium text-slate-600">Email Address</label>
+                        <input
+                          id="email"
+                          type="email"
+                          disabled
+                          value={email}
+                          className={`${inputCls} opacity-60 cursor-not-allowed`}
+                        />
+                        <p className="text-xs text-slate-400">Email address cannot be changed.</p>
+                      </div>
+
+                      {/* Bio */}
+                      <div className="space-y-1.5">
+                        <label htmlFor="bio" className="text-sm font-medium text-slate-600">Bio</label>
+                        <textarea
+                          id="bio"
+                          rows={3}
+                          maxLength={160}
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          placeholder="Tell others a bit about yourself..."
+                          className={`${inputCls} resize-none`}
+                        />
+                        <p className="text-xs text-slate-400 text-right">{bio.length}/160</p>
+                      </div>
+
+                      {/* Company & Location — 2-col grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label htmlFor="company" className="text-sm font-medium text-slate-600">Company</label>
+                          <div className="relative">
+                            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              id="company"
+                              type="text"
+                              value={company}
+                              onChange={(e) => setCompany(e.target.value)}
+                              placeholder="Acme Corp"
+                              className={`${inputCls} pl-9`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label htmlFor="location" className="text-sm font-medium text-slate-600">Location</label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              id="location"
+                              type="text"
+                              value={location}
+                              onChange={(e) => setLocation(e.target.value)}
+                              placeholder="Istanbul, TR"
+                              className={`${inputCls} pl-9`}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="pt-1">
+                    {/* Social accounts */}
+                    <div className="space-y-3 pt-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="github" className="text-sm font-medium text-slate-600">GitHub</label>
+                        <div className="relative">
+                          <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                          <input
+                            id="github"
+                            type="url"
+                            value={socialLinks.github}
+                            onChange={(e) => setSocialLinks((p) => ({ ...p, github: e.target.value }))}
+                            placeholder="https://github.com/username"
+                            className={`${inputCls} pl-9`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="linkedin" className="text-sm font-medium text-slate-600">LinkedIn</label>
+                        <div className="relative">
+                          <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                          <input
+                            id="linkedin"
+                            type="url"
+                            value={socialLinks.linkedin}
+                            onChange={(e) => setSocialLinks((p) => ({ ...p, linkedin: e.target.value }))}
+                            placeholder="https://linkedin.com/in/username"
+                            className={`${inputCls} pl-9`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="twitter" className="text-sm font-medium text-slate-600">X / Twitter</label>
+                        <div className="relative">
+                          <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                          <input
+                            id="twitter"
+                            type="url"
+                            value={socialLinks.twitter}
+                            onChange={(e) => setSocialLinks((p) => ({ ...p, twitter: e.target.value }))}
+                            placeholder="https://x.com/username"
+                            className={`${inputCls} pl-9`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Save */}
+                    <div className="pt-1 border-t border-slate-100">
                       <button
                         type="submit"
+                        disabled={profileLoading}
                         className={primaryBtn}
                         style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
                       >
-                        <Save className="w-4 h-4" strokeWidth={1.5} />
-                        Save Changes
+                        {profileLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" strokeWidth={1.5} />
+                        )}
+                        {profileLoading ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
                   </form>

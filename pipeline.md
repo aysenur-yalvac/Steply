@@ -8,7 +8,7 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| FE-019 | Frontend_Agent | `SettingsClient.tsx`: Notifications sekmesi — muteAll + emailNotifications + watchlistAlerts + projectInvites state & UI | Yapılıyor | — |
+| FE-020 | Frontend_Agent | `SettingsClient.tsx`: Profile sekmesi genişletme — bio textarea, company/location grid, GitHub/LinkedIn/Twitter social inputs | Yapılıyor | — |
 
 ---
 
@@ -35,16 +35,17 @@
 | FE-016 | Frontend_Agent | `user/[id]/page.tsx`: panel entegrasyonu, max-w-6xl, yeni bölüm başlığı | 2026-04-13 | QA: OK |
 | FE-017 | Frontend_Agent | `SettingsClient.tsx`: Password visibility toggle — Eye/EyeOff ikonları, ayrı state, absolute positioning | 2026-04-17 | QA: OK |
 | FE-018 | Frontend_Agent | `SettingsClient.tsx`: Sidebar nav layout — Profile / Security / Notifications / Preferences sekmeli yapı | 2026-04-17 | QA: OK |
+| FE-019 | Frontend_Agent | `SettingsClient.tsx`: Notifications sekmesi — muteAll master toggle + Email / Watchlist / Invites sub-toggles | 2026-04-17 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 28
-Tamamlandı      : 27
+Toplam Görev    : 29
+Tamamlandı      : 28
 Yapılıyor       : 1
-QA Onaylı       : 27
+QA Onaylı       : 28
 Deploy Hazır    : HAYIR
-Son Deploy      : e7255e5 — 2026-04-17
+Son Deploy      : 9398e37 — 2026-04-17
 ```
