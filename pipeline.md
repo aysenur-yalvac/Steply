@@ -8,7 +8,7 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| FE-020 | Frontend_Agent | `SettingsClient.tsx`: Profile sekmesi genişletme — bio textarea, company/location grid, GitHub/LinkedIn/Twitter social inputs | Yapılıyor | — |
+| FE-021 | Frontend_Agent | `SettingsClient.tsx`: Profile sekmesi read-only refactor — sadece Location düzenlenebilir, inline Save butonu | Yapılıyor | — |
 
 ---
 
@@ -33,19 +33,20 @@
 | FE-014 | Frontend_Agent | `globals.css`: `.gsb-dropdown-project-row` + `.gsb-watchlist-btn` stilleri | 2026-04-13 | QA: OK |
 | FE-015 | Frontend_Agent | `ProfileProjectsPanel.tsx`: yeni bileşen — filtre bar + iki sütun + Dashboard kart stili | 2026-04-13 | QA: OK |
 | FE-016 | Frontend_Agent | `user/[id]/page.tsx`: panel entegrasyonu, max-w-6xl, yeni bölüm başlığı | 2026-04-13 | QA: OK |
-| FE-017 | Frontend_Agent | `SettingsClient.tsx`: Password visibility toggle — Eye/EyeOff ikonları, ayrı state, absolute positioning | 2026-04-17 | QA: OK |
-| FE-018 | Frontend_Agent | `SettingsClient.tsx`: Sidebar nav layout — Profile / Security / Notifications / Preferences sekmeli yapı | 2026-04-17 | QA: OK |
-| FE-019 | Frontend_Agent | `SettingsClient.tsx`: Notifications sekmesi — muteAll master toggle + Email / Watchlist / Invites sub-toggles | 2026-04-17 | QA: OK |
+| FE-017 | Frontend_Agent | `SettingsClient.tsx`: Password visibility toggle | 2026-04-17 | QA: OK |
+| FE-018 | Frontend_Agent | `SettingsClient.tsx`: Sidebar nav layout | 2026-04-17 | QA: OK |
+| FE-019 | Frontend_Agent | `SettingsClient.tsx`: Notifications sekmesi — muteAll + sub-toggles | 2026-04-17 | QA: OK |
+| FE-020 | Frontend_Agent | `SettingsClient.tsx`: Profile sekmesi genişletme — bio/company/location/social | 2026-04-17 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 29
-Tamamlandı      : 28
+Toplam Görev    : 30
+Tamamlandı      : 29
 Yapılıyor       : 1
-QA Onaylı       : 28
+QA Onaylı       : 29
 Deploy Hazır    : HAYIR
-Son Deploy      : 9398e37 — 2026-04-17
+Son Deploy      : d11b5cd — 2026-04-17
 ```
