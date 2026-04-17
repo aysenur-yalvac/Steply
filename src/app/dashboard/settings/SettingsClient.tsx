@@ -21,11 +21,12 @@ import {
   Github,
   Twitter,
   Linkedin,
+  Globe,
   MapPin,
   Building2,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
-import { updateUserPrivacyAction } from "@/lib/actions";
+import { updateUserPrivacyAction, updateSocialLinksAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 
@@ -34,6 +35,10 @@ interface SettingsClientProps {
   fullName: string;
   initialIsPublic: boolean;
   updateProfile: (formData: FormData) => Promise<void>;
+  initialGithubUrl: string;
+  initialLinkedinUrl: string;
+  initialTwitterUrl: string;
+  initialWebsiteUrl: string;
 }
 
 type Tab = "profile" | "security" | "notifications" | "preferences";
@@ -145,6 +150,10 @@ export default function SettingsClient({
   fullName,
   initialIsPublic,
   updateProfile,
+  initialGithubUrl,
+  initialLinkedinUrl,
+  initialTwitterUrl,
+  initialWebsiteUrl,
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
@@ -152,8 +161,16 @@ export default function SettingsClient({
   const [bio, setBio] = useState("");
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
-  const [socialLinks, setSocialLinks] = useState({ github: "", linkedin: "", twitter: "" });
   const [isLocationSaving, setIsLocationSaving] = useState(false);
+
+  // Social links — initialized from DB via props
+  const [socialLinks, setSocialLinks] = useState({
+    github:   initialGithubUrl,
+    linkedin: initialLinkedinUrl,
+    twitter:  initialTwitterUrl,
+    website:  initialWebsiteUrl,
+  });
+  const [isSocialSaving, setIsSocialSaving] = useState(false);
 
   // Preferences
   const [isPublic, setIsPublic] = useState(initialIsPublic);
@@ -180,6 +197,25 @@ export default function SettingsClient({
       toast.success("Location saved.");
     } finally {
       setIsLocationSaving(false);
+    }
+  }
+
+  async function handleSocialSave() {
+    setIsSocialSaving(true);
+    try {
+      const result = await updateSocialLinksAction({
+        github_url:   socialLinks.github,
+        linkedin_url: socialLinks.linkedin,
+        twitter_url:  socialLinks.twitter,
+        website_url:  socialLinks.website,
+      });
+      if (result.success) {
+        toast.success("Social links updated.");
+      } else {
+        toast.error(result.error || "Failed to update social links.");
+      }
+    } finally {
+      setIsSocialSaving(false);
     }
   }
 
@@ -423,29 +459,51 @@ export default function SettingsClient({
                       </div>
                     </div>
 
-                    {/* Social accounts — read-only */}
+                    {/* Social accounts — editable, synced to DB */}
                     <div className="space-y-3 pt-2">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
+                        <p className="text-xs text-slate-400">Synced with your Profile page</p>
+                      </div>
 
-                      {[
-                        { id: "github",   icon: <Github   className="w-4 h-4" />, label: "GitHub",    value: socialLinks.github,   placeholder: "https://github.com/username" },
-                        { id: "linkedin", icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn",  value: socialLinks.linkedin, placeholder: "https://linkedin.com/in/username" },
-                        { id: "twitter",  icon: <Twitter  className="w-4 h-4" />, label: "X / Twitter", value: socialLinks.twitter, placeholder: "https://x.com/username" },
-                      ].map(({ id, icon, label, value, placeholder }) => (
-                        <div key={id} className="space-y-1.5">
-                          <label className="text-sm font-medium text-slate-500">{label}</label>
+                      {([
+                        { key: "github",   icon: <Github   className="w-4 h-4" />, label: "GitHub",      placeholder: "https://github.com/username" },
+                        { key: "linkedin", icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn",    placeholder: "https://linkedin.com/in/username" },
+                        { key: "twitter",  icon: <Twitter  className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/username" },
+                        { key: "website",  icon: <Globe    className="w-4 h-4" />, label: "Website",     placeholder: "https://yourwebsite.com" },
+                      ] as const).map(({ key, icon, label, placeholder }) => (
+                        <div key={key} className="space-y-1.5">
+                          <label htmlFor={`social-${key}`} className="text-sm font-medium text-slate-600">{label}</label>
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300">{icon}</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
                             <input
+                              id={`social-${key}`}
                               type="url"
-                              readOnly
-                              value={value}
+                              value={socialLinks[key]}
+                              onChange={(e) => setSocialLinks((p) => ({ ...p, [key]: e.target.value }))}
                               placeholder={placeholder}
-                              className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed text-sm select-none"
+                              className={`${inputCls} pl-9`}
                             />
                           </div>
                         </div>
                       ))}
+
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={handleSocialSave}
+                          disabled={isSocialSaving}
+                          className={primaryBtn}
+                          style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                        >
+                          {isSocialSaving ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Save className="w-4 h-4" strokeWidth={1.5} />
+                          )}
+                          {isSocialSaving ? "Saving..." : "Save Social Links"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

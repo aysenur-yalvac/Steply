@@ -283,6 +283,33 @@ export async function deleteAgendaTaskAction(taskId: string) {
   return { success: true };
 }
 
+export async function updateSocialLinksAction(data: {
+  github_url: string;
+  linkedin_url: string;
+  twitter_url: string;
+  website_url: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      github_url:   data.github_url   || null,
+      linkedin_url: data.linkedin_url || null,
+      twitter_url:  data.twitter_url  || null,
+      website_url:  data.website_url  || null,
+    })
+    .eq('id', user.id);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/dashboard/settings', 'page');
+  revalidatePath('/dashboard/profile', 'page');
+  return { success: true };
+}
+
 export async function updateUserPrivacyAction(isPublic: boolean): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
