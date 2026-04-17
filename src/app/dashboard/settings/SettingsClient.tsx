@@ -6,6 +6,10 @@ import {
   User,
   Lock,
   Bell,
+  BellOff,
+  Mail,
+  Bookmark,
+  MessageSquare,
   Sliders,
   Save,
   ShieldCheck,
@@ -81,6 +85,56 @@ const inputCls =
 const primaryBtn =
   "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
 
+/* ── Toggle row sub-component ── */
+function NotifRow({
+  icon,
+  iconColor,
+  title,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+  isMaster = false,
+}: {
+  icon: React.ReactNode;
+  iconColor: string;
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+  isMaster?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 px-5 py-4 transition-opacity ${
+        disabled ? "opacity-40 pointer-events-none" : ""
+      } ${isMaster ? "bg-slate-50" : "bg-white"}`}
+    >
+      <div className="flex items-start gap-3">
+        <span className={`mt-0.5 shrink-0 ${iconColor}`}>{icon}</span>
+        <div>
+          <p className={`text-sm font-medium ${isMaster ? "text-slate-800" : "text-slate-700"}`}>{title}</p>
+          <p className="text-xs text-slate-400 mt-0.5 leading-snug">{description}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className="relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40"
+        style={{ background: checked ? (isMaster ? "#ef4444" : "#7C3AFF") : "rgb(203,213,225)" }}
+      >
+        <span
+          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+          style={{ transform: checked ? "translateX(20px)" : "translateX(0)" }}
+        />
+      </button>
+    </div>
+  );
+}
+
 export default function SettingsClient({
   email,
   fullName,
@@ -99,6 +153,12 @@ export default function SettingsClient({
   const [pwLoading, setPwLoading] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Notifications
+  const [muteAll, setMuteAll] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [watchlistAlerts, setWatchlistAlerts] = useState(true);
+  const [projectInvites, setProjectInvites] = useState(true);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -361,15 +421,57 @@ export default function SettingsClient({
 
                 {/* ── NOTIFICATIONS ── */}
                 {activeTab === "notifications" && (
-                  <div className="max-w-md">
-                    <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl">
-                      <Bell className="w-5 h-5 text-slate-400 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">Notification preferences</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          Notification settings will be available in a future update.
-                        </p>
-                      </div>
+                  <div className="max-w-lg space-y-6">
+                    {/* Section intro */}
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">Notification Preferences</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Manage how you receive alerts and updates.</p>
+                    </div>
+
+                    {/* Notification rows */}
+                    <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+
+                      {/* Master mute */}
+                      <NotifRow
+                        icon={<BellOff className="w-4 h-4" />}
+                        iconColor="text-rose-500"
+                        title="Mute All Notifications"
+                        description="Silence every alert across the platform."
+                        checked={muteAll}
+                        onChange={setMuteAll}
+                        isMaster
+                      />
+
+                      {/* Sub-toggles — dimmed when muteAll is on */}
+                      <NotifRow
+                        icon={<Mail className="w-4 h-4" />}
+                        iconColor="text-violet-500"
+                        title="Email Notifications"
+                        description="Receive email updates when you're away from the platform."
+                        checked={emailNotifications}
+                        onChange={setEmailNotifications}
+                        disabled={muteAll}
+                      />
+
+                      <NotifRow
+                        icon={<Bookmark className="w-4 h-4" />}
+                        iconColor="text-violet-500"
+                        title="Watchlist Updates"
+                        description="Get notified when a saved project has new activity."
+                        checked={watchlistAlerts}
+                        onChange={setWatchlistAlerts}
+                        disabled={muteAll}
+                      />
+
+                      <NotifRow
+                        icon={<MessageSquare className="w-4 h-4" />}
+                        iconColor="text-violet-500"
+                        title="Project Invitations & Messages"
+                        description="Alerts for new collaboration invites and direct messages."
+                        checked={projectInvites}
+                        onChange={setProjectInvites}
+                        disabled={muteAll}
+                      />
                     </div>
                   </div>
                 )}
