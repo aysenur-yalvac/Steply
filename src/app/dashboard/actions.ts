@@ -5,6 +5,55 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// ── Project type suggestions ───────────────────────────────────────────────────
+/**
+ * Returns the top-10 most-used project type names for autocomplete suggestions.
+ * Falls back gracefully if the project_types table doesn't exist yet.
+ */
+export async function getTopProjectTypes(): Promise<string[]> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("project_types")
+      .select("name")
+      .order("usage_count", { ascending: false })
+      .limit(10);
+    if (error) return [];
+    return (data ?? []).map((r: { name: string }) => r.name);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Tracks usage of a project type: increments count if it exists, inserts if new.
+ * Silent on failure — project creation must not be blocked by type tracking.
+ */
+async function trackProjectType(platform: string): Promise<void> {
+  if (!platform || platform === "General") return;
+  try {
+    const admin = createAdminClient();
+    const { data: existing } = await admin
+      .from("project_types")
+      .select("id, usage_count")
+      .eq("name", platform)
+      .maybeSingle();
+
+    if (existing) {
+      await admin
+        .from("project_types")
+        .update({ usage_count: existing.usage_count + 1 })
+        .eq("id", existing.id);
+    } else {
+      await admin
+        .from("project_types")
+        .insert({ name: platform, usage_count: 1 });
+    }
+  } catch (e) {
+    console.warn("[trackProjectType] failed (non-blocking):", e);
+  }
+}
+
 export async function createProject(formData: FormData): Promise<{ success: boolean }> {
   const supabase = await createClient();
   
@@ -87,6 +136,9 @@ export async function createProject(formData: FormData): Promise<{ success: bool
       throw new Error(msg);
     }
   }
+
+  // Track project type usage (non-blocking — silent on failure)
+  await trackProjectType(platform);
 
   revalidatePath("/dashboard");
   return { success: true };
