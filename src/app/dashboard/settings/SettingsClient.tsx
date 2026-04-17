@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import { useState } from "react";
-import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck, Loader2, KeyRound } from "lucide-react";
+import { User, Settings as SettingsIcon, Save, Lock, ShieldCheck, Loader2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
@@ -40,6 +40,8 @@ export default function SettingsClient({ email, fullName, initialIsPublic, updat
   const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading,       setPwLoading]       = useState(false);
+  const [showNew,         setShowNew]         = useState(false);
+  const [showConfirm,     setShowConfirm]     = useState(false);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -202,30 +204,50 @@ export default function SettingsClient({ email, fullName, initialIsPublic, updat
           <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
             <div className="space-y-2">
               <label htmlFor="newPassword" className="text-sm font-medium text-slate-600">New Password</label>
-              <input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="En az 6 karakter"
-                required
-                minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
-              />
+              <div className="relative">
+                <input
+                  id="newPassword"
+                  type={showNew ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="En az 6 karakter"
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 pr-11 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                  aria-label={showNew ? "Şifreyi gizle" : "Şifreyi göster"}
+                >
+                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600">Confirm New Password</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Şifreyi tekrar girin"
-                required
-                minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Şifreyi tekrar girin"
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 pr-11 rounded-xl bg-white/70 border border-slate-200/70 text-slate-800 focus:ring-2 focus:ring-[#7C3AFF]/30 focus:border-[#7C3AFF]/50 outline-none transition-all text-sm backdrop-blur-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                  aria-label={showConfirm ? "Şifreyi gizle" : "Şifreyi göster"}
+                >
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <div className="pt-2">

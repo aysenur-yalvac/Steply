@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-13
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-17
 
 ---
 
@@ -31,16 +31,17 @@ _Tüm görevler tamamlandı._
 | FE-014 | Frontend_Agent | `globals.css`: `.gsb-dropdown-project-row` + `.gsb-watchlist-btn` stilleri | 2026-04-13 | QA: OK |
 | FE-015 | Frontend_Agent | `ProfileProjectsPanel.tsx`: yeni bileşen — filtre bar + iki sütun + Dashboard kart stili | 2026-04-13 | QA: OK |
 | FE-016 | Frontend_Agent | `user/[id]/page.tsx`: panel entegrasyonu, max-w-6xl, yeni bölüm başlığı | 2026-04-13 | QA: OK |
+| FE-017 | Frontend_Agent | `SettingsClient.tsx`: Password visibility toggle — Eye/EyeOff ikonları, ayrı state, absolute positioning | 2026-04-17 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 25
-Tamamlandı      : 25
+Toplam Görev    : 26
+Tamamlandı      : 26
 Yapılıyor       : 0
-QA Onaylı       : 25
+QA Onaylı       : 26
 Deploy Hazır    : EVET
-Son Deploy      : 8303667 — 2026-04-13
+Son Deploy      : bekliyor
 ```
