@@ -27,7 +27,7 @@ import {
   ChevronDown,
   Image as ImageIcon,
 } from "lucide-react";
-import { Country, City } from "country-state-city";
+import { Country, State } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction, updateProfileAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
@@ -554,9 +554,9 @@ export default function SettingsClient({
                           disabled={!countryIso}
                           className={selectCls}
                         >
-                          <option value="">{countryIso ? "Select city..." : "Select a country first"}</option>
-                          {(City.getCitiesOfCountry(countryIso) || []).map((city) => (
-                            <option key={`${city.name}-${city.stateCode}`} value={city.name}>{city.name}</option>
+                          <option value="">{countryIso ? "Select province..." : "Select a country first"}</option>
+                          {(State.getStatesOfCountry(countryIso) || []).map((state) => (
+                            <option key={state.isoCode} value={state.name}>{state.name}</option>
                           ))}
                         </select>
                       </div>

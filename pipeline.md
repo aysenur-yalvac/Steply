@@ -8,9 +8,7 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| BE-024 | Backend_Agent | `updateProfileAction`: `country` alanını FormData'dan al ve `profiles` tablosuna yaz | Yapılıyor | — |
-| FE-025 | Frontend_Agent | `SettingsClient.tsx`: serbest location input'unu kaldır; `country-state-city` paketi ile bağımlı Country + City dropdown ekle; her ikisini save'e dahil et | Yapılıyor | — |
-| FE-026 | Frontend_Agent | `profile/page.tsx`: lokasyon bilgisini "Şehir, Ülke" formatında göster (ör. Bursa, Turkey) | Yapılıyor | — |
+| FE-027 | Frontend_Agent | `SettingsClient.tsx`: ikinci dropdown'da `City` yerine `State.getStatesOfCountry` kullan; state'in `name` değerini `location`'a yaz | Yapılıyor | — |
 
 ---
 
@@ -34,16 +32,19 @@
 | BE-023 | Backend_Agent | `updateProfileAction`: location + company alanları eklendi, id FormData bağımlılığı kaldırıldı, settings revalidate eklendi | 2026-04-24 | QA: OK |
 | FE-023 | Frontend_Agent | SettingsClient Profile sekmesi: Avatar seçici + FullName/Bio/Company/Location editable + tek "Save Profile Changes" butonu | 2026-04-24 | QA: OK |
 | FE-024 | Frontend_Agent | Profile sayfası read-only vitrine dönüştürüldü; ProfileForm kaldırıldı; "Edit Profile" → /dashboard/settings | 2026-04-24 | QA: OK |
+| BE-024 | Backend_Agent | `updateProfileAction`: `country` alanı eklendi, `profiles` tablosuna yazılıyor | 2026-04-24 | QA: OK |
+| FE-025 | Frontend_Agent | `SettingsClient.tsx`: country-state-city ile bağımlı Country + City dropdown; serbest text input kaldırıldı | 2026-04-24 | QA: OK |
+| FE-026 | Frontend_Agent | `profile/page.tsx`: lokasyon "Şehir, Ülke" formatında gösteriliyor | 2026-04-24 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 35
-Tamamlandı      : 35
+Toplam Görev    : 38
+Tamamlandı      : 38
 Yapılıyor       : 0
-QA Onaylı       : 35
+QA Onaylı       : 38
 Deploy Hazır    : EVET
-Son Deploy      : 207c299 — 2026-04-24
+Son Deploy      : 3bc1f83 — 2026-04-24
 ```
