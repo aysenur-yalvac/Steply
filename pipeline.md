@@ -6,9 +6,17 @@
 
 ## Aktif Görevler
 
+> ⚠️ **BLOCKER — Deploy öncesi zorunlu:** `supabase/migrations/20260424_notifications.sql` dosyasını Supabase SQL Editor'da çalıştır. Aksi hâlde bildirim sistemi çöker.
+
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| FE-027 | Frontend_Agent | `SettingsClient.tsx`: ikinci dropdown'da `City` yerine `State.getStatesOfCountry` kullan; state'in `name` değerini `location`'a yaz | Yapılıyor | — |
+| BE-025 | Backend_Agent | SQL migration: `notifications` tablosu + RLS politikaları | Yapılıyor | — |
+| BE-026 | Backend_Agent | `src/lib/actions.ts`: createNotificationAction, getNotificationsAction, markNotificationAsReadAction, markAllNotificationsReadAction | Yapılıyor | — |
+| BE-027 | Backend_Agent | `sendMessage` ve `addProjectMemberAction`'a bildirim hook'ları ekleniyor | Yapılıyor | — |
+| FE-028 | Frontend_Agent | `NotificationBell.tsx` client component: zil ikonu + badge + dropdown panel + okundu işareti | Yapılıyor | — |
+| FE-029 | Frontend_Agent | `layout.tsx`: top bar + NotificationBell entegrasyonu; server-side bildirim sayısı | Yapılıyor | — |
+| FE-030 | Frontend_Agent | `dashboard/page.tsx`: Upcoming Tasks bölümü — 24h içinde biten agenda görevleri uyarı banner'ı | Yapılıyor | — |
+| BE-028 | Backend_Agent | `supabase/functions/send-reminders/`: Edge Function + Cron taslağı (Resend) | Yapılıyor | — |
 
 ---
 
@@ -35,16 +43,17 @@
 | BE-024 | Backend_Agent | `updateProfileAction`: `country` alanı eklendi, `profiles` tablosuna yazılıyor | 2026-04-24 | QA: OK |
 | FE-025 | Frontend_Agent | `SettingsClient.tsx`: country-state-city ile bağımlı Country + City dropdown; serbest text input kaldırıldı | 2026-04-24 | QA: OK |
 | FE-026 | Frontend_Agent | `profile/page.tsx`: lokasyon "Şehir, Ülke" formatında gösteriliyor | 2026-04-24 | QA: OK |
+| FE-027 | Frontend_Agent | `SettingsClient.tsx`: City → State.getStatesOfCountry ile il/province seviyesine geçildi (TR: 81 il) | 2026-04-24 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 38
-Tamamlandı      : 38
+Toplam Görev    : 39
+Tamamlandı      : 39
 Yapılıyor       : 0
-QA Onaylı       : 38
+QA Onaylı       : 39
 Deploy Hazır    : EVET
-Son Deploy      : 3bc1f83 — 2026-04-24
+Son Deploy      : 74b4923 — 2026-04-24
 ```

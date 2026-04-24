@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "My Projects | Steply",
 };
 import Link from 'next/link';
-import { Plus, FolderOpen, Search, Users } from 'lucide-react';
+import { Plus, FolderOpen, Search, Users, AlertTriangle, Clock } from 'lucide-react';
 import EmptyState from '@/components/layout/EmptyState';
 import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
 import ProjectCard from '@/app/dashboard/ProjectCard';
@@ -79,6 +79,21 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     projects = all;
   }
 
+  // ── Upcoming agenda tasks (due within 24h, not completed) ────────────────────
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const { data: upcomingTasks } = await supabase
+    .from('agenda_tasks')
+    .select('id, task_title, due_date')
+    .eq('user_id', user?.id)
+    .eq('is_completed', false)
+    .lte('due_date', tomorrowStr)
+    .gte('due_date', todayStr)
+    .order('due_date', { ascending: true });
+
   // ── Collaborator projects: projects where user is in project_members but NOT owner ──
   let collaboratorProjects: any[] = [];
   const { data: membershipRows } = await supabase
@@ -121,6 +136,46 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div className="flex-1 p-6 lg:p-8 flex flex-col gap-8">
+
+        {/* ── Upcoming Tasks Banner ─────────────────────────────────────────── */}
+        {isStudent && upcomingTasks && upcomingTasks.length > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="p-1.5 rounded-lg bg-amber-100">
+                <AlertTriangle className="w-4 h-4 text-amber-600" strokeWidth={2} />
+              </div>
+              <p className="text-sm font-bold text-amber-800">Upcoming Tasks — Act Now!</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {upcomingTasks.map((task: any) => {
+                const isToday = task.due_date === todayStr;
+                return (
+                  <div
+                    key={task.id}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium ${
+                      isToday
+                        ? 'bg-red-50 border-red-200 text-red-800'
+                        : 'bg-white border-amber-200 text-amber-800'
+                    }`}
+                  >
+                    <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
+                    <span className="flex-1 truncate">{task.task_title}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {isToday ? 'Due Today!' : 'Due Tomorrow'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <Link
+              href="/dashboard/agenda"
+              className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
+            >
+              View all agenda tasks →
+            </Link>
+          </div>
+        )}
+
         {/* My Projects / Watched section */}
         {projects.length === 0 ? (
           <>

@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createNotificationAction } from "@/lib/actions";
 
 // ── Project type suggestions ───────────────────────────────────────────────────
 /**
@@ -324,6 +325,16 @@ export async function addProjectMemberAction(
     .upsert({ project_id: projectId, user_id: userId, role: "member" }, { onConflict: "project_id,user_id" });
 
   if (error) return { error: error.message };
+
+  // Notify the added member
+  const { data: projectRow } = await admin.from("projects").select("title").eq("id", projectId).single();
+  await createNotificationAction(
+    userId,
+    'project',
+    `You've been added to a project`,
+    projectRow?.title ? `Project: "${projectRow.title}"` : undefined,
+    projectId,
+  );
 
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };

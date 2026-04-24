@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { createNotificationAction } from '@/lib/actions';
 
 export async function sendMessage(formData: FormData) {
   const supabase = await createClient();
@@ -30,6 +31,22 @@ export async function sendMessage(formData: FormData) {
     console.error('Profile update error:', error);
     return { error: 'An error occurred while updating the profile.' };
   }
+
+  // Fetch sender name for notification
+  const { data: senderProfile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+  const senderName = senderProfile?.full_name || 'Someone';
+
+  await createNotificationAction(
+    receiverId,
+    'message',
+    `New message from ${senderName}`,
+    content.trim().slice(0, 120),
+    user.id,
+  );
 
   revalidatePath(currentPath || '/dashboard/messages');
   return { success: true };

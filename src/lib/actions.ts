@@ -353,3 +353,68 @@ export async function getWatchlistAction() {
   return { success: true, data: formattedData };
 }
 
+// ── Notification System ──────────────────────────────────────────────────────
+
+export type Notification = {
+  id: string;
+  type: 'message' | 'project' | 'task';
+  title: string;
+  body: string | null;
+  is_read: boolean;
+  related_id: string | null;
+  created_at: string;
+};
+
+export async function createNotificationAction(
+  userId: string,
+  type: Notification['type'],
+  title: string,
+  body?: string,
+  relatedId?: string,
+): Promise<void> {
+  const supabase = await createClient();
+  await supabase.from('notifications').insert({
+    user_id: userId,
+    type,
+    title,
+    body: body || null,
+    related_id: relatedId || null,
+  });
+}
+
+export async function getNotificationsAction(): Promise<Notification[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('id, type, title, body, is_read, related_id, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) return [];
+  return (data || []) as Notification[];
+}
+
+export async function markNotificationAsReadAction(
+  id: string,
+): Promise<{ success: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false };
+
+  await supabase.from('notifications').update({ is_read: true }).eq('id', id).eq('user_id', user.id);
+  return { success: true };
+}
+
+export async function markAllNotificationsReadAction(): Promise<{ success: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false };
+
+  await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
+  return { success: true };
+}
+
