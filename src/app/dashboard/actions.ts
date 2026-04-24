@@ -326,15 +326,25 @@ export async function addProjectMemberAction(
 
   if (error) return { error: error.message };
 
-  // Notify the added member
-  const { data: projectRow } = await admin.from("projects").select("title").eq("id", projectId).single();
-  await createNotificationAction(
-    userId,
-    'project',
-    `You've been added to a project`,
-    projectRow?.title ? `Project: "${projectRow.title}"` : undefined,
-    projectId,
-  );
+  // Notify the added member — wrapped so it never blocks the success response
+  try {
+    const { data: projectRow } = await admin
+      .from("projects")
+      .select("title, profiles!student_id(full_name)")
+      .eq("id", projectId)
+      .single();
+    const projectTitle = (projectRow as any)?.title ?? "a project";
+    const ownerName = (projectRow as any)?.profiles?.full_name ?? "A user";
+    await createNotificationAction(
+      userId,
+      'project',
+      'Yeni Proje Daveti',
+      `${ownerName} sizi "${projectTitle}" projesine ekledi.`,
+      projectId,
+    );
+  } catch (e) {
+    console.error('[addProjectMemberAction] Notification error:', e);
+  }
 
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };

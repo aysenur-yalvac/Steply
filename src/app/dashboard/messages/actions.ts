@@ -32,21 +32,24 @@ export async function sendMessage(formData: FormData) {
     return { error: 'An error occurred while updating the profile.' };
   }
 
-  // Fetch sender name for notification
-  const { data: senderProfile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single();
-  const senderName = senderProfile?.full_name || 'Someone';
-
-  await createNotificationAction(
-    receiverId,
-    'message',
-    `New message from ${senderName}`,
-    content.trim().slice(0, 120),
-    user.id,
-  );
+  // Notify the receiver — wrapped so it never blocks the success response
+  try {
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+    const senderName = senderProfile?.full_name || 'Someone';
+    await createNotificationAction(
+      receiverId,
+      'message',
+      `New message from ${senderName}`,
+      content.trim().slice(0, 120),
+      user.id,
+    );
+  } catch (e) {
+    console.error('[sendMessage] Notification error:', e);
+  }
 
   revalidatePath(currentPath || '/dashboard/messages');
   return { success: true };

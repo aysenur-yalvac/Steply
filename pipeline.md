@@ -8,7 +8,9 @@
 
 > ⚠️ **Manuel Adım Gerekli:** `supabase/migrations/20260424_notifications.sql` içeriğini Supabase SQL Editor'da çalıştır.
 
-_Kod görevleri tamamlandı — migration apply bekleniyor._
+| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
+|----------|-----------|--------------|-------|----------|
+| BE-029 | Backend_Agent | `createNotificationAction`: `createClient()` → `createAdminClient()` (RLS bypass); try/catch + console.error logging; `addProjectMemberAction`'da owner adı ile zengin bildirim | Yapılıyor | — |
 
 ---
 

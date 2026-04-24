@@ -372,14 +372,21 @@ export async function createNotificationAction(
   body?: string,
   relatedId?: string,
 ): Promise<void> {
-  const supabase = await createClient();
-  await supabase.from('notifications').insert({
-    user_id: userId,
-    type,
-    title,
-    body: body || null,
-    related_id: relatedId || null,
-  });
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.from('notifications').insert({
+      user_id: userId,
+      type,
+      title,
+      body: body || null,
+      related_id: relatedId || null,
+    });
+    if (error) {
+      console.error('[createNotificationAction] DB insert error:', error.message, error.code, { userId, type, title });
+    }
+  } catch (e) {
+    console.error('[createNotificationAction] Unexpected error:', e);
+  }
 }
 
 export async function getNotificationsAction(): Promise<Notification[]> {
