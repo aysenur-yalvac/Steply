@@ -203,10 +203,15 @@ export async function deleteQuickNoteAction(projectId: string) {
 
 export async function updateProfileAction(formData: FormData) {
   const supabase = await createClient();
-  const id = formData.get('id') as string;
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "Unauthorized" };
+
   const full_name = formData.get('full_name') as string;
   const phone_number = formData.get('phone_number') as string;
   const bio = formData.get('bio') as string;
+  const company = formData.get('company') as string;
+  const location = formData.get('location') as string;
   const github_url = formData.get('github_url') as string;
   const linkedin_url = formData.get('linkedin_url') as string;
   const twitter_url = formData.get('twitter_url') as string;
@@ -214,27 +219,24 @@ export async function updateProfileAction(formData: FormData) {
   const avatar_url = formData.get('avatar_url') as string;
   const institution = formData.get('institution') as string;
 
-  if (!id) return { error: "User ID missing" };
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return { error: "Unauthorized" };
-  if (user.id !== id) return { error: "Forbidden: cannot modify another user's profile" };
-
   const { error } = await supabase.from('profiles').update({
     full_name,
     phone_number,
     bio,
+    company,
+    location,
     github_url,
     linkedin_url,
     twitter_url,
     website_url,
     avatar_url,
     institution,
-  }).eq('id', id);
+  }).eq('id', user.id);
 
   if (error) return { error: error.message };
 
-  revalidatePath('/dashboard/profile');
+  revalidatePath('/dashboard/profile', 'page');
+  revalidatePath('/dashboard/settings', 'page');
   return { success: true };
 }
 

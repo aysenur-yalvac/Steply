@@ -24,17 +24,47 @@ import {
   Globe,
   MapPin,
   Building2,
+  Check,
+  ChevronDown,
+  Image as ImageIcon,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
-import { updateUserPrivacyAction, updateSocialLinksAction } from "@/lib/actions";
+import { updateUserPrivacyAction, updateProfileAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 
+const ALL_AVATARS = [
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Leo&backgroundColor=b6e3f4",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Mia&backgroundColor=ffd5dc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Ryan&backgroundColor=c0aaf7",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Chloe&backgroundColor=d1f4cc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Wyatt&backgroundColor=ffdfbf",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Robert&backgroundColor=b6e3f4",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Mary&backgroundColor=ffd5dc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=William&backgroundColor=c0aaf7",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Patricia&backgroundColor=d1f4cc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Richard&backgroundColor=ffdfbf",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Luna&backgroundColor=b6e3f4",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=ffd5dc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Nova&backgroundColor=c0aaf7",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Orion&backgroundColor=d1f4cc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Stella&backgroundColor=ffdfbf",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jasper&backgroundColor=b6e3f4",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Aurora&backgroundColor=ffd5dc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Kai&backgroundColor=c0aaf7",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Ember&backgroundColor=d1f4cc",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Atlas&backgroundColor=ffdfbf",
+];
+const AVATAR_VISIBLE = 5;
+
 interface SettingsClientProps {
   email: string;
-  fullName: string;
+  initialFullName: string;
+  initialBio: string;
+  initialCompany: string;
+  initialLocation: string;
+  initialAvatarUrl: string;
   initialIsPublic: boolean;
-  updateProfile: (formData: FormData) => Promise<void>;
   initialGithubUrl: string;
   initialLinkedinUrl: string;
   initialTwitterUrl: string;
@@ -147,9 +177,12 @@ function NotifRow({
 
 export default function SettingsClient({
   email,
-  fullName,
+  initialFullName,
+  initialBio,
+  initialCompany,
+  initialLocation,
+  initialAvatarUrl,
   initialIsPublic,
-  updateProfile,
   initialGithubUrl,
   initialLinkedinUrl,
   initialTwitterUrl,
@@ -157,20 +190,18 @@ export default function SettingsClient({
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  // Profile — extended fields
-  const [bio, setBio] = useState("");
-  const [company, setCompany] = useState("");
-  const [location, setLocation] = useState("");
-  const [isLocationSaving, setIsLocationSaving] = useState(false);
-
-  // Social links — initialized from DB via props
-  const [socialLinks, setSocialLinks] = useState({
-    github:   initialGithubUrl,
-    linkedin: initialLinkedinUrl,
-    twitter:  initialTwitterUrl,
-    website:  initialWebsiteUrl,
-  });
-  const [isSocialSaving, setIsSocialSaving] = useState(false);
+  // Profile fields
+  const [fullName, setFullName] = useState(initialFullName);
+  const [bio, setBio] = useState(initialBio);
+  const [company, setCompany] = useState(initialCompany);
+  const [location, setLocation] = useState(initialLocation);
+  const [selectedAvatar, setSelectedAvatar] = useState(initialAvatarUrl || ALL_AVATARS[0]);
+  const [avatarExpanded, setAvatarExpanded] = useState(false);
+  const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
+  const [linkedinUrl, setLinkedinUrl] = useState(initialLinkedinUrl);
+  const [twitterUrl, setTwitterUrl] = useState(initialTwitterUrl);
+  const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
 
   // Preferences
   const [isPublic, setIsPublic] = useState(initialIsPublic);
@@ -189,34 +220,28 @@ export default function SettingsClient({
   const [watchlistAlerts, setWatchlistAlerts] = useState(true);
   const [projectInvites, setProjectInvites] = useState(true);
 
-  async function handleLocationSave() {
-    if (!location.trim()) return;
-    setIsLocationSaving(true);
-    try {
-      await new Promise((r) => setTimeout(r, 600));
-      toast.success("Location saved.");
-    } finally {
-      setIsLocationSaving(false);
-    }
-  }
-
-  async function handleSocialSave(e: React.FormEvent) {
+  async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
-    setIsSocialSaving(true);
+    setIsProfileSaving(true);
     try {
-      const result = await updateSocialLinksAction({
-        github_url:   socialLinks.github,
-        linkedin_url: socialLinks.linkedin,
-        twitter_url:  socialLinks.twitter,
-        website_url:  socialLinks.website,
-      });
-      if (result.success) {
-        toast.success("Social links updated.");
+      const formData = new FormData();
+      formData.set("full_name", fullName);
+      formData.set("bio", bio);
+      formData.set("company", company);
+      formData.set("location", location);
+      formData.set("avatar_url", selectedAvatar);
+      formData.set("github_url", githubUrl);
+      formData.set("linkedin_url", linkedinUrl);
+      formData.set("twitter_url", twitterUrl);
+      formData.set("website_url", websiteUrl);
+      const result = await updateProfileAction(formData);
+      if ("error" in result) {
+        toast.error(result.error || "Failed to save profile.");
       } else {
-        toast.error(result.error || "Failed to update social links.");
+        toast.success("Profile saved successfully.");
       }
     } finally {
-      setIsSocialSaving(false);
+      setIsProfileSaving(false);
     }
   }
 
@@ -363,149 +388,192 @@ export default function SettingsClient({
               >
                 {/* ── PROFILE ── */}
                 {activeTab === "profile" && (
-                  <div className="space-y-6 max-w-xl">
-                    {/* Section intro */}
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Public Profile</p>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Your profile information is managed from the{" "}
-                        <span className="text-violet-500 font-medium">Profile page</span>. Only your location can be updated here.
-                      </p>
+                  <form onSubmit={handleProfileSave} className="space-y-6 max-w-xl">
+
+                    {/* Avatar selector */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-violet-500" /> Avatar
+                      </label>
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          {ALL_AVATARS.slice(0, AVATAR_VISIBLE).map((av) => (
+                            <button
+                              key={av}
+                              type="button"
+                              onClick={() => setSelectedAvatar(av)}
+                              className="relative w-11 h-11 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
+                              style={selectedAvatar === av ? { boxShadow: "0 0 0 3px #7C3AFF" } : {}}
+                            >
+                              <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                              {selectedAvatar === av && (
+                                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
+                                  <Check className="w-3.5 h-3.5 text-white drop-shadow" strokeWidth={3} />
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setAvatarExpanded((v) => !v)}
+                            className="w-11 h-11 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
+                          >
+                            <motion.span animate={{ rotate: avatarExpanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
+                              <ChevronDown className="w-4 h-4" />
+                            </motion.span>
+                          </button>
+                        </div>
+                        <AnimatePresence initial={false}>
+                          {avatarExpanded && (
+                            <motion.div
+                              key="avatar-grid"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                              className="overflow-hidden"
+                            >
+                              <div className="grid grid-cols-5 gap-3 pt-3">
+                                {ALL_AVATARS.slice(AVATAR_VISIBLE).map((av) => (
+                                  <button
+                                    key={av}
+                                    type="button"
+                                    onClick={() => setSelectedAvatar(av)}
+                                    className="relative w-11 h-11 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
+                                    style={selectedAvatar === av ? { boxShadow: "0 0 0 3px #7C3AFF" } : {}}
+                                  >
+                                    <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                                    {selectedAvatar === av && (
+                                      <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
+                                        <Check className="w-3.5 h-3.5 text-white drop-shadow" strokeWidth={3} />
+                                      </span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
-                    {/* Read-only fields */}
-                    <div className="space-y-4">
-                      {/* Full Name — read-only */}
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-500">Full Name</label>
+                    {/* Full Name */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="s-fullname" className="text-sm font-medium text-slate-600">Full Name</label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
+                          id="s-fullname"
                           type="text"
-                          readOnly
                           value={fullName}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed text-sm select-none"
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="Your full name"
+                          className={`${inputCls} pl-9`}
                         />
                       </div>
+                    </div>
 
-                      {/* Email — read-only */}
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-500">Email Address</label>
+                    {/* Email — read-only */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-slate-500">Email Address</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input
                           type="email"
                           readOnly
                           value={email}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed text-sm select-none"
+                          className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 cursor-not-allowed text-sm select-none"
                         />
                       </div>
+                    </div>
 
-                      {/* Bio — read-only */}
+                    {/* Bio */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="s-bio" className="text-sm font-medium text-slate-600">Bio</label>
+                      <textarea
+                        id="s-bio"
+                        rows={3}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Tell the world a little about yourself..."
+                        className={`${inputCls} resize-none`}
+                      />
+                    </div>
+
+                    {/* Company + Location */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-500">Bio</label>
-                        <textarea
-                          readOnly
-                          rows={3}
-                          value={bio}
-                          placeholder="No bio yet — update it on your Profile page."
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed text-sm resize-none select-none"
-                        />
-                      </div>
-
-                      {/* Company — read-only, Location — editable */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-slate-500">Company</label>
-                          <div className="relative">
-                            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                            <input
-                              type="text"
-                              readOnly
-                              value={company}
-                              placeholder="—"
-                              className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed text-sm select-none"
-                            />
-                          </div>
+                        <label htmlFor="s-company" className="text-sm font-medium text-slate-600">Company</label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            id="s-company"
+                            type="text"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
+                            placeholder="Your company or org"
+                            className={`${inputCls} pl-9`}
+                          />
                         </div>
-
-                        {/* Location — only editable field */}
-                        <div className="space-y-1.5">
-                          <label htmlFor="location" className="text-sm font-medium text-slate-600">
-                            Location <span className="text-violet-500 text-xs font-normal">(editable)</span>
-                          </label>
-                          <div className="flex gap-2">
-                            <div className="relative flex-1">
-                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <input
-                                id="location"
-                                type="text"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                placeholder="Istanbul, TR"
-                                className={`${inputCls} pl-9`}
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={handleLocationSave}
-                              disabled={isLocationSaving || !location.trim()}
-                              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {isLocationSaving ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Save className="w-3.5 h-3.5" strokeWidth={2} />
-                              )}
-                              {isLocationSaving ? "Saving" : "Save"}
-                            </button>
-                          </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label htmlFor="s-location" className="text-sm font-medium text-slate-600">Location</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            id="s-location"
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            placeholder="Istanbul, TR"
+                            className={`${inputCls} pl-9`}
+                          />
                         </div>
                       </div>
                     </div>
 
-                    {/* Social accounts — editable, synced to DB */}
-                    <form onSubmit={handleSocialSave} className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
-                        <p className="text-xs text-slate-400">Synced with your Profile page</p>
-                      </div>
-
+                    {/* Social links */}
+                    <div className="space-y-3 pt-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
                       {([
-                        { key: "github",   icon: <Github   className="w-4 h-4" />, label: "GitHub",      placeholder: "https://github.com/username" },
-                        { key: "linkedin", icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn",    placeholder: "https://linkedin.com/in/username" },
-                        { key: "twitter",  icon: <Twitter  className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/username" },
-                        { key: "website",  icon: <Globe    className="w-4 h-4" />, label: "Website",     placeholder: "https://yourwebsite.com" },
-                      ] as const).map(({ key, icon, label, placeholder }) => (
-                        <div key={key} className="space-y-1.5">
-                          <label htmlFor={`social-${key}`} className="text-sm font-medium text-slate-600">{label}</label>
+                        { icon: <Github className="w-4 h-4" />, label: "GitHub", placeholder: "https://github.com/username", value: githubUrl, set: setGithubUrl },
+                        { icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn", placeholder: "https://linkedin.com/in/username", value: linkedinUrl, set: setLinkedinUrl },
+                        { icon: <Twitter className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/username", value: twitterUrl, set: setTwitterUrl },
+                        { icon: <Globe className="w-4 h-4" />, label: "Website", placeholder: "https://yourwebsite.com", value: websiteUrl, set: setWebsiteUrl },
+                      ]).map(({ icon, label, placeholder, value, set }) => (
+                        <div key={label} className="space-y-1.5">
+                          <label className="text-sm font-medium text-slate-600">{label}</label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
                             <input
-                              id={`social-${key}`}
                               type="url"
-                              value={socialLinks[key]}
-                              onChange={(e) => setSocialLinks((p) => ({ ...p, [key]: e.target.value }))}
+                              value={value}
+                              onChange={(e) => set(e.target.value)}
                               placeholder={placeholder}
                               className={`${inputCls} pl-9`}
                             />
                           </div>
                         </div>
                       ))}
+                    </div>
 
-                      <div className="pt-2">
-                        <button
-                          type="submit"
-                          disabled={isSocialSaving}
-                          className={primaryBtn}
-                          style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
-                        >
-                          {isSocialSaving ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Save className="w-4 h-4" strokeWidth={1.5} />
-                          )}
-                          {isSocialSaving ? "Saving..." : "Save Social Links"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
+                    {/* Save button */}
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        disabled={isProfileSaving}
+                        className={primaryBtn}
+                        style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                      >
+                        {isProfileSaving ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" strokeWidth={1.5} />
+                        )}
+                        {isProfileSaving ? "Saving..." : "Save Profile Changes"}
+                      </button>
+                    </div>
+                  </form>
                 )}
 
                 {/* ── SECURITY ── */}

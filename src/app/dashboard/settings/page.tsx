@@ -1,6 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import SettingsClient from "./SettingsClient";
 
 export default async function SettingsPage() {
@@ -20,36 +19,15 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .single();
 
-  async function updateProfile(formData: FormData) {
-    "use server";
-
-    const fullName = formData.get("fullName") as string;
-    const supabase = await createClient();
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name: fullName })
-      .eq("id", user?.id);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    await supabase.auth.updateUser({
-      data: { full_name: fullName }
-    });
-
-    revalidatePath("/dashboard/settings", "page");
-    revalidatePath("/", "layout");
-  }
-
   return (
     <SettingsClient
       email={user.email ?? ""}
-      fullName={profile?.full_name || user.user_metadata?.full_name || ""}
+      initialFullName={profile?.full_name || user.user_metadata?.full_name || ""}
+      initialBio={profile?.bio || ""}
+      initialCompany={profile?.company || ""}
+      initialLocation={profile?.location || ""}
+      initialAvatarUrl={profile?.avatar_url || ""}
       initialIsPublic={profile?.is_public ?? true}
-      updateProfile={updateProfile}
       initialGithubUrl={profile?.github_url || ""}
       initialLinkedinUrl={profile?.linkedin_url || ""}
       initialTwitterUrl={profile?.twitter_url || ""}

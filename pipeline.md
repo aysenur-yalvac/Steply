@@ -1,15 +1,12 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-17
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-24
 
 ---
 
 ## Aktif Görevler
 
-| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
-|----------|-----------|--------------|-------|----------|
-| BE-022 | Backend_Agent | `actions.ts`: `updateSocialLinksAction` — github/linkedin/twitter/website DB sync | Yapılıyor | — |
-| FE-022 | Frontend_Agent | `settings/page.tsx` + `SettingsClient.tsx`: social link prop geçişi, editable alanlar, DB kayıt | Yapılıyor | — |
+_Tüm görevler tamamlandı._
 
 ---
 
@@ -19,26 +16,30 @@
 |----------|-----------|--------------|-------------------|----------|
 | BE-001..BE-007 | Backend_Agent | Tüm önceki backend fixler | 2026-04-13 | QA: OK |
 | FE-001..FE-003 | Frontend_Agent | Tüm önceki frontend fixler | 2026-04-13 | QA: OK |
-| BE-008 | Backend_Agent | `saveFileRecordAction` + `deleteFileAction`: collaborator yetki kontrolü | 2026-04-13 | QA: OK |
-| FE-004..FE-006 | Frontend_Agent | Dashboard watchlist + privacy fixler | 2026-04-13 | QA: OK |
-| FE-007..FE-012 | Frontend_Agent | Kanban + ProjectCard + Dashboard UI iyileştirmeleri | 2026-04-13 | QA: OK |
-| BE-009 | Backend_Agent | `api/search/route.ts`: `isWatched` alanı | 2026-04-13 | QA: OK |
+| BE-008 | Backend_Agent | Collaborator yetki kontrolü | 2026-04-13 | QA: OK |
+| FE-004..FE-012 | Frontend_Agent | Dashboard + Kanban + ProjectCard UI | 2026-04-13 | QA: OK |
+| BE-009 | Backend_Agent | Search isWatched alanı | 2026-04-13 | QA: OK |
 | FE-013..FE-016 | Frontend_Agent | Search watchlist + ProfileProjectsPanel | 2026-04-13 | QA: OK |
 | FE-017 | Frontend_Agent | Password visibility toggle | 2026-04-17 | QA: OK |
 | FE-018 | Frontend_Agent | Settings sidebar nav layout | 2026-04-17 | QA: OK |
 | FE-019 | Frontend_Agent | Notifications sekmesi | 2026-04-17 | QA: OK |
 | FE-020 | Frontend_Agent | Profile sekmesi genişletme | 2026-04-17 | QA: OK |
 | FE-021 | Frontend_Agent | Profile read-only refactor + inline Location save | 2026-04-17 | QA: OK |
+| BE-022 | Backend_Agent | `updateSocialLinksAction` — github/linkedin/twitter/website DB sync | 2026-04-17 | QA: OK |
+| FE-022 | Frontend_Agent | Settings social links: prop geçişi + editable + website alanı + DB kayıt | 2026-04-17 | QA: OK |
+| BE-023 | Backend_Agent | `updateProfileAction`: location + company alanları eklendi, id FormData bağımlılığı kaldırıldı, settings revalidate eklendi | 2026-04-24 | QA: OK |
+| FE-023 | Frontend_Agent | SettingsClient Profile sekmesi: Avatar seçici + FullName/Bio/Company/Location editable + tek "Save Profile Changes" butonu | 2026-04-24 | QA: OK |
+| FE-024 | Frontend_Agent | Profile sayfası read-only vitrine dönüştürüldü; ProfileForm kaldırıldı; "Edit Profile" → /dashboard/settings | 2026-04-24 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 32
-Tamamlandı      : 30
-Yapılıyor       : 2
-QA Onaylı       : 30
-Deploy Hazır    : HAYIR
-Son Deploy      : 3b445fe — 2026-04-17
+Toplam Görev    : 35
+Tamamlandı      : 35
+Yapılıyor       : 0
+QA Onaylı       : 35
+Deploy Hazır    : EVET
+Son Deploy      : bekliyor — 2026-04-24
 ```
