@@ -6,17 +6,9 @@
 
 ## Aktif Görevler
 
-> ⚠️ **BLOCKER — Deploy öncesi zorunlu:** `supabase/migrations/20260424_notifications.sql` dosyasını Supabase SQL Editor'da çalıştır. Aksi hâlde bildirim sistemi çöker.
+> ⚠️ **Manuel Adım Gerekli:** `supabase/migrations/20260424_notifications.sql` içeriğini Supabase SQL Editor'da çalıştır.
 
-| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
-|----------|-----------|--------------|-------|----------|
-| BE-025 | Backend_Agent | SQL migration: `notifications` tablosu + RLS politikaları | Yapılıyor | — |
-| BE-026 | Backend_Agent | `src/lib/actions.ts`: createNotificationAction, getNotificationsAction, markNotificationAsReadAction, markAllNotificationsReadAction | Yapılıyor | — |
-| BE-027 | Backend_Agent | `sendMessage` ve `addProjectMemberAction`'a bildirim hook'ları ekleniyor | Yapılıyor | — |
-| FE-028 | Frontend_Agent | `NotificationBell.tsx` client component: zil ikonu + badge + dropdown panel + okundu işareti | Yapılıyor | — |
-| FE-029 | Frontend_Agent | `layout.tsx`: top bar + NotificationBell entegrasyonu; server-side bildirim sayısı | Yapılıyor | — |
-| FE-030 | Frontend_Agent | `dashboard/page.tsx`: Upcoming Tasks bölümü — 24h içinde biten agenda görevleri uyarı banner'ı | Yapılıyor | — |
-| BE-028 | Backend_Agent | `supabase/functions/send-reminders/`: Edge Function + Cron taslağı (Resend) | Yapılıyor | — |
+_Kod görevleri tamamlandı — migration apply bekleniyor._
 
 ---
 
@@ -44,16 +36,23 @@
 | FE-025 | Frontend_Agent | `SettingsClient.tsx`: country-state-city ile bağımlı Country + City dropdown; serbest text input kaldırıldı | 2026-04-24 | QA: OK |
 | FE-026 | Frontend_Agent | `profile/page.tsx`: lokasyon "Şehir, Ülke" formatında gösteriliyor | 2026-04-24 | QA: OK |
 | FE-027 | Frontend_Agent | `SettingsClient.tsx`: City → State.getStatesOfCountry ile il/province seviyesine geçildi (TR: 81 il) | 2026-04-24 | QA: OK |
+| BE-025 | Backend_Agent | `supabase/migrations/20260424_notifications.sql`: notifications tablosu + RLS | 2026-04-24 | QA: OK |
+| BE-026 | Backend_Agent | `lib/actions.ts`: createNotificationAction + getNotificationsAction + markAsRead/All | 2026-04-24 | QA: OK |
+| BE-027 | Backend_Agent | sendMessage + addProjectMemberAction'a bildirim hook'ları | 2026-04-24 | QA: OK |
+| FE-028 | Frontend_Agent | NotificationBell.tsx: zil + badge + dropdown + tip ikonları + mark-as-read | 2026-04-24 | QA: OK |
+| FE-029 | Frontend_Agent | layout.tsx: top bar + NotificationBell server-side entegrasyonu + graceful degrade | 2026-04-24 | QA: OK |
+| FE-030 | Frontend_Agent | dashboard/page.tsx: Upcoming Tasks banner (today/tomorrow) öğrenci dashboardında | 2026-04-24 | QA: OK |
+| BE-028 | Backend_Agent | supabase/functions/send-reminders/: Resend edge function taslağı + cron talimatları | 2026-04-24 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 39
-Tamamlandı      : 39
+Toplam Görev    : 47
+Tamamlandı      : 47
 Yapılıyor       : 0
-QA Onaylı       : 39
-Deploy Hazır    : EVET
-Son Deploy      : 74b4923 — 2026-04-24
+QA Onaylı       : 47
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli)
+Son Deploy      : cb0c005 — 2026-04-24
 ```
