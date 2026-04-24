@@ -6,11 +6,12 @@ import { Star, Trash2 } from 'lucide-react';
 import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
+import ProjectTaskList from '@/components/projects/ProjectTaskList';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
 import { Avatar } from '@/components/ui/avatar';
-import { ProjectFile } from '@/lib/actions';
+import { ProjectFile, ProjectTask } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
   params,
@@ -159,6 +160,14 @@ export default async function ProjectDetailPage({
     }));
   }
 
+  // ── Project Tasks ─────────────────────────────────────────────────────────────
+  const { data: projectTasksRaw } = await admin
+    .from('project_tasks')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true });
+  const projectTasks: ProjectTask[] = (projectTasksRaw ?? []) as ProjectTask[];
+
   const isCompleted = project.progress_percentage === 100;
 
   const cleanedDescription = (project.description ?? "")
@@ -211,6 +220,12 @@ export default async function ProjectDetailPage({
               currentUserId={user.id}
               isCompleted={isCompleted}
               isCollaborator={isCollaborator}
+            />
+
+            <ProjectTaskList
+              projectId={project.id}
+              initialTasks={projectTasks}
+              canEdit={isOwner || isCollaborator}
             />
 
             <FileSection

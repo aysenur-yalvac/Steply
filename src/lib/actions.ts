@@ -425,3 +425,103 @@ export async function markAllNotificationsReadAction(): Promise<{ success: boole
   return { success: true };
 }
 
+// ── Project Tasks ────────────────────────────────────────────────────────────
+
+export type ProjectTask = {
+  id: string;
+  project_id: string;
+  title: string;
+  is_completed: boolean;
+  created_at: string;
+};
+
+async function recalculateProgress(admin: ReturnType<typeof createAdminClient>, projectId: string) {
+  const { data: allTasks } = await admin
+    .from('project_tasks')
+    .select('is_completed')
+    .eq('project_id', projectId);
+
+  const total = allTasks?.length ?? 0;
+  const completed = (allTasks ?? []).filter((t: any) => t.is_completed).length;
+  const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  await admin.from('projects').update({ progress_percentage: progress }).eq('id', projectId);
+  return progress;
+}
+
+async function assertProjectAccess(supabase: Awaited<ReturnType<typeof createClient>>, projectId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const admin = createAdminClient();
+  const { data: project } = await admin.from('projects').select('student_id').eq('id', projectId).single();
+  if (!project) return null;
+  if (project.student_id === user.id) return { user, admin, role: 'owner' as const };
+  const { data: membership } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
+  if (membership) return { user, admin, role: 'collaborator' as const };
+  return null;
+}
+
+export async function addProjectTask(
+  projectId: string,
+  title: string,
+): Promise<{ success: true; task: ProjectTask } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  const { data, error } = await ctx.admin
+    .from('project_tasks')
+    .insert({ project_id: projectId, title: title.trim(), is_completed: false })
+    .select()
+    .single();
+
+  if (error || !data) return { error: error?.message ?? 'Insert failed' };
+
+  await recalculateProgress(ctx.admin, projectId);
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true, task: data as ProjectTask };
+}
+
+export async function toggleTaskCompletion(
+  taskId: string,
+  projectId: string,
+  isCompleted: boolean,
+): Promise<{ success: true; progress: number } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  const { error } = await ctx.admin
+    .from('project_tasks')
+    .update({ is_completed: isCompleted })
+    .eq('id', taskId)
+    .eq('project_id', projectId);
+
+  if (error) return { error: error.message };
+
+  const progress = await recalculateProgress(ctx.admin, projectId);
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true, progress };
+}
+
+export async function deleteProjectTask(
+  taskId: string,
+  projectId: string,
+): Promise<{ success: true; progress: number } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  const { error } = await ctx.admin
+    .from('project_tasks')
+    .delete()
+    .eq('id', taskId)
+    .eq('project_id', projectId);
+
+  if (error) return { error: error.message };
+
+  const progress = await recalculateProgress(ctx.admin, projectId);
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true, progress };
+}
+

@@ -26,7 +26,6 @@ const PRIORITIES: { value: Priority; activeClass: string }[] = [
 
 export default function NewProjectPage() {
   const [isPending, setIsPending] = useState(false);
-  const [progressPercentage, setProgressPercentage] = useState(0);
   const [priority, setPriority] = useState<Priority>('Medium');
   const router = useRouter();
 
@@ -42,10 +41,7 @@ export default function NewProjectPage() {
     if (!formData.get('platform')) {
       formData.set('platform', 'General');
     }
-    const progress = formData.get('progress_percentage');
-    if (!progress) {
-      formData.set('progress_percentage', '0');
-    }
+    formData.set('progress_percentage', '0');
 
     setIsPending(true);
     try {
@@ -139,30 +135,12 @@ export default function NewProjectPage() {
               />
             </div>
 
-            {/* Initial Progress */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center ml-1">
-                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <BarChart3 className="w-4 h-4 text-indigo-500" /> Initial Progress
-                </label>
-                <span className="text-xl font-bold text-indigo-500">%{progressPercentage}</span>
-              </div>
-              <div className="space-y-2">
-                <input
-                  name="progress_percentage"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={progressPercentage}
-                  onChange={(e) => setProgressPercentage(parseInt(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 shadow-inner"
-                />
-                <div className="flex justify-between text-[10px] text-slate-400 font-medium px-1">
-                  <span>START</span>
-                  <span>HALF</span>
-                  <span>COMPLETED</span>
-                </div>
-              </div>
+            {/* Progress — auto-calculated */}
+            <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-indigo-50 border border-indigo-100">
+              <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-indigo-600 leading-snug">
+                <span className="font-semibold">Progress is calculated automatically</span> based on completed milestones. You can add milestones after creating the project.
+              </p>
             </div>
 
             {/* Submit Button */}

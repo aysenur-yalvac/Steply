@@ -6,11 +6,18 @@
 
 ## Aktif Görevler
 
-> ⚠️ **Manuel Adım Gerekli:** `supabase/migrations/20260424_notifications.sql` içeriğini Supabase SQL Editor'da çalıştır.
+> ⚠️ **Manuel Adım Gerekli (2 migration):**
+> 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
+> 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| BE-029 | Backend_Agent | `createNotificationAction`: `createClient()` → `createAdminClient()` (RLS bypass); try/catch + console.error logging; `addProjectMemberAction`'da owner adı ile zengin bildirim | Yapılıyor | — |
+| BE-029 | Backend_Agent | `createNotificationAction`: `createClient()` → `createAdminClient()` (RLS bypass) | Tamamlandı | QA: OK |
+| BE-030 | Backend_Agent | SQL migration: `project_tasks` tablosu + RLS | Tamamlandı | QA: OK |
+| BE-031 | Backend_Agent | addProjectTask, toggleTaskCompletion, deleteProjectTask + otomatik progress hesaplama | Tamamlandı | QA: OK |
+| FE-031 | Frontend_Agent | `ProjectTaskList.tsx` client component: görev ekleme, checkbox, silme, optimistic UI | Tamamlandı | QA: OK |
+| FE-032 | Frontend_Agent | `project/[id]/page.tsx`: project_tasks fetch + ProjectTaskList entegrasyonu | Tamamlandı | QA: OK |
+| FE-033 | Frontend_Agent | `projects/new/page.tsx`: progress slider kaldır, "otomatik hesaplanır" bilgi notu | Tamamlandı | QA: OK |
 
 ---
 
@@ -51,10 +58,10 @@
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 47
-Tamamlandı      : 47
+Toplam Görev    : 52
+Tamamlandı      : 52
 Yapılıyor       : 0
-QA Onaylı       : 47
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli)
-Son Deploy      : cb0c005 — 2026-04-24
+QA Onaylı       : 52
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260424_project_tasks.sql)
+Son Deploy      : — (commit pending)
 ```
