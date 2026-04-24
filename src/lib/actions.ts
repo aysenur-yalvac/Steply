@@ -211,6 +211,7 @@ export async function updateProfileAction(formData: FormData) {
   const phone_number = formData.get('phone_number') as string;
   const bio = formData.get('bio') as string;
   const company = formData.get('company') as string;
+  const country = formData.get('country') as string;
   const location = formData.get('location') as string;
   const github_url = formData.get('github_url') as string;
   const linkedin_url = formData.get('linkedin_url') as string;
@@ -224,6 +225,7 @@ export async function updateProfileAction(formData: FormData) {
     phone_number,
     bio,
     company,
+    country,
     location,
     github_url,
     linkedin_url,

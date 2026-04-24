@@ -1,12 +1,16 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-24
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-24 (Operasyon 2)
 
 ---
 
 ## Aktif Görevler
 
-_Tüm görevler tamamlandı._
+| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
+|----------|-----------|--------------|-------|----------|
+| BE-024 | Backend_Agent | `updateProfileAction`: `country` alanını FormData'dan al ve `profiles` tablosuna yaz | Yapılıyor | — |
+| FE-025 | Frontend_Agent | `SettingsClient.tsx`: serbest location input'unu kaldır; `country-state-city` paketi ile bağımlı Country + City dropdown ekle; her ikisini save'e dahil et | Yapılıyor | — |
+| FE-026 | Frontend_Agent | `profile/page.tsx`: lokasyon bilgisini "Şehir, Ülke" formatında göster (ör. Bursa, Turkey) | Yapılıyor | — |
 
 ---
 
@@ -41,5 +45,5 @@ Tamamlandı      : 35
 Yapılıyor       : 0
 QA Onaylı       : 35
 Deploy Hazır    : EVET
-Son Deploy      : bekliyor — 2026-04-24
+Son Deploy      : 207c299 — 2026-04-24
 ```

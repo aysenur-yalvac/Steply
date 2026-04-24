@@ -22,12 +22,12 @@ import {
   Twitter,
   Linkedin,
   Globe,
-  MapPin,
   Building2,
   Check,
   ChevronDown,
   Image as ImageIcon,
 } from "lucide-react";
+import { Country, City } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
 import { updateUserPrivacyAction, updateProfileAction } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
@@ -62,6 +62,7 @@ interface SettingsClientProps {
   initialFullName: string;
   initialBio: string;
   initialCompany: string;
+  initialCountry: string;
   initialLocation: string;
   initialAvatarUrl: string;
   initialIsPublic: boolean;
@@ -122,6 +123,9 @@ const fadeIn: Variants = {
 const inputCls =
   "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
+const selectCls =
+  "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
+
 const primaryBtn =
   "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
 
@@ -180,6 +184,7 @@ export default function SettingsClient({
   initialFullName,
   initialBio,
   initialCompany,
+  initialCountry,
   initialLocation,
   initialAvatarUrl,
   initialIsPublic,
@@ -194,7 +199,11 @@ export default function SettingsClient({
   const [fullName, setFullName] = useState(initialFullName);
   const [bio, setBio] = useState(initialBio);
   const [company, setCompany] = useState(initialCompany);
-  const [location, setLocation] = useState(initialLocation);
+  const [countryIso, setCountryIso] = useState(() => {
+    if (!initialCountry) return "";
+    return Country.getAllCountries().find((c) => c.name === initialCountry)?.isoCode || "";
+  });
+  const [selectedCity, setSelectedCity] = useState(initialLocation);
   const [selectedAvatar, setSelectedAvatar] = useState(initialAvatarUrl || ALL_AVATARS[0]);
   const [avatarExpanded, setAvatarExpanded] = useState(false);
   const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
@@ -228,7 +237,8 @@ export default function SettingsClient({
       formData.set("full_name", fullName);
       formData.set("bio", bio);
       formData.set("company", company);
-      formData.set("location", location);
+      formData.set("country", Country.getCountryByCode(countryIso)?.name || "");
+      formData.set("location", selectedCity);
       formData.set("avatar_url", selectedAvatar);
       formData.set("github_url", githubUrl);
       formData.set("linkedin_url", linkedinUrl);
@@ -500,35 +510,55 @@ export default function SettingsClient({
                       />
                     </div>
 
-                    {/* Company + Location */}
+                    {/* Company */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="s-company" className="text-sm font-medium text-slate-600">Company</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          id="s-company"
+                          type="text"
+                          value={company}
+                          onChange={(e) => setCompany(e.target.value)}
+                          placeholder="Your company or org"
+                          className={`${inputCls} pl-9`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Location — Country + City dropdowns */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label htmlFor="s-company" className="text-sm font-medium text-slate-600">Company</label>
+                        <label htmlFor="s-country" className="text-sm font-medium text-slate-600">Country</label>
                         <div className="relative">
-                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            id="s-company"
-                            type="text"
-                            value={company}
-                            onChange={(e) => setCompany(e.target.value)}
-                            placeholder="Your company or org"
-                            className={`${inputCls} pl-9`}
-                          />
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <select
+                            id="s-country"
+                            value={countryIso}
+                            onChange={(e) => { setCountryIso(e.target.value); setSelectedCity(""); }}
+                            className={`${selectCls} pl-9`}
+                          >
+                            <option value="">Select country...</option>
+                            {Country.getAllCountries().map((c) => (
+                              <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="s-location" className="text-sm font-medium text-slate-600">Location</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            id="s-location"
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            placeholder="Istanbul, TR"
-                            className={`${inputCls} pl-9`}
-                          />
-                        </div>
+                        <label htmlFor="s-city" className="text-sm font-medium text-slate-600">City / Province</label>
+                        <select
+                          id="s-city"
+                          value={selectedCity}
+                          onChange={(e) => setSelectedCity(e.target.value)}
+                          disabled={!countryIso}
+                          className={selectCls}
+                        >
+                          <option value="">{countryIso ? "Select city..." : "Select a country first"}</option>
+                          {(City.getCitiesOfCountry(countryIso) || []).map((city) => (
+                            <option key={`${city.name}-${city.stateCode}`} value={city.name}>{city.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

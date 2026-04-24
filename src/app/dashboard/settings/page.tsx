@@ -25,6 +25,7 @@ export default async function SettingsPage() {
       initialFullName={profile?.full_name || user.user_metadata?.full_name || ""}
       initialBio={profile?.bio || ""}
       initialCompany={profile?.company || ""}
+      initialCountry={profile?.country || ""}
       initialLocation={profile?.location || ""}
       initialAvatarUrl={profile?.avatar_url || ""}
       initialIsPublic={profile?.is_public ?? true}

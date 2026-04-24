@@ -77,10 +77,10 @@ export default async function ProfilePage() {
                     {profile.company}
                   </span>
                 )}
-                {profile.location && (
+                {(profile.location || profile.country) && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100">
                     <MapPin className="w-3.5 h-3.5" />
-                    {profile.location}
+                    {[profile.location, profile.country].filter(Boolean).join(", ")}
                   </span>
                 )}
               </div>
