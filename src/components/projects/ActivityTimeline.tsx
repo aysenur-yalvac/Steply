@@ -20,27 +20,27 @@ function timeAgo(dateStr: string): string {
 
 const ACTION_CONFIG: Record<string, { icon: React.ReactNode; color: string; ring: string }> = {
   task_added: {
-    icon: <Plus className="w-3.5 h-3.5" />,
+    icon: <Plus className="w-4 h-4" />,
     color: "text-indigo-500 bg-indigo-50",
     ring: "ring-indigo-200",
   },
   task_completed: {
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    icon: <CheckCircle2 className="w-4 h-4" />,
     color: "text-emerald-500 bg-emerald-50",
     ring: "ring-emerald-200",
   },
   task_uncompleted: {
-    icon: <Circle className="w-3.5 h-3.5" />,
+    icon: <Circle className="w-4 h-4" />,
     color: "text-amber-500 bg-amber-50",
     ring: "ring-amber-200",
   },
   task_deleted: {
-    icon: <Trash2 className="w-3.5 h-3.5" />,
+    icon: <Trash2 className="w-4 h-4" />,
     color: "text-red-400 bg-red-50",
     ring: "ring-red-200",
   },
   file_upload: {
-    icon: <Paperclip className="w-3.5 h-3.5" />,
+    icon: <Paperclip className="w-4 h-4" />,
     color: "text-sky-500 bg-sky-50",
     ring: "ring-sky-200",
   },
@@ -48,12 +48,14 @@ const ACTION_CONFIG: Record<string, { icon: React.ReactNode; color: string; ring
 
 function ActivityIcon({ actionType }: { actionType: string }) {
   const cfg = ACTION_CONFIG[actionType] ?? {
-    icon: <Activity className="w-3.5 h-3.5" />,
+    icon: <Activity className="w-4 h-4" />,
     color: "text-slate-400 bg-slate-50",
     ring: "ring-slate-200",
   };
   return (
-    <span className={`flex items-center justify-center w-7 h-7 rounded-full ring-2 shrink-0 ${cfg.color} ${cfg.ring}`}>
+    <span
+      className={`flex items-center justify-center w-8 h-8 rounded-full ring-2 shrink-0 p-1.5 ${cfg.color} ${cfg.ring}`}
+    >
       {cfg.icon}
     </span>
   );
@@ -72,36 +74,37 @@ export default function ActivityTimeline({ activities }: Props) {
           Henüz aktivite yok.
         </p>
       ) : (
-        <div
-          className="overflow-y-auto max-h-[560px] pr-1 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]"
-        >
-        <div className="relative flex flex-col gap-0">
-          {/* Vertical connector line */}
-          <div className="absolute left-[13px] top-3.5 bottom-3.5 w-px bg-slate-100" />
+        <div className="overflow-y-auto max-h-[560px] pr-2 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
+          <div className="relative flex flex-col">
+            {/* Vertical connector line — starts below first icon center, ends above last */}
+            <div className="absolute left-[15px] top-8 bottom-8 w-px bg-slate-100" />
 
-          {activities.map((item, idx) => (
-            <div key={item.id} className={`flex gap-3 ${idx !== activities.length - 1 ? "pb-4" : ""}`}>
-              <ActivityIcon actionType={item.action_type} />
+            {activities.map((item, idx) => (
+              <div
+                key={item.id}
+                className={`flex items-center gap-4 ${idx !== activities.length - 1 ? "pb-5" : ""}`}
+              >
+                <ActivityIcon actionType={item.action_type} />
 
-              <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-sm text-slate-700 leading-snug break-words">
-                  {item.description}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                  {item.actor_name && (
-                    <span className="text-xs font-semibold text-indigo-500">
-                      {item.actor_name}
-                    </span>
-                  )}
-                  {item.actor_name && (
-                    <span className="text-xs text-slate-300">·</span>
-                  )}
-                  <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-700 leading-snug break-words">
+                    {item.description}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    {item.actor_name && (
+                      <span className="text-xs font-semibold text-indigo-500">
+                        {item.actor_name}
+                      </span>
+                    )}
+                    {item.actor_name && (
+                      <span className="text-xs text-slate-300">·</span>
+                    )}
+                    <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
