@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Plus, Trash2, Activity } from "lucide-react";
+import { CheckCircle2, Circle, Plus, Trash2, Activity, Paperclip } from "lucide-react";
 import type { ProjectActivity } from "@/lib/actions";
 
 interface Props {
@@ -38,6 +38,11 @@ const ACTION_CONFIG: Record<string, { icon: React.ReactNode; color: string; ring
     icon: <Trash2 className="w-3.5 h-3.5" />,
     color: "text-red-400 bg-red-50",
     ring: "ring-red-200",
+  },
+  file_upload: {
+    icon: <Paperclip className="w-3.5 h-3.5" />,
+    color: "text-sky-500 bg-sky-50",
+    ring: "ring-sky-200",
   },
 };
 

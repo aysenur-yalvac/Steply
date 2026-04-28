@@ -82,6 +82,8 @@ export async function saveFileRecordAction(
     revalidatePath("/dashboard/projects");
     revalidatePath(`/dashboard/projects/${projectId}`);
 
+    await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yüklendi.`);
+
     return { success: true, file: newFile };
 
   } catch (e: unknown) {
