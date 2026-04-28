@@ -6,9 +6,10 @@
 
 ## Aktif Görevler
 
-> ⚠️ **Manuel Adım Gerekli (2 migration):**
+> ⚠️ **Manuel Adım Gerekli (3 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
 > 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
+> 3. `supabase/migrations/20260424_project_activities.sql` — aktivite akışı
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
@@ -18,6 +19,10 @@
 | FE-031 | Frontend_Agent | `ProjectTaskList.tsx` client component: görev ekleme, checkbox, silme, optimistic UI | Tamamlandı | QA: OK |
 | FE-032 | Frontend_Agent | `project/[id]/page.tsx`: project_tasks fetch + ProjectTaskList entegrasyonu | Tamamlandı | QA: OK |
 | FE-033 | Frontend_Agent | `projects/new/page.tsx`: progress slider kaldır, "otomatik hesaplanır" bilgi notu | Tamamlandı | QA: OK |
+| BE-034 | Backend_Agent | SQL migration: `project_activities` tablosu + kısıtlı RLS (sadece owner + members) | Tamamlandı | QA: OK |
+| BE-035 | Backend_Agent | logProjectActivity helper + getProjectActivitiesAction + task action'larına entegrasyon | Tamamlandı | QA: OK |
+| FE-034 | Frontend_Agent | `ActivityTimeline.tsx`: timeline UI component (ikon, isim, zaman gösterimi) | Tamamlandı | QA: OK |
+| FE-035 | Frontend_Agent | `project/[id]/page.tsx`: aktivite fetch + ActivityTimeline sağ kolona entegrasyon | Tamamlandı | QA: OK |
 
 ---
 
@@ -58,10 +63,10 @@
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 52
-Tamamlandı      : 52
+Toplam Görev    : 56
+Tamamlandı      : 56
 Yapılıyor       : 0
-QA Onaylı       : 52
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260424_project_tasks.sql)
+QA Onaylı       : 56
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260424_project_tasks.sql + 20260424_project_activities.sql)
 Son Deploy      : — (commit pending)
 ```

@@ -7,11 +7,12 @@ import { createReview, deleteReviewAction } from '../../actions';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
 import ProjectTaskList from '@/components/projects/ProjectTaskList';
+import ActivityTimeline from '@/components/projects/ActivityTimeline';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
 import { Avatar } from '@/components/ui/avatar';
-import { ProjectFile, ProjectTask } from '@/lib/actions';
+import { ProjectFile, ProjectTask, getProjectActivitiesAction } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
   params,
@@ -167,6 +168,11 @@ export default async function ProjectDetailPage({
     .eq('project_id', projectId)
     .order('created_at', { ascending: true });
   const projectTasks: ProjectTask[] = (projectTasksRaw ?? []) as ProjectTask[];
+
+  // ── Activity Stream (owner + collaborators only) ───────────────────────────
+  const activities = (isOwner || isCollaborator)
+    ? await getProjectActivitiesAction(projectId).catch(() => [])
+    : [];
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -367,6 +373,11 @@ export default async function ProjectDetailPage({
                   )}
                 </form>
               </div>
+            )}
+
+            {/* Activity Stream — owner + collaborators only */}
+            {(isOwner || isCollaborator) && (
+              <ActivityTimeline activities={activities} />
             )}
           </div>
         </div>

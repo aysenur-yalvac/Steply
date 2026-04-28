@@ -425,6 +425,67 @@ export async function markAllNotificationsReadAction(): Promise<{ success: boole
   return { success: true };
 }
 
+// ── Project Activity Stream ──────────────────────────────────────────────────
+
+export type ProjectActivity = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  action_type: string;
+  description: string;
+  created_at: string;
+  actor_name: string | null;
+  actor_avatar: string | null;
+};
+
+async function logProjectActivity(
+  admin: ReturnType<typeof createAdminClient>,
+  projectId: string,
+  userId: string,
+  actionType: string,
+  description: string,
+): Promise<void> {
+  try {
+    await admin.from('project_activities').insert({
+      project_id: projectId,
+      user_id: userId,
+      action_type: actionType,
+      description,
+    });
+  } catch (e) {
+    console.error('[logProjectActivity] error:', e);
+  }
+}
+
+export async function getProjectActivitiesAction(projectId: string): Promise<ProjectActivity[]> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return [];
+
+  const { data: rows } = await ctx.admin
+    .from('project_activities')
+    .select('id, project_id, user_id, action_type, description, created_at')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (!rows || rows.length === 0) return [];
+
+  const userIds = [...new Set((rows as any[]).map((r) => r.user_id as string))];
+  const { data: profileRows } = await ctx.admin
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds);
+
+  const profileMap = new Map((profileRows ?? []).map((p: any) => [p.id, p]));
+
+  return (rows as any[]).map((r) => ({
+    ...r,
+    actor_name:   profileMap.get(r.user_id)?.full_name  ?? null,
+    actor_avatar: profileMap.get(r.user_id)?.avatar_url ?? null,
+  })) as ProjectActivity[];
+}
+
 // ── Project Tasks ────────────────────────────────────────────────────────────
 
 export type ProjectTask = {
@@ -478,6 +539,7 @@ export async function addProjectTask(
   if (error || !data) return { error: error?.message ?? 'Insert failed' };
 
   await recalculateProgress(ctx.admin, projectId);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -491,6 +553,12 @@ export async function toggleTaskCompletion(
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
 
+  const { data: taskRow } = await ctx.admin
+    .from('project_tasks')
+    .select('title')
+    .eq('id', taskId)
+    .single();
+
   const { error } = await ctx.admin
     .from('project_tasks')
     .update({ is_completed: isCompleted })
@@ -500,6 +568,12 @@ export async function toggleTaskCompletion(
   if (error) return { error: error.message };
 
   const progress = await recalculateProgress(ctx.admin, projectId);
+  const taskTitle = taskRow?.title ?? taskId;
+  const actionType = isCompleted ? 'task_completed' : 'task_uncompleted';
+  const description = isCompleted
+    ? `Görev tamamlandı: ${taskTitle}`
+    : `Görev yeniden açıldı: ${taskTitle}`;
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
@@ -512,6 +586,12 @@ export async function deleteProjectTask(
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
 
+  const { data: taskRow } = await ctx.admin
+    .from('project_tasks')
+    .select('title')
+    .eq('id', taskId)
+    .single();
+
   const { error } = await ctx.admin
     .from('project_tasks')
     .delete()
@@ -521,6 +601,7 @@ export async function deleteProjectTask(
   if (error) return { error: error.message };
 
   const progress = await recalculateProgress(ctx.admin, projectId);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `Görev silindi: ${taskRow?.title ?? taskId}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
