@@ -1,5 +1,6 @@
 -- Steply: Project Activity Stream
 -- Apply this in Supabase SQL Editor before deploying activity features.
+-- Idempotent: safe to run multiple times.
 
 CREATE TABLE IF NOT EXISTS project_activities (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -14,6 +15,7 @@ ALTER TABLE project_activities ENABLE ROW LEVEL SECURITY;
 
 -- Only the project owner and collaborators (project_members) can read activity logs.
 -- Teachers and unrelated authenticated users are explicitly excluded.
+DROP POLICY IF EXISTS "Project team can view activities" ON project_activities;
 CREATE POLICY "Project team can view activities"
   ON project_activities FOR SELECT
   USING (

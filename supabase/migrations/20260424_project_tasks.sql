@@ -1,5 +1,6 @@
 -- Steply: Project Tasks (To-Do / Milestones)
 -- Apply this in Supabase SQL Editor before deploying project task features.
+-- Idempotent: safe to run multiple times.
 
 CREATE TABLE IF NOT EXISTS project_tasks (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -13,10 +14,12 @@ ALTER TABLE project_tasks ENABLE ROW LEVEL SECURITY;
 
 -- Service role (used by admin client in actions) bypasses RLS automatically.
 -- These policies cover anon/authenticated reads for the project detail page.
+DROP POLICY IF EXISTS "Anyone can view project tasks" ON project_tasks;
 CREATE POLICY "Anyone can view project tasks"
   ON project_tasks FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Service role can manage project tasks" ON project_tasks;
 CREATE POLICY "Service role can manage project tasks"
   ON project_tasks FOR ALL
   USING (true)
