@@ -67,6 +67,9 @@ export default function ActivityTimeline({ activities }: Props) {
           Henüz aktivite yok.
         </p>
       ) : (
+        <div
+          className="overflow-y-auto max-h-[560px] pr-1 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]"
+        >
         <div className="relative flex flex-col gap-0">
           {/* Vertical connector line */}
           <div className="absolute left-[13px] top-3.5 bottom-3.5 w-px bg-slate-100" />
@@ -93,6 +96,7 @@ export default function ActivityTimeline({ activities }: Props) {
               </div>
             </div>
           ))}
+        </div>
         </div>
       )}
     </div>
