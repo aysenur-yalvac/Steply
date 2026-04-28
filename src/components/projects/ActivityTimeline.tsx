@@ -18,48 +18,21 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
-const ACTION_CONFIG: Record<string, { icon: React.ReactNode; color: string; ring: string }> = {
-  task_added: {
-    icon: <Plus className="w-4 h-4" />,
-    color: "text-indigo-500 bg-indigo-50",
-    ring: "ring-indigo-200",
-  },
-  task_completed: {
-    icon: <CheckCircle2 className="w-4 h-4" />,
-    color: "text-emerald-500 bg-emerald-50",
-    ring: "ring-emerald-200",
-  },
-  task_uncompleted: {
-    icon: <Circle className="w-4 h-4" />,
-    color: "text-amber-500 bg-amber-50",
-    ring: "ring-amber-200",
-  },
-  task_deleted: {
-    icon: <Trash2 className="w-4 h-4" />,
-    color: "text-red-400 bg-red-50",
-    ring: "ring-red-200",
-  },
-  file_upload: {
-    icon: <Paperclip className="w-4 h-4" />,
-    color: "text-sky-500 bg-sky-50",
-    ring: "ring-sky-200",
-  },
+type ActionCfg = { icon: React.ReactNode; iconColor: string; ringColor: string };
+
+const ACTION_CONFIG: Record<string, ActionCfg> = {
+  task_added:     { icon: <Plus className="w-4 h-4" />,        iconColor: "text-indigo-500", ringColor: "border-indigo-200" },
+  task_completed: { icon: <CheckCircle2 className="w-4 h-4" />, iconColor: "text-emerald-500", ringColor: "border-emerald-200" },
+  task_uncompleted:{ icon: <Circle className="w-4 h-4" />,      iconColor: "text-amber-500",  ringColor: "border-amber-200"  },
+  task_deleted:   { icon: <Trash2 className="w-4 h-4" />,      iconColor: "text-red-400",    ringColor: "border-red-200"   },
+  file_upload:    { icon: <Paperclip className="w-4 h-4" />,   iconColor: "text-sky-500",    ringColor: "border-sky-200"   },
 };
 
-function ActivityIcon({ actionType }: { actionType: string }) {
-  const cfg = ACTION_CONFIG[actionType] ?? {
-    icon: <Activity className="w-4 h-4" />,
-    color: "text-slate-400 bg-slate-50",
-    ring: "ring-slate-200",
-  };
-  return (
-    <span
-      className={`flex items-center justify-center w-8 h-8 rounded-full ring-2 shrink-0 p-1.5 ${cfg.color} ${cfg.ring}`}
-    >
-      {cfg.icon}
-    </span>
-  );
-}
+const DEFAULT_CFG: ActionCfg = {
+  icon: <Activity className="w-4 h-4" />,
+  iconColor: "text-slate-400",
+  ringColor: "border-slate-200",
+};
 
 export default function ActivityTimeline({ activities }: Props) {
   return (
@@ -70,41 +43,49 @@ export default function ActivityTimeline({ activities }: Props) {
       </h3>
 
       {activities.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-6">
-          Henüz aktivite yok.
-        </p>
+        <p className="text-sm text-slate-400 text-center py-6">Henüz aktivite yok.</p>
       ) : (
-        <div className="overflow-y-auto max-h-[560px] pr-2 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
-          <div className="relative flex flex-col">
-            {/* Vertical connector line — starts below first icon center, ends above last */}
-            <div className="absolute left-[15px] top-8 bottom-8 w-px bg-slate-100" />
+        <div className="overflow-y-auto max-h-[560px] pr-1 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
+          <ul>
+            {activities.map((item, idx) => {
+              const cfg = ACTION_CONFIG[item.action_type] ?? DEFAULT_CFG;
+              const isLast = idx === activities.length - 1;
 
-            {activities.map((item, idx) => (
-              <div
-                key={item.id}
-                className={`flex items-center gap-4 ${idx !== activities.length - 1 ? "pb-5" : ""}`}
-              >
-                <ActivityIcon actionType={item.action_type} />
+              return (
+                <li key={item.id} className="relative flex gap-4 pb-6 last:pb-0">
+                  {/* Vertical connector — hidden on last item */}
+                  {!isLast && (
+                    <div className="absolute top-8 bottom-0 left-4 w-[2px] bg-gray-100 -translate-x-1/2" />
+                  )}
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-700 leading-snug break-words">
-                    {item.description}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    {item.actor_name && (
-                      <span className="text-xs font-semibold text-indigo-500">
-                        {item.actor_name}
-                      </span>
-                    )}
-                    {item.actor_name && (
-                      <span className="text-xs text-slate-300">·</span>
-                    )}
-                    <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
+                  {/* Icon circle */}
+                  <div
+                    className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border ${cfg.ringColor} ${cfg.iconColor}`}
+                  >
+                    {cfg.icon}
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+
+                  {/* Text content */}
+                  <div className="flex flex-col flex-1 pt-[2px]">
+                    <p className="text-sm text-slate-700 leading-snug break-words">
+                      {item.description}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      {item.actor_name && (
+                        <>
+                          <span className="text-xs font-semibold text-indigo-500">
+                            {item.actor_name}
+                          </span>
+                          <span className="text-xs text-slate-300">·</span>
+                        </>
+                      )}
+                      <span className="text-xs text-slate-400">{timeAgo(item.created_at)}</span>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </div>
