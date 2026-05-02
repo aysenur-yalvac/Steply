@@ -608,3 +608,79 @@ export async function deleteProjectTask(
   return { success: true, progress };
 }
 
+// ── Project Discussions ──────────────────────────────────────────────────────
+
+export type ProjectNote = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  author_name: string | null;
+  author_avatar: string | null;
+};
+
+export async function addProjectNoteAction(
+  projectId: string,
+  content: string,
+): Promise<{ success: true; note: ProjectNote } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  const trimmed = content.trim();
+  if (!trimmed) return { error: 'Not boş olamaz.' };
+
+  const { data, error } = await ctx.admin
+    .from('project_discussions')
+    .insert({ project_id: projectId, user_id: ctx.user.id, content: trimmed })
+    .select()
+    .single();
+
+  if (error || !data) return { error: error?.message ?? 'Insert failed' };
+
+  const { data: profile } = await ctx.admin
+    .from('profiles')
+    .select('full_name, avatar_url')
+    .eq('id', ctx.user.id)
+    .single();
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return {
+    success: true,
+    note: {
+      ...(data as any),
+      author_name:   profile?.full_name  ?? null,
+      author_avatar: profile?.avatar_url ?? null,
+    },
+  };
+}
+
+export async function getProjectNotesAction(projectId: string): Promise<ProjectNote[]> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return [];
+
+  const { data: rows } = await ctx.admin
+    .from('project_discussions')
+    .select('id, project_id, user_id, content, created_at')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true });
+
+  if (!rows || rows.length === 0) return [];
+
+  const userIds = [...new Set((rows as any[]).map((r) => r.user_id as string))];
+  const { data: profiles } = await ctx.admin
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds);
+
+  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+
+  return (rows as any[]).map((r) => ({
+    ...r,
+    author_name:   profileMap.get(r.user_id)?.full_name  ?? null,
+    author_avatar: profileMap.get(r.user_id)?.avatar_url ?? null,
+  })) as ProjectNote[];
+}
+

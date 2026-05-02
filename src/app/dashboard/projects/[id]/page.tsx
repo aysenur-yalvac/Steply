@@ -8,11 +8,12 @@ import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
 import ProjectTaskList from '@/components/projects/ProjectTaskList';
 import ActivityTimeline from '@/components/projects/ActivityTimeline';
+import ProjectNotes from '@/components/projects/ProjectNotes';
 import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
 import { Avatar } from '@/components/ui/avatar';
-import { ProjectFile, ProjectTask, getProjectActivitiesAction } from '@/lib/actions';
+import { ProjectFile, ProjectTask, getProjectActivitiesAction, getProjectNotesAction } from '@/lib/actions';
 
 export default async function ProjectDetailPage({
   params,
@@ -169,10 +170,12 @@ export default async function ProjectDetailPage({
     .order('created_at', { ascending: true });
   const projectTasks: ProjectTask[] = (projectTasksRaw ?? []) as ProjectTask[];
 
-  // ── Activity Stream (owner + collaborators only) ───────────────────────────
-  const activities = (isOwner || isCollaborator)
-    ? await getProjectActivitiesAction(projectId).catch(() => [])
-    : [];
+  // ── Activity Stream + Discussion Notes (owner + collaborators only) ─────────
+  const isTeamMember = isOwner || isCollaborator;
+  const [activities, projectNotes] = await Promise.all([
+    isTeamMember ? getProjectActivitiesAction(projectId).catch(() => []) : Promise.resolve([]),
+    isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
+  ]);
 
   const isCompleted = project.progress_percentage === 100;
 
@@ -228,11 +231,11 @@ export default async function ProjectDetailPage({
               isCollaborator={isCollaborator}
             />
 
-            {(isOwner || isCollaborator) && (
+            {isTeamMember && (
               <ProjectTaskList
                 projectId={project.id}
                 initialTasks={projectTasks}
-                canEdit={isOwner || isCollaborator}
+                canEdit={isTeamMember}
               />
             )}
 
@@ -242,6 +245,16 @@ export default async function ProjectDetailPage({
               isOwner={isOwner}
               isCollaborator={isCollaborator}
             />
+
+            {isTeamMember && (
+              <ProjectNotes
+                projectId={project.id}
+                initialNotes={projectNotes}
+                currentUserId={user.id}
+                currentUserName={profile?.full_name ?? null}
+                currentUserAvatar={profile?.avatar_url ?? null}
+              />
+            )}
 
             {/* Reviews */}
             {reviews.length > 0 && (
@@ -378,7 +391,7 @@ export default async function ProjectDetailPage({
             )}
 
             {/* Activity Stream — owner + collaborators only */}
-            {(isOwner || isCollaborator) && (
+            {isTeamMember && (
               <ActivityTimeline activities={activities} />
             )}
           </div>
