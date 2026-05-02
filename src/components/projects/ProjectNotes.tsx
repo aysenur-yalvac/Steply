@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
 const CHAR_LIMIT = 250;
+const ASCII_TABLE_RE = /[┌┐└┘│─├┤┼╔╗╚╝║═╠╣╬╟╢╞╡]/u;
 
 interface Props {
   projectId: string;
@@ -28,7 +29,8 @@ function formatTime(dateStr: string): string {
 // ── MessageBubble — owns its own expanded/collapsed state ─────────────────────
 function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const isTruncated = note.content.length > CHAR_LIMIT;
+  const hasTable = ASCII_TABLE_RE.test(note.content);
+  const isTruncated = !hasTable && note.content.length > CHAR_LIMIT;
   const displayText =
     isTruncated && !expanded ? note.content.slice(0, CHAR_LIMIT).trimEnd() + "…" : note.content;
 
@@ -38,7 +40,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
         w-full overflow-hidden px-4 py-3 text-sm leading-relaxed
         break-words whitespace-pre-wrap
         ${isOwn
-          ? "bg-gray-900 text-white rounded-2xl rounded-br-none shadow-md"
+          ? "bg-[#7C3AFF] text-white rounded-2xl rounded-br-none shadow-md"
           : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100"
         }
       `}
@@ -211,7 +213,7 @@ export default function ProjectNotes({
             disabled={isSubmitting || !content.trim()}
             className="
               flex items-center justify-center w-10 h-10 rounded-xl shrink-0
-              bg-gray-900 hover:bg-gray-700 text-white
+              bg-[#7C3AFF] hover:bg-[#6D28D9] text-white
               shadow-sm active:scale-90
               transition-all duration-150
               disabled:opacity-30 disabled:cursor-not-allowed
