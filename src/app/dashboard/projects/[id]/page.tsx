@@ -228,11 +228,13 @@ export default async function ProjectDetailPage({
               isCollaborator={isCollaborator}
             />
 
-            <ProjectTaskList
-              projectId={project.id}
-              initialTasks={projectTasks}
-              canEdit={isOwner || isCollaborator}
-            />
+            {(isOwner || isCollaborator) && (
+              <ProjectTaskList
+                projectId={project.id}
+                initialTasks={projectTasks}
+                canEdit={isOwner || isCollaborator}
+              />
+            )}
 
             <FileSection
               projectId={project.id}
