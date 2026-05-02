@@ -59,7 +59,6 @@ export default function ProjectNotes({
       author_avatar: currentUserAvatar,
     };
 
-    // Show instantly — full opacity, no loading state visible
     setNotes((prev) => [...prev, optimistic]);
     setContent("");
     setIsSubmitting(true);
@@ -89,26 +88,27 @@ export default function ProjectNotes({
 
   return (
     <div className="border-2 border-blue-500/30 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/10">
+
+      {/* ── Header — slate-100 ──────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-100 border-b border-gray-200 shrink-0">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/15">
           <MessageSquare className="w-4 h-4 text-blue-600" />
         </div>
         <div>
           <p className="text-sm font-bold text-slate-800 leading-none">Proje Notları</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Sadece ekip üyeleri görebilir</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Sadece ekip üyeleri görebilir</p>
         </div>
       </div>
 
-      {/* Message list */}
+      {/* ── Message area — white ────────────────────────────────────────────── */}
       <div
         ref={listRef}
         className="flex-1 min-h-[200px] max-h-[400px] overflow-y-auto px-4 py-4 flex flex-col gap-3
-                   bg-slate-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                   bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-10 gap-2">
-            <MessageSquare className="w-8 h-8 text-slate-300" />
+            <MessageSquare className="w-8 h-8 text-slate-200" />
             <p className="text-sm text-slate-400 text-center">Henüz not yok. İlk notu sen ekle!</p>
           </div>
         ) : (
@@ -125,23 +125,24 @@ export default function ProjectNotes({
                   <Avatar src={note.author_avatar} name={note.author_name ?? "?"} size="sm" />
                 </div>
 
-                {/* Bubble */}
-                <div className={`flex flex-col max-w-[70%] ${isOwn ? "items-end" : "items-start"}`}>
-                  {/* Author name — only for others */}
+                {/* Bubble wrapper — max 75% width, never overflows */}
+                <div className={`flex flex-col min-w-0 max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
                   {!isOwn && (
-                    <span className="text-[11px] font-semibold text-slate-500 mb-0.5 ml-1">
+                    <span className="text-[11px] font-semibold text-slate-500 mb-0.5 ml-1 truncate max-w-full">
                       {note.author_name ?? "Üye"}
                     </span>
                   )}
 
                   <div
                     className={`
-                      px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
+                      w-full overflow-hidden px-4 py-2.5 text-sm leading-relaxed
+                      break-words whitespace-pre-wrap
                       ${isOwn
                         ? "bg-blue-600 text-white rounded-2xl rounded-br-none shadow-md"
-                        : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100"
+                        : "bg-slate-100 text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-slate-200"
                       }
                     `}
+                    style={{ overflowWrap: "anywhere" }}
                   >
                     {note.content}
                     <span
@@ -159,8 +160,8 @@ export default function ProjectNotes({
         )}
       </div>
 
-      {/* Input area */}
-      <div className="bg-white border-t border-gray-200 px-3 py-3">
+      {/* ── Input bar — slate-100 (mirrors header) ─────────────────────────── */}
+      <div className="bg-slate-100 border-t border-gray-200 px-3 py-3 shrink-0">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -173,10 +174,10 @@ export default function ProjectNotes({
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
-              bg-gray-100 border border-transparent
+              bg-white border border-gray-200 shadow-sm
               text-sm text-gray-800 placeholder-gray-400
               outline-none transition-all leading-snug
-              focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
+              focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
               disabled:opacity-50
               [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
             "
@@ -199,6 +200,7 @@ export default function ProjectNotes({
           </button>
         </form>
       </div>
+
     </div>
   );
 }
