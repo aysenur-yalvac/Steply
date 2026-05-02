@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Send, Loader2, MessageSquare } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { addProjectNoteAction } from "@/lib/actions";
 import type { ProjectNote } from "@/lib/actions";
 import toast from "react-hot-toast";
@@ -38,7 +37,6 @@ export default function ProjectNotes({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
-  // Scroll to bottom when notes change
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -93,7 +91,7 @@ export default function ProjectNotes({
       {/* Header */}
       <div className="px-5 pt-5 pb-3.5 border-b border-slate-100 shrink-0">
         <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-[#7C3AFF]" />
+          <MessageSquare className="w-4 h-4 text-purple-600" />
           Proje Notları
         </h3>
         <p className="text-xs text-slate-400 mt-0.5">
@@ -112,56 +110,56 @@ export default function ProjectNotes({
             Henüz not yok. İlk notu sen ekle!
           </p>
         ) : (
-          <AnimatePresence initial={false}>
-            {notes.map((note) => {
-              const isOwn = note.user_id === currentUserId;
-              const isTemp = note.id.startsWith("temp-");
+          notes.map((note) => {
+            const isOwn = note.user_id === currentUserId;
+            const isTemp = note.id.startsWith("temp-");
 
-              return (
-                <motion.div
-                  key={note.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: isTemp ? 0.55 : 1, y: 0 }}
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                  className={`flex gap-2.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}
-                >
-                  {/* Avatar */}
-                  <div className="shrink-0 mt-auto mb-0.5">
-                    <Avatar
-                      src={note.author_avatar}
-                      name={note.author_name ?? "?"}
-                      size="sm"
-                    />
-                  </div>
+            return (
+              <div
+                key={note.id}
+                className={`flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300
+                  ${isOwn ? "flex-row-reverse" : "flex-row"}
+                  ${isTemp ? "opacity-60" : "opacity-100"}`}
+              >
+                {/* Avatar */}
+                <div className="shrink-0 mt-auto mb-0.5">
+                  <Avatar
+                    src={note.author_avatar}
+                    name={note.author_name ?? "?"}
+                    size="sm"
+                  />
+                </div>
 
-                  {/* Bubble */}
-                  <div className={`flex flex-col max-w-[72%] ${isOwn ? "items-end" : "items-start"}`}>
-                    <div
-                      className={`
-                        px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
-                        shadow-sm
-                        ${isOwn
-                          ? "bg-gradient-to-br from-[#7C3AFF] to-[#6D28D9] text-white rounded-2xl rounded-br-none"
-                          : "bg-gray-50 text-slate-800 rounded-2xl rounded-bl-none border border-slate-100"
-                        }
-                      `}
+                {/* Bubble */}
+                <div className={`flex flex-col max-w-[72%] ${isOwn ? "items-end" : "items-start"}`}>
+                  <div
+                    className={`
+                      relative px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
+                      ${isOwn
+                        ? "bg-purple-600 text-white rounded-2xl rounded-br-none shadow-md"
+                        : "bg-gray-100 text-gray-800 rounded-2xl rounded-bl-none shadow-sm"
+                      }
+                    `}
+                  >
+                    {note.content}
+                    {/* Time — inside bubble, bottom-right */}
+                    <span
+                      className={`block text-right text-[10px] mt-1 opacity-70 ${
+                        isOwn ? "text-white" : "text-gray-500"
+                      }`}
                     >
-                      {note.content}
-                    </div>
-
-                    {/* Meta: name + time */}
-                    <div className={`flex items-center gap-1.5 mt-1 px-0.5 ${isOwn ? "flex-row-reverse" : ""}`}>
-                      <span className="text-[11px] font-medium text-slate-500 truncate max-w-[100px]">
-                        {note.author_name ?? "Üye"}
-                      </span>
-                      <span className="text-[10px] text-slate-300">·</span>
-                      <span className="text-[10px] text-slate-400">{formatTime(note.created_at)}</span>
-                    </div>
+                      {formatTime(note.created_at)}
+                    </span>
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+
+                  {/* Author name below bubble */}
+                  <span className="text-[11px] font-medium text-slate-500 mt-1 px-0.5 truncate max-w-[120px]">
+                    {note.author_name ?? "Üye"}
+                  </span>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
@@ -184,7 +182,7 @@ export default function ProjectNotes({
             bg-slate-50 border border-slate-200
             text-sm text-slate-800 placeholder-slate-400
             outline-none transition-all
-            focus:ring-2 focus:ring-[#7C3AFF]/25 focus:border-[#7C3AFF]/50
+            focus:ring-2 focus:ring-purple-500/25 focus:border-purple-400
             disabled:opacity-50
             [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
           "
@@ -194,9 +192,8 @@ export default function ProjectNotes({
           disabled={isSubmitting || !content.trim()}
           className="
             flex items-center justify-center w-10 h-10 rounded-2xl shrink-0
-            bg-gradient-to-br from-[#7C3AFF] to-[#6D28D9]
-            text-white shadow-md shadow-[#7C3AFF]/30
-            hover:from-[#6D28D9] hover:to-[#5B21B6] hover:shadow-[#6D28D9]/40
+            bg-purple-600 hover:bg-purple-700 text-white
+            shadow-md hover:shadow-purple-500/30
             active:scale-90 transition-all duration-150
             disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
           "
