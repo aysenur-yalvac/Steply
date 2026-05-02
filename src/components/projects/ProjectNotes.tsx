@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Send, Loader2, MessageSquare } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { addProjectNoteAction } from "@/lib/actions";
 import type { ProjectNote } from "@/lib/actions";
 import toast from "react-hot-toast";
@@ -16,17 +17,11 @@ interface Props {
   currentUserAvatar: string | null;
 }
 
-function timeLabel(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "Az önce";
-  if (minutes < 60) return `${minutes} dk önce`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} sa önce`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return "Dün";
-  if (days < 7) return `${days} gün önce`;
-  return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function ProjectNotes({
@@ -43,7 +38,7 @@ export default function ProjectNotes({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
-  // Auto-scroll to bottom when notes change
+  // Scroll to bottom when notes change
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -55,7 +50,6 @@ export default function ProjectNotes({
     const trimmed = content.trim();
     if (!trimmed || isSubmitting) return;
 
-    // Optimistic note
     const tempId = `temp-${Date.now()}`;
     const optimistic: ProjectNote = {
       id: tempId,
@@ -78,7 +72,6 @@ export default function ProjectNotes({
         setContent(trimmed);
         toast.error(result.error);
       } else {
-        // Replace temp with real note
         setNotes((prev) => prev.map((n) => (n.id === tempId ? result.note : n)));
         router.refresh();
       }
@@ -98,9 +91,9 @@ export default function ProjectNotes({
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
+      <div className="px-5 pt-5 pb-3.5 border-b border-slate-100 shrink-0">
         <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-indigo-500" />
+          <MessageSquare className="w-4 h-4 text-[#7C3AFF]" />
           Proje Notları
         </h3>
         <p className="text-xs text-slate-400 mt-0.5">
@@ -108,58 +101,71 @@ export default function ProjectNotes({
         </p>
       </div>
 
-      {/* Notes list */}
+      {/* Message list */}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto min-h-[160px] max-h-[360px] px-6 py-4 flex flex-col gap-4
-                   [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]"
+        className="flex-1 min-h-[180px] max-h-[380px] overflow-y-auto px-5 py-4 flex flex-col gap-3
+                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {notes.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center my-auto py-6">
+          <p className="text-sm text-slate-400 text-center my-auto py-8">
             Henüz not yok. İlk notu sen ekle!
           </p>
         ) : (
-          notes.map((note) => {
-            const isOwn = note.user_id === currentUserId;
-            return (
-              <div
-                key={note.id}
-                className={`flex gap-2.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}
-              >
-                <div className="shrink-0 mt-0.5">
-                  <Avatar
-                    src={note.author_avatar}
-                    name={note.author_name ?? "?"}
-                    size="sm"
-                  />
-                </div>
+          <AnimatePresence initial={false}>
+            {notes.map((note) => {
+              const isOwn = note.user_id === currentUserId;
+              const isTemp = note.id.startsWith("temp-");
 
-                <div className={`flex flex-col max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
-                  <div
-                    className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm
-                      ${isOwn
-                        ? "bg-indigo-600 text-white rounded-tr-sm"
-                        : "bg-slate-100 text-slate-800 rounded-tl-sm"
-                      }
-                      ${note.id.startsWith("temp-") ? "opacity-60" : ""}`}
-                  >
-                    {note.content}
+              return (
+                <motion.div
+                  key={note.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: isTemp ? 0.55 : 1, y: 0 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  className={`flex gap-2.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  {/* Avatar */}
+                  <div className="shrink-0 mt-auto mb-0.5">
+                    <Avatar
+                      src={note.author_avatar}
+                      name={note.author_name ?? "?"}
+                      size="sm"
+                    />
                   </div>
-                  <div className={`flex items-center gap-1.5 mt-1 ${isOwn ? "flex-row-reverse" : ""}`}>
-                    <span className="text-[11px] font-medium text-slate-500">
-                      {note.author_name ?? "Üye"}
-                    </span>
-                    <span className="text-[10px] text-slate-400">·</span>
-                    <span className="text-[11px] text-slate-400">{timeLabel(note.created_at)}</span>
+
+                  {/* Bubble */}
+                  <div className={`flex flex-col max-w-[72%] ${isOwn ? "items-end" : "items-start"}`}>
+                    <div
+                      className={`
+                        px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
+                        shadow-sm
+                        ${isOwn
+                          ? "bg-gradient-to-br from-[#7C3AFF] to-[#6D28D9] text-white rounded-2xl rounded-br-none"
+                          : "bg-gray-50 text-slate-800 rounded-2xl rounded-bl-none border border-slate-100"
+                        }
+                      `}
+                    >
+                      {note.content}
+                    </div>
+
+                    {/* Meta: name + time */}
+                    <div className={`flex items-center gap-1.5 mt-1 px-0.5 ${isOwn ? "flex-row-reverse" : ""}`}>
+                      <span className="text-[11px] font-medium text-slate-500 truncate max-w-[100px]">
+                        {note.author_name ?? "Üye"}
+                      </span>
+                      <span className="text-[10px] text-slate-300">·</span>
+                      <span className="text-[10px] text-slate-400">{formatTime(note.created_at)}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         )}
       </div>
 
-      {/* Input */}
+      {/* Input area */}
       <form
         onSubmit={handleSubmit}
         className="shrink-0 flex items-end gap-2 px-4 pb-4 pt-3 border-t border-slate-100"
@@ -173,16 +179,27 @@ export default function ProjectNotes({
           rows={2}
           maxLength={1000}
           disabled={isSubmitting}
-          className="flex-1 resize-none px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200
-                     text-sm text-slate-800 placeholder-slate-400 outline-none transition-all
-                     focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400
-                     disabled:opacity-50 [scrollbar-width:thin]"
+          className="
+            flex-1 resize-none px-4 py-2.5 rounded-2xl
+            bg-slate-50 border border-slate-200
+            text-sm text-slate-800 placeholder-slate-400
+            outline-none transition-all
+            focus:ring-2 focus:ring-[#7C3AFF]/25 focus:border-[#7C3AFF]/50
+            disabled:opacity-50
+            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+          "
         />
         <button
           type="submit"
           disabled={isSubmitting || !content.trim()}
-          className="flex items-center justify-center w-10 h-10 rounded-2xl bg-indigo-600 hover:bg-indigo-700
-                     text-white transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="
+            flex items-center justify-center w-10 h-10 rounded-2xl shrink-0
+            bg-gradient-to-br from-[#7C3AFF] to-[#6D28D9]
+            text-white shadow-md shadow-[#7C3AFF]/30
+            hover:from-[#6D28D9] hover:to-[#5B21B6] hover:shadow-[#6D28D9]/40
+            active:scale-90 transition-all duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
+          "
         >
           {isSubmitting
             ? <Loader2 className="w-4 h-4 animate-spin" />
