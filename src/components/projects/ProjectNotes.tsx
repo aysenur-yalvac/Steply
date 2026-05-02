@@ -59,6 +59,7 @@ export default function ProjectNotes({
       author_avatar: currentUserAvatar,
     };
 
+    // Show instantly — full opacity, no loading state visible
     setNotes((prev) => [...prev, optimistic]);
     setContent("");
     setIsSubmitting(true);
@@ -87,75 +88,70 @@ export default function ProjectNotes({
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+    <div className="border-2 border-blue-500/30 rounded-2xl shadow-xl overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="px-5 pt-5 pb-3.5 border-b border-slate-100 shrink-0">
-        <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-purple-600" />
-          Proje Notları
-        </h3>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Sadece proje ekibi görebilir · Enter ile gönder
-        </p>
+      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/10">
+          <MessageSquare className="w-4 h-4 text-blue-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-slate-800 leading-none">Proje Notları</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Sadece ekip üyeleri görebilir</p>
+        </div>
       </div>
 
       {/* Message list */}
       <div
         ref={listRef}
-        className="flex-1 min-h-[180px] max-h-[380px] overflow-y-auto px-5 py-4 flex flex-col gap-3
-                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex-1 min-h-[200px] max-h-[400px] overflow-y-auto px-4 py-4 flex flex-col gap-3
+                   bg-slate-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {notes.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center my-auto py-8">
-            Henüz not yok. İlk notu sen ekle!
-          </p>
+          <div className="flex flex-col items-center justify-center h-full py-10 gap-2">
+            <MessageSquare className="w-8 h-8 text-slate-300" />
+            <p className="text-sm text-slate-400 text-center">Henüz not yok. İlk notu sen ekle!</p>
+          </div>
         ) : (
           notes.map((note) => {
             const isOwn = note.user_id === currentUserId;
-            const isTemp = note.id.startsWith("temp-");
-
             return (
               <div
                 key={note.id}
-                className={`flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300
-                  ${isOwn ? "flex-row-reverse" : "flex-row"}
-                  ${isTemp ? "opacity-60" : "opacity-100"}`}
+                className={`flex gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200
+                  ${isOwn ? "flex-row-reverse" : "flex-row"}`}
               >
                 {/* Avatar */}
-                <div className="shrink-0 mt-auto mb-0.5">
-                  <Avatar
-                    src={note.author_avatar}
-                    name={note.author_name ?? "?"}
-                    size="sm"
-                  />
+                <div className="shrink-0 self-end mb-0.5">
+                  <Avatar src={note.author_avatar} name={note.author_name ?? "?"} size="sm" />
                 </div>
 
                 {/* Bubble */}
-                <div className={`flex flex-col max-w-[72%] ${isOwn ? "items-end" : "items-start"}`}>
+                <div className={`flex flex-col max-w-[70%] ${isOwn ? "items-end" : "items-start"}`}>
+                  {/* Author name — only for others */}
+                  {!isOwn && (
+                    <span className="text-[11px] font-semibold text-slate-500 mb-0.5 ml-1">
+                      {note.author_name ?? "Üye"}
+                    </span>
+                  )}
+
                   <div
                     className={`
-                      relative px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
+                      px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words
                       ${isOwn
-                        ? "bg-purple-600 text-white rounded-2xl rounded-br-none shadow-md"
-                        : "bg-gray-100 text-gray-800 rounded-2xl rounded-bl-none shadow-sm"
+                        ? "bg-blue-600 text-white rounded-2xl rounded-br-none shadow-md"
+                        : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100"
                       }
                     `}
                   >
                     {note.content}
-                    {/* Time — inside bubble, bottom-right */}
                     <span
-                      className={`block text-right text-[10px] mt-1 opacity-70 ${
-                        isOwn ? "text-white" : "text-gray-500"
+                      className={`block text-right text-[10px] mt-1 select-none ${
+                        isOwn ? "text-blue-100" : "text-gray-400"
                       }`}
                     >
                       {formatTime(note.created_at)}
                     </span>
                   </div>
-
-                  {/* Author name below bubble */}
-                  <span className="text-[11px] font-medium text-slate-500 mt-1 px-0.5 truncate max-w-[120px]">
-                    {note.author_name ?? "Üye"}
-                  </span>
                 </div>
               </div>
             );
@@ -164,46 +160,45 @@ export default function ProjectNotes({
       </div>
 
       {/* Input area */}
-      <form
-        onSubmit={handleSubmit}
-        className="shrink-0 flex items-end gap-2 px-4 pb-4 pt-3 border-t border-slate-100"
-      >
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Bir not yaz… (Enter ile gönder, Shift+Enter yeni satır)"
-          rows={2}
-          maxLength={1000}
-          disabled={isSubmitting}
-          className="
-            flex-1 resize-none px-4 py-2.5 rounded-2xl
-            bg-slate-50 border border-slate-200
-            text-sm text-slate-800 placeholder-slate-400
-            outline-none transition-all
-            focus:ring-2 focus:ring-purple-500/25 focus:border-purple-400
-            disabled:opacity-50
-            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
-          "
-        />
-        <button
-          type="submit"
-          disabled={isSubmitting || !content.trim()}
-          className="
-            flex items-center justify-center w-10 h-10 rounded-2xl shrink-0
-            bg-purple-600 hover:bg-purple-700 text-white
-            shadow-md hover:shadow-purple-500/30
-            active:scale-90 transition-all duration-150
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
-          "
-        >
-          {isSubmitting
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Send className="w-4 h-4" />
-          }
-        </button>
-      </form>
+      <div className="bg-white border-t border-gray-200 px-3 py-3">
+        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Bir mesaj yaz… (Enter ile gönder)"
+            rows={1}
+            maxLength={1000}
+            disabled={isSubmitting}
+            className="
+              flex-1 resize-none px-4 py-2.5 rounded-xl
+              bg-gray-100 border border-transparent
+              text-sm text-gray-800 placeholder-gray-400
+              outline-none transition-all leading-snug
+              focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
+              disabled:opacity-50
+              [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+            "
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting || !content.trim()}
+            className="
+              flex items-center justify-center w-10 h-10 rounded-xl shrink-0
+              bg-blue-600 hover:bg-blue-700 text-white
+              shadow-sm hover:shadow-blue-500/30 active:scale-90
+              transition-all duration-150
+              disabled:opacity-40 disabled:cursor-not-allowed
+            "
+          >
+            {isSubmitting
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Send className="w-4 h-4" />
+            }
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
