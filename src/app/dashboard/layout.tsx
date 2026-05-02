@@ -67,7 +67,7 @@ export default async function DashboardLayout({
 
         {/* Top bar */}
         <div className="relative z-20 flex items-center justify-end px-6 py-2 border-b border-slate-100 bg-white/70 backdrop-blur-sm shrink-0">
-          <NotificationBell initialNotifications={notifications} />
+          <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 
         <div className="flex-1 overflow-y-auto relative z-10">

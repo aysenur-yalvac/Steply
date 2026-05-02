@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Bell, MessageSquare, FolderOpen, Calendar, Check, CheckCheck, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Bell, MessageSquare, FolderOpen, Calendar, CheckCheck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { markNotificationAsReadAction, markAllNotificationsReadAction } from "@/lib/actions";
 import type { Notification } from "@/lib/actions";
+import { createClient } from "@/utils/supabase/client";
 
 function typeIcon(type: Notification["type"]) {
   if (type === "message") return <MessageSquare className="w-4 h-4 text-violet-500" />;
@@ -22,18 +24,57 @@ function timeAgo(iso: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+function notificationHref(n: Notification): string | null {
+  if (n.related_id && (n.type === "message" || n.type === "project")) {
+    return `/dashboard/projects/${n.related_id}`;
+  }
+  return null;
+}
+
 export default function NotificationBell({
   initialNotifications,
+  currentUserId,
 }: {
   initialNotifications: Notification[];
+  currentUserId: string;
 }) {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const unread = notifications.filter((n) => !n.is_read).length;
 
-  // Close on outside click
+  // ── Supabase Realtime: push new notifications without page reload ────────────
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`notifications:user:${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          const incoming = payload.new as Notification;
+          setNotifications((prev) => {
+            // Deduplicate in case server + realtime both deliver the same row
+            if (prev.some((n) => n.id === incoming.id)) return prev;
+            return [incoming, ...prev];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
+
+  // ── Outside-click close ──────────────────────────────────────────────────────
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -44,12 +85,22 @@ export default function NotificationBell({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [open]);
 
-  async function handleMarkRead(id: string) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-    );
-    await markNotificationAsReadAction(id);
-  }
+  // ── Click handler: mark read + navigate ─────────────────────────────────────
+  const handleClick = useCallback(
+    async (n: Notification) => {
+      // Optimistic read
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item))
+      );
+      setOpen(false);
+
+      await markNotificationAsReadAction(n.id);
+
+      const href = notificationHref(n);
+      if (href) router.push(href);
+    },
+    [router]
+  );
 
   async function handleMarkAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
@@ -105,38 +156,46 @@ export default function NotificationBell({
             </div>
 
             {/* List */}
-            <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+            <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 [scrollbar-width:thin]">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                   <Bell className="w-8 h-8 mb-2 opacity-40" strokeWidth={1.5} />
                   <p className="text-sm">No notifications yet</p>
                 </div>
               ) : (
-                notifications.map((n) => (
-                  <button
-                    key={n.id}
-                    onClick={() => handleMarkRead(n.id)}
-                    className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors ${
-                      n.is_read ? "opacity-60" : ""
-                    }`}
-                  >
-                    <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 shrink-0">
-                      {typeIcon(n.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm leading-snug ${n.is_read ? "text-slate-500" : "text-slate-800 font-medium"}`}>
-                        {n.title}
-                      </p>
-                      {n.body && (
-                        <p className="text-xs text-slate-400 mt-0.5 truncate">{n.body}</p>
+                notifications.map((n) => {
+                  const href = notificationHref(n);
+                  return (
+                    <button
+                      key={n.id}
+                      onClick={() => handleClick(n)}
+                      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors
+                        ${n.is_read ? "opacity-60 hover:bg-slate-50" : "hover:bg-violet-50/60"}
+                        ${href ? "cursor-pointer" : "cursor-default"}`}
+                    >
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 shrink-0">
+                        {typeIcon(n.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm leading-snug ${n.is_read ? "text-slate-500" : "text-slate-800 font-medium"}`}>
+                          {n.title}
+                        </p>
+                        {n.body && (
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">{n.body}</p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <p className="text-xs text-slate-300">{timeAgo(n.created_at)}</p>
+                          {href && (
+                            <span className="text-[10px] text-violet-400 font-medium">→ Projeye git</span>
+                          )}
+                        </div>
+                      </div>
+                      {!n.is_read && (
+                        <span className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shrink-0" />
                       )}
-                      <p className="text-xs text-slate-300 mt-1">{timeAgo(n.created_at)}</p>
-                    </div>
-                    {!n.is_read && (
-                      <span className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shrink-0" />
-                    )}
-                  </button>
-                ))
+                    </button>
+                  );
+                })
               )}
             </div>
           </motion.div>
