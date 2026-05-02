@@ -8,6 +8,8 @@ import type { ProjectNote } from "@/lib/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
+const CHAR_LIMIT = 250;
+
 interface Props {
   projectId: string;
   initialNotes: ProjectNote[];
@@ -23,6 +25,50 @@ function formatTime(dateStr: string): string {
   });
 }
 
+// ── MessageBubble — owns its own expanded/collapsed state ─────────────────────
+function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const isTruncated = note.content.length > CHAR_LIMIT;
+  const displayText =
+    isTruncated && !expanded ? note.content.slice(0, CHAR_LIMIT).trimEnd() + "…" : note.content;
+
+  return (
+    <div
+      className={`
+        w-full overflow-hidden px-4 py-3 text-sm leading-relaxed
+        break-words whitespace-pre-wrap
+        ${isOwn
+          ? "bg-gray-900 text-white rounded-2xl rounded-br-none shadow-md"
+          : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100"
+        }
+      `}
+      style={{ overflowWrap: "anywhere" }}
+    >
+      {displayText}
+
+      {isTruncated && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className={`block mt-1.5 text-xs font-semibold transition-colors ${
+            isOwn ? "text-gray-300 hover:text-white" : "text-indigo-500 hover:text-indigo-700"
+          }`}
+        >
+          {expanded ? "Daha az göster" : "Devamını oku"}
+        </button>
+      )}
+
+      <span
+        className={`block text-right text-[10px] mt-1.5 select-none ${
+          isOwn ? "text-gray-400" : "text-gray-300"
+        }`}
+      >
+        {formatTime(note.created_at)}
+      </span>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function ProjectNotes({
   projectId,
   initialNotes,
@@ -87,29 +133,29 @@ export default function ProjectNotes({
   }
 
   return (
-    <div className="border-2 border-blue-500/30 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+    <div className="border border-gray-200/70 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
-      {/* ── Header — slate-100 ──────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-100 border-b border-gray-200 shrink-0">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/15">
-          <MessageSquare className="w-4 h-4 text-blue-600" />
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white/90 backdrop-blur-sm border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100">
+          <MessageSquare className="w-4 h-4 text-gray-500" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-800 leading-none">Proje Notları</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Sadece ekip üyeleri görebilir</p>
+          <p className="text-sm font-bold text-gray-800 leading-none">Proje Notları</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">Sadece ekip üyeleri görebilir</p>
         </div>
       </div>
 
-      {/* ── Message area — white ────────────────────────────────────────────── */}
+      {/* Message area */}
       <div
         ref={listRef}
-        className="flex-1 min-h-[200px] max-h-[400px] overflow-y-auto px-4 py-4 flex flex-col gap-3
-                   bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex-1 min-h-[200px] max-h-[420px] overflow-y-auto px-4 py-4 flex flex-col gap-3.5
+                   bg-[#F9FAFB] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-10 gap-2">
-            <MessageSquare className="w-8 h-8 text-slate-200" />
-            <p className="text-sm text-slate-400 text-center">Henüz not yok. İlk notu sen ekle!</p>
+            <MessageSquare className="w-7 h-7 text-gray-200" />
+            <p className="text-sm text-gray-400">Henüz not yok. İlk notu sen ekle!</p>
           </div>
         ) : (
           notes.map((note) => {
@@ -120,39 +166,17 @@ export default function ProjectNotes({
                 className={`flex gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200
                   ${isOwn ? "flex-row-reverse" : "flex-row"}`}
               >
-                {/* Avatar */}
                 <div className="shrink-0 self-end mb-0.5">
                   <Avatar src={note.author_avatar} name={note.author_name ?? "?"} size="sm" />
                 </div>
 
-                {/* Bubble wrapper — max 75% width, never overflows */}
                 <div className={`flex flex-col min-w-0 max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
                   {!isOwn && (
-                    <span className="text-[11px] font-semibold text-slate-500 mb-0.5 ml-1 truncate max-w-full">
+                    <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">
                       {note.author_name ?? "Üye"}
                     </span>
                   )}
-
-                  <div
-                    className={`
-                      w-full overflow-hidden px-4 py-2.5 text-sm leading-relaxed
-                      break-words whitespace-pre-wrap
-                      ${isOwn
-                        ? "bg-blue-600 text-white rounded-2xl rounded-br-none shadow-md"
-                        : "bg-slate-100 text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-slate-200"
-                      }
-                    `}
-                    style={{ overflowWrap: "anywhere" }}
-                  >
-                    {note.content}
-                    <span
-                      className={`block text-right text-[10px] mt-1 select-none ${
-                        isOwn ? "text-blue-100" : "text-gray-400"
-                      }`}
-                    >
-                      {formatTime(note.created_at)}
-                    </span>
-                  </div>
+                  <MessageBubble note={note} isOwn={isOwn} />
                 </div>
               </div>
             );
@@ -160,24 +184,24 @@ export default function ProjectNotes({
         )}
       </div>
 
-      {/* ── Input bar — slate-100 (mirrors header) ─────────────────────────── */}
-      <div className="bg-slate-100 border-t border-gray-200 px-3 py-3 shrink-0">
+      {/* Input bar */}
+      <div className="bg-white/90 backdrop-blur-sm border-t border-gray-100 px-3 py-3 shrink-0">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Bir mesaj yaz… (Enter ile gönder)"
+            placeholder="Bir mesaj yaz…"
             rows={1}
             maxLength={1000}
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
-              bg-white border border-gray-200 shadow-sm
+              bg-gray-50 border border-gray-200
               text-sm text-gray-800 placeholder-gray-400
               outline-none transition-all leading-snug
-              focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
+              focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200
               disabled:opacity-50
               [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
             "
@@ -187,10 +211,10 @@ export default function ProjectNotes({
             disabled={isSubmitting || !content.trim()}
             className="
               flex items-center justify-center w-10 h-10 rounded-xl shrink-0
-              bg-blue-600 hover:bg-blue-700 text-white
-              shadow-sm hover:shadow-blue-500/30 active:scale-90
+              bg-gray-900 hover:bg-gray-700 text-white
+              shadow-sm active:scale-90
               transition-all duration-150
-              disabled:opacity-40 disabled:cursor-not-allowed
+              disabled:opacity-30 disabled:cursor-not-allowed
             "
           >
             {isSubmitting
