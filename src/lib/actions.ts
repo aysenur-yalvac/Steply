@@ -646,6 +646,39 @@ export async function addProjectNoteAction(
     .single();
 
   revalidatePath(`/dashboard/projects/${projectId}`);
+
+  // Notify all other team members (fire-and-forget)
+  try {
+    const senderName = profile?.full_name ?? 'Bir üye';
+
+    const [projectRow, memberRows] = await Promise.all([
+      ctx.admin.from('projects').select('title, student_id').eq('id', projectId).single(),
+      ctx.admin.from('project_members').select('user_id').eq('project_id', projectId),
+    ]);
+
+    const projectTitle = projectRow.data?.title ?? 'proje';
+    const ownerId: string = projectRow.data?.student_id ?? '';
+    const memberIds: string[] = (memberRows.data ?? []).map((r: any) => r.user_id as string);
+
+    const recipients = [...new Set([ownerId, ...memberIds])].filter(
+      (uid) => uid && uid !== ctx.user.id,
+    );
+
+    await Promise.all(
+      recipients.map((uid) =>
+        createNotificationAction(
+          uid,
+          'message',
+          `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaştı.`,
+          trimmed.slice(0, 120),
+          projectId,
+        ),
+      ),
+    );
+  } catch (e) {
+    console.error('[addProjectNoteAction] Notification error:', e);
+  }
+
   return {
     success: true,
     note: {
