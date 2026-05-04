@@ -21,6 +21,7 @@ type Project = {
   priority?: string | null;
   platform?: string | null;
   progress_percentage: number;
+  tags?: string[];
   profiles?: { full_name: string };
 };
 
@@ -29,6 +30,7 @@ type ViewMode = "kanban" | "list";
 type Filters = {
   status: string[];
   priority: string[];
+  tags: string[];
 };
 
 // ── Filter constants ───────────────────────────────────────────────────────────
@@ -66,6 +68,7 @@ function applyFilters(projects: Project[], filters: Filters): Project[] {
   return projects.filter((p) => {
     if (filters.status.length > 0 && !filters.status.includes(projectStatus(p))) return false;
     if (filters.priority.length > 0 && !filters.priority.includes(getEffectivePriority(p))) return false;
+    if (filters.tags.length > 0 && !filters.tags.some(t => (p.tags ?? []).includes(t))) return false;
     return true;
   });
 }
@@ -98,16 +101,34 @@ function StatusBadge({ progress }: { progress: number }) {
 }
 
 // ── Filter Dropdown ────────────────────────────────────────────────────────────
+const TAG_COLORS: Record<number, string> = {
+  0: "bg-violet-100 text-violet-700 border-violet-200",
+  1: "bg-sky-100 text-sky-700 border-sky-200",
+  2: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  3: "bg-amber-100 text-amber-700 border-amber-200",
+  4: "bg-rose-100 text-rose-700 border-rose-200",
+  5: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  6: "bg-teal-100 text-teal-700 border-teal-200",
+  7: "bg-orange-100 text-orange-700 border-orange-200",
+};
+function tagColor(tag: string): string {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[h % 8];
+}
+
 function FilterDropdown({
   filters,
   onToggle,
   onClear,
+  allTags,
 }: {
   filters: Filters;
   onToggle: (group: keyof Filters, value: string) => void;
   onClear: () => void;
+  allTags: string[];
 }) {
-  const total = filters.status.length + filters.priority.length;
+  const total = filters.status.length + filters.priority.length + filters.tags.length;
 
   const statusMeta: Record<string, { icon: React.ReactNode; color: string }> = {
     "To Do":     { icon: <Minus className="w-3 h-3" />,       color: "text-slate-500"  },
@@ -170,6 +191,7 @@ function FilterDropdown({
       {/* Priority */}
       <div className="px-4 pt-2 pb-3">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Priority</p>
+
         <div className="flex flex-col gap-1.5">
           {PRIORITY_OPTIONS.map((opt) => {
             const checked = filters.priority.includes(opt);
@@ -202,6 +224,34 @@ function FilterDropdown({
           })}
         </div>
       </div>
+
+      {/* Tags */}
+      {allTags.length > 0 && (
+        <>
+          <div className="mx-4 my-1 border-t border-slate-100" />
+          <div className="px-4 pt-2 pb-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              {allTags.map(tag => {
+                const active = filters.tags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => onToggle("tags", tag)}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all ${
+                      active
+                        ? "bg-violet-600 text-white border-violet-600"
+                        : tagColor(tag)
+                    }`}
+                  >
+                    #{tag}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Footer: active count */}
       {total > 0 && (
@@ -324,7 +374,7 @@ export default function DashboardViewSwitcher({
   currentUserId,
 }: Props) {
   const [viewMode,    setViewMode]    = useState<ViewMode>("kanban");
-  const [filters,     setFilters]     = useState<Filters>({ status: [], priority: [] });
+  const [filters,     setFilters]     = useState<Filters>({ status: [], priority: [], tags: [] });
   const [filterOpen,  setFilterOpen]  = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -348,10 +398,11 @@ export default function DashboardViewSwitcher({
     });
   };
 
-  const clearFilters = () => setFilters({ status: [], priority: [] });
+  const clearFilters = () => setFilters({ status: [], priority: [], tags: [] });
 
-  const activeCount     = filters.status.length + filters.priority.length;
+  const activeCount     = filters.status.length + filters.priority.length + filters.tags.length;
   const filteredProjects = applyFilters(projects, filters);
+  const allTags = [...new Set(projects.flatMap(p => p.tags ?? []))].sort();
 
   return (
     <>
@@ -424,6 +475,7 @@ export default function DashboardViewSwitcher({
                     filters={filters}
                     onToggle={toggleFilter}
                     onClear={clearFilters}
+                    allTags={allTags}
                   />
                 </motion.div>
               )}
@@ -452,20 +504,21 @@ export default function DashboardViewSwitcher({
             transition={{ duration: 0.2 }}
             className="flex items-center gap-2 flex-wrap overflow-hidden"
           >
-            {[...filters.status, ...filters.priority].map((chip) => (
+            {[
+              ...filters.status.map(v => ({ label: v, group: "status" as const })),
+              ...filters.priority.map(v => ({ label: v, group: "priority" as const })),
+              ...filters.tags.map(v => ({ label: `#${v}`, group: "tags" as const, raw: v })),
+            ].map(({ label, group, ...rest }) => (
               <motion.span
-                key={chip}
+                key={label}
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 border border-violet-200"
               >
-                {chip}
+                {label}
                 <button
-                  onClick={() => {
-                    if ((STATUS_OPTIONS as readonly string[]).includes(chip)) toggleFilter("status", chip);
-                    else toggleFilter("priority", chip);
-                  }}
+                  onClick={() => toggleFilter(group, (rest as any).raw ?? label)}
                   className="hover:text-violet-900 transition-colors"
                 >
                   <X className="w-3 h-3" />

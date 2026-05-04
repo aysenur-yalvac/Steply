@@ -11,7 +11,25 @@ import {
   Loader2,
   Flag,
   Monitor,
+  Tag,
+  X,
 } from 'lucide-react';
+
+const TAG_COLORS = [
+  "bg-violet-100 text-violet-700 border-violet-200",
+  "bg-sky-100 text-sky-700 border-sky-200",
+  "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-rose-100 text-rose-700 border-rose-200",
+  "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "bg-teal-100 text-teal-700 border-teal-200",
+  "bg-orange-100 text-orange-700 border-orange-200",
+];
+function tagColor(tag: string): string {
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) hash = (hash * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[hash % TAG_COLORS.length];
+}
 import { BackButton } from '@/components/ui/back-button';
 
 import toast from 'react-hot-toast';
@@ -27,7 +45,25 @@ const PRIORITIES: { value: Priority; activeClass: string }[] = [
 export default function NewProjectPage() {
   const [isPending, setIsPending] = useState(false);
   const [priority, setPriority] = useState<Priority>('Medium');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const router = useRouter();
+
+  function commitTag(raw: string) {
+    const val = raw.trim().toLowerCase().slice(0, 32);
+    if (val && !tags.includes(val) && tags.length < 10) setTags(t => [...t, val]);
+    setTagInput('');
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+      e.preventDefault();
+      commitTag(tagInput);
+    }
+    if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+      setTags(t => t.slice(0, -1));
+    }
+  }
 
   const handleSubmit = async (formData: FormData) => {
     const title = (formData.get('title') as string)?.trim();
@@ -42,6 +78,7 @@ export default function NewProjectPage() {
       formData.set('platform', 'General');
     }
     formData.set('progress_percentage', '0');
+    formData.set('tags', JSON.stringify(tags));
 
     setIsPending(true);
     try {
@@ -133,6 +170,39 @@ export default function NewProjectPage() {
                 placeholder="e.g.: React Native, Next.js, REST API..."
                 className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm"
               />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 ml-1">
+                <Tag className="w-4 h-4 text-indigo-500" /> Etiketler <span className="text-slate-400 font-normal">(isteğe bağlı)</span>
+              </label>
+              <div
+                className="w-full min-h-[52px] px-3 py-2.5 rounded-2xl bg-white border border-slate-200 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-300 transition-all flex flex-wrap gap-1.5 items-center shadow-sm cursor-text"
+                onClick={() => document.getElementById('tag-input')?.focus()}
+              >
+                {tags.map(tag => (
+                  <span key={tag} className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${tagColor(tag)}`}>
+                    #{tag}
+                    <button type="button" onClick={() => setTags(t => t.filter(x => x !== tag))} className="opacity-60 hover:opacity-100 transition-opacity">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                {tags.length < 10 && (
+                  <input
+                    id="tag-input"
+                    type="text"
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value.slice(0, 32))}
+                    onKeyDown={handleTagKeyDown}
+                    onBlur={() => { if (tagInput) commitTag(tagInput); }}
+                    placeholder={tags.length === 0 ? "nextjs, react, api… (virgül veya Enter ile ekle)" : ""}
+                    className="flex-1 min-w-[140px] outline-none text-sm text-slate-800 placeholder-slate-400 bg-transparent py-0.5"
+                  />
+                )}
+              </div>
+              <p className="text-xs text-slate-400 ml-1">Virgül, boşluk veya Enter ile ayırın. Maksimum 10 etiket.</p>
             </div>
 
             {/* Progress — auto-calculated */}

@@ -64,7 +64,8 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
       all = all.filter((p: any) =>
         p.title.toLowerCase().includes(q) ||
-        (p.profiles?.full_name || '').toLowerCase().includes(q),
+        (p.profiles?.full_name || '').toLowerCase().includes(q) ||
+        (p.tags ?? []).some((t: string) => t.includes(q)),
       );
       projects = all;
     }
@@ -75,7 +76,10 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       .eq('student_id', user?.id)
       .order('created_at', { ascending: false });
     let all = data || [];
-    if (q) all = all.filter((p: any) => p.title.toLowerCase().includes(q));
+    if (q) all = all.filter((p: any) =>
+      p.title.toLowerCase().includes(q) ||
+      (p.tags ?? []).some((t: string) => t.includes(q))
+    );
     projects = all;
   }
 

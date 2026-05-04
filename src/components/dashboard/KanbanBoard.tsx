@@ -23,6 +23,22 @@ import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import toast from "react-hot-toast";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
+const TAG_COLORS = [
+  "bg-violet-100 text-violet-700 border-violet-200",
+  "bg-sky-100 text-sky-700 border-sky-200",
+  "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-rose-100 text-rose-700 border-rose-200",
+  "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "bg-teal-100 text-teal-700 border-teal-200",
+  "bg-orange-100 text-orange-700 border-orange-200",
+];
+function tagColor(tag: string): string {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[h % TAG_COLORS.length];
+}
+
 type Project = {
   id: string;
   student_id?: string;
@@ -34,6 +50,7 @@ type Project = {
   priority?: string | null;
   platform?: string | null;
   progress_percentage: number;
+  tags?: string[];
   profiles?: { full_name: string };
 };
 
@@ -238,6 +255,22 @@ function KanbanCard({
           <p className="text-sm text-slate-400 leading-relaxed line-clamp-2 mb-3 flex-1">
             {displayDescription}
           </p>
+        )}
+
+        {/* User tags */}
+        {project.tags && project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {project.tags.slice(0, 3).map(tag => (
+              <span key={tag} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tagColor(tag)}`}>
+                #{tag}
+              </span>
+            ))}
+            {project.tags.length > 3 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                +{project.tags.length - 3}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Dates */}

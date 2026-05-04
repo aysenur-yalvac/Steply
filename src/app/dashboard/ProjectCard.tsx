@@ -12,6 +12,22 @@ import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import toast from 'react-hot-toast';
 
+const TAG_COLORS = [
+  "bg-violet-100 text-violet-700 border-violet-200",
+  "bg-sky-100 text-sky-700 border-sky-200",
+  "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-rose-100 text-rose-700 border-rose-200",
+  "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "bg-teal-100 text-teal-700 border-teal-200",
+  "bg-orange-100 text-orange-700 border-orange-200",
+];
+function tagColor(tag: string): string {
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) hash = (hash * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[hash % TAG_COLORS.length];
+}
+
 type Project = {
   id: string;
   student_id?: string;
@@ -21,6 +37,7 @@ type Project = {
   start_date: string;
   end_date: string;
   progress_percentage: number;
+  tags?: string[];
   profiles?: { full_name: string; avatar_url?: string | null };
 };
 
@@ -175,6 +192,22 @@ export default function ProjectCard({
             {project.end_date && (
               <span>
                 {new Date(project.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* User tags */}
+        {project.tags && project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {project.tags.slice(0, 3).map(tag => (
+              <span key={tag} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tagColor(tag)}`}>
+                #{tag}
+              </span>
+            ))}
+            {project.tags.length > 3 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                +{project.tags.length - 3}
               </span>
             )}
           </div>

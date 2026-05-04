@@ -72,6 +72,10 @@ export async function createProject(formData: FormData): Promise<{ success: bool
   const priority = (formData.get("priority") as string) || "Medium";
   const platform = (formData.get("platform") as string) || "General";
 
+  const tagsRaw = formData.get("tags") as string | null;
+  let tags: string[] = [];
+  try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
+
   // Helper: safe serializable error message
   function safeMsg(err: unknown): string {
     if (!err) return "Unknown error";
@@ -95,6 +99,7 @@ export async function createProject(formData: FormData): Promise<{ success: bool
     progress_percentage,
     priority,
     platform,
+    ...(tags.length > 0 ? { tags } : {}),
   });
 
   if (error) {
@@ -102,6 +107,7 @@ export async function createProject(formData: FormData): Promise<{ success: bool
     const isMissingColumn =
       msg.toLowerCase().includes("priority") ||
       msg.toLowerCase().includes("platform") ||
+      msg.toLowerCase().includes("tags") ||
       (error as any).code === "PGRST204" ||
       (error as any).code === "42703";
 

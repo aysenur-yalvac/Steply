@@ -742,3 +742,28 @@ export async function getProjectNotesAction(projectId: string): Promise<ProjectN
   })) as ProjectNote[];
 }
 
+// ── Trending Tags ─────────────────────────────────────────────────────────────
+
+export async function getTrendingTagsAction(
+  limit = 20
+): Promise<{ tag: string; count: number }[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from('projects')
+    .select('tags')
+    .not('tags', 'is', null);
+
+  if (!data) return [];
+
+  const freq: Record<string, number> = {};
+  for (const row of data) {
+    for (const tag of ((row as any).tags ?? []) as string[]) {
+      if (tag) freq[tag] = (freq[tag] ?? 0) + 1;
+    }
+  }
+
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([tag, count]) => ({ tag, count }));
+}
