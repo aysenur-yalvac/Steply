@@ -76,8 +76,8 @@ export default async function ProfilePage() {
                   {profile.role === 'teacher' ? 'Teacher' : 'Student'}
                 </span>
                 {(profile as any).total_score > 0 && (
-                  <span className="ml-2 inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                    🏆 {(profile as any).total_score} puan
+                  <span className="ml-2 inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/60">
+                    🏆 {((profile as any).total_score as number).toLocaleString()} puan
                   </span>
                 )}
               </div>
@@ -112,10 +112,26 @@ export default async function ProfilePage() {
               </p>
             )}
 
-            {/* Activity Chart */}
-            <div className="mt-5 border-t border-slate-100 pt-5">
-              <ActivityChartCard activities={activities} className="border-0 shadow-none p-0" />
-            </div>
+            {/* Score stat card */}
+            {(profile as any).total_score > 0 && (
+              <div className="mt-5 border-t border-slate-100 pt-5 grid grid-cols-3 gap-3">
+                <div className="col-span-3 sm:col-span-1 flex flex-col gap-1 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 py-4 shadow-sm">
+                  <span className="text-2xl">🏆</span>
+                  <span className="text-2xl font-black text-amber-700 tabular-nums leading-none">
+                    {((profile as any).total_score as number).toLocaleString()}
+                  </span>
+                  <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-widest">Toplam Puan</span>
+                </div>
+                <div className="col-span-3 sm:col-span-2">
+                  <ActivityChartCard activities={activities} className="border-slate-100 shadow-sm h-full" />
+                </div>
+              </div>
+            )}
+            {(profile as any).total_score === 0 && (
+              <div className="mt-5 border-t border-slate-100 pt-5">
+                <ActivityChartCard activities={activities} className="border-0 shadow-none p-0" />
+              </div>
+            )}
 
             {/* Social links */}
             {socialLinks.length > 0 && (

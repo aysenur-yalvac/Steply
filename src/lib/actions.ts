@@ -544,7 +544,6 @@ export async function addProjectTask(
 
   await recalculateProgress(ctx.admin, projectId);
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
-  logUserActivityAction().catch(() => {});
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -579,7 +578,7 @@ export async function toggleTaskCompletion(
     ? `Görev tamamlandı: ${taskTitle}`
     : `Görev yeniden açıldı: ${taskTitle}`;
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
-  if (isCompleted) logUserActivityAction().catch(() => {});
+  if (isCompleted) recordUserActionAction('complete_task').catch(() => {});
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
@@ -683,7 +682,7 @@ export async function addProjectNoteAction(
     console.error('[addProjectNoteAction] Notification error:', e);
   }
 
-  logUserActivityAction().catch(() => {});
+  recordUserActionAction('add_log').catch(() => {});
 
   return {
     success: true,
@@ -844,60 +843,66 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
   }
 }
 
-export async function logUserActivityAction(): Promise<void> {
+export type ActionType = 'create_project' | 'complete_task' | 'add_comment' | 'add_log';
+
+export async function recordUserActionAction(actionType: ActionType): Promise<void> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const admin = createAdminClient();
-    const today = new Date().toISOString().split('T')[0];
 
-    // Atomic upsert via RPC (created in migration 20260505_user_activities.sql)
-    // Falls back to manual upsert if RPC not yet deployed
-    const { error: rpcErr } = await admin.rpc('increment_user_activity', {
+    const { error: rpcErr } = await admin.rpc('record_user_action', {
       p_user_id: user.id,
-      p_date: today,
+      p_action_type: actionType,
     });
 
     if (rpcErr) {
-      // RPC not available — manual upsert
+      // RPC not yet deployed — manual fallback with weighted points
+      const POINTS: Record<ActionType, number> = {
+        create_project: 10,
+        complete_task: 5,
+        add_comment: 2,
+        add_log: 2,
+      };
+      const points = POINTS[actionType] ?? 1;
+      const today = new Date().toISOString().split('T')[0];
+
       const { data: existing } = await admin
         .from('user_activities')
-        .select('id, activity_count')
+        .select('id, activity_count, daily_score')
         .eq('user_id', user.id)
         .eq('date', today)
         .maybeSingle();
 
       if (existing) {
-        await admin
-          .from('user_activities')
-          .update({ activity_count: (existing as any).activity_count + 1 })
-          .eq('id', (existing as any).id);
+        await admin.from('user_activities').update({
+          activity_count: (existing as any).activity_count + 1,
+          daily_score: ((existing as any).daily_score ?? 0) + points,
+        }).eq('id', (existing as any).id);
       } else {
-        await admin
-          .from('user_activities')
-          .insert({ user_id: user.id, date: today, activity_count: 1 });
+        await admin.from('user_activities').insert({
+          user_id: user.id, date: today, activity_count: 1, daily_score: points,
+        });
       }
+
+      const { data: prof } = await admin.from('profiles').select('total_score').eq('id', user.id).single();
+      await admin.from('profiles').update({
+        total_score: ((prof as any)?.total_score ?? 0) + points,
+      }).eq('id', user.id);
     }
-
-    // Increment total_score in profiles
-    const { data: prof } = await admin
-      .from('profiles')
-      .select('total_score')
-      .eq('id', user.id)
-      .single();
-
-    await admin
-      .from('profiles')
-      .update({ total_score: ((prof as any)?.total_score ?? 0) + 1 })
-      .eq('id', user.id);
 
     // Award badges — non-blocking
     awardBadgesInternal(user.id, admin).catch(() => {});
   } catch (e) {
-    console.warn('[logUserActivityAction] non-blocking failure:', e);
+    console.warn('[recordUserActionAction] non-blocking failure:', e);
   }
+}
+
+/** @deprecated Use recordUserActionAction instead */
+export async function logUserActivityAction(): Promise<void> {
+  return recordUserActionAction('add_log');
 }
 
 export async function getUserActivitiesAction(userId: string): Promise<ActivityDay[]> {

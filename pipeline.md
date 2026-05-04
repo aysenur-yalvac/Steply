@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 11)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 12)
 
 ---
 
@@ -76,16 +76,21 @@
 | FE-044 | Frontend_Agent | `activity-chart-card.tsx`: Framer Motion animasyonlu bar chart, 7/14/30 gün range dropdown | 2026-05-04 | QA: OK |
 | FE-045 | Frontend_Agent | `profile/page.tsx`: ActivityHeatmap → ActivityChartCard ile değiştirildi | 2026-05-04 | QA: OK |
 | FE-046 | Frontend_Agent | `analytics/page.tsx` + `LeaderboardClient.tsx`: ActivityChartCard leaderboard üstüne entegre edildi | 2026-05-04 | QA: OK |
+| BE-043 | Backend_Agent | `20260506_weighted_scoring.sql`: `daily_score` sütunu + `record_user_action` RPC (10/5/2 puan ağırlıkları) | 2026-05-04 | QA: OK |
+| BE-044 | Backend_Agent | `actions.ts`: `recordUserActionAction(actionType)` helper; `logUserActivityAction` deprecated wrapper'a dönüştürüldü | 2026-05-04 | QA: OK |
+| BE-045 | Backend_Agent | `actions.ts` + `dashboard/actions.ts`: create_project→10pt, complete_task→5pt, add_log→2pt bağlantıları | 2026-05-04 | QA: OK |
+| FE-047 | Frontend_Agent | `LeaderboardClient.tsx`: "Toplam Puan" başlığı, top-3 altın/sarı skor rengi, 🏆 ikon eklendi | 2026-05-04 | QA: OK |
+| FE-048 | Frontend_Agent | `profile/page.tsx`: altın gradient puan rozeti + Toplam Puan stat kartı + ActivityChartCard yan yana | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 76
-Tamamlandı      : 76
+Toplam Görev    : 82
+Tamamlandı      : 82
 Yapılıyor       : 0
-QA Onaylı       : 76
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql)
+QA Onaylı       : 82
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql)
 Son Deploy      : — (commit pending)
 ```
