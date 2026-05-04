@@ -8,7 +8,6 @@ import type { ProjectNote } from "@/lib/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
-const ASCII_TABLE_RE = /[┌┐└┘│─├┤┼╔╗╚╝║═╠╣╬╟╢╞╡]/u;
 const LONG_MSG_CHARS = 300;
 
 interface Props {
@@ -26,10 +25,9 @@ function formatTime(dateStr: string): string {
   });
 }
 
-// ── MessageBubble — CSS height collapse + monospace for ASCII tables ──────────
+// ── MessageBubble — universal CSS collapse, no horizontal scroll ──────────────
 function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const hasTable = ASCII_TABLE_RE.test(note.content);
   const isLong = note.content.length > LONG_MSG_CHARS;
 
   const bubbleBase = isOwn
@@ -40,39 +38,32 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
     ? "text-violet-200 hover:text-white"
     : "text-[#7C3AFF] hover:text-[#6D28D9]";
 
+  const fromColor = isOwn ? "from-[#7C3AFF]" : "from-white";
+
   return (
-    <div className={`w-full overflow-hidden px-4 py-3 ${bubbleBase}`}>
+    <div className={`w-full px-4 py-3 ${bubbleBase}`}>
 
-      {hasTable ? (
-        /* Terminal / ASCII table: monospace, horizontal scroll, never collapsed */
-        <pre className="font-mono text-xs leading-tight whitespace-pre overflow-x-auto p-2 bg-black/10 rounded-md">
+      {/* Content — always wraps, never scrolls horizontally */}
+      <div className="relative">
+        <div
+          className={`text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden ${
+            isLong && !expanded ? "max-h-[150px]" : "max-h-none"
+          }`}
+          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+        >
           {note.content}
-        </pre>
-      ) : (
-        /* Normal text: CSS height collapse with fade-out gradient */
-        <div className="relative">
-          <div
-            className={`text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden transition-[max-height] duration-300 ${
-              isLong && !expanded ? "max-h-[150px]" : "max-h-none"
-            }`}
-            style={{ overflowWrap: "anywhere" }}
-          >
-            {note.content}
-          </div>
-
-          {isLong && !expanded && (
-            <div
-              className={`absolute bottom-0 left-0 right-0 h-10 pointer-events-none ${
-                isOwn
-                  ? "bg-gradient-to-t from-[#7C3AFF] to-transparent"
-                  : "bg-gradient-to-t from-white to-transparent"
-              }`}
-            />
-          )}
         </div>
-      )}
 
-      {isLong && !hasTable && (
+        {/* Fade-out gradient when collapsed */}
+        {isLong && !expanded && (
+          <div
+            className={`absolute bottom-0 left-0 right-0 h-10 pointer-events-none bg-gradient-to-t ${fromColor} to-transparent`}
+          />
+        )}
+      </div>
+
+      {/* Read-more toggle — universal, no content-type check */}
+      {isLong && (
         <button
           onClick={() => setExpanded((v) => !v)}
           className={`mt-2 text-xs font-semibold transition-colors ${toggleColor}`}
