@@ -8,8 +8,8 @@ import type { ProjectNote } from "@/lib/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
-const CHAR_LIMIT = 250;
 const ASCII_TABLE_RE = /[┌┐└┘│─├┤┼╔╗╚╝║═╠╣╬╟╢╞╡]/u;
+const LONG_MSG_CHARS = 300;
 
 interface Props {
   projectId: string;
@@ -26,44 +26,62 @@ function formatTime(dateStr: string): string {
   });
 }
 
-// ── MessageBubble — owns its own expanded/collapsed state ─────────────────────
+// ── MessageBubble — CSS height collapse + monospace for ASCII tables ──────────
 function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const hasTable = ASCII_TABLE_RE.test(note.content);
-  const isTruncated = !hasTable && note.content.length > CHAR_LIMIT;
-  const displayText =
-    isTruncated && !expanded ? note.content.slice(0, CHAR_LIMIT).trimEnd() + "…" : note.content;
+  const isLong = note.content.length > LONG_MSG_CHARS;
+
+  const bubbleBase = isOwn
+    ? "bg-[#7C3AFF] text-white rounded-2xl rounded-br-none shadow-md"
+    : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100";
+
+  const toggleColor = isOwn
+    ? "text-violet-200 hover:text-white"
+    : "text-[#7C3AFF] hover:text-[#6D28D9]";
 
   return (
-    <div
-      className={`
-        w-full overflow-hidden px-4 py-3 text-sm leading-relaxed
-        break-words whitespace-pre-wrap
-        ${isOwn
-          ? "bg-[#7C3AFF] text-white rounded-2xl rounded-br-none shadow-md"
-          : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100"
-        }
-      `}
-      style={{ overflowWrap: "anywhere" }}
-    >
-      {displayText}
+    <div className={`w-full overflow-hidden px-4 py-3 ${bubbleBase}`}>
 
-      {isTruncated && (
+      {hasTable ? (
+        /* Terminal / ASCII table: monospace, horizontal scroll, never collapsed */
+        <pre className="font-mono text-xs leading-tight whitespace-pre overflow-x-auto p-2 bg-black/10 rounded-md">
+          {note.content}
+        </pre>
+      ) : (
+        /* Normal text: CSS height collapse with fade-out gradient */
+        <div className="relative">
+          <div
+            className={`text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden transition-[max-height] duration-300 ${
+              isLong && !expanded ? "max-h-[150px]" : "max-h-none"
+            }`}
+            style={{ overflowWrap: "anywhere" }}
+          >
+            {note.content}
+          </div>
+
+          {isLong && !expanded && (
+            <div
+              className={`absolute bottom-0 left-0 right-0 h-10 pointer-events-none ${
+                isOwn
+                  ? "bg-gradient-to-t from-[#7C3AFF] to-transparent"
+                  : "bg-gradient-to-t from-white to-transparent"
+              }`}
+            />
+          )}
+        </div>
+      )}
+
+      {isLong && !hasTable && (
         <button
           onClick={() => setExpanded((v) => !v)}
-          className={`block mt-1.5 text-xs font-semibold transition-colors ${
-            isOwn ? "text-gray-300 hover:text-white" : "text-indigo-500 hover:text-indigo-700"
-          }`}
+          className={`mt-2 text-xs font-semibold transition-colors ${toggleColor}`}
         >
           {expanded ? "Daha az göster" : "Devamını oku"}
         </button>
       )}
 
-      <span
-        className={`block text-right text-[10px] mt-1.5 select-none ${
-          isOwn ? "text-gray-400" : "text-gray-300"
-        }`}
-      >
+      <span className={`block text-right text-[10px] mt-1.5 select-none ${isOwn ? "text-violet-300" : "text-gray-300"}`}>
         {formatTime(note.created_at)}
       </span>
     </div>
