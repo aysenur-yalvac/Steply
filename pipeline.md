@@ -6,10 +6,11 @@
 
 ## Aktif Görevler
 
-> ⚠️ **Manuel Adım Gerekli (3 migration):**
+> ⚠️ **Manuel Adım Gerekli (4 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
 > 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
 > 3. `supabase/migrations/20260424_project_activities.sql` — aktivite akışı
+> 4. `supabase/migrations/20260504_project_tags.sql` — etiket sütunu
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
@@ -23,6 +24,10 @@
 | BE-035 | Backend_Agent | logProjectActivity helper + getProjectActivitiesAction + task action'larına entegrasyon | Tamamlandı | QA: OK |
 | FE-034 | Frontend_Agent | `ActivityTimeline.tsx`: timeline UI component (ikon, isim, zaman gösterimi) | Tamamlandı | QA: OK |
 | FE-035 | Frontend_Agent | `project/[id]/page.tsx`: aktivite fetch + ActivityTimeline sağ kolona entegrasyon | Tamamlandı | QA: OK |
+| BE-036 | Backend_Agent | SQL migration `20260504_project_tags.sql`: `tags TEXT[]` sütunu `projects` tablosuna eklendi | Tamamlandı | QA: OK |
+| BE-037 | Backend_Agent | `updateProjectTagsAction`: sanitize + admin update + revalidatePath | Tamamlandı | QA: OK |
+| FE-036 | Frontend_Agent | `ProjectTags.tsx`: renk-hash badge'ler, inline input, X ile silme, optimistic update | Tamamlandı | QA: OK |
+| FE-037 | Frontend_Agent | `project/[id]/page.tsx`: ProjectTags başlık altına entegre edildi, `canEdit={isTeamMember}` | Tamamlandı | QA: OK |
 
 ---
 
@@ -63,10 +68,10 @@
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 56
-Tamamlandı      : 56
+Toplam Görev    : 60
+Tamamlandı      : 60
 Yapılıyor       : 0
-QA Onaylı       : 56
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260424_project_tasks.sql + 20260424_project_activities.sql)
+QA Onaylı       : 60
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260504_project_tags.sql + öncekiler)
 Son Deploy      : — (commit pending)
 ```

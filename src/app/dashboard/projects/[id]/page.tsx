@@ -14,6 +14,7 @@ import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
 import { Avatar } from '@/components/ui/avatar';
 import { ProjectFile, ProjectTask, getProjectActivitiesAction, getProjectNotesAction } from '@/lib/actions';
+import ProjectTags from '@/components/projects/ProjectTags';
 
 export default async function ProjectDetailPage({
   params,
@@ -196,6 +197,11 @@ export default async function ProjectDetailPage({
               <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
                 {project.title}
               </h2>
+              <ProjectTags
+                projectId={projectId}
+                initialTags={(project as any).tags ?? []}
+                canEdit={isTeamMember}
+              />
               <p className="text-slate-500 text-sm">
                 Developed by{" "}
                 <span className="font-bold" style={{ color: "#7C3AFF" }}>

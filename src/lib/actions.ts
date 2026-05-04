@@ -689,6 +689,31 @@ export async function addProjectNoteAction(
   };
 }
 
+// ── Project Tags ─────────────────────────────────────────────────────────────
+
+export async function updateProjectTagsAction(
+  projectId: string,
+  tags: string[]
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  const sanitized = tags
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => t.length > 0 && t.length <= 32)
+    .slice(0, 10);
+
+  const { error } = await ctx.admin
+    .from('projects')
+    .update({ tags: sanitized })
+    .eq('id', projectId);
+
+  if (error) return { error: error.message };
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
 export async function getProjectNotesAction(projectId: string): Promise<ProjectNote[]> {
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
