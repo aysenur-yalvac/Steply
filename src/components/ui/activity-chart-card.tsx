@@ -44,23 +44,32 @@ function parseLocalDate(iso: string): Date {
 }
 
 function processActivities(activities: ActivityDay[], range: Range): DataPoint[] {
-  if (!activities.length) return [];
-
-  // Normalize to {date: localStr, value: daily_score ?? activity_count}
+  // Normalize — safe even when activities is empty
   const normalized = activities.map(a => ({
     date: localDateStr(parseLocalDate(a.date)),
     value: a.daily_score ?? a.activity_count,
   }));
 
+  // Local-time "today" at midnight — all date math stays in local timezone
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  // Filter by range
-  let filtered = normalized;
+  // 7d: always zero-fill last 7 days; built from full normalized so no cutoff edge-case
   if (range === "7d") {
-    const cutoff = new Date(now); cutoff.setDate(now.getDate() - 7);
-    filtered = normalized.filter(d => parseLocalDate(d.date) >= cutoff);
-  } else if (range === "1m") {
+    const valMap = new Map(normalized.map(d => [d.date, d.value]));
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - i));
+      const iso = localDateStr(d);
+      return { label: TR_DAYS[d.getDay()], value: valMap.get(iso) ?? 0 };
+    });
+  }
+
+  if (!normalized.length) return [{ label: "—", value: 0 }];
+
+  // Filter by range for 1m / 1y
+  let filtered = normalized;
+  if (range === "1m") {
     const cutoff = new Date(now); cutoff.setMonth(now.getMonth() - 1);
     filtered = normalized.filter(d => parseLocalDate(d.date) >= cutoff);
   } else if (range === "1y") {
@@ -83,17 +92,6 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
         const monthIndex = parseInt(key.split("-")[1], 10);
         return { label: TR_MONTHS[monthIndex], value };
       });
-  }
-
-  if (range === "7d") {
-    // Build from ALL normalized data — filter cutoff edge cases can't drop today's entry
-    const valMap = new Map(normalized.map(d => [d.date, d.value]));
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(now);
-      d.setDate(now.getDate() - (6 - i));
-      const iso = localDateStr(d);
-      return { label: TR_DAYS[d.getDay()], value: valMap.get(iso) ?? 0 };
-    });
   }
 
   // 1m: zero-fill each day in the last ~30 days
