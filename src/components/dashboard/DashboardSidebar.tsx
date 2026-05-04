@@ -16,7 +16,13 @@ import {
   ChevronRight,
   MessageSquare,
   Plus,
+  ChevronsUpDown,
+  Check,
+  UserX,
 } from "lucide-react";
+import { addLinkedAccountAction, removeLinkedAccountAction } from "@/lib/actions";
+import type { LinkedAccount } from "@/lib/actions";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
 import WatchlistDrawer from "@/components/dashboard/WatchlistDrawer";
 
@@ -27,6 +33,7 @@ interface SidebarProps {
   unreadCount?: number;
   isTeacher?: boolean;
   avatarUrl?: string | null;
+  linkedAccounts?: LinkedAccount[];
 }
 
 const NAV_ITEMS = [
@@ -37,6 +44,19 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
+function AccountAvatar({ src, name, size = 32 }: { src?: string | null; name: string; size?: number }) {
+  const px = `${size}px`;
+  if (src) return <img src={src} alt="avatar" className="rounded-full object-cover shrink-0" style={{ width: px, height: px }} />;
+  return (
+    <div
+      className="rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+      style={{ width: px, height: px, background: "linear-gradient(135deg, #7C3AFF 0%, #A020F0 100%)" }}
+    >
+      {(name || "?").charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
 function NavContent({
   userName,
   userEmail,
@@ -44,11 +64,49 @@ function NavContent({
   unreadCount,
   isTeacher,
   avatarUrl,
+  linkedAccounts = [],
   onClose,
   onOpenWatchlist,
 }: SidebarProps & { onClose: () => void; onOpenWatchlist: () => void }) {
   const pathname = usePathname();
   const { signOut } = useAuth();
+  const router = useRouter();
+
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
+  const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
+  const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [addEmail, setAddEmail] = useState("");
+  const [addError, setAddError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+
+  async function handleAddAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addEmail.trim()) return;
+    setAddLoading(true);
+    setAddError("");
+    const result = await addLinkedAccountAction(addEmail.trim());
+    setAddLoading(false);
+    if ("error" in result) {
+      setAddError(result.error);
+    } else {
+      setAccounts(prev => [...prev.filter(a => a.linked_email !== result.account.linked_email), result.account]);
+      setAddEmail("");
+      setIsAddingAccount(false);
+    }
+  }
+
+  async function handleRemoveAccount(id: string) {
+    await removeLinkedAccountAction(id);
+    setAccounts(prev => prev.filter(a => a.id !== id));
+  }
+
+  async function confirmSwitch() {
+    if (!switchTarget) return;
+    const email = encodeURIComponent(switchTarget.linked_email);
+    await signOut();
+    router.push(`/auth/login?email=${email}`);
+  }
 
   return (
     <div className="flex flex-col h-full select-none">
@@ -159,34 +217,110 @@ function NavContent({
 
       {/* User footer */}
       <div className="p-3 border-t border-slate-100">
-        <Link
-          href="/dashboard/profile"
-          onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors mb-1"
-        >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="avatar"
-              className="w-8 h-8 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-              style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #A020F0 100%)" }}
-            >
-              {(userName || userEmail || "?").charAt(0).toUpperCase()}
+
+        {/* Account switcher dropdown */}
+        {isAccountMenuOpen && (
+          <div className="mb-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+            {/* Current account */}
+            <div className="flex items-center gap-2.5 px-3 py-2.5 bg-violet-50 border-b border-violet-100">
+              <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={28} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-violet-800 truncate">{userName || userEmail}</p>
+                <p className="text-[10px] text-violet-500 capitalize">{role || "student"}</p>
+              </div>
+              <Check className="w-3.5 h-3.5 text-violet-600 shrink-0" />
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-800 truncate">
-              {userName || userEmail}
-            </p>
-            <p className="text-[10px] text-slate-500 capitalize font-medium">
-              {role || "student"}
-            </p>
+
+            {/* Linked accounts */}
+            {accounts.map(acc => (
+              <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 group">
+                <button
+                  type="button"
+                  onClick={() => { setSwitchTarget(acc); setIsAccountMenuOpen(false); }}
+                  className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                >
+                  <AccountAvatar src={acc.linked_avatar} name={acc.linked_name || acc.linked_email} size={28} />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-700 truncate">{acc.linked_name || acc.linked_email}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{acc.linked_email}</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAccount(acc.id)}
+                  className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 hover:text-red-500 text-slate-400 transition-all"
+                  title="Bağlantıyı kaldır"
+                >
+                  <UserX className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+
+            {/* Add account form */}
+            {isAddingAccount ? (
+              <form onSubmit={handleAddAccount} className="px-3 py-2.5 border-t border-slate-100 flex flex-col gap-1.5">
+                <input
+                  type="email"
+                  value={addEmail}
+                  onChange={e => { setAddEmail(e.target.value); setAddError(""); }}
+                  placeholder="E-posta adresi..."
+                  className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 outline-none focus:border-violet-400 bg-slate-50"
+                  autoFocus
+                />
+                {addError && <p className="text-[10px] text-red-500">{addError}</p>}
+                <div className="flex gap-1.5">
+                  <button
+                    type="submit"
+                    disabled={addLoading || !addEmail.trim()}
+                    className="flex-1 text-[11px] font-bold bg-violet-600 text-white px-2 py-1.5 rounded-lg disabled:opacity-50 hover:bg-violet-700 transition-colors"
+                  >
+                    {addLoading ? "..." : "Ekle"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsAddingAccount(false); setAddEmail(""); setAddError(""); }}
+                    className="text-[11px] font-semibold text-slate-500 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAddingAccount(true)}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Yeni Hesap Ekle
+              </button>
+            )}
           </div>
-        </Link>
+        )}
+
+        {/* Profile button + switcher toggle */}
+        <div className="flex items-center gap-1 mb-1">
+          <Link
+            href="/dashboard/profile"
+            onClick={onClose}
+            className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+          >
+            <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate">{userName || userEmail}</p>
+              <p className="text-[10px] text-slate-500 capitalize font-medium">{role || "student"}</p>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={() => { setIsAccountMenuOpen(o => !o); setIsAddingAccount(false); setAddError(""); }}
+            className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+            title="Hesap değiştir"
+          >
+            <ChevronsUpDown className="w-4 h-4" />
+          </button>
+        </div>
+
         <button
           onClick={() => signOut()}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
@@ -195,6 +329,37 @@ function NavContent({
           Sign Out
         </button>
       </div>
+
+      {/* Switch account confirmation modal */}
+      {switchTarget && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-extrabold text-slate-800">Hesap Değiştir</h3>
+              <p className="text-sm text-slate-500">
+                <span className="font-semibold text-slate-700">{switchTarget.linked_name || switchTarget.linked_email}</span>{" "}
+                hesabına geçmek üzeresiniz. Mevcut oturumunuz kapatılacak.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSwitchTarget(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={confirmSwitch}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              >
+                Geç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

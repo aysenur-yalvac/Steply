@@ -928,6 +928,88 @@ export async function getUserActivitiesAction(userId: string): Promise<ActivityD
   return (data ?? []) as ActivityDay[];
 }
 
+// ── Linked Accounts (Multi-Account Switcher) ─────────────────────────────────
+
+export type LinkedAccount = {
+  id: string;
+  linked_user_id: string | null;
+  linked_email: string;
+  linked_name: string | null;
+  linked_avatar: string | null;
+};
+
+export async function getLinkedAccountsAction(): Promise<LinkedAccount[]> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('linked_accounts')
+      .select('id, linked_user_id, linked_email, linked_name, linked_avatar')
+      .eq('owner_user_id', user.id)
+      .order('created_at', { ascending: true });
+    return (data ?? []) as LinkedAccount[];
+  } catch {
+    return [];
+  }
+}
+
+export async function addLinkedAccountAction(
+  email: string,
+): Promise<{ success: true; account: LinkedAccount } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+  if (email.toLowerCase() === user.email?.toLowerCase())
+    return { error: 'Kendi hesabınızı ekleyemezsiniz.' };
+
+  const admin = createAdminClient();
+
+  const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
+  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadı.' };
+
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('full_name, avatar_url')
+    .eq('id', foundUserId as string)
+    .maybeSingle();
+
+  const { data, error } = await admin
+    .from('linked_accounts')
+    .upsert(
+      {
+        owner_user_id:  user.id,
+        linked_user_id: foundUserId as string,
+        linked_email:   email.toLowerCase(),
+        linked_name:    (profile as any)?.full_name  ?? null,
+        linked_avatar:  (profile as any)?.avatar_url ?? null,
+      },
+      { onConflict: 'owner_user_id,linked_email' },
+    )
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { success: true, account: data as LinkedAccount };
+}
+
+export async function removeLinkedAccountAction(
+  linkedId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('linked_accounts')
+    .delete()
+    .eq('id', linkedId)
+    .eq('owner_user_id', user.id);
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
 export async function getLeaderboardAction(
   scope: 'global' | 'turkey' | 'university',
   userUniversity?: string | null

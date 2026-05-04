@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 15)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 16)
 
 ---
 
@@ -93,16 +93,18 @@
 | FE-051 | Frontend_Agent | `activity-chart-card.tsx`: 4 aralık (7/30/365/Tümü), sıfır-doldurma, büyük aralıklarda overflow-x-auto scroll | 2026-05-04 | QA: OK |
 | BE-053 | Backend_Agent | `actions.ts`: getUserActivitiesAction 365-gün limiti kaldırıldı; tüm geçmişi döndürüyor | 2026-05-04 | QA: OK |
 | BE-054 | Backend_Agent | `actions.ts` + `dashboard/actions.ts`: puan kazandıran tüm action'lara revalidatePath('/', 'layout') eklendi | 2026-05-04 | QA: OK |
+| BE-055 | Backend_Agent | `20260508_linked_accounts.sql`: linked_accounts tablosu + RLS; getLinkedAccountsAction / addLinkedAccountAction / removeLinkedAccountAction | 2026-05-04 | QA: OK |
+| FE-052 | Frontend_Agent | `DashboardSidebar.tsx`: ChevronsUpDown hesap değiştirici; dropdown (aktif hesap + bağlı hesaplar + Yeni Hesap Ekle formu); switch AlertDialog; layout.tsx'e linkedAccounts prop | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 95
-Tamamlandı      : 95
+Toplam Görev    : 97
+Tamamlandı      : 97
 Yapılıyor       : 0
-QA Onaylı       : 95
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql)
+QA Onaylı       : 97
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql + 20260508_linked_accounts.sql)
 Son Deploy      : — (commit pending)
 ```

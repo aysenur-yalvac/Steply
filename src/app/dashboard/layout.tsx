@@ -3,7 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardBackground from '@/components/dashboard/DashboardBackground';
 import NotificationBell from '@/components/dashboard/NotificationBell';
-import type { Notification } from '@/lib/actions';
+import type { Notification, LinkedAccount } from '@/lib/actions';
+import { getLinkedAccountsAction } from '@/lib/actions';
 
 export default async function DashboardLayout({
   children,
@@ -32,6 +33,10 @@ export default async function DashboardLayout({
     .eq('receiver_id', user.id)
     .eq('is_read', false);
 
+  // Fetch linked accounts — graceful fallback if table not yet migrated
+  let linkedAccounts: LinkedAccount[] = [];
+  try { linkedAccounts = await getLinkedAccountsAction(); } catch { /* table not yet applied */ }
+
   // Fetch notifications — graceful fallback if table not yet migrated
   let notifications: Notification[] = [];
   try {
@@ -58,6 +63,7 @@ export default async function DashboardLayout({
         unreadCount={unreadCount || 0}
         isTeacher={isTeacher}
         avatarUrl={profile?.avatar_url}
+        linkedAccounts={linkedAccounts}
       />
 
       {/* Main content */}
