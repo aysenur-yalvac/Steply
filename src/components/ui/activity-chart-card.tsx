@@ -86,8 +86,8 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
   }
 
   if (range === "7d") {
-    // Zero-fill last 7 days so chart always shows 7 bars
-    const valMap = new Map(filtered.map(d => [d.date, d.value]));
+    // Build from ALL normalized data — filter cutoff edge cases can't drop today's entry
+    const valMap = new Map(normalized.map(d => [d.date, d.value]));
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now);
       d.setDate(now.getDate() - (6 - i));
@@ -98,7 +98,7 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
 
   // 1m: zero-fill each day in the last ~30 days
   if (range === "1m") {
-    const valMap = new Map(filtered.map(d => [d.date, d.value]));
+    const valMap = new Map(normalized.map(d => [d.date, d.value]));
     const cutoff = new Date(now); cutoff.setMonth(now.getMonth() - 1);
     const days: DataPoint[] = [];
     const cur = new Date(cutoff);
@@ -135,17 +135,17 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
   const isLarge = range === "1m" || range === "1y" || range === "all";
 
   return (
-    <Card className={cn("w-full bg-card/50 backdrop-blur-sm", className)}>
+    <Card className={cn("w-full", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+          <CardTitle className="text-sm font-semibold text-foreground">{title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger
               type="button"
-              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md border border-input hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-input bg-background text-foreground hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               {selectedLabel}
-              <ChevronDown className="h-3 w-3 opacity-50" />
+              <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-36">
               {RANGE_OPTIONS.map(opt => (
@@ -162,9 +162,9 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
         </div>
 
         <div className="flex flex-col mt-2">
-          <p className="text-4xl font-bold tracking-tight">
+          <p className="text-4xl font-bold tracking-tight text-foreground">
             {totalPoints.toLocaleString("tr-TR")}{" "}
-            <span className="text-sm text-muted-foreground font-normal">Puan</span>
+            <span className="text-sm text-slate-500 font-normal">Puan</span>
           </p>
           <CardDescription className="flex items-center gap-1 text-emerald-500 mt-1">
             <TrendingUp className="h-3 w-3" />
@@ -196,9 +196,9 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
                       animate={{ scaleY: 1, opacity: 1 }}
                       exit={{ scaleY: 0, opacity: 0 }}
                       transition={{ delay: i * 0.02, type: "spring", stiffness: 300, damping: 28 }}
-                      className="w-full rounded-t-sm bg-primary/80 hover:bg-primary transition-colors cursor-pointer"
+                      className="w-full rounded-t-sm bg-violet-500 hover:bg-violet-600 transition-colors cursor-pointer"
                       style={{
-                        height: `${Math.max((item.value / maxValue) * 100, item.value > 0 ? 4 : 1)}%`,
+                        height: `${Math.max((item.value / maxValue) * 100, 3)}%`,
                         originY: 1,
                       }}
                       title={`${item.label}: ${item.value} puan`}
@@ -209,7 +209,7 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
                       </span>
                     )}
                   </div>
-                  <span className="text-[9px] text-muted-foreground uppercase font-medium truncate w-full text-center leading-none">
+                  <span className="text-[9px] text-slate-500 uppercase font-medium truncate w-full text-center leading-none">
                     {item.label}
                   </span>
                 </div>
