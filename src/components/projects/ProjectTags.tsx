@@ -35,6 +35,11 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Render: show tags to all viewers; show edit controls only to canEdit users.
+  // Only skip rendering entirely when there's genuinely nothing to display.
+  const hasTags = tags.length > 0;
+  if (!hasTags && !canEdit) return null;
+
   async function persist(next: string[]) {
     setSaving(true);
     const result = await updateProjectTagsAction(projectId, next);
@@ -70,14 +75,13 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
     setTimeout(() => inputRef.current?.focus(), 30);
   }
 
-  if (tags.length === 0 && !canEdit) return null;
-
   return (
-    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+    <div className="flex flex-wrap items-center gap-1.5">
+      {/* Tags — visible to all viewers */}
       {tags.map((tag) => (
         <span
           key={tag}
-          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${tagColor(tag)} transition-all`}
+          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${tagColor(tag)}`}
         >
           #{tag}
           {canEdit && (
@@ -93,6 +97,7 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
         </span>
       ))}
 
+      {/* Add button — always visible for editors, even when tag list is empty */}
       {canEdit && !adding && tags.length < 10 && (
         <button
           onClick={startAdding}

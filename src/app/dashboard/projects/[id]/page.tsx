@@ -197,11 +197,6 @@ export default async function ProjectDetailPage({
               <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
                 {project.title}
               </h2>
-              <ProjectTags
-                projectId={projectId}
-                initialTags={(project as any).tags ?? []}
-                canEdit={isTeamMember}
-              />
               <p className="text-slate-500 text-sm">
                 Developed by{" "}
                 <span className="font-bold" style={{ color: "#7C3AFF" }}>
@@ -212,6 +207,13 @@ export default async function ProjectDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Tags — visible to all viewers, edit controls for team only */}
+        <ProjectTags
+          projectId={projectId}
+          initialTags={(project as any).tags ?? []}
+          canEdit={isTeamMember}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
