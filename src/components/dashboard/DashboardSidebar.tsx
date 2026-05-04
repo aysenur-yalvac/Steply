@@ -20,7 +20,7 @@ import {
   Check,
   UserX,
 } from "lucide-react";
-import { addLinkedAccountAction, removeLinkedAccountAction } from "@/lib/actions";
+import { removeLinkedAccountAction } from "@/lib/actions";
 import type { LinkedAccount } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
@@ -75,27 +75,6 @@ function NavContent({
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
-  const [isAddingAccount, setIsAddingAccount] = useState(false);
-  const [addEmail, setAddEmail] = useState("");
-  const [addError, setAddError] = useState("");
-  const [addLoading, setAddLoading] = useState(false);
-
-  async function handleAddAccount(e: React.FormEvent) {
-    e.preventDefault();
-    if (!addEmail.trim()) return;
-    setAddLoading(true);
-    setAddError("");
-    const result = await addLinkedAccountAction(addEmail.trim());
-    setAddLoading(false);
-    if ("error" in result) {
-      setAddError(result.error);
-    } else {
-      setAccounts(prev => [...prev.filter(a => a.linked_email !== result.account.linked_email), result.account]);
-      setAddEmail("");
-      setIsAddingAccount(false);
-    }
-  }
-
   async function handleRemoveAccount(id: string) {
     await removeLinkedAccountAction(id);
     setAccounts(prev => prev.filter(a => a.id !== id));
@@ -256,45 +235,18 @@ function NavContent({
               </div>
             ))}
 
-            {/* Add account form */}
-            {isAddingAccount ? (
-              <form onSubmit={handleAddAccount} className="px-3 py-2.5 border-t border-slate-100 flex flex-col gap-1.5">
-                <input
-                  type="email"
-                  value={addEmail}
-                  onChange={e => { setAddEmail(e.target.value); setAddError(""); }}
-                  placeholder="E-posta adresi..."
-                  className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 outline-none focus:border-violet-400 bg-slate-50"
-                  autoFocus
-                />
-                {addError && <p className="text-[10px] text-red-500">{addError}</p>}
-                <div className="flex gap-1.5">
-                  <button
-                    type="submit"
-                    disabled={addLoading || !addEmail.trim()}
-                    className="flex-1 text-[11px] font-bold bg-violet-600 text-white px-2 py-1.5 rounded-lg disabled:opacity-50 hover:bg-violet-700 transition-colors"
-                  >
-                    {addLoading ? "..." : "Ekle"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setIsAddingAccount(false); setAddEmail(""); setAddError(""); }}
-                    className="text-[11px] font-semibold text-slate-500 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-                  >
-                    İptal
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsAddingAccount(true)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Yeni Hesap Ekle
-              </button>
-            )}
+            {/* Add account — redirect to login */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsAccountMenuOpen(false);
+                router.push("/auth/login?link_account=true");
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Yeni Hesap Ekle
+            </button>
           </div>
         )}
 
@@ -313,7 +265,7 @@ function NavContent({
           </Link>
           <button
             type="button"
-            onClick={() => { setIsAccountMenuOpen(o => !o); setIsAddingAccount(false); setAddError(""); }}
+            onClick={() => setIsAccountMenuOpen(o => !o)}
             className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Hesap değiştir"
           >
