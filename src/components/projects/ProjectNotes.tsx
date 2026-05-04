@@ -46,10 +46,10 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
       {/* Content — always wraps, never scrolls horizontally */}
       <div className="relative">
         <div
-          className={`text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden ${
+          className={`text-sm leading-relaxed whitespace-pre-line break-all overflow-hidden ${
             isLong && !expanded ? "max-h-[150px]" : "max-h-none"
           }`}
-          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+          style={{ wordBreak: "break-all" }}
         >
           {note.content}
         </div>
@@ -181,7 +181,7 @@ export default function ProjectNotes({
                   <Avatar src={note.author_avatar} name={note.author_name ?? "?"} size="sm" />
                 </div>
 
-                <div className={`flex flex-col min-w-0 max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
+                <div className={`flex flex-col min-w-0 max-w-[90%] ${isOwn ? "items-end" : "items-start"}`}>
                   {!isOwn && (
                     <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">
                       {note.author_name ?? "Üye"}
