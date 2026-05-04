@@ -33,6 +33,7 @@ export default async function SettingsPage() {
       initialLinkedinUrl={profile?.linkedin_url || ""}
       initialTwitterUrl={profile?.twitter_url || ""}
       initialWebsiteUrl={profile?.website_url || ""}
+      initialUniversity={(profile as any)?.university || ""}
     />
   );
 }

@@ -70,6 +70,7 @@ interface SettingsClientProps {
   initialLinkedinUrl: string;
   initialTwitterUrl: string;
   initialWebsiteUrl: string;
+  initialUniversity: string;
 }
 
 type Tab = "profile" | "security" | "notifications" | "preferences";
@@ -192,6 +193,7 @@ export default function SettingsClient({
   initialLinkedinUrl,
   initialTwitterUrl,
   initialWebsiteUrl,
+  initialUniversity,
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
@@ -207,6 +209,7 @@ export default function SettingsClient({
   const [selectedAvatar, setSelectedAvatar] = useState(initialAvatarUrl || ALL_AVATARS[0]);
   const [avatarExpanded, setAvatarExpanded] = useState(false);
   const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
+  const [university, setUniversity]   = useState(initialUniversity);
   const [linkedinUrl, setLinkedinUrl] = useState(initialLinkedinUrl);
   const [twitterUrl, setTwitterUrl] = useState(initialTwitterUrl);
   const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
@@ -244,6 +247,7 @@ export default function SettingsClient({
       formData.set("linkedin_url", linkedinUrl);
       formData.set("twitter_url", twitterUrl);
       formData.set("website_url", websiteUrl);
+      formData.set("university", university);
       const result = await updateProfileAction(formData);
       if ("error" in result) {
         toast.error(result.error || "Failed to save profile.");
@@ -521,6 +525,22 @@ export default function SettingsClient({
                           value={company}
                           onChange={(e) => setCompany(e.target.value)}
                           placeholder="Your company or org"
+                          className={`${inputCls} pl-9`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* University */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="s-university" className="text-sm font-medium text-slate-600">University</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          id="s-university"
+                          type="text"
+                          value={university}
+                          onChange={(e) => setUniversity(e.target.value)}
+                          placeholder="Your university or institution"
                           className={`${inputCls} pl-9`}
                         />
                       </div>

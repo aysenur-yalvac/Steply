@@ -221,6 +221,7 @@ export async function updateProfileAction(formData: FormData) {
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
   const institution = formData.get('institution') as string;
+  const university  = formData.get('university')  as string | null;
 
   const { error } = await supabase.from('profiles').update({
     full_name,
@@ -235,6 +236,7 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
+    ...(university !== null ? { university } : {}),
   }).eq('id', user.id);
 
   if (error) return { error: error.message };
@@ -542,6 +544,7 @@ export async function addProjectTask(
 
   await recalculateProgress(ctx.admin, projectId);
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
+  logUserActivityAction().catch(() => {});
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -576,6 +579,7 @@ export async function toggleTaskCompletion(
     ? `Görev tamamlandı: ${taskTitle}`
     : `Görev yeniden açıldı: ${taskTitle}`;
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
+  if (isCompleted) logUserActivityAction().catch(() => {});
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
@@ -679,6 +683,8 @@ export async function addProjectNoteAction(
     console.error('[addProjectNoteAction] Notification error:', e);
   }
 
+  logUserActivityAction().catch(() => {});
+
   return {
     success: true,
     note: {
@@ -766,4 +772,178 @@ export async function getTrendingTagsAction(
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([tag, count]) => ({ tag, count }));
+}
+
+// ── User Activity (Heatmap + Score) ──────────────────────────────────────────
+
+export type ActivityDay = { date: string; activity_count: number };
+
+export type LeaderboardEntry = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  total_score: number;
+  badges: string[];
+  country: string | null;
+  university: string | null;
+  rank: number;
+};
+
+async function awardBadgesInternal(userId: string, admin: ReturnType<typeof createAdminClient>): Promise<void> {
+  try {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('badges, total_score')
+      .eq('id', userId)
+      .single();
+
+    const current = new Set<string>((profile?.badges ?? []) as string[]);
+    const toAdd: string[] = [];
+
+    // project count badges
+    const { count: projectCount } = await admin
+      .from('projects')
+      .select('id', { count: 'exact', head: true })
+      .eq('student_id', userId);
+
+    if ((projectCount ?? 0) >= 1  && !current.has('first_project')) toAdd.push('first_project');
+    if ((projectCount ?? 0) >= 10 && !current.has('prolific'))      toAdd.push('prolific');
+
+    // streak badge — need activity for 7 consecutive days ending today
+    const last7: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      last7.push(d.toISOString().split('T')[0]);
+    }
+    const { data: streakRows } = await admin
+      .from('user_activities')
+      .select('date')
+      .eq('user_id', userId)
+      .in('date', last7);
+    const activeDates = new Set((streakRows ?? []).map((r: any) => r.date as string));
+    if (last7.every(d => activeDates.has(d)) && !current.has('streak_7')) toAdd.push('streak_7');
+
+    // ranking badges — only if total_score > 0
+    const score = profile?.total_score ?? 0;
+    if (score > 0) {
+      const { count: higherGlobal } = await admin
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .gt('total_score', score);
+      if ((higherGlobal ?? 0) < 50 && !current.has('top_50_global')) toAdd.push('top_50_global');
+    }
+
+    if (toAdd.length > 0) {
+      await admin
+        .from('profiles')
+        .update({ badges: [...Array.from(current), ...toAdd] })
+        .eq('id', userId);
+    }
+  } catch (e) {
+    console.warn('[awardBadgesInternal] non-blocking failure:', e);
+  }
+}
+
+export async function logUserActivityAction(): Promise<void> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const admin = createAdminClient();
+    const today = new Date().toISOString().split('T')[0];
+
+    // Atomic upsert via RPC (created in migration 20260505_user_activities.sql)
+    // Falls back to manual upsert if RPC not yet deployed
+    const { error: rpcErr } = await admin.rpc('increment_user_activity', {
+      p_user_id: user.id,
+      p_date: today,
+    });
+
+    if (rpcErr) {
+      // RPC not available — manual upsert
+      const { data: existing } = await admin
+        .from('user_activities')
+        .select('id, activity_count')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (existing) {
+        await admin
+          .from('user_activities')
+          .update({ activity_count: (existing as any).activity_count + 1 })
+          .eq('id', (existing as any).id);
+      } else {
+        await admin
+          .from('user_activities')
+          .insert({ user_id: user.id, date: today, activity_count: 1 });
+      }
+    }
+
+    // Increment total_score in profiles
+    const { data: prof } = await admin
+      .from('profiles')
+      .select('total_score')
+      .eq('id', user.id)
+      .single();
+
+    await admin
+      .from('profiles')
+      .update({ total_score: ((prof as any)?.total_score ?? 0) + 1 })
+      .eq('id', user.id);
+
+    // Award badges — non-blocking
+    awardBadgesInternal(user.id, admin).catch(() => {});
+  } catch (e) {
+    console.warn('[logUserActivityAction] non-blocking failure:', e);
+  }
+}
+
+export async function getUserActivitiesAction(userId: string): Promise<ActivityDay[]> {
+  const admin = createAdminClient();
+  const since = new Date();
+  since.setDate(since.getDate() - 364);
+  const sinceStr = since.toISOString().split('T')[0];
+
+  const { data } = await admin
+    .from('user_activities')
+    .select('date, activity_count')
+    .eq('user_id', userId)
+    .gte('date', sinceStr)
+    .order('date', { ascending: true });
+
+  return (data ?? []) as ActivityDay[];
+}
+
+export async function getLeaderboardAction(
+  scope: 'global' | 'turkey' | 'university',
+  userUniversity?: string | null
+): Promise<LeaderboardEntry[]> {
+  const admin = createAdminClient();
+
+  let query = admin
+    .from('profiles')
+    .select('id, full_name, avatar_url, total_score, badges, country, university')
+    .order('total_score', { ascending: false })
+    .limit(50);
+
+  if (scope === 'turkey') {
+    query = (query as any).or('country.ilike.%türkiye%,country.ilike.%turkey%,country.ilike.%turkiye%');
+  }
+  if (scope === 'university' && userUniversity) {
+    query = query.eq('university', userUniversity);
+  }
+
+  const { data } = await query;
+  return ((data ?? []) as any[]).map((p, i) => ({
+    id:          p.id,
+    full_name:   p.full_name   ?? 'Anonymous',
+    avatar_url:  p.avatar_url  ?? null,
+    total_score: p.total_score ?? 0,
+    badges:      p.badges      ?? [],
+    country:     p.country     ?? null,
+    university:  p.university  ?? null,
+    rank: i + 1,
+  }));
 }

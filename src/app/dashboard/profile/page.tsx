@@ -3,15 +3,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
-import { Github, Linkedin, Twitter, Globe, MapPin, Building2, Pencil } from 'lucide-react';
+import { Github, Linkedin, Twitter, Globe, MapPin, Building2, Pencil, GraduationCap } from 'lucide-react';
+import ActivityHeatmap from '@/components/profile/ActivityHeatmap';
+import BadgeDisplay from '@/components/profile/BadgeDisplay';
+import { getUserActivitiesAction } from '@/lib/actions';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect('/auth/login');
-  }
+  if (!user) redirect('/auth/login');
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -23,12 +24,16 @@ export default async function ProfilePage() {
     return <div className="p-8 text-center text-red-400">Profile information not found.</div>;
   }
 
+  const activities = await getUserActivitiesAction(user.id);
+
   const socialLinks = [
-    { href: profile.github_url, icon: <Github className="w-4 h-4" />, label: 'GitHub' },
-    { href: profile.linkedin_url, icon: <Linkedin className="w-4 h-4" />, label: 'LinkedIn' },
-    { href: profile.twitter_url, icon: <Twitter className="w-4 h-4" />, label: 'X / Twitter' },
-    { href: profile.website_url, icon: <Globe className="w-4 h-4" />, label: 'Website' },
+    { href: profile.github_url,   icon: <Github   className="w-4 h-4" />, label: 'GitHub'    },
+    { href: profile.linkedin_url, icon: <Linkedin  className="w-4 h-4" />, label: 'LinkedIn'  },
+    { href: profile.twitter_url,  icon: <Twitter   className="w-4 h-4" />, label: 'X / Twitter' },
+    { href: profile.website_url,  icon: <Globe     className="w-4 h-4" />, label: 'Website'   },
   ].filter((s) => s.href);
+
+  const badges: string[] = (profile as any).badges ?? [];
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] p-6 md:p-10 flex flex-col items-center">
@@ -61,15 +66,23 @@ export default async function ProfilePage() {
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">{profile.full_name || 'Unnamed User'}</h1>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-bold text-slate-900">{profile.full_name || 'Unnamed User'}</h1>
+                  {badges.length > 0 && <BadgeDisplay badges={badges} size="sm" />}
+                </div>
                 <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide">
                   {profile.role === 'teacher' ? 'Teacher' : 'Student'}
                 </span>
+                {(profile as any).total_score > 0 && (
+                  <span className="ml-2 inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                    🏆 {(profile as any).total_score} puan
+                  </span>
+                )}
               </div>
 
-              {/* Company / Location badges */}
+              {/* Location / Company / University badges */}
               <div className="flex flex-wrap gap-2 text-sm text-slate-500">
                 {profile.company && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100">
@@ -83,6 +96,12 @@ export default async function ProfilePage() {
                     {[profile.location, profile.country].filter(Boolean).join(", ")}
                   </span>
                 )}
+                {(profile as any).university && (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100">
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    {(profile as any).university}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -92,6 +111,11 @@ export default async function ProfilePage() {
                 {profile.bio}
               </p>
             )}
+
+            {/* Activity Heatmap */}
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <ActivityHeatmap activities={activities} />
+            </div>
 
             {/* Social links */}
             {socialLinks.length > 0 && (

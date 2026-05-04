@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createNotificationAction } from "@/lib/actions";
+import { createNotificationAction, logUserActivityAction } from "@/lib/actions";
 
 // ── Project type suggestions ───────────────────────────────────────────────────
 /**
@@ -146,6 +146,9 @@ export async function createProject(formData: FormData): Promise<{ success: bool
 
   // Track project type usage (non-blocking — silent on failure)
   await trackProjectType(platform);
+
+  // Log activity for heatmap + score (non-blocking)
+  logUserActivityAction().catch(() => {});
 
   revalidatePath("/dashboard");
   return { success: true };

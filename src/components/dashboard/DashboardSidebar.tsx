@@ -31,7 +31,7 @@ interface SidebarProps {
 
 const NAV_ITEMS = [
   { label: "My Projects", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Analytics", href: "#", icon: BarChart2, disabled: true },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart2 },
   { label: "Watchlist", href: "#watchlist", icon: Bookmark, isWatchlist: true },
   { label: "Calendar", href: "/dashboard/agenda", icon: Calendar },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -77,10 +77,11 @@ function NavContent({
           Main Menu
         </p>
         <div className="space-y-0.5">
-          {NAV_ITEMS.map(({ label, href, icon: Icon, isWatchlist, disabled }) => {
+          {NAV_ITEMS.map((item) => {
+            const { label, href, icon: Icon } = item;
+            const isWatchlist = (item as any).isWatchlist as boolean | undefined;
             const isActive =
               !isWatchlist &&
-              !disabled &&
               (href === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(href));
@@ -95,21 +96,6 @@ function NavContent({
                   <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                   {label}
                 </button>
-              );
-            }
-
-            if (disabled) {
-              return (
-                <div
-                  key={label}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 cursor-default"
-                >
-                  <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                  {label}
-                  <span className="ml-auto text-[9px] font-bold uppercase tracking-wider text-slate-300 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                    Soon
-                  </span>
-                </div>
               );
             }
 

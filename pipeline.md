@@ -62,16 +62,27 @@
 | FE-029 | Frontend_Agent | layout.tsx: top bar + NotificationBell server-side entegrasyonu + graceful degrade | 2026-04-24 | QA: OK |
 | FE-030 | Frontend_Agent | dashboard/page.tsx: Upcoming Tasks banner (today/tomorrow) öğrenci dashboardında | 2026-04-24 | QA: OK |
 | BE-028 | Backend_Agent | supabase/functions/send-reminders/: Resend edge function taslağı + cron talimatları | 2026-04-24 | QA: OK |
+| BE-038 | Backend_Agent | migration 20260505_user_activities.sql: user_activities tablosu + increment_user_activity RPC | 2026-05-05 | QA: OK |
+| BE-039 | Backend_Agent | migration 20260505_profiles_analytics.sql: university, total_score, badges kolonları | 2026-05-05 | QA: OK |
+| BE-040 | Backend_Agent | actions.ts: logUserActivityAction, getUserActivitiesAction, getLeaderboardAction, awardBadgesInternal | 2026-05-05 | QA: OK |
+| BE-041 | Backend_Agent | actions.ts: createProject + addProjectTask + toggleTaskCompletion + addProjectNoteAction → logUserActivityAction | 2026-05-05 | QA: OK |
+| BE-042 | Backend_Agent | updateProfileAction: university alanı kaydediliyor | 2026-05-05 | QA: OK |
+| FE-038 | Frontend_Agent | ActivityHeatmap.tsx: GitHub-style 365 gün heatmap, tooltip, streak sayacı, legend | 2026-05-05 | QA: OK |
+| FE-039 | Frontend_Agent | BadgeDisplay.tsx: BADGE_CONFIG, BadgeIcon (tooltip), BadgeDisplay listesi | 2026-05-05 | QA: OK |
+| FE-040 | Frontend_Agent | analytics/page.tsx + LeaderboardClient.tsx: 3 sekme (Global/TR/Üni), Top 50, altın/gümüş/bronz sıralama | 2026-05-05 | QA: OK |
+| FE-041 | Frontend_Agent | DashboardSidebar: Analytics linki aktif edildi (/dashboard/analytics) | 2026-05-05 | QA: OK |
+| FE-042 | Frontend_Agent | profile/page.tsx: ActivityHeatmap + BadgeDisplay + university + total_score gösterimi | 2026-05-05 | QA: OK |
+| FE-043 | Frontend_Agent | SettingsClient + settings/page.tsx: university alanı eklendi | 2026-05-05 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 60
-Tamamlandı      : 60
+Toplam Görev    : 73
+Tamamlandı      : 73
 Yapılıyor       : 0
-QA Onaylı       : 60
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260504_project_tags.sql + öncekiler)
+QA Onaylı       : 73
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql)
 Son Deploy      : — (commit pending)
 ```
