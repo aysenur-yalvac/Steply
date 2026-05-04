@@ -35,9 +35,12 @@ function localDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
-// Parse a DB 'YYYY-MM-DD' string as local midnight (not UTC midnight)
+// Parse any date string as local midnight.
+// .slice(0,10) extracts YYYY-MM-DD from both bare dates and full timestamps,
+// preventing "YYYY-MM-DDTHH:mm:ssT00:00:00" invalid string when the DB
+// returns a timestamp instead of a plain DATE value.
 function parseLocalDate(iso: string): Date {
-  return new Date(iso + "T00:00:00");
+  return new Date(iso.slice(0, 10) + "T00:00:00");
 }
 
 function processActivities(activities: ActivityDay[], range: Range): DataPoint[] {
@@ -66,6 +69,7 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
   }
 
   if (range === "1y" || range === "all") {
+    if (!filtered.length) return [{ label: "—", value: 0 }];
     // Group by month — preserve chronological order
     const monthMap = new Map<string, number>();
     for (const d of filtered) {
