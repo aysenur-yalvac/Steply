@@ -585,6 +585,7 @@ export async function toggleTaskCompletion(
   revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath('/dashboard/profile');
   revalidatePath('/dashboard/analytics');
+  revalidatePath('/', 'layout');
   return { success: true, progress };
 }
 
@@ -690,6 +691,7 @@ export async function addProjectNoteAction(
   recordUserActionAction('add_log').catch(() => {});
   revalidatePath('/dashboard/profile');
   revalidatePath('/dashboard/analytics');
+  revalidatePath('/', 'layout');
 
   return {
     success: true,
@@ -916,15 +918,11 @@ export async function logUserActivityAction(): Promise<void> {
 
 export async function getUserActivitiesAction(userId: string): Promise<ActivityDay[]> {
   const admin = createAdminClient();
-  const since = new Date();
-  since.setDate(since.getDate() - 364);
-  const sinceStr = since.toISOString().split('T')[0];
 
   const { data } = await admin
     .from('user_activities')
     .select('date, activity_count, daily_score')
     .eq('user_id', userId)
-    .gte('date', sinceStr)
     .order('date', { ascending: true });
 
   return (data ?? []) as ActivityDay[];

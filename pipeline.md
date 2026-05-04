@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 14)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 15)
 
 ---
 
@@ -89,16 +89,20 @@
 | BE-051 | Backend_Agent | `actions.ts`: ActivityDay tipine daily_score eklendi; getUserActivitiesAction daily_score çekiyor | 2026-05-04 | QA: OK |
 | BE-052 | Backend_Agent | `actions.ts`: recordUserActionAction RPC hatasında console.error ile Puanlama Hatası logu | 2026-05-04 | QA: OK |
 | FE-049 | Frontend_Agent | `activity-chart-card.tsx`: buildChartData + totalPrev daily_score kullanıyor; tooltip/footer "puan" olarak güncellendi | 2026-05-04 | QA: OK |
+| FE-050 | Frontend_Agent | `layout.tsx`: total_score çekilip top bar'a 🏆 altın gradient puan rozeti eklendi | 2026-05-04 | QA: OK |
+| FE-051 | Frontend_Agent | `activity-chart-card.tsx`: 4 aralık (7/30/365/Tümü), sıfır-doldurma, büyük aralıklarda overflow-x-auto scroll | 2026-05-04 | QA: OK |
+| BE-053 | Backend_Agent | `actions.ts`: getUserActivitiesAction 365-gün limiti kaldırıldı; tüm geçmişi döndürüyor | 2026-05-04 | QA: OK |
+| BE-054 | Backend_Agent | `actions.ts` + `dashboard/actions.ts`: puan kazandıran tüm action'lara revalidatePath('/', 'layout') eklendi | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 90
-Tamamlandı      : 90
+Toplam Görev    : 95
+Tamamlandı      : 95
 Yapılıyor       : 0
-QA Onaylı       : 90
+QA Onaylı       : 95
 Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql)
 Son Deploy      : — (commit pending)
 ```
