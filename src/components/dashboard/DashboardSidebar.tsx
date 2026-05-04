@@ -77,16 +77,35 @@ function NavContent({
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
+  const [isSwitching, setIsSwitching] = useState(false);
+
   async function handleRemoveAccount(id: string) {
     await removeLinkedAccountAction(id);
     setAccounts(prev => prev.filter(a => a.id !== id));
   }
 
   async function confirmSwitch() {
-    if (!switchTarget) return;
-    const email = encodeURIComponent(switchTarget.linked_email);
-    await signOut();
-    router.push(`/auth/login?email=${email}`);
+    if (!switchTarget || isSwitching) return;
+    setIsSwitching(true);
+    try {
+      const res = await fetch('/api/auth/switch-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linked_user_id: switchTarget.linked_user_id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        // Navigate to the one-time magic link — Supabase will sign in the target
+        // account and redirect to /dashboard (no password required)
+        window.location.href = data.url;
+      } else {
+        console.error('[switch-account] error:', data.error);
+        setIsSwitching(false);
+      }
+    } catch (e) {
+      console.error('[switch-account] network error:', e);
+      setIsSwitching(false);
+    }
   }
 
   return (
@@ -298,17 +317,19 @@ function NavContent({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setSwitchTarget(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                onClick={() => { if (!isSwitching) setSwitchTarget(null); }}
+                disabled={isSwitching}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
                 İptal
               </button>
               <button
                 type="button"
                 onClick={confirmSwitch}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                disabled={isSwitching}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-70"
               >
-                Geç
+                {isSwitching ? "Geçiş yapılıyor..." : "Geç"}
               </button>
             </div>
           </div>

@@ -95,14 +95,16 @@
 | BE-054 | Backend_Agent | `actions.ts` + `dashboard/actions.ts`: puan kazandıran tüm action'lara revalidatePath('/', 'layout') eklendi | 2026-05-04 | QA: OK |
 | BE-055 | Backend_Agent | `20260508_linked_accounts.sql`: linked_accounts tablosu + RLS; getLinkedAccountsAction / addLinkedAccountAction / removeLinkedAccountAction | 2026-05-04 | QA: OK |
 | FE-052 | Frontend_Agent | `DashboardSidebar.tsx`: ChevronsUpDown hesap değiştirici; dropdown (aktif hesap + bağlı hesaplar + Yeni Hesap Ekle formu); switch AlertDialog; layout.tsx'e linkedAccounts prop | 2026-05-04 | QA: OK |
+| BE-056 | Backend_Agent | `/api/auth/switch-account/route.ts`: POST endpoint; owner doğrulama + linked_accounts kontrolü + admin.auth.admin.generateLink ile magic link döner | 2026-05-04 | QA: OK |
+| FE-053 | Frontend_Agent | `DashboardSidebar.tsx`: confirmSwitch → /api/auth/switch-account POST + window.location.href ile magic link yönlendirmesi; isSwitching loading state; "Geçiş yapılıyor..." butonu | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 97
-Tamamlandı      : 97
+Toplam Görev    : 99
+Tamamlandı      : 99
 Yapılıyor       : 0
 QA Onaylı       : 97
 Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql + 20260508_linked_accounts.sql)
