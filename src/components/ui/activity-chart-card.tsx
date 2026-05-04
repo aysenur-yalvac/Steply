@@ -1,157 +1,154 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import type { ActivityDay } from "@/lib/actions";
 
-const TR_DAYS   = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"] as const;
-const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"] as const;
+type Range = "7d" | "1m" | "1y" | "all";
 
-function getLocalDateString(d: Date): string {
-  const year  = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day   = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+interface DataPoint {
+  label: string;
+  value: number;
 }
 
-type Range = 7 | 30 | 365 | "all";
-
-const RANGE_OPTIONS: { value: Range; label: string }[] = [
-  { value: 7,     label: "Son 7 Gün"   },
-  { value: 30,    label: "Son 1 Ay"    },
-  { value: 365,   label: "Son 1 Yıl"   },
-  { value: "all", label: "Tüm Zamanlar" },
+const RANGE_OPTIONS: { label: string; value: Range }[] = [
+  { label: "Son 7 Gün",     value: "7d"  },
+  { label: "Son 1 Ay",      value: "1m"  },
+  { label: "Son 1 Yıl",     value: "1y"  },
+  { label: "Tüm Zamanlar",  value: "all" },
 ];
 
-interface ChartItem { day: string; date: string; value: number }
+const TR_MONTHS = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+const TR_DAYS   = ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
 
-function buildChartData(activities: ActivityDay[], range: Range): ChartItem[] {
-  const scoreMap = new Map<string, number>();
-  for (const a of activities) {
-    // Normalize DB date string through local-time path to match lookup keys.
-    // "YYYY-MM-DD" parsed as UTC would shift by +3h in Turkey; appending
-    // T00:00:00 forces local midnight interpretation.
-    const normalizedKey = getLocalDateString(new Date(a.date + "T00:00:00"));
-    scoreMap.set(normalizedKey, a.daily_score ?? a.activity_count);
-  }
-  console.log("Ham Gelen Data:", activities);
-  console.log("Eşleşme İçin Oluşan Map:", scoreMap);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let startDate: Date;
-  if (range === "all") {
-    if (activities.length === 0) {
-      startDate = new Date(today);
-      startDate.setDate(today.getDate() - 6);
-    } else {
-      startDate = new Date(activities[0].date + "T00:00:00");
-    }
-  } else {
-    startDate = new Date(today);
-    startDate.setDate(today.getDate() - (range - 1));
-  }
-
-  const totalDays = Math.round((today.getTime() - startDate.getTime()) / 86_400_000) + 1;
-
-  const result: ChartItem[] = [];
-  const cur = new Date(startDate);
-  while (cur <= today) {
-    const iso = getLocalDateString(cur);
-    let label: string;
-    if (totalDays <= 7) {
-      label = TR_DAYS[cur.getDay()];
-    } else if (totalDays <= 31) {
-      label = `${cur.getDate()}/${cur.getMonth() + 1}`;
-    } else {
-      // For large ranges: show month name only on 1st of month, else empty
-      label = cur.getDate() === 1 ? TR_MONTHS[cur.getMonth()] : "";
-    }
-    result.push({ day: label, date: iso, value: scoreMap.get(iso) ?? 0 });
-    cur.setDate(cur.getDate() + 1);
-  }
-  return result;
+// Reads local year/month/day — avoids UTC-offset day shift (e.g. UTC+3 Turkey)
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
-function getPrevTotal(activities: ActivityDay[], range: Range): number {
-  if (range === "all") return 0;
-  const map = new Map<string, number>();
-  for (const a of activities) {
-    map.set(getLocalDateString(new Date(a.date + "T00:00:00")), a.daily_score ?? a.activity_count);
+// Parse a DB 'YYYY-MM-DD' string as local midnight (not UTC midnight)
+function parseLocalDate(iso: string): Date {
+  return new Date(iso + "T00:00:00");
+}
+
+function processActivities(activities: ActivityDay[], range: Range): DataPoint[] {
+  if (!activities.length) return [];
+
+  // Normalize to {date: localStr, value: daily_score ?? activity_count}
+  const normalized = activities.map(a => ({
+    date: localDateStr(parseLocalDate(a.date)),
+    value: a.daily_score ?? a.activity_count,
+  }));
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  // Filter by range
+  let filtered = normalized;
+  if (range === "7d") {
+    const cutoff = new Date(now); cutoff.setDate(now.getDate() - 7);
+    filtered = normalized.filter(d => parseLocalDate(d.date) >= cutoff);
+  } else if (range === "1m") {
+    const cutoff = new Date(now); cutoff.setMonth(now.getMonth() - 1);
+    filtered = normalized.filter(d => parseLocalDate(d.date) >= cutoff);
+  } else if (range === "1y") {
+    const cutoff = new Date(now); cutoff.setFullYear(now.getFullYear() - 1);
+    filtered = normalized.filter(d => parseLocalDate(d.date) >= cutoff);
   }
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let sum = 0;
-  for (let i = range * 2 - 1; i >= range; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    sum += map.get(getLocalDateString(d)) ?? 0;
+
+  if (range === "1y" || range === "all") {
+    // Group by month — preserve chronological order
+    const monthMap = new Map<string, number>();
+    for (const d of filtered) {
+      const date = parseLocalDate(d.date);
+      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2,"0")}`;
+      monthMap.set(key, (monthMap.get(key) ?? 0) + d.value);
+    }
+    return Array.from(monthMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => {
+        const monthIndex = parseInt(key.split("-")[1], 10);
+        return { label: TR_MONTHS[monthIndex], value };
+      });
   }
-  return sum;
+
+  if (range === "7d") {
+    // Zero-fill last 7 days so chart always shows 7 bars
+    const valMap = new Map(filtered.map(d => [d.date, d.value]));
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - i));
+      const iso = localDateStr(d);
+      return { label: TR_DAYS[d.getDay()], value: valMap.get(iso) ?? 0 };
+    });
+  }
+
+  // 1m: zero-fill each day in the last ~30 days
+  if (range === "1m") {
+    const valMap = new Map(filtered.map(d => [d.date, d.value]));
+    const cutoff = new Date(now); cutoff.setMonth(now.getMonth() - 1);
+    const days: DataPoint[] = [];
+    const cur = new Date(cutoff);
+    cur.setDate(cur.getDate() + 1);
+    while (cur <= now) {
+      const iso = localDateStr(cur);
+      days.push({ label: `${cur.getDate()}/${cur.getMonth()+1}`, value: valMap.get(iso) ?? 0 });
+      cur.setDate(cur.getDate() + 1);
+    }
+    return days;
+  }
+
+  return filtered.map(d => ({ label: d.date, value: d.value }));
 }
 
 interface Props {
   activities: ActivityDay[];
+  title?: string;
   className?: string;
 }
 
-export default function ActivityChartCard({ activities, className }: Props) {
-  const [range, setRange] = useState<Range>(7);
+export default function ActivityChartCard({ activities, title = "Aktivite Puanları", className }: Props) {
+  const [range, setRange] = React.useState<Range>("7d");
 
-  const data = useMemo(() => buildChartData(activities, range), [activities, range]);
-  const maxVal = Math.max(...data.map((d) => d.value), 1);
-  const totalCurrent = data.reduce((s, d) => s + d.value, 0);
-  const totalPrev = useMemo(() => getPrevTotal(activities, range), [activities, range]);
+  const processedData = React.useMemo(
+    () => processActivities(activities, range),
+    [activities, range],
+  );
 
-  const diffLabel = useMemo(() => {
-    if (range === "all" || totalPrev === 0) return "Tüm aktivite puanları";
-    const diff = totalCurrent - totalPrev;
-    if (diff > 0) return `+${diff} önceki döneme göre`;
-    if (diff < 0) return `${diff} önceki döneme göre`;
-    return "Önceki dönemle aynı";
-  }, [range, totalPrev, totalCurrent]);
+  const totalPoints = processedData.reduce((s, d) => s + d.value, 0);
+  const maxValue = Math.max(...processedData.map(d => d.value), 1);
+  const selectedLabel = RANGE_OPTIONS.find(o => o.value === range)?.label;
 
-  const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label ?? "";
-
-  // For large ranges, use fixed-width bars and horizontal scroll
-  const isLarge = range === 365 || range === "all";
-  const barMinW = isLarge ? "min-w-[5px] max-w-[5px]" : "flex-1";
-  // Minimum total width for scroll container: bars * (minWidth + gap)
-  const scrollMinWidth = isLarge ? `${data.length * 7}px` : undefined;
+  const isLarge = range === "1m" || range === "1y" || range === "all";
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-0 px-5 pt-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <CardTitle className="text-base font-bold text-slate-800">
-              Aktivite Puanları
-            </CardTitle>
-            <p className="text-xs text-slate-400 mt-0.5">{diffLabel}</p>
-          </div>
+    <Card className={cn("w-full bg-card/50 backdrop-blur-sm", className)}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger
               type="button"
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-input bg-background text-xs font-medium hover:bg-accent hover:text-accent-foreground transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md border border-input hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
-              {rangeLabel}
-              <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />
+              {selectedLabel}
+              <ChevronDown className="h-3 w-3 opacity-50" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px]">
-              {RANGE_OPTIONS.map((opt) => (
+            <DropdownMenuContent align="end" className="w-36">
+              {RANGE_OPTIONS.map(opt => (
                 <DropdownMenuItem
-                  key={String(opt.value)}
+                  key={opt.value}
                   onSelect={() => setRange(opt.value)}
-                  className={range === opt.value ? "text-violet-600 font-semibold" : ""}
+                  className={cn("text-xs", range === opt.value && "text-violet-600 font-semibold")}
                 >
                   {opt.label}
                 </DropdownMenuItem>
@@ -159,69 +156,62 @@ export default function ActivityChartCard({ activities, className }: Props) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        <div className="flex flex-col mt-2">
+          <p className="text-4xl font-bold tracking-tight">
+            {totalPoints.toLocaleString("tr-TR")}{" "}
+            <span className="text-sm text-muted-foreground font-normal">Puan</span>
+          </p>
+          <CardDescription className="flex items-center gap-1 text-emerald-500 mt-1">
+            <TrendingUp className="h-3 w-3" />
+            Aktif gelişim
+          </CardDescription>
+        </div>
       </CardHeader>
 
-      <CardContent className="px-5 pt-4 pb-5">
-        {/* Scrollable wrapper for large ranges */}
+      <CardContent>
         <div
-          className={isLarge ? "overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-violet-200 scrollbar-track-transparent" : ""}
+          className={cn(
+            "mt-4",
+            isLarge && "overflow-x-auto pb-1",
+          )}
         >
           <div
-            className="flex items-end gap-[2px] h-28"
-            style={scrollMinWidth ? { minWidth: scrollMinWidth } : undefined}
+            className="flex h-32 items-end justify-between gap-[3px]"
+            style={isLarge ? { minWidth: `${processedData.length * 22}px` } : undefined}
           >
-            {data.map((item, i) => {
-              const heightPct = maxVal > 0 ? (item.value / maxVal) * 100 : 0;
-              const todayIso = getLocalDateString(new Date());
-              return (
+            <AnimatePresence mode="wait">
+              {processedData.map((item, i) => (
                 <div
-                  key={item.date}
-                  className={`flex flex-col items-center gap-[3px] ${barMinW} group`}
+                  key={`${range}-${item.label}-${i}`}
+                  className="flex h-full flex-1 flex-col items-center justify-end gap-1.5 group"
                 >
-                  <div className="relative w-full flex items-end h-[76px]">
+                  <div className="relative w-full flex items-end" style={{ height: "calc(100% - 20px)" }}>
                     <motion.div
-                      className="w-full rounded-t-[2px] bg-violet-500 group-hover:bg-violet-600 transition-colors cursor-pointer"
-                      initial={{ height: 0 }}
-                      animate={{
-                        height: `${Math.max(heightPct, item.value > 0 ? 4 : 1)}%`,
+                      initial={{ scaleY: 0, opacity: 0 }}
+                      animate={{ scaleY: 1, opacity: 1 }}
+                      exit={{ scaleY: 0, opacity: 0 }}
+                      transition={{ delay: i * 0.02, type: "spring", stiffness: 300, damping: 28 }}
+                      className="w-full rounded-t-sm bg-primary/80 hover:bg-primary transition-colors cursor-pointer"
+                      style={{
+                        height: `${Math.max((item.value / maxValue) * 100, item.value > 0 ? 4 : 1)}%`,
+                        originY: 1,
                       }}
-                      transition={{
-                        delay: isLarge ? 0 : i * 0.025,
-                        type: "spring",
-                        stiffness: 280,
-                        damping: 24,
-                      }}
-                      title={`${item.date}: ${item.value} puan`}
+                      title={`${item.label}: ${item.value} puan`}
                     />
-                    {!isLarge && item.value > 0 && (
-                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    {item.value > 0 && (
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                         +{item.value}
                       </span>
                     )}
                   </div>
-                  {item.day && (
-                    <span
-                      className={`text-[9px] font-medium text-center leading-none ${
-                        item.date === todayIso
-                          ? "text-violet-600 font-bold"
-                          : "text-slate-400"
-                      } ${isLarge ? "min-w-[28px]" : "truncate w-full"}`}
-                    >
-                      {item.day}
-                    </span>
-                  )}
+                  <span className="text-[9px] text-muted-foreground uppercase font-medium truncate w-full text-center leading-none">
+                    {item.label}
+                  </span>
                 </div>
-              );
-            })}
+              ))}
+            </AnimatePresence>
           </div>
-        </div>
-
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-          <span>
-            <span className="font-bold text-violet-600">{totalCurrent.toLocaleString("tr-TR")}</span>{" "}
-            toplam puan
-          </span>
-          <span className="font-semibold text-slate-500">{rangeLabel}</span>
         </div>
       </CardContent>
     </Card>
