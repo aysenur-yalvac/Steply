@@ -782,7 +782,7 @@ export async function getTrendingTagsAction(
 
 // ── User Activity (Heatmap + Score) ──────────────────────────────────────────
 
-export type ActivityDay = { date: string; activity_count: number };
+export type ActivityDay = { date: string; activity_count: number; daily_score?: number };
 
 export type LeaderboardEntry = {
   id: string;
@@ -866,6 +866,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     });
 
     if (rpcErr) {
+      console.error('Puanlama Hatası (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
       // RPC not yet deployed — manual fallback with weighted points
       const POINTS: Record<ActionType, number> = {
         create_project: 10,
@@ -904,7 +905,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     // Award badges — non-blocking
     awardBadgesInternal(user.id, admin).catch(() => {});
   } catch (e) {
-    console.warn('[recordUserActionAction] non-blocking failure:', e);
+    console.error('Puanlama Hatası (exception):', e);
   }
 }
 
@@ -921,7 +922,7 @@ export async function getUserActivitiesAction(userId: string): Promise<ActivityD
 
   const { data } = await admin
     .from('user_activities')
-    .select('date, activity_count')
+    .select('date, activity_count, daily_score')
     .eq('user_id', userId)
     .gte('date', sinceStr)
     .order('date', { ascending: true });

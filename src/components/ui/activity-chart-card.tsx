@@ -19,9 +19,10 @@ const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Ey
 type Range = "7" | "14" | "30";
 
 function buildChartData(activities: ActivityDay[], days: number) {
+  // Use daily_score (weighted pts) if available, fall back to activity_count
   const map = new Map<string, number>();
   for (const a of activities) {
-    map.set(a.date, a.activity_count);
+    map.set(a.date, a.daily_score ?? a.activity_count);
   }
 
   const result: { day: string; date: string; value: number }[] = [];
@@ -60,7 +61,7 @@ export default function ActivityChartCard({ activities, className }: Props) {
   const totalPrev = useMemo(() => {
     const n = parseInt(range);
     const map = new Map<string, number>();
-    for (const a of activities) map.set(a.date, a.activity_count);
+    for (const a of activities) map.set(a.date, a.daily_score ?? a.activity_count);
     let sum = 0;
     const now = new Date();
     for (let i = n * 2 - 1; i >= n; i--) {
@@ -144,11 +145,11 @@ export default function ActivityChartCard({ activities, className }: Props) {
                       stiffness: 260,
                       damping: 22,
                     }}
-                    title={`${item.value} aktivite`}
+                    title={`${item.value} puan`}
                   />
                   {item.value > 0 && (
                     <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                      {item.value}
+                      +{item.value}
                     </span>
                   )}
                 </div>
@@ -166,7 +167,7 @@ export default function ActivityChartCard({ activities, className }: Props) {
           })}
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-          <span>{totalThisRange} toplam aktivite</span>
+          <span>{totalThisRange} toplam puan</span>
           <span className="font-bold text-slate-600">
             {RANGE_LABELS[range]}
           </span>

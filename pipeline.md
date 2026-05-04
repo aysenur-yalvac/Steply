@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 13)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 14)
 
 ---
 
@@ -86,16 +86,19 @@
 | BE-048 | Backend_Agent | `actions.ts`: toggleTaskCompletion → progress=100'de complete_project tetikleyici + revalidatePath | 2026-05-04 | QA: OK |
 | BE-049 | Backend_Agent | `actions.ts`: addProjectNoteAction → revalidatePath profile+analytics eklendi | 2026-05-04 | QA: OK |
 | BE-050 | Backend_Agent | `dashboard/actions.ts`: createProject + updateProgress(100) → revalidatePath profile+analytics eklendi | 2026-05-04 | QA: OK |
+| BE-051 | Backend_Agent | `actions.ts`: ActivityDay tipine daily_score eklendi; getUserActivitiesAction daily_score çekiyor | 2026-05-04 | QA: OK |
+| BE-052 | Backend_Agent | `actions.ts`: recordUserActionAction RPC hatasında console.error ile Puanlama Hatası logu | 2026-05-04 | QA: OK |
+| FE-049 | Frontend_Agent | `activity-chart-card.tsx`: buildChartData + totalPrev daily_score kullanıyor; tooltip/footer "puan" olarak güncellendi | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 87
-Tamamlandı      : 87
+Toplam Görev    : 90
+Tamamlandı      : 90
 Yapılıyor       : 0
-QA Onaylı       : 87
+QA Onaylı       : 90
 Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql)
 Son Deploy      : — (commit pending)
 ```
