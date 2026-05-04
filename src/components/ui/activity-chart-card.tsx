@@ -5,12 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { ActivityDay } from "@/lib/actions";
 
 type Range = "7d" | "1m" | "1y" | "all";
@@ -133,6 +127,7 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
   const maxValue = Math.max(...processedData.map(d => d.value), 1);
   const selectedLabel = RANGE_OPTIONS.find(o => o.value === range)?.label;
 
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const isLarge = range === "1m" || range === "1y" || range === "all";
 
   return (
@@ -140,26 +135,37 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-bold text-slate-900">{title}</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger
+          <div className="relative">
+            <button
               type="button"
-              className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md border border-violet-200 bg-white text-violet-700 hover:bg-violet-50 outline-none focus-visible:ring-2 focus-visible:ring-violet-400 transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md border border-violet-200 bg-white text-violet-700 hover:bg-violet-50 transition-colors"
             >
               {selectedLabel}
               <ChevronDown className="h-3 w-3" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-36">
-              {RANGE_OPTIONS.map(opt => (
-                <DropdownMenuItem
-                  key={opt.value}
-                  onSelect={() => setRange(opt.value)}
-                  className={cn("text-xs font-medium", range === opt.value ? "text-violet-700 font-bold" : "text-slate-700")}
-                >
-                  {opt.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 shadow-xl rounded-md overflow-hidden z-[9999] flex flex-col py-1">
+                {RANGE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setRange(opt.value);
+                      setIsMenuOpen(false);
+                    }}
+                    className={cn(
+                      "text-left px-3 py-2 text-xs transition-colors hover:bg-slate-100",
+                      range === opt.value ? "text-violet-700 font-bold bg-violet-50" : "text-slate-700 font-medium"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col mt-2">
