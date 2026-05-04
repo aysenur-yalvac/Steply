@@ -16,6 +16,13 @@ import type { ActivityDay } from "@/lib/actions";
 const TR_DAYS   = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"] as const;
 const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"] as const;
 
+function getLocalDateString(d: Date): string {
+  const year  = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day   = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 type Range = 7 | 30 | 365 | "all";
 
 const RANGE_OPTIONS: { value: Range; label: string }[] = [
@@ -54,7 +61,7 @@ function buildChartData(activities: ActivityDay[], range: Range): ChartItem[] {
   const result: ChartItem[] = [];
   const cur = new Date(startDate);
   while (cur <= today) {
-    const iso = cur.toISOString().slice(0, 10);
+    const iso = getLocalDateString(cur);
     let label: string;
     if (totalDays <= 7) {
       label = TR_DAYS[cur.getDay()];
@@ -80,7 +87,7 @@ function getPrevTotal(activities: ActivityDay[], range: Range): number {
   for (let i = range * 2 - 1; i >= range; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    sum += map.get(d.toISOString().slice(0, 10)) ?? 0;
+    sum += map.get(getLocalDateString(d)) ?? 0;
   }
   return sum;
 }
@@ -157,7 +164,7 @@ export default function ActivityChartCard({ activities, className }: Props) {
           >
             {data.map((item, i) => {
               const heightPct = maxVal > 0 ? (item.value / maxVal) * 100 : 0;
-              const todayIso = new Date().toISOString().slice(0, 10);
+              const todayIso = getLocalDateString(new Date());
               return (
                 <div
                   key={item.date}
