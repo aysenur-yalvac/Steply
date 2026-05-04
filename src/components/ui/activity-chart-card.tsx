@@ -72,20 +72,42 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
   }
 
   if (range === "1y" || range === "all") {
-    if (!filtered.length) return [{ label: "—", value: 0 }];
-    // Group by month — preserve chronological order
     const monthMap = new Map<string, number>();
     for (const d of filtered) {
       const date = parseLocalDate(d.date);
-      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2,"0")}`;
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
       monthMap.set(key, (monthMap.get(key) ?? 0) + d.value);
     }
-    return Array.from(monthMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => {
-        const monthIndex = parseInt(key.split("-")[1], 10);
-        return { label: TR_MONTHS[monthIndex], value };
-      });
+
+    const result: DataPoint[] = [];
+
+    if (range === "1y") {
+      // Always 12 bars — zero-fill months with no data
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        result.push({ label: TR_MONTHS[d.getMonth()], value: monthMap.get(key) ?? 0 });
+      }
+    } else {
+      // Tüm zamanlar: earliest activity month → today, zero-fill gaps
+      if (!normalized.length) {
+        result.push({ label: TR_MONTHS[now.getMonth()], value: 0 });
+      } else {
+        const earliestDate = new Date(Math.min(...normalized.map(d => parseLocalDate(d.date).getTime())));
+        let curYear = earliestDate.getFullYear();
+        let curMonth = earliestDate.getMonth();
+        const endYear = now.getFullYear();
+        const endMonth = now.getMonth();
+
+        while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+          const key = `${curYear}-${curMonth}`;
+          result.push({ label: TR_MONTHS[curMonth], value: monthMap.get(key) ?? 0 });
+          curMonth++;
+          if (curMonth > 11) { curMonth = 0; curYear++; }
+        }
+      }
+    }
+    return result;
   }
 
   // 1m: zero-fill each day in the last ~30 days
