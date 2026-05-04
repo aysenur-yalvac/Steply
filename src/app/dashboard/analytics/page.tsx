@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { getLeaderboardAction } from "@/lib/actions";
+import { getLeaderboardAction, getUserActivitiesAction } from "@/lib/actions";
 import LeaderboardClient from "./LeaderboardClient";
 import type { Metadata } from "next";
 
@@ -21,12 +21,13 @@ export default async function AnalyticsPage() {
     .eq("id", user.id)
     .single();
 
-  const [global50, turkey50, uni50] = await Promise.all([
+  const [global50, turkey50, uni50, activities] = await Promise.all([
     getLeaderboardAction("global"),
     getLeaderboardAction("turkey"),
     profile?.university
       ? getLeaderboardAction("university", profile.university)
       : Promise.resolve([]),
+    getUserActivitiesAction(user.id),
   ]);
 
   const currentUserRank = global50.findIndex(e => e.id === user.id) + 1;
@@ -40,6 +41,7 @@ export default async function AnalyticsPage() {
       userUniversity={profile?.university ?? null}
       currentUserRank={currentUserRank}
       currentUserScore={profile?.total_score ?? 0}
+      activities={activities}
     />
   );
 }

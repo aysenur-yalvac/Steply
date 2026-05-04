@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-04-24 (Operasyon 2)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 11)
 
 ---
 
@@ -73,16 +73,19 @@
 | FE-041 | Frontend_Agent | DashboardSidebar: Analytics linki aktif edildi (/dashboard/analytics) | 2026-05-05 | QA: OK |
 | FE-042 | Frontend_Agent | profile/page.tsx: ActivityHeatmap + BadgeDisplay + university + total_score gösterimi | 2026-05-05 | QA: OK |
 | FE-043 | Frontend_Agent | SettingsClient + settings/page.tsx: university alanı eklendi | 2026-05-05 | QA: OK |
+| FE-044 | Frontend_Agent | `activity-chart-card.tsx`: Framer Motion animasyonlu bar chart, 7/14/30 gün range dropdown | 2026-05-04 | QA: OK |
+| FE-045 | Frontend_Agent | `profile/page.tsx`: ActivityHeatmap → ActivityChartCard ile değiştirildi | 2026-05-04 | QA: OK |
+| FE-046 | Frontend_Agent | `analytics/page.tsx` + `LeaderboardClient.tsx`: ActivityChartCard leaderboard üstüne entegre edildi | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 73
-Tamamlandı      : 73
+Toplam Görev    : 76
+Tamamlandı      : 76
 Yapılıyor       : 0
-QA Onaylı       : 73
+QA Onaylı       : 76
 Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql)
 Son Deploy      : — (commit pending)
 ```

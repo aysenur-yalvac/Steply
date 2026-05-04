@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Globe, MapPin, GraduationCap, Medal } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { BadgeIcon } from "@/components/profile/BadgeDisplay";
-import type { LeaderboardEntry } from "@/lib/actions";
+import ActivityChartCard from "@/components/ui/activity-chart-card";
+import type { LeaderboardEntry, ActivityDay } from "@/lib/actions";
 
 const TABS = [
   { id: "global",      label: "🌍 Global Top 50",     icon: Globe },
@@ -121,6 +122,7 @@ interface Props {
   userUniversity: string | null;
   currentUserRank: number;
   currentUserScore: number;
+  activities: ActivityDay[];
 }
 
 export default function LeaderboardClient({
@@ -131,6 +133,7 @@ export default function LeaderboardClient({
   userUniversity,
   currentUserRank,
   currentUserScore,
+  activities,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("global");
 
@@ -156,6 +159,9 @@ export default function LeaderboardClient({
       </div>
 
       <div className="flex-1 p-6 lg:p-8 flex flex-col gap-6">
+
+        {/* Activity chart */}
+        <ActivityChartCard activities={activities} className="rounded-2xl border-slate-100 shadow-sm" />
 
         {/* Stats cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

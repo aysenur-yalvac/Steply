@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
 import { Github, Linkedin, Twitter, Globe, MapPin, Building2, Pencil, GraduationCap } from 'lucide-react';
-import ActivityHeatmap from '@/components/profile/ActivityHeatmap';
+import ActivityChartCard from '@/components/ui/activity-chart-card';
 import BadgeDisplay from '@/components/profile/BadgeDisplay';
 import { getUserActivitiesAction } from '@/lib/actions';
 
@@ -112,9 +112,9 @@ export default async function ProfilePage() {
               </p>
             )}
 
-            {/* Activity Heatmap */}
+            {/* Activity Chart */}
             <div className="mt-5 border-t border-slate-100 pt-5">
-              <ActivityHeatmap activities={activities} />
+              <ActivityChartCard activities={activities} className="border-0 shadow-none p-0" />
             </div>
 
             {/* Social links */}
