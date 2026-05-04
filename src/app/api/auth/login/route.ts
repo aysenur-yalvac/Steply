@@ -1,12 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url)
   const formData = await request.formData()
   const email = String(formData.get('email'))
   const password = String(formData.get('password'))
+  const linkAccount = formData.get('link_account') as string | null
+  const ownerId     = formData.get('owner_id')     as string | null
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -42,6 +45,30 @@ export async function POST(request: Request) {
       `${requestUrl.origin}/auth/login?message=${encodeURIComponent(message)}`,
       { status: 303 }
     )
+  }
+
+  // Link account: if owner requested linking, register new user under their linked_accounts
+  if (linkAccount === 'true' && ownerId && data.user) {
+    try {
+      const admin = createAdminClient()
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', data.user.id)
+        .maybeSingle()
+      await admin.from('linked_accounts').upsert(
+        {
+          owner_user_id:  ownerId,
+          linked_user_id: data.user.id,
+          linked_email:   email.toLowerCase(),
+          linked_name:    (profile as any)?.full_name  ?? null,
+          linked_avatar:  (profile as any)?.avatar_url ?? null,
+        },
+        { onConflict: 'owner_user_id,linked_email' },
+      )
+    } catch (e) {
+      console.error('[link_account] failed (non-blocking):', e)
+    }
   }
 
   // Manually set cookies if session exists to ensure persistence

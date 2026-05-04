@@ -64,6 +64,7 @@ export default async function DashboardLayout({
         isTeacher={isTeacher}
         avatarUrl={profile?.avatar_url}
         linkedAccounts={linkedAccounts}
+        userId={user.id}
       />
 
       {/* Main content */}

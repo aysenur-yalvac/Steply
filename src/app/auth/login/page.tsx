@@ -3,7 +3,7 @@ import LoginCard from "./LoginCard";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string; error?: string }>;
+  searchParams: Promise<{ message?: string; error?: string; link_account?: string; owner_id?: string }>;
 }) {
   const resolved = await searchParams;
   const displayMessage =
@@ -11,5 +11,11 @@ export default async function LoginPage({
       ? "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin."
       : resolved?.message;
 
-  return <LoginCard message={displayMessage} />;
+  return (
+    <LoginCard
+      message={displayMessage}
+      linkAccount={resolved?.link_account === "true"}
+      ownerId={resolved?.owner_id}
+    />
+  );
 }

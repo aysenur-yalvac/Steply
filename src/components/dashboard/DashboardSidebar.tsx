@@ -34,6 +34,7 @@ interface SidebarProps {
   isTeacher?: boolean;
   avatarUrl?: string | null;
   linkedAccounts?: LinkedAccount[];
+  userId?: string;
 }
 
 const NAV_ITEMS = [
@@ -65,6 +66,7 @@ function NavContent({
   isTeacher,
   avatarUrl,
   linkedAccounts = [],
+  userId,
   onClose,
   onOpenWatchlist,
 }: SidebarProps & { onClose: () => void; onOpenWatchlist: () => void }) {
@@ -240,7 +242,7 @@ function NavContent({
               type="button"
               onClick={() => {
                 setIsAccountMenuOpen(false);
-                router.push("/auth/login?link_account=true");
+                router.push(`/auth/login?link_account=true${userId ? `&owner_id=${userId}` : ""}`);
               }}
               className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100"
             >

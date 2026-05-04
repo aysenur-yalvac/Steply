@@ -200,9 +200,13 @@ type Mode = "login" | "register";
 export default function AnimatedCharactersLoginPage({
   mode,
   message,
+  linkAccount,
+  ownerId,
 }: {
   mode: Mode;
   message?: string;
+  linkAccount?: boolean;
+  ownerId?: string;
 }) {
   const isLogin = mode === "login";
 
@@ -599,6 +603,12 @@ export default function AnimatedCharactersLoginPage({
             className="flex flex-col gap-4"
           >
             {!isLogin && <input type="hidden" name="role" value={role} />}
+            {isLogin && linkAccount && ownerId && (
+              <>
+                <input type="hidden" name="link_account" value="true" />
+                <input type="hidden" name="owner_id" value={ownerId} />
+              </>
+            )}
 
             {/* Full name (register) */}
             {!isLogin && (
