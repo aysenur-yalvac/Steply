@@ -123,13 +123,13 @@ export default async function ProfilePage() {
                   <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-widest">Toplam Puan</span>
                 </div>
                 <div className="col-span-3 sm:col-span-2">
-                  <ActivityChartCard activities={activities} className="border-slate-100 shadow-sm h-full" />
+                  <ActivityChartCard activities={activities} totalScore={(profile as any).total_score} className="border-slate-100 shadow-sm h-full" />
                 </div>
               </div>
             )}
             {(profile as any).total_score === 0 && (
               <div className="mt-5 border-t border-slate-100 pt-5">
-                <ActivityChartCard activities={activities} className="border-0 shadow-none p-0" />
+                <ActivityChartCard activities={activities} totalScore={(profile as any).total_score} className="border-0 shadow-none p-0" />
               </div>
             )}
 

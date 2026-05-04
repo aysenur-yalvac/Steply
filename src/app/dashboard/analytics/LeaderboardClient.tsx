@@ -167,7 +167,7 @@ export default function LeaderboardClient({
       <div className="flex-1 p-6 lg:p-8 flex flex-col gap-6">
 
         {/* Activity chart */}
-        <ActivityChartCard activities={activities} className="rounded-2xl border-slate-100 shadow-sm" />
+        <ActivityChartCard activities={activities} totalScore={currentUserScore} className="rounded-2xl border-slate-100 shadow-sm" />
 
         {/* Stats cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

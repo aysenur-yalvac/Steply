@@ -116,11 +116,12 @@ function processActivities(activities: ActivityDay[], range: Range): DataPoint[]
 
 interface Props {
   activities: ActivityDay[];
+  totalScore?: number;
   title?: string;
   className?: string;
 }
 
-export default function ActivityChartCard({ activities, title = "Aktivite Puanları", className }: Props) {
+export default function ActivityChartCard({ activities, totalScore, title = "Aktivite Puanları", className }: Props) {
   const [range, setRange] = React.useState<Range>("7d");
 
   const processedData = React.useMemo(
@@ -128,7 +129,9 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
     [activities, range],
   );
 
-  const totalPoints = processedData.reduce((s, d) => s + d.value, 0);
+  // totalScore prop = real cumulative score from profiles.total_score
+  // Falls back to summing daily_score values if not provided
+  const displayTotal = totalScore ?? activities.reduce((s, a) => s + (a.daily_score ?? a.activity_count), 0);
   const maxValue = Math.max(...processedData.map(d => d.value), 1);
   const selectedLabel = RANGE_OPTIONS.find(o => o.value === range)?.label;
 
@@ -163,7 +166,7 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
 
         <div className="flex flex-col mt-2">
           <p className="text-4xl font-bold tracking-tight text-slate-900">
-            {processedData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString("tr-TR")}{" "}
+            {displayTotal.toLocaleString("tr-TR")}{" "}
             <span className="text-sm text-slate-500 font-normal">Puan</span>
           </p>
           <div className="flex items-center gap-1 text-emerald-600 font-bold mt-1 text-xs">
