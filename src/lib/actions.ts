@@ -578,8 +578,13 @@ export async function toggleTaskCompletion(
     ? `Görev tamamlandı: ${taskTitle}`
     : `Görev yeniden açıldı: ${taskTitle}`;
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
-  if (isCompleted) recordUserActionAction('complete_task').catch(() => {});
+  if (isCompleted) {
+    recordUserActionAction('complete_task').catch(() => {});
+    if (progress === 100) recordUserActionAction('complete_project').catch(() => {});
+  }
   revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath('/dashboard/profile');
+  revalidatePath('/dashboard/analytics');
   return { success: true, progress };
 }
 
@@ -683,6 +688,8 @@ export async function addProjectNoteAction(
   }
 
   recordUserActionAction('add_log').catch(() => {});
+  revalidatePath('/dashboard/profile');
+  revalidatePath('/dashboard/analytics');
 
   return {
     success: true,
@@ -843,7 +850,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
   }
 }
 
-export type ActionType = 'create_project' | 'complete_task' | 'add_comment' | 'add_log';
+export type ActionType = 'create_project' | 'complete_project' | 'complete_task' | 'add_comment' | 'add_log';
 
 export async function recordUserActionAction(actionType: ActionType): Promise<void> {
   try {
@@ -862,6 +869,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
       // RPC not yet deployed — manual fallback with weighted points
       const POINTS: Record<ActionType, number> = {
         create_project: 10,
+        complete_project: 20,
         complete_task: 5,
         add_comment: 2,
         add_log: 2,

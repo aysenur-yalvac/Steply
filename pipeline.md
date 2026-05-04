@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 12)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 13)
 
 ---
 
@@ -81,16 +81,21 @@
 | BE-045 | Backend_Agent | `actions.ts` + `dashboard/actions.ts`: create_project→10pt, complete_task→5pt, add_log→2pt bağlantıları | 2026-05-04 | QA: OK |
 | FE-047 | Frontend_Agent | `LeaderboardClient.tsx`: "Toplam Puan" başlığı, top-3 altın/sarı skor rengi, 🏆 ikon eklendi | 2026-05-04 | QA: OK |
 | FE-048 | Frontend_Agent | `profile/page.tsx`: altın gradient puan rozeti + Toplam Puan stat kartı + ActivityChartCard yan yana | 2026-05-04 | QA: OK |
+| BE-046 | Backend_Agent | `20260507_add_complete_project_action.sql`: record_user_action RPC'ye complete_project→20pt eklendi | 2026-05-04 | QA: OK |
+| BE-047 | Backend_Agent | `actions.ts`: ActionType + fallback POINTS tablosuna complete_project eklendi | 2026-05-04 | QA: OK |
+| BE-048 | Backend_Agent | `actions.ts`: toggleTaskCompletion → progress=100'de complete_project tetikleyici + revalidatePath | 2026-05-04 | QA: OK |
+| BE-049 | Backend_Agent | `actions.ts`: addProjectNoteAction → revalidatePath profile+analytics eklendi | 2026-05-04 | QA: OK |
+| BE-050 | Backend_Agent | `dashboard/actions.ts`: createProject + updateProgress(100) → revalidatePath profile+analytics eklendi | 2026-05-04 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 82
-Tamamlandı      : 82
+Toplam Görev    : 87
+Tamamlandı      : 87
 Yapılıyor       : 0
-QA Onaylı       : 82
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql)
+QA Onaylı       : 87
+Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql)
 Son Deploy      : — (commit pending)
 ```

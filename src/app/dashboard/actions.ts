@@ -151,6 +151,8 @@ export async function createProject(formData: FormData): Promise<{ success: bool
   recordUserActionAction('create_project').catch(() => {});
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard/analytics");
   return { success: true };
 }
 
@@ -174,7 +176,13 @@ export async function updateProgress(formData: FormData) {
     console.error("Update error", error);
   }
 
+  if (newProgress === 100) {
+    recordUserActionAction('complete_project').catch(() => {});
+  }
+
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard/analytics");
 }
 
 export async function createReview(formData: FormData) {
