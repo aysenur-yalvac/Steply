@@ -37,8 +37,14 @@ interface ChartItem { day: string; date: string; value: number }
 function buildChartData(activities: ActivityDay[], range: Range): ChartItem[] {
   const scoreMap = new Map<string, number>();
   for (const a of activities) {
-    scoreMap.set(a.date, a.daily_score ?? a.activity_count);
+    // Normalize DB date string through local-time path to match lookup keys.
+    // "YYYY-MM-DD" parsed as UTC would shift by +3h in Turkey; appending
+    // T00:00:00 forces local midnight interpretation.
+    const normalizedKey = getLocalDateString(new Date(a.date + "T00:00:00"));
+    scoreMap.set(normalizedKey, a.daily_score ?? a.activity_count);
   }
+  console.log("Ham Gelen Data:", activities);
+  console.log("Eşleşme İçin Oluşan Map:", scoreMap);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -80,7 +86,9 @@ function buildChartData(activities: ActivityDay[], range: Range): ChartItem[] {
 function getPrevTotal(activities: ActivityDay[], range: Range): number {
   if (range === "all") return 0;
   const map = new Map<string, number>();
-  for (const a of activities) map.set(a.date, a.daily_score ?? a.activity_count);
+  for (const a of activities) {
+    map.set(getLocalDateString(new Date(a.date + "T00:00:00")), a.daily_score ?? a.activity_count);
+  }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   let sum = 0;
