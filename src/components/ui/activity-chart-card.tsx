@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,13 +139,14 @@ export default function ActivityChartCard({ activities, className }: Props) {
             <p className="text-xs text-slate-400 mt-0.5">{diffLabel}</p>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-medium shrink-0">
-                {rangeLabel}
-                <ChevronDownIcon className="w-3.5 h-3.5 text-muted-foreground/70" />
-              </Button>
+            <DropdownMenuTrigger
+              type="button"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-input bg-background text-xs font-medium hover:bg-accent hover:text-accent-foreground transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {rangeLabel}
+              <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[140px]">
               {RANGE_OPTIONS.map((opt) => (
                 <DropdownMenuItem
                   key={String(opt.value)}
