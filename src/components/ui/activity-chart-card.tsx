@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,14 +135,14 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
   const isLarge = range === "1m" || range === "1y" || range === "all";
 
   return (
-    <Card className={cn("w-full", className)}>
+    <Card className={cn("w-full bg-white border border-slate-200 shadow-sm", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-foreground">{title}</CardTitle>
+          <CardTitle className="text-sm font-bold text-slate-900">{title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger
               type="button"
-              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-input bg-background text-foreground hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md border border-violet-200 bg-white text-violet-700 hover:bg-violet-50 outline-none focus-visible:ring-2 focus-visible:ring-violet-400 transition-colors"
             >
               {selectedLabel}
               <ChevronDown className="h-3 w-3" />
@@ -152,7 +152,7 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
                 <DropdownMenuItem
                   key={opt.value}
                   onSelect={() => setRange(opt.value)}
-                  className={cn("text-xs", range === opt.value && "text-violet-600 font-semibold")}
+                  className={cn("text-xs font-medium", range === opt.value ? "text-violet-700 font-bold" : "text-slate-700")}
                 >
                   {opt.label}
                 </DropdownMenuItem>
@@ -162,24 +162,19 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
         </div>
 
         <div className="flex flex-col mt-2">
-          <p className="text-4xl font-bold tracking-tight text-foreground">
-            {totalPoints.toLocaleString("tr-TR")}{" "}
+          <p className="text-4xl font-bold tracking-tight text-slate-900">
+            {processedData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString("tr-TR")}{" "}
             <span className="text-sm text-slate-500 font-normal">Puan</span>
           </p>
-          <CardDescription className="flex items-center gap-1 text-emerald-500 mt-1">
+          <div className="flex items-center gap-1 text-emerald-600 font-bold mt-1 text-xs">
             <TrendingUp className="h-3 w-3" />
             Aktif gelişim
-          </CardDescription>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent>
-        <div
-          className={cn(
-            "mt-4",
-            isLarge && "overflow-x-auto pb-1",
-          )}
-        >
+        <div className={cn("mt-4", isLarge && "overflow-x-auto pb-1")}>
           <div
             className="flex h-32 items-end justify-between gap-[3px]"
             style={isLarge ? { minWidth: `${processedData.length * 22}px` } : undefined}
@@ -196,7 +191,7 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
                       animate={{ scaleY: 1, opacity: 1 }}
                       exit={{ scaleY: 0, opacity: 0 }}
                       transition={{ delay: i * 0.02, type: "spring", stiffness: 300, damping: 28 }}
-                      className="w-full rounded-t-sm bg-violet-500 hover:bg-violet-600 transition-colors cursor-pointer"
+                      className="w-full rounded-t-sm bg-violet-600 hover:bg-violet-700 transition-colors cursor-pointer"
                       style={{
                         height: `${Math.max((item.value / maxValue) * 100, 3)}%`,
                         originY: 1,
@@ -204,12 +199,12 @@ export default function ActivityChartCard({ activities, title = "Aktivite Puanla
                       title={`${item.label}: ${item.value} puan`}
                     />
                     {item.value > 0 && (
-                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                         +{item.value}
                       </span>
                     )}
                   </div>
-                  <span className="text-[9px] text-slate-500 uppercase font-medium truncate w-full text-center leading-none">
+                  <span className="text-[9px] text-slate-600 font-semibold uppercase truncate w-full text-center leading-none">
                     {item.label}
                   </span>
                 </div>
