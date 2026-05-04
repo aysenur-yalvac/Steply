@@ -78,6 +78,7 @@ function NavContent({
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
 
   async function handleRemoveAccount(id: string) {
     await removeLinkedAccountAction(id);
@@ -86,24 +87,37 @@ function NavContent({
 
   async function confirmSwitch() {
     if (!switchTarget || isSwitching) return;
+
+    if (!switchTarget.linked_user_id) {
+      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı. Hesabı silip tekrar ekleyin.");
+      return;
+    }
+
     setIsSwitching(true);
+    setSwitchError(null);
+
     try {
       const res = await fetch('/api/auth/switch-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ linked_user_id: switchTarget.linked_user_id }),
       });
+
       const data = await res.json();
-      if (data.url) {
-        // Navigate to the one-time magic link — Supabase will sign in the target
-        // account and redirect to /dashboard (no password required)
-        window.location.href = data.url;
-      } else {
-        console.error('[switch-account] error:', data.error);
+
+      if (!res.ok || !data.url) {
+        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu. Tekrar deneyin.');
         setIsSwitching(false);
+        return;
       }
+
+      // Sign out current session cleanly before navigating to the magic link.
+      // This prevents stale session cookies from conflicting with the new session.
+      await signOut();
+      window.location.href = data.url;
     } catch (e) {
       console.error('[switch-account] network error:', e);
+      setSwitchError('Ağ hatası. İnternet bağlantınızı kontrol edin.');
       setIsSwitching(false);
     }
   }
@@ -216,11 +230,11 @@ function NavContent({
       </nav>
 
       {/* User footer */}
-      <div className="p-3 border-t border-slate-100">
+      <div className="relative p-3 border-t border-slate-100">
 
-        {/* Account switcher dropdown */}
+        {/* Account switcher dropdown — absolute so it floats above footer without shifting layout */}
         {isAccountMenuOpen && (
-          <div className="mb-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute bottom-[calc(100%+8px)] left-3 right-3 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-[100]">
             {/* Current account */}
             <div className="flex items-center gap-2.5 px-3 py-2.5 bg-violet-50 border-b border-violet-100">
               <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={28} />
@@ -256,14 +270,16 @@ function NavContent({
               </div>
             ))}
 
-            {/* Add account — redirect to login */}
+            {/* Add account — redirect to login with owner_id for back-linking */}
             <button
               type="button"
+              disabled={!userId}
               onClick={() => {
+                if (!userId) return;
                 setIsAccountMenuOpen(false);
-                router.push(`/auth/login?link_account=true${userId ? `&owner_id=${userId}` : ""}`);
+                router.push(`/auth/login?link_account=true&owner_id=${userId}`);
               }}
-              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100 disabled:opacity-40"
             >
               <Plus className="w-3.5 h-3.5" />
               Yeni Hesap Ekle
@@ -314,10 +330,15 @@ function NavContent({
                 hesabına geçmek üzeresiniz. Mevcut oturumunuz kapatılacak.
               </p>
             </div>
+            {switchError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                {switchError}
+              </p>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => { if (!isSwitching) setSwitchTarget(null); }}
+                onClick={() => { if (!isSwitching) { setSwitchTarget(null); setSwitchError(null); } }}
                 disabled={isSwitching}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
@@ -355,7 +376,7 @@ export default function DashboardSidebar(props: SidebarProps) {
       </button>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full overflow-hidden border-r border-white/60" style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full border-r border-white/60" style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <NavContent
           {...props}
           onClose={() => {}}
