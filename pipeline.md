@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-04 (Operasyon 16)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-06 (Operasyon 17 — Deploy_Chef)
 
 ---
 
@@ -14,20 +14,7 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| BE-029 | Backend_Agent | `createNotificationAction`: `createClient()` → `createAdminClient()` (RLS bypass) | Tamamlandı | QA: OK |
-| BE-030 | Backend_Agent | SQL migration: `project_tasks` tablosu + RLS | Tamamlandı | QA: OK |
-| BE-031 | Backend_Agent | addProjectTask, toggleTaskCompletion, deleteProjectTask + otomatik progress hesaplama | Tamamlandı | QA: OK |
-| FE-031 | Frontend_Agent | `ProjectTaskList.tsx` client component: görev ekleme, checkbox, silme, optimistic UI | Tamamlandı | QA: OK |
-| FE-032 | Frontend_Agent | `project/[id]/page.tsx`: project_tasks fetch + ProjectTaskList entegrasyonu | Tamamlandı | QA: OK |
-| FE-033 | Frontend_Agent | `projects/new/page.tsx`: progress slider kaldır, "otomatik hesaplanır" bilgi notu | Tamamlandı | QA: OK |
-| BE-034 | Backend_Agent | SQL migration: `project_activities` tablosu + kısıtlı RLS (sadece owner + members) | Tamamlandı | QA: OK |
-| BE-035 | Backend_Agent | logProjectActivity helper + getProjectActivitiesAction + task action'larına entegrasyon | Tamamlandı | QA: OK |
-| FE-034 | Frontend_Agent | `ActivityTimeline.tsx`: timeline UI component (ikon, isim, zaman gösterimi) | Tamamlandı | QA: OK |
-| FE-035 | Frontend_Agent | `project/[id]/page.tsx`: aktivite fetch + ActivityTimeline sağ kolona entegrasyon | Tamamlandı | QA: OK |
-| BE-036 | Backend_Agent | SQL migration `20260504_project_tags.sql`: `tags TEXT[]` sütunu `projects` tablosuna eklendi | Tamamlandı | QA: OK |
-| BE-037 | Backend_Agent | `updateProjectTagsAction`: sanitize + admin update + revalidatePath | Tamamlandı | QA: OK |
-| FE-036 | Frontend_Agent | `ProjectTags.tsx`: renk-hash badge'ler, inline input, X ile silme, optimistic update | Tamamlandı | QA: OK |
-| FE-037 | Frontend_Agent | `project/[id]/page.tsx`: ProjectTags başlık altına entegre edildi, `canEdit={isTeamMember}` | Tamamlandı | QA: OK |
+_Aktif görev yok — tüm görevler arşive taşındı._
 
 ---
 
@@ -97,6 +84,7 @@
 | FE-052 | Frontend_Agent | `DashboardSidebar.tsx`: ChevronsUpDown hesap değiştirici; dropdown (aktif hesap + bağlı hesaplar + Yeni Hesap Ekle formu); switch AlertDialog; layout.tsx'e linkedAccounts prop | 2026-05-04 | QA: OK |
 | BE-056 | Backend_Agent | `/api/auth/switch-account/route.ts`: POST endpoint; owner doğrulama + linked_accounts kontrolü + admin.auth.admin.generateLink ile magic link döner | 2026-05-04 | QA: OK |
 | FE-053 | Frontend_Agent | `DashboardSidebar.tsx`: confirmSwitch → /api/auth/switch-account POST + window.location.href ile magic link yönlendirmesi; isSwitching loading state; "Geçiş yapılıyor..." butonu | 2026-05-04 | QA: OK |
+| BE-029..FE-037 | Backend+Frontend | Görev sistemi, aktivite akışı, etiket sistemi (bkz. Operasyon 16 arşivi) | 2026-05-06 | QA: OK |
 
 ---
 
@@ -106,7 +94,17 @@
 Toplam Görev    : 99
 Tamamlandı      : 99
 Yapılıyor       : 0
-QA Onaylı       : 97
-Deploy Hazır    : EVET (⚠️ SQL migration apply edilmeli: 20260505_user_activities.sql + 20260505_profiles_analytics.sql + 20260504_project_tags.sql + 20260506_weighted_scoring.sql + 20260507_add_complete_project_action.sql + 20260508_linked_accounts.sql)
-Son Deploy      : — (commit pending)
+QA Onaylı       : 99
+Deploy Hazır    : EVET ✅
+Son Deploy      : 2026-05-06 — commit 5416eeb — Deploy_Chef tarafından push edildi
+⚠️ Manuel SQL migration'lar hâlâ uygulanmalı (Supabase Dashboard):
+  - 20260424_notifications.sql
+  - 20260424_project_tasks.sql
+  - 20260424_project_activities.sql
+  - 20260504_project_tags.sql
+  - 20260505_user_activities.sql
+  - 20260505_profiles_analytics.sql
+  - 20260506_weighted_scoring.sql
+  - 20260507_add_complete_project_action.sql
+  - 20260508_linked_accounts.sql
 ```
