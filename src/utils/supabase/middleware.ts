@@ -53,11 +53,13 @@ export async function updateSession(request: NextRequest) {
   
   // If user is logged in, restrict access to auth pages
   if (
-    user && 
+    user &&
     (request.nextUrl.pathname.startsWith('/auth/login') || request.nextUrl.pathname.startsWith('/auth/register'))
   ) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    if (request.nextUrl.searchParams.get('link_account') === 'true') {
+      return supabaseResponse
+    }
+    const url = new URL('/dashboard', request.url)
     return NextResponse.redirect(url)
   }
 

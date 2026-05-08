@@ -276,8 +276,7 @@ function NavContent({
               disabled={!userId}
               onClick={() => {
                 if (!userId) return;
-                setIsAccountMenuOpen(false);
-                router.push(`/auth/login?link_account=true&owner_id=${userId}`);
+                window.location.replace(`/auth/login?link_account=true&owner_id=${userId}`);
               }}
               className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-violet-600 transition-colors border-t border-slate-100 disabled:opacity-40"
             >
