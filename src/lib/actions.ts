@@ -944,12 +944,32 @@ export async function getLinkedAccountsAction(): Promise<LinkedAccount[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
     const admin = createAdminClient();
-    const { data } = await admin
+
+    // Only select columns guaranteed to exist in the minimal schema.
+    const { data: rows } = await admin
       .from('linked_accounts')
-      .select('id, linked_user_id, linked_email, linked_name')
+      .select('id, linked_user_id')
       .eq('owner_user_id', user.id)
       .order('created_at', { ascending: true });
-    return (data ?? []) as LinkedAccount[];
+
+    if (!rows || rows.length === 0) return [];
+
+    // Enrich each row with email (auth.users) and name/avatar (profiles) at runtime.
+    const accounts: LinkedAccount[] = [];
+    for (const row of rows) {
+      const [{ data: authUser }, { data: profile }] = await Promise.all([
+        admin.auth.admin.getUserById(row.linked_user_id),
+        admin.from('profiles').select('full_name, avatar_url').eq('id', row.linked_user_id).maybeSingle(),
+      ]);
+      accounts.push({
+        id: row.id,
+        linked_user_id: row.linked_user_id,
+        linked_email: authUser?.user?.email ?? '',
+        linked_name: (profile as any)?.full_name ?? null,
+        linked_avatar: (profile as any)?.avatar_url ?? null,
+      });
+    }
+    return accounts;
   } catch {
     return [];
   }
@@ -969,28 +989,43 @@ export async function addLinkedAccountAction(
   const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
   if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadı.' };
 
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('full_name, avatar_url')
-    .eq('id', foundUserId as string)
+  // Check if already linked to avoid duplicate-key errors regardless of constraints.
+  const { data: existing } = await admin
+    .from('linked_accounts')
+    .select('id')
+    .eq('owner_user_id', user.id)
+    .eq('linked_user_id', foundUserId as string)
     .maybeSingle();
 
-  const { data, error } = await admin
-    .from('linked_accounts')
-    .upsert(
-      {
-        owner_user_id:  user.id,
-        linked_user_id: foundUserId as string,
-        linked_email:   email.toLowerCase(),
-        linked_name:    (profile as any)?.full_name  ?? null,
-      },
-      { onConflict: 'owner_user_id,linked_email' },
-    )
-    .select()
-    .single();
+  let linkedId: string;
+  if (existing) {
+    linkedId = existing.id;
+  } else {
+    const { data: inserted, error: insertErr } = await admin
+      .from('linked_accounts')
+      .insert({ owner_user_id: user.id, linked_user_id: foundUserId as string })
+      .select('id')
+      .single();
+    if (insertErr || !inserted) return { error: insertErr?.message ?? 'Insert failed' };
+    linkedId = inserted.id;
+  }
 
-  if (error) return { error: error.message };
-  return { success: true, account: data as LinkedAccount };
+  // Fetch enrichment data for the return value.
+  const [{ data: authUser }, { data: profile }] = await Promise.all([
+    admin.auth.admin.getUserById(foundUserId as string),
+    admin.from('profiles').select('full_name, avatar_url').eq('id', foundUserId as string).maybeSingle(),
+  ]);
+
+  return {
+    success: true,
+    account: {
+      id: linkedId,
+      linked_user_id: foundUserId as string,
+      linked_email: authUser?.user?.email ?? email.toLowerCase(),
+      linked_name: (profile as any)?.full_name ?? null,
+      linked_avatar: (profile as any)?.avatar_url ?? null,
+    },
+  };
 }
 
 export async function removeLinkedAccountAction(

@@ -64,21 +64,23 @@ export async function POST(request: Request) {
 
     try {
       const admin = createAdminClient()
-      const { data: profile } = await admin
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', data.user.id)
+
+      // Check first to avoid duplicate-key errors regardless of which
+      // unique constraints exist on the table.
+      const { data: existingLink } = await admin
+        .from('linked_accounts')
+        .select('id')
+        .eq('owner_user_id', resolvedOwnerId)
+        .eq('linked_user_id', data.user.id)
         .maybeSingle()
 
-      const { error: upsertError } = await admin.from('linked_accounts').upsert(
-        {
-          owner_user_id:  resolvedOwnerId,
-          linked_user_id: data.user.id,
-          linked_email:   email.toLowerCase(),
-          linked_name:    (profile as any)?.full_name  ?? null,
-        },
-        { onConflict: 'owner_user_id,linked_email' },
-      )
+      let upsertError = null
+      if (!existingLink) {
+        const { error } = await admin
+          .from('linked_accounts')
+          .insert({ owner_user_id: resolvedOwnerId, linked_user_id: data.user.id })
+        upsertError = error
+      }
 
       if (upsertError) {
         console.error('[link_account] upsert failed:', upsertError)
