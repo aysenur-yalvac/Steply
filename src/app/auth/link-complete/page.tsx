@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function LinkCompletePage() {
+function LinkCompleteContent() {
   const searchParams = useSearchParams()
   const ownerId = searchParams.get('owner_id')
   const [error, setError] = useState<string | null>(null)
@@ -55,5 +55,13 @@ export default function LinkCompletePage() {
         <p className="text-sm font-semibold text-slate-700">Hesap bağlandı, ana hesaba dönülüyor…</p>
       </div>
     </div>
+  )
+}
+
+export default function LinkCompletePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50" />}>
+      <LinkCompleteContent />
+    </Suspense>
   )
 }
