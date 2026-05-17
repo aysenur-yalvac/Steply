@@ -68,18 +68,13 @@ export async function POST(request: Request) {
         { onConflict: 'owner_user_id,linked_email' },
       )
 
-      // Switch back to owner's session so their sidebar reflects the new account immediately
-      const { data: ownerUser } = await admin.auth.admin.getUserById(ownerId)
-      if (ownerUser?.user?.email) {
-        const { data: switchLink } = await admin.auth.admin.generateLink({
-          type: 'magiclink',
-          email: ownerUser.user.email,
-          options: { redirectTo: `${requestUrl.origin}/dashboard` },
-        })
-        if (switchLink?.properties?.action_link) {
-          return NextResponse.redirect(switchLink.properties.action_link, { status: 303 })
-        }
-      }
+      // Redirect to a client page that switches the session back to the owner.
+      // We avoid server-side redirect to the Supabase magic link URL because that
+      // causes the redirect_to param to be treated as a relative path on Vercel.
+      return NextResponse.redirect(
+        `${requestUrl.origin}/auth/link-complete?owner_id=${ownerId}`,
+        { status: 303 },
+      )
     } catch (e) {
       console.error('[link_account] failed (non-blocking):', e)
     }
