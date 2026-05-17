@@ -24,6 +24,7 @@ import { removeLinkedAccountAction } from "@/lib/actions";
 import type { LinkedAccount } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
+import { createClient } from "@/utils/supabase/client";
 import WatchlistDrawer from "@/components/dashboard/WatchlistDrawer";
 
 interface SidebarProps {
@@ -79,6 +80,29 @@ function NavContent({
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
   const [isSwitching, setIsSwitching] = useState(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+
+  // Refresh accounts from server — called on mount and each time dropdown opens.
+  async function refreshAccounts() {
+    setIsLoadingAccounts(true);
+    try {
+      const res = await fetch('/api/auth/linked-accounts');
+      if (res.ok) {
+        const data: LinkedAccount[] = await res.json();
+        setAccounts(data);
+      }
+    } catch {
+      // silent — keep stale list
+    } finally {
+      setIsLoadingAccounts(false);
+    }
+  }
+
+  // Fetch once on mount so the list is always fresh after page reload.
+  useEffect(() => { refreshAccounts(); }, []);
+
+  // Re-fetch every time the user opens the dropdown.
+  useEffect(() => { if (isAccountMenuOpen) refreshAccounts(); }, [isAccountMenuOpen]);
 
   async function handleRemoveAccount(id: string) {
     await removeLinkedAccountAction(id);
@@ -111,9 +135,10 @@ function NavContent({
         return;
       }
 
-      // Sign out current session cleanly before navigating to the magic link.
-      // This prevents stale session cookies from conflicting with the new session.
-      await signOut();
+      // Sign out without router.push side-effect (AuthContext.signOut redirects to '/'
+      // which races with the magic link navigation below).
+      const supabase = createClient();
+      await supabase.auth.signOut();
       window.location.href = data.url;
     } catch (e) {
       console.error('[switch-account] network error:', e);
@@ -246,6 +271,12 @@ function NavContent({
             </div>
 
             {/* Linked accounts */}
+            {isLoadingAccounts && accounts.length === 0 && (
+              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Yükleniyor…</div>
+            )}
+            {!isLoadingAccounts && accounts.length === 0 && (
+              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Bağlı hesap yok</div>
+            )}
             {accounts.map(acc => (
               <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 group">
                 <button
