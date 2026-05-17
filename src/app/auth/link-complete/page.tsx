@@ -5,11 +5,12 @@ import { useSearchParams } from 'next/navigation'
 
 function LinkCompleteContent() {
   const searchParams = useSearchParams()
-  const ownerId = searchParams.get('owner_id')
+  const ownerId   = searchParams.get('owner_id')
+  const linkedUid = searchParams.get('linked_uid')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!ownerId) {
+    if (!ownerId || !linkedUid) {
       setError('Geçersiz bağlantı isteği.')
       return
     }
@@ -17,7 +18,7 @@ function LinkCompleteContent() {
     fetch('/api/auth/switch-to-owner', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ owner_id: ownerId }),
+      body: JSON.stringify({ owner_id: ownerId, linked_uid: linkedUid }),
     })
       .then(res => res.json())
       .then(data => {

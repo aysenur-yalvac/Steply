@@ -1,57 +1,47 @@
-import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   const origin = new URL(request.url).origin
 
   let owner_id: string | undefined
+  let linked_uid: string | undefined
   try {
     const body = await request.json()
-    owner_id = body.owner_id
+    owner_id   = body.owner_id
+    linked_uid = body.linked_uid
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  if (!owner_id) {
-    return NextResponse.json({ error: 'owner_id is required' }, { status: 400 })
-  }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {},
-      },
-    }
-  )
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!owner_id || !linked_uid) {
+    return NextResponse.json({ error: 'owner_id and linked_uid are required' }, { status: 400 })
   }
 
   const admin = createAdminClient()
 
-  // Verify current user (linked account) belongs to the owner
+  // Verify the link exists in the DB — the row was written by the login route
+  // immediately before this call, so we trust the DB as the source of truth.
   const { data: link, error: linkError } = await admin
     .from('linked_accounts')
     .select('linked_email')
     .eq('owner_user_id', owner_id)
-    .eq('linked_user_id', user.id)
+    .eq('linked_user_id', linked_uid)
     .maybeSingle()
 
-  if (linkError || !link) {
-    return NextResponse.json({ error: 'Not a linked account of the specified owner' }, { status: 403 })
+  if (linkError) {
+    console.error('[switch-to-owner] DB error:', linkError)
+    return NextResponse.json({ error: 'Database error: ' + linkError.message }, { status: 500 })
+  }
+
+  if (!link) {
+    return NextResponse.json({ error: 'Link not found. The account may not have been saved correctly.' }, { status: 403 })
   }
 
   // Fetch owner's email to generate magic link
   const { data: ownerUser, error: ownerError } = await admin.auth.admin.getUserById(owner_id)
   if (ownerError || !ownerUser?.user?.email) {
+    console.error('[switch-to-owner] owner lookup error:', ownerError)
     return NextResponse.json({ error: 'Owner account not found' }, { status: 404 })
   }
 

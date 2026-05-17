@@ -57,7 +57,7 @@ export async function POST(request: Request) {
         .select('full_name, avatar_url')
         .eq('id', data.user.id)
         .maybeSingle()
-      await admin.from('linked_accounts').upsert(
+      const { error: upsertError } = await admin.from('linked_accounts').upsert(
         {
           owner_user_id:  ownerId,
           linked_user_id: data.user.id,
@@ -68,15 +68,26 @@ export async function POST(request: Request) {
         { onConflict: 'owner_user_id,linked_email' },
       )
 
-      // Redirect to a client page that switches the session back to the owner.
-      // We avoid server-side redirect to the Supabase magic link URL because that
-      // causes the redirect_to param to be treated as a relative path on Vercel.
+      if (upsertError) {
+        console.error('[link_account] upsert failed:', upsertError)
+        return NextResponse.redirect(
+          `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Hesap bağlanamadı: ' + upsertError.message)}`,
+          { status: 303 },
+        )
+      }
+
+      // Pass linked_uid so switch-to-owner can verify the DB row directly
+      // without relying on the session cookie (which may lag after login redirect).
       return NextResponse.redirect(
-        `${requestUrl.origin}/auth/link-complete?owner_id=${ownerId}`,
+        `${requestUrl.origin}/auth/link-complete?owner_id=${ownerId}&linked_uid=${data.user.id}`,
         { status: 303 },
       )
     } catch (e) {
-      console.error('[link_account] failed (non-blocking):', e)
+      console.error('[link_account] failed:', e)
+      return NextResponse.redirect(
+        `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Hesap bağlama sırasında beklenmeyen bir hata oluştu.')}`,
+        { status: 303 },
+      )
     }
   }
 
