@@ -41,15 +41,27 @@ export async function POST(request: Request) {
     if (error.message.includes('Email not confirmed')) {
       message = 'Please verify your email address. Check your inbox (and spam folder).'
     }
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/login?message=${encodeURIComponent(message)}`,
-      { status: 303 }
-    )
+    // Keep link_account params so middleware doesn't redirect the logged-in user away.
+    const base = linkAccount === 'true' && ownerId
+      ? `${requestUrl.origin}/auth/login?link_account=true&owner_id=${ownerId}`
+      : `${requestUrl.origin}/auth/login`
+    return NextResponse.redirect(`${base}&message=${encodeURIComponent(message)}`, { status: 303 })
   }
+
+  // Resolve owner_id: form hidden input is the primary source; cookie is the fallback
+  // in case the client component failed to render the hidden inputs.
+  const cookieOwnerId = cookieStore.get('_steply_link_owner')?.value ?? null
+  const resolvedOwnerId  = ownerId ?? (linkAccount === 'true' ? cookieOwnerId : null) ?? cookieOwnerId
+  const resolvedLinkMode = linkAccount === 'true' || (!!cookieOwnerId && !!resolvedOwnerId)
 
   // Link account: if owner requested linking, register new user under their linked_accounts
   // then switch back to the owner's session via magic link so the sidebar refreshes correctly
-  if (linkAccount === 'true' && ownerId && data.user) {
+  if (resolvedLinkMode && resolvedOwnerId && data.user) {
+    // Helper: build error redirect that keeps link_account=true so middleware
+    // doesn't intercept the page (logged-in users are normally sent to /dashboard).
+    const linkErrorUrl = (msg: string) =>
+      `${requestUrl.origin}/auth/login?link_account=true&owner_id=${resolvedOwnerId}&message=${encodeURIComponent(msg)}`
+
     try {
       const admin = createAdminClient()
       const { data: profile } = await admin
@@ -57,9 +69,10 @@ export async function POST(request: Request) {
         .select('full_name, avatar_url')
         .eq('id', data.user.id)
         .maybeSingle()
+
       const { error: upsertError } = await admin.from('linked_accounts').upsert(
         {
-          owner_user_id:  ownerId,
+          owner_user_id:  resolvedOwnerId,
           linked_user_id: data.user.id,
           linked_email:   email.toLowerCase(),
           linked_name:    (profile as any)?.full_name  ?? null,
@@ -70,22 +83,22 @@ export async function POST(request: Request) {
 
       if (upsertError) {
         console.error('[link_account] upsert failed:', upsertError)
-        return NextResponse.redirect(
-          `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Hesap bağlanamadı: ' + upsertError.message)}`,
-          { status: 303 },
-        )
+        return NextResponse.redirect(linkErrorUrl('Hesap bağlanamadı: ' + upsertError.message), { status: 303 })
       }
 
+      // Clear the helper cookie and redirect to link-complete.
       // Pass linked_uid so switch-to-owner can verify the DB row directly
       // without relying on the session cookie (which may lag after login redirect).
-      return NextResponse.redirect(
-        `${requestUrl.origin}/auth/link-complete?owner_id=${ownerId}&linked_uid=${data.user.id}`,
+      const res = NextResponse.redirect(
+        `${requestUrl.origin}/auth/link-complete?owner_id=${resolvedOwnerId}&linked_uid=${data.user.id}`,
         { status: 303 },
       )
+      res.cookies.delete('_steply_link_owner')
+      return res
     } catch (e) {
       console.error('[link_account] failed:', e)
       return NextResponse.redirect(
-        `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Hesap bağlama sırasında beklenmeyen bir hata oluştu.')}`,
+        linkErrorUrl('Hesap bağlama sırasında beklenmeyen bir hata oluştu.'),
         { status: 303 },
       )
     }
