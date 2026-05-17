@@ -946,7 +946,7 @@ export async function getLinkedAccountsAction(): Promise<LinkedAccount[]> {
     const admin = createAdminClient();
     const { data } = await admin
       .from('linked_accounts')
-      .select('id, linked_user_id, linked_email, linked_name, linked_avatar')
+      .select('id, linked_user_id, linked_email, linked_name')
       .eq('owner_user_id', user.id)
       .order('created_at', { ascending: true });
     return (data ?? []) as LinkedAccount[];
@@ -983,7 +983,6 @@ export async function addLinkedAccountAction(
         linked_user_id: foundUserId as string,
         linked_email:   email.toLowerCase(),
         linked_name:    (profile as any)?.full_name  ?? null,
-        linked_avatar:  (profile as any)?.avatar_url ?? null,
       },
       { onConflict: 'owner_user_id,linked_email' },
     )

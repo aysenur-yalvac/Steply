@@ -76,7 +76,6 @@ export async function POST(request: Request) {
           linked_user_id: data.user.id,
           linked_email:   email.toLowerCase(),
           linked_name:    (profile as any)?.full_name  ?? null,
-          linked_avatar:  (profile as any)?.avatar_url ?? null,
         },
         { onConflict: 'owner_user_id,linked_email' },
       )
