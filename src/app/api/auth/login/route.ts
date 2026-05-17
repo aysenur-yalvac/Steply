@@ -48,6 +48,7 @@ export async function POST(request: Request) {
   }
 
   // Link account: if owner requested linking, register new user under their linked_accounts
+  // then switch back to the owner's session via magic link so the sidebar refreshes correctly
   if (linkAccount === 'true' && ownerId && data.user) {
     try {
       const admin = createAdminClient()
@@ -66,6 +67,19 @@ export async function POST(request: Request) {
         },
         { onConflict: 'owner_user_id,linked_email' },
       )
+
+      // Switch back to owner's session so their sidebar reflects the new account immediately
+      const { data: ownerUser } = await admin.auth.admin.getUserById(ownerId)
+      if (ownerUser?.user?.email) {
+        const { data: switchLink } = await admin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: ownerUser.user.email,
+          options: { redirectTo: `${requestUrl.origin}/dashboard` },
+        })
+        if (switchLink?.properties?.action_link) {
+          return NextResponse.redirect(switchLink.properties.action_link, { status: 303 })
+        }
+      }
     } catch (e) {
       console.error('[link_account] failed (non-blocking):', e)
     }
