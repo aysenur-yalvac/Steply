@@ -37,6 +37,26 @@ export default async function PublicProfilePage({
   const { data: { user: viewer } } = await supabase.auth.getUser();
   const isSelf = viewer?.id === id;
 
+  // Is viewer a teacher? Fetch their watched project IDs so bookmark state is correct.
+  let isViewerTeacher = false;
+  let viewerWatchedIds: string[] = [];
+  if (viewer) {
+    const { data: viewerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', viewer.id)
+      .single();
+    isViewerTeacher = viewerProfile?.role === 'teacher';
+
+    if (isViewerTeacher) {
+      const { data: watched } = await supabase
+        .from('mentored_projects')
+        .select('project_id')
+        .eq('teacher_id', viewer.id);
+      viewerWatchedIds = (watched ?? []).map((r: any) => r.project_id as string);
+    }
+  }
+
   // is_public: true → public, false → private, null → treat as public
   const isPrivate = profile.is_public === false;
 
@@ -179,7 +199,11 @@ export default async function PublicProfilePage({
                 <p className="text-sm text-slate-400 font-medium">No public projects yet.</p>
               </div>
             ) : (
-              <ProfileProjectsPanel projects={projects} />
+              <ProfileProjectsPanel
+                projects={projects}
+                isTeacher={isViewerTeacher}
+                initialWatchedIds={viewerWatchedIds}
+              />
             )}
           </div>
         )}

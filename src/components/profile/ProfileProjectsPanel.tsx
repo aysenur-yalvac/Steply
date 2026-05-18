@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Clock, FolderOpen, ExternalLink } from "lucide-react";
+import { CheckCircle, Clock, FolderOpen, ExternalLink, Bookmark } from "lucide-react";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
+import { toggleWatchlistAction } from "@/lib/actions";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Project = {
@@ -27,9 +28,31 @@ function cleanDesc(raw: string) {
 }
 
 // ── Individual project card ────────────────────────────────────────────────────
-function ProfileProjectCard({ project }: { project: Project }) {
+function ProfileProjectCard({
+  project,
+  isTeacher,
+  isWatched: initialWatched,
+}: {
+  project: Project;
+  isTeacher: boolean;
+  isWatched: boolean;
+}) {
   const isCompleted = project.progress_percentage === 100;
   const desc = cleanDesc(project.description ?? "");
+  const [watched,   setWatched]   = useState(initialWatched);
+  const [saving,    setSaving]    = useState(false);
+
+  async function handleBookmark(e: React.MouseEvent) {
+    e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    try {
+      await toggleWatchlistAction(project.id);
+      setWatched((v) => !v);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <motion.div
@@ -40,16 +63,37 @@ function ProfileProjectCard({ project }: { project: Project }) {
     >
       {/* ── Card body ───────────────────────────────────────────────────── */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Status badge */}
-        <div className="flex items-center gap-2 mb-3.5">
-          {isCompleted ? (
-            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
-              <CheckCircle className="w-3.5 h-3.5" /> Completed
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
-              <Clock className="w-3.5 h-3.5" /> In Progress
-            </span>
+        {/* Status badge + bookmark */}
+        <div className="flex items-center justify-between gap-2 mb-3.5">
+          <div className="flex items-center gap-2">
+            {isCompleted ? (
+              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
+                <CheckCircle className="w-3.5 h-3.5" /> Completed
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
+                <Clock className="w-3.5 h-3.5" /> In Progress
+              </span>
+            )}
+          </div>
+          {isTeacher && (
+            <button
+              type="button"
+              onClick={handleBookmark}
+              disabled={saving}
+              title={watched ? "Takipten çık" : "Takibe al"}
+              className={`p-1.5 rounded-lg transition-all shrink-0 ${
+                watched
+                  ? "text-violet-600 bg-violet-50 border border-violet-200 hover:bg-violet-100"
+                  : "text-slate-400 hover:text-violet-600 hover:bg-violet-50"
+              } disabled:opacity-50`}
+            >
+              <Bookmark
+                className="w-4 h-4"
+                fill={watched ? "currentColor" : "none"}
+                strokeWidth={watched ? 0 : 1.5}
+              />
+            </button>
           )}
         </div>
 
@@ -138,7 +182,15 @@ function ColumnHeader({
 }
 
 // ── Main exported component ───────────────────────────────────────────────────
-export default function ProfileProjectsPanel({ projects }: { projects: Project[] }) {
+export default function ProfileProjectsPanel({
+  projects,
+  isTeacher = false,
+  initialWatchedIds = [],
+}: {
+  projects: Project[];
+  isTeacher?: boolean;
+  initialWatchedIds?: string[];
+}) {
   const [filter, setFilter] = useState<FilterState>("all");
 
   const completed  = projects.filter((p) => p.progress_percentage === 100);
@@ -221,7 +273,7 @@ export default function ProfileProjectsPanel({ projects }: { projects: Project[]
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
                       </motion.div>
                     ))
                   : <EmptySlot label="completed" />
@@ -253,7 +305,7 @@ export default function ProfileProjectsPanel({ projects }: { projects: Project[]
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
                       </motion.div>
                     ))
                   : <EmptySlot label="in-progress" />
@@ -274,7 +326,7 @@ export default function ProfileProjectsPanel({ projects }: { projects: Project[]
             {filteredSingle.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {filteredSingle.map((p) => (
-                  <ProfileProjectCard key={p.id} project={p} />
+                  <ProfileProjectCard key={p.id} project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
                 ))}
               </div>
             ) : (
