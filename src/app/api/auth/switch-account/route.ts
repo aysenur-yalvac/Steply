@@ -6,7 +6,9 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   const host  = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
   const proto = request.headers.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
-  const origin = `${proto}://${host}`
+  const rawOrigin = `${proto}://${host}`
+  // Supabase treats redirectTo without a scheme as a relative path — ensure https://
+  const origin = rawOrigin.startsWith('http') ? rawOrigin : `https://${rawOrigin}`
 
   // Parse body
   let linked_user_id: string | undefined

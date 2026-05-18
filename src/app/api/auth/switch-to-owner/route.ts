@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   const host  = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
   const proto = request.headers.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
-  const origin = `${proto}://${host}`
+  const rawOrigin = `${proto}://${host}`
+  const origin = rawOrigin.startsWith('http') ? rawOrigin : `https://${rawOrigin}`
 
   let owner_id: string | undefined
   let linked_uid: string | undefined
