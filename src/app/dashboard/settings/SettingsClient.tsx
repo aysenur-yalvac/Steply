@@ -35,6 +35,7 @@ import type { FollowUser } from "@/lib/actions";
 import { Avatar } from "@/components/ui/avatar";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
+import UniversityCombobox from "@/components/ui/UniversityCombobox";
 
 const ALL_AVATARS = [
   "https://api.dicebear.com/7.x/notionists/svg?seed=Leo&backgroundColor=b6e3f4",
@@ -543,20 +544,15 @@ export default function SettingsClient({
                       </div>
                     </div>
 
-                    {/* University */}
+                    {/* University — autocomplete from universities table */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-university" className="text-sm font-medium text-slate-600">University</label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          id="s-university"
-                          type="text"
-                          value={university}
-                          onChange={(e) => setUniversity(e.target.value)}
-                          placeholder="Your university or institution"
-                          className={`${inputCls} pl-9`}
-                        />
-                      </div>
+                      <label className="text-sm font-medium text-slate-600">University / Institution</label>
+                      <UniversityCombobox
+                        value={university}
+                        onChange={setUniversity}
+                        placeholder="Üniversite veya kurum ara..."
+                      />
+                      <p className="text-[11px] text-slate-400">Yazarak arama yap, listeden seç.</p>
                     </div>
 
                     {/* Location — Country + City dropdowns */}

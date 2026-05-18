@@ -1325,6 +1325,23 @@ export async function toggleProjectFavoriteAction(
   }
 }
 
+// ── Universities ──────────────────────────────────────────────────────────────
+
+export async function searchUniversitiesAction(
+  query: string,
+): Promise<{ name: string; country: string }[]> {
+  if (!query || query.trim().length < 2) return [];
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from('universities')
+    .select('name, country')
+    .ilike('name', `%${query.trim()}%`)
+    .order('name', { ascending: true })
+    .limit(12);
+  if (error) { console.error('[searchUniversities]', error.message); return []; }
+  return data ?? [];
+}
+
 export async function getBlockedUsersAction(): Promise<FollowUser[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
