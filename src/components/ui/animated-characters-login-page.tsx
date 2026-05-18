@@ -215,10 +215,9 @@ export default function AnimatedCharactersLoginPage({
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
-  // When a magic-link hash is present, show the loading screen then redirect.
-  // Two guards needed: getSession() for tokens already processed before mount,
-  // and onAuthStateChange for SIGNED_IN + USER_UPDATED (fired when switching
-  // accounts while another session is already active).
+  // When a magic-link hash is present, wait for Supabase to confirm the session
+  // then hard-navigate to /dashboard. window.location.href bypasses the Next.js
+  // router cache and cookie-read delay that caused the middleware redirect loop.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.location.hash.includes('access_token=') || linkAccount) return;
@@ -226,24 +225,14 @@ export default function AnimatedCharactersLoginPage({
     setIsSwitchingAccount(true);
     const supabase = createClient();
 
-    // Guard 1: token may have been processed before the listener was registered
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace('/dashboard');
-        router.refresh();
-      }
-    });
-
-    // Guard 2: catch the event when Supabase finishes processing the hash
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
-        router.replace('/dashboard');
-        router.refresh();
+        window.location.href = '/dashboard';
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [linkAccount, router]);
+  }, [linkAccount]);
 
   // Form state
   const [showPassword, setShowPassword] = useState(false);
