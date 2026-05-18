@@ -215,48 +215,38 @@ export default function AnimatedCharactersLoginPage({
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
-  // When a magic-link hash is present show the loading screen and hard-redirect
-  // to /dashboard once the session is confirmed. Two guards are needed:
-  // getSession() catches tokens already processed before this effect ran;
-  // onAuthStateChange catches SIGNED_IN and USER_UPDATED for the normal path.
+  // Manually parse hash tokens and call setSession — onAuthStateChange receives
+  // INITIAL_SESSION null because a fresh createClient() never auto-parses the hash.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.location.hash.includes('access_token=') || linkAccount) return;
 
-    console.log('[switch] hash detected, entering loading screen');
+    console.log('[switch] hash detected, parsing tokens manually');
     setIsSwitchingAccount(true);
-    const supabase = createClient();
 
-    // Escape hatch: if nothing fires within 15 s, exit loading and show the form
-    const escapeTimer = setTimeout(() => {
-      console.warn('[switch] 15s timeout — no SIGNED_IN/USER_UPDATED received, exiting loading screen');
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const access_token  = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    console.log('[switch] access_token present:', !!access_token, '| refresh_token present:', !!refresh_token);
+
+    if (!access_token || !refresh_token) {
+      console.warn('[switch] tokens missing from hash, exiting loading screen');
       setIsSwitchingAccount(false);
-    }, 15000);
+      return;
+    }
 
-    // Guard 1: token already processed before listener was registered
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('[switch] getSession result:', session ? `user=${session.user.email}` : 'null', error ?? '');
-      if (session) {
-        clearTimeout(escapeTimer);
-        console.log('[switch] session found via getSession, redirecting to /dashboard');
+    const supabase = createClient();
+    supabase.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
+      console.log('[switch] setSession result:', data.session ? `user=${data.session.user.email}` : 'null', error ?? '');
+      if (data.session) {
+        console.log('[switch] session set, redirecting to /dashboard');
         window.location.href = '/dashboard';
+      } else {
+        console.error('[switch] setSession returned no session:', error?.message);
+        setIsSwitchingAccount(false);
       }
     });
-
-    // Guard 2: catch SIGNED_IN (fresh login) or USER_UPDATED (account switch)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[switch] onAuthStateChange event:', event, session ? `user=${session.user.email}` : 'null');
-      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
-        clearTimeout(escapeTimer);
-        console.log('[switch] session confirmed via event, redirecting to /dashboard');
-        window.location.href = '/dashboard';
-      }
-    });
-
-    return () => {
-      clearTimeout(escapeTimer);
-      subscription.unsubscribe();
-    };
   }, [linkAccount]);
 
   // Form state
