@@ -10,22 +10,8 @@ export default async function AgendaPage() {
 
   if (!user) redirect('/auth/login');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.role === 'teacher') {
-    return (
-       <div className="p-10 text-center">
-         <h1 className="text-2xl font-bold text-slate-800">Teachers don't have personal agendas here.</h1>
-       </div>
-    );
-  }
-
-  // Fetch student's agenda tasks
-  const { data: tasks, error: agendaError } = await supabase
+  // Fetch user's agenda tasks (works for both students and teachers)
+  const { data: tasks } = await supabase
     .from('agenda_tasks')
     .select('*')
     .eq('user_id', user.id)
