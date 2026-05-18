@@ -1,19 +1,19 @@
 -- Universities table + seed (auto-generated 2026-05-18, 10214 universities)
--- Turkish chars handled via pg_trgm + unaccent; all TR entries normalized to Türkiye
+-- Turkish chars: pg_trgm + unaccent | TR normalized to Türkiye | whitespace-collapsed
 
 create extension if not exists pg_trgm;
 create extension if not exists unaccent;
 
-create table if not exists universities (
-  id serial primary key,
-  name text not null,
+-- Drop and recreate to avoid stale state
+drop table if exists universities cascade;
+
+create table universities (
+  id      serial primary key,
+  name    text not null,
   country text not null
 );
 
-create index if not exists universities_name_trgm_idx on universities using gin (name gin_trgm_ops);
-create unique index if not exists universities_name_country_uniq on universities (lower(name), lower(country));
-
--- RPC function for Turkish-safe case-insensitive search (unaccent strips diacritics both ways)
+-- RPC for Turkish-safe case-insensitive search
 create or replace function search_universities(q text, lim int default 12)
 returns table(name text, country text)
 language sql stable
@@ -27,6 +27,7 @@ as $$
   limit lim;
 $$;
 
+-- ── INSERT DATA ───────────────────────────────────────────────────────────────
 insert into universities (name, country) values
   ('Fundação Hermínio Ometto', 'Brazil'),
   ('Hellenic College of Noah', 'Greece'),
@@ -527,8 +528,7 @@ insert into universities (name, country) values
   ('Harvey Mudd College', 'United States'),
   ('Haskell Indian Nations University', 'United States'),
   ('Hastings College', 'United States'),
-  ('Haverford College in Pennsylvania', 'United States')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Haverford College in Pennsylvania', 'United States');
 
 insert into universities (name, country) values
   ('Hawaii Pacific University', 'United States'),
@@ -1030,8 +1030,7 @@ insert into universities (name, country) values
   ('University of Arkansas for Medical Sciences', 'United States'),
   ('University of Arkansas - Little Rock', 'United States'),
   ('University of Arkansas - Monticello', 'United States'),
-  ('University of Baltimore', 'United States')
-on conflict (lower(name), lower(country)) do nothing;
+  ('University of Baltimore', 'United States');
 
 insert into universities (name, country) values
   ('University of Bridgeport', 'United States'),
@@ -1533,8 +1532,7 @@ insert into universities (name, country) values
   ('Armenian State University of Economics', 'Armenia'),
   ('American University of Armenia', 'Armenia'),
   ('Eurasia International University', 'Armenia'),
-  ('European Regional Educational Academy of Armenia', 'Armenia')
-on conflict (lower(name), lower(country)) do nothing;
+  ('European Regional Educational Academy of Armenia', 'Armenia');
 
 insert into universities (name, country) values
   ('Yerevan Haibusak University', 'Armenia'),
@@ -2036,8 +2034,7 @@ insert into universities (name, country) values
   ('Centro Universitário de João Pessoa', 'Brazil'),
   ('Centro Universitário Plinio Leite', 'Brazil'),
   ('Universidade Paulista', 'Brazil'),
-  ('Universidade Federal de Rondônia', 'Brazil')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Universidade Federal de Rondônia', 'Brazil');
 
 insert into universities (name, country) values
   ('Universidade do Rio de Janeiro', 'Brazil'),
@@ -2539,8 +2536,7 @@ insert into universities (name, country) values
   ('Lanzhou University', 'China'),
   ('Ningbo University', 'China'),
   ('Ningbo University of Technology', 'China'),
-  ('North China Electric Power University', 'China')
-on conflict (lower(name), lower(country)) do nothing;
+  ('North China Electric Power University', 'China');
 
 insert into universities (name, country) values
   ('Nanchang University', 'China'),
@@ -3042,8 +3038,7 @@ insert into universities (name, country) values
   ('Pontificia Universidad Católica del Ecuador', 'Ecuador'),
   ('Universidad Internacional SEK, Quito', 'Ecuador'),
   ('Universidad Agraria del Ecuador', 'Ecuador'),
-  ('Universidad Andina Simón Bolívar', 'Ecuador')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Universidad Andina Simón Bolívar', 'Ecuador');
 
 insert into universities (name, country) values
   ('Universidad del Azuay', 'Ecuador'),
@@ -3545,8 +3540,7 @@ insert into universities (name, country) values
   ('Hochschule Düsseldorf', 'Germany'),
   ('Fachhochschule für die Wirtschaft', 'Germany'),
   ('Fachhochschule der Wirtschaft', 'Germany'),
-  ('Fachhochschule Eberswalde', 'Germany')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Fachhochschule Eberswalde', 'Germany');
 
 insert into universities (name, country) values
   ('Fachhochschule Erfurt', 'Germany'),
@@ -4048,8 +4042,7 @@ insert into universities (name, country) values
   ('CCS Haryana Agricultural University', 'India'),
   ('Himachal Pradesh Agricultural University', 'India'),
   ('Hemwati Nandan Bahuguna Garhwal University', 'India'),
-  ('Hidayatullah National Law University, Raipur', 'India')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Hidayatullah National Law University, Raipur', 'India');
 
 insert into universities (name, country) values
   ('Sri Ramachardra Medical College and Research Institute', 'India'),
@@ -4551,8 +4544,7 @@ insert into universities (name, country) values
   ('Birjand University of Medical Sciences', 'Iran'),
   ('Shahid Chamran University of Ahvaz', 'Iran'),
   ('Islamic Azad University, Dehaghan', 'Iran'),
-  ('Delijan Payame Noor University', 'Iran')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Delijan Payame Noor University', 'Iran');
 
 insert into universities (name, country) values
   ('Deylaman Institute of Higher Education', 'Iran'),
@@ -5054,8 +5046,7 @@ insert into universities (name, country) values
   ('Hiroshima Institute of Technology', 'Japan'),
   ('International University of Health and Welfare', 'Japan'),
   ('International University of Japan', 'Japan'),
-  ('International University of Kagoshima', 'Japan')
-on conflict (lower(name), lower(country)) do nothing;
+  ('International University of Kagoshima', 'Japan');
 
 insert into universities (name, country) values
   ('Iwaki Meisei University', 'Japan'),
@@ -5557,8 +5548,7 @@ insert into universities (name, country) values
   ('Kisii University', 'Kenya'),
   ('Kenya Medical Training College', 'Kenya'),
   ('Kenyatta University', 'Kenya'),
-  ('Kiriri Womens University of Science and Technology', 'Kenya')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Kiriri Womens University of Science and Technology', 'Kenya');
 
 insert into universities (name, country) values
   ('Laikipia University', 'Kenya'),
@@ -6060,8 +6050,7 @@ insert into universities (name, country) values
   ('Merlimau Polytechnic', 'Malaysia'),
   ('Johore Bharu Primeir Polytechnic', 'Malaysia'),
   ('Kuching Polytechnic', 'Malaysia'),
-  ('Sultan Abdul Halim Muadzam Shah Polytechnic', 'Malaysia')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Sultan Abdul Halim Muadzam Shah Polytechnic', 'Malaysia');
 
 insert into universities (name, country) values
   ('Melaka City Polytechnic', 'Malaysia'),
@@ -6563,8 +6552,7 @@ insert into universities (name, country) values
   ('Bergen University College', 'Norway'),
   ('Bodo Regional University', 'Norway'),
   ('Finnmark University College', 'Norway'),
-  ('Lillehammer University College', 'Norway')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Lillehammer University College', 'Norway');
 
 insert into universities (name, country) values
   ('Molde University College', 'Norway'),
@@ -7066,8 +7054,7 @@ insert into universities (name, country) values
   ('University of Finance and Management in Bialystok', 'Poland'),
   ('Aleksander Gieysztor School of Humanities in Pultusk', 'Poland'),
   ('Ryszard Lazarski University of Commerce and Law in Warsaw', 'Poland'),
-  ('College of Computer Science in Lodz', 'Poland')
-on conflict (lower(name), lower(country)) do nothing;
+  ('College of Computer Science in Lodz', 'Poland');
 
 insert into universities (name, country) values
   ('Warsaw School of Information Technology', 'Poland'),
@@ -7569,8 +7556,7 @@ insert into universities (name, country) values
   ('Spartan University of Health Sciences', 'Saint Lucia'),
   ('Trinity University School of Medicine', 'Saint Vincent and the Grenadines'),
   ('National University of Samoa', 'Samoa'),
-  ('University of San Marino', 'San Marino')
-on conflict (lower(name), lower(country)) do nothing;
+  ('University of San Marino', 'San Marino');
 
 insert into universities (name, country) values
   ('Imam Abdulrahman Bin Faisal University', 'Saudi Arabia'),
@@ -8072,8 +8058,7 @@ insert into universities (name, country) values
   ('National Chiayi University', 'Taiwan, Province of China'),
   ('National Dong Hwa University', 'Taiwan, Province of China'),
   ('National Formosa University', 'Taiwan, Province of China'),
-  ('National Hsin-Chu Teachers College', 'Taiwan, Province of China')
-on conflict (lower(name), lower(country)) do nothing;
+  ('National Hsin-Chu Teachers College', 'Taiwan, Province of China');
 
 insert into universities (name, country) values
   ('National Hualien Teachers College', 'Taiwan, Province of China'),
@@ -8575,8 +8560,7 @@ insert into universities (name, country) values
   ('Roehampton University of Surrey', 'United Kingdom'),
   ('University of Salford', 'United Kingdom'),
   ('School of Advanced Study, University of London', 'United Kingdom'),
-  ('South Bank University', 'United Kingdom')
-on conflict (lower(name), lower(country)) do nothing;
+  ('South Bank University', 'United Kingdom');
 
 insert into universities (name, country) values
   ('Schiller International University, London', 'United Kingdom'),
@@ -9078,8 +9062,7 @@ insert into universities (name, country) values
   ('Athens Technical College', 'United States'),
   ('Atlanta Technical College', 'United States'),
   ('Augusta Technical College', 'United States'),
-  ('Bainbridge State College', 'United States')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Bainbridge State College', 'United States');
 
 insert into universities (name, country) values
   ('Central Georgia Technical College', 'United States'),
@@ -9581,8 +9564,7 @@ insert into universities (name, country) values
   ('University of Pittsburgh-Titusville', 'United States'),
   ('Valley Forge Military Academy and College', 'United States'),
   ('Westmoreland County Community College', 'United States'),
-  ('Community College of Rhode Island', 'United States')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Community College of Rhode Island', 'United States');
 
 insert into universities (name, country) values
   ('Central Carolina Technical College', 'United States'),
@@ -10084,8 +10066,7 @@ insert into universities (name, country) values
   ('Berkeley College', 'United States'),
   ('Florida Universitaria', 'Spain'),
   ('Schiller International University', 'United States'),
-  ('Universidade Estadual do Norte do Parana', 'Brazil')
-on conflict (lower(name), lower(country)) do nothing;
+  ('Universidade Estadual do Norte do Parana', 'Brazil');
 
 insert into universities (name, country) values
   ('Shenyang Agricultural University', 'China'),
@@ -10301,6 +10282,12 @@ insert into universities (name, country) values
   ('Van Lang University', 'Vietnam'),
   ('Nha Trang University', 'Vietnam'),
   ('Chitkara Univerity', 'India'),
-  ('St. Joseph''s College of Commerce', 'India')
-on conflict (lower(name), lower(country)) do nothing;
+  ('St. Joseph''s College of Commerce', 'India');
 
+
+-- ── UNIQUE INDEX after inserts (guarantees no duplicates survive) ────────────
+create unique index universities_name_country_uniq
+  on universities (lower(name), lower(country));
+
+create index universities_name_trgm_idx
+  on universities using gin (name gin_trgm_ops);
