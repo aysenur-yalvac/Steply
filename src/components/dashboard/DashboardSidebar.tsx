@@ -19,6 +19,8 @@ import {
   ChevronsUpDown,
   Check,
   UserX,
+  School,
+  Heart,
 } from "lucide-react";
 import { removeLinkedAccountAction } from "@/lib/actions";
 import type { LinkedAccount } from "@/lib/actions";
@@ -39,11 +41,13 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { label: "My Projects", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart2 },
-  { label: "Watchlist", href: "#watchlist", icon: Bookmark, isWatchlist: true },
-  { label: "Calendar", href: "/dashboard/agenda", icon: Calendar },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "My Projects", href: "/dashboard",            icon: LayoutDashboard },
+  { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
+  { label: "Watchlist",   href: "#watchlist",             icon: Bookmark,  isWatchlist: true },
+  { label: "Calendar",    href: "/dashboard/agenda",      icon: Calendar },
+  { label: "Okulum",      href: "/dashboard/school",      icon: School,    teacherOnly: true },
+  { label: "Favoriler",   href: "/dashboard/favorites",   icon: Heart,     teacherOnly: true },
+  { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
 ];
 
 function AccountAvatar({ src, name, size = 32 }: { src?: string | null; name: string; size?: number }) {
@@ -186,7 +190,9 @@ function NavContent({
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const { label, href, icon: Icon } = item;
-            const isWatchlist = (item as any).isWatchlist as boolean | undefined;
+            const isWatchlist   = (item as any).isWatchlist  as boolean | undefined;
+            const isTeacherOnly = (item as any).teacherOnly  as boolean | undefined;
+            if (isTeacherOnly && !isTeacher) return null;
             const isActive =
               !isWatchlist &&
               (href === "/dashboard"
