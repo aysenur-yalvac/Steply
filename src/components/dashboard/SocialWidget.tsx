@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Search, Users, MessageSquare, UserMinus } from "lucide-react";
+import { X, Search, Users, MessageSquare, UserMinus, ArrowLeftRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
-import { removeFollowerAction } from "@/lib/actions";
+import { removeFollowerAction, unfollowUserAction } from "@/lib/actions";
 import type { FollowUser } from "@/lib/actions";
 
 // ── Avatar preview strip ──────────────────────────────────────────────────────
@@ -25,22 +25,123 @@ function AvatarStack({ users, max = 4 }: { users: FollowUser[]; max?: number }) 
   );
 }
 
-// ── Follow modal ──────────────────────────────────────────────────────────────
+// ── Mutual-follow confirm dialog ──────────────────────────────────────────────
+type ConfirmState = {
+  userId: string;
+  userName: string;
+  avatarUrl: string | null;
+  mode: "unfollow" | "remove"; // unfollow = I stop following them; remove = they stop following me
+};
+
+function MutualConfirmModal({
+  confirm,
+  onSingle,
+  onMutual,
+  onCancel,
+  loading,
+}: {
+  confirm: ConfirmState;
+  onSingle: () => void;
+  onMutual: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const isModeUnfollow = confirm.mode === "unfollow";
+  const singleLabel = isModeUnfollow ? "Sadece Takibi Bırak" : "Sadece Çıkar";
+  const singleDesc  = isModeUnfollow
+    ? `Sen ${confirm.userName} kişisini takip etmeyi bırakırsın, o seni takip etmeye devam eder.`
+    : `${confirm.userName} artık seni takip edemez, ama sen onu takip etmeye devam edersin.`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: "rgba(15,15,30,0.65)", backdropFilter: "blur(6px)" }}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3 mb-2">
+            <Avatar
+              src={confirm.avatarUrl}
+              name={confirm.userName}
+              size="sm"
+              className="w-10 h-10 shrink-0"
+            />
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Karşılıklı takip</p>
+              <p className="text-sm font-extrabold text-slate-800">{confirm.userName}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            <span className="font-semibold text-slate-700">{confirm.userName}</span> ile karşılıklı takipleşiyorsunuz.
+            Ne yapmak istersiniz?
+          </p>
+        </div>
+
+        {/* Options */}
+        <div className="p-4 flex flex-col gap-3">
+          {/* Single direction */}
+          <button
+            onClick={onSingle}
+            disabled={loading}
+            className="w-full flex flex-col items-start gap-0.5 px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all text-left disabled:opacity-50"
+          >
+            <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <UserMinus className="w-4 h-4 text-slate-500 shrink-0" />
+              {singleLabel}
+            </span>
+            <span className="text-xs text-slate-400 pl-6 leading-relaxed">{singleDesc}</span>
+          </button>
+
+          {/* Mutual / both directions */}
+          <button
+            onClick={onMutual}
+            disabled={loading}
+            className="w-full flex flex-col items-start gap-0.5 px-4 py-3.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-all text-left disabled:opacity-50"
+          >
+            <span className="text-sm font-bold text-red-700 flex items-center gap-2">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <ArrowLeftRight className="w-4 h-4 shrink-0" />}
+              Karşılıklı Takipten Çıkar
+            </span>
+            <span className="text-xs text-red-400 pl-6 leading-relaxed">
+              Her iki yön de silinir — ikisi de birbirini takip etmez.
+            </span>
+          </button>
+
+          {/* Cancel */}
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+          >
+            Vazgeç
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Per-list modal ─────────────────────────────────────────────────────────────
 function FollowModal({
   title,
   users,
-  isFollowersView,
+  mutualIds,
+  mode,
   onClose,
-  onRemoveFollower,
+  onAction,
 }: {
   title: string;
   users: FollowUser[];
-  isFollowersView: boolean;
+  mutualIds: Set<string>;
+  mode: "followers" | "following";
   onClose: () => void;
-  onRemoveFollower: (userId: string) => void;
+  onAction: (user: FollowUser) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [removing, setRemoving] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -48,15 +149,7 @@ function FollowModal({
     return users.filter((u) => (u.full_name ?? "").toLowerCase().includes(q));
   }, [query, users]);
 
-  async function handleRemove(userId: string) {
-    setRemoving(userId);
-    try {
-      const result = await removeFollowerAction(userId);
-      if (!("error" in result)) onRemoveFollower(userId);
-    } finally {
-      setRemoving(null);
-    }
-  }
+  const actionTitle = mode === "followers" ? "Takipçiyi çıkar" : "Takibi bırak";
 
   return (
     <div
@@ -104,45 +197,52 @@ function FollowModal({
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {filtered.map((u) => (
-                <li key={u.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                  <Avatar
-                    src={u.avatar_url}
-                    name={u.full_name ?? "?"}
-                    size="sm"
-                    className="w-9 h-9 text-sm shrink-0"
-                  />
-                  <Link
-                    href={`/user/${u.id}`}
-                    onClick={onClose}
-                    className="flex-1 text-sm font-semibold text-slate-700 truncate hover:text-violet-700 transition-colors"
-                  >
-                    {u.full_name ?? "Steply Member"}
-                  </Link>
+              {filtered.map((u) => {
+                const isMutual = mutualIds.has(u.id);
+                return (
+                  <li key={u.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                    <Avatar
+                      src={u.avatar_url}
+                      name={u.full_name ?? "?"}
+                      size="sm"
+                      className="w-9 h-9 text-sm shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/user/${u.id}`}
+                        onClick={onClose}
+                        className="text-sm font-semibold text-slate-700 hover:text-violet-700 transition-colors truncate block"
+                      >
+                        {u.full_name ?? "Steply Member"}
+                      </Link>
+                      {isMutual && (
+                        <span className="text-[10px] font-bold text-violet-500 flex items-center gap-1">
+                          <ArrowLeftRight className="w-2.5 h-2.5" /> Karşılıklı
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Message shortcut */}
-                  <Link
-                    href={`/dashboard/messages?userId=${u.id}`}
-                    onClick={onClose}
-                    title="Mesaj gönder"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors shrink-0"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </Link>
+                    {/* Message shortcut */}
+                    <Link
+                      href={`/dashboard/messages?userId=${u.id}`}
+                      onClick={onClose}
+                      title="Mesaj gönder"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors shrink-0"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Link>
 
-                  {/* Remove follower (only in followers view) */}
-                  {isFollowersView && (
+                    {/* Remove / Unfollow button */}
                     <button
-                      onClick={() => handleRemove(u.id)}
-                      disabled={removing === u.id}
-                      title="Takipçiyi çıkar"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-40"
+                      onClick={() => onAction(u)}
+                      title={actionTitle}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                     >
                       <UserMinus className="w-4 h-4" />
                     </button>
-                  )}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -154,16 +254,71 @@ function FollowModal({
 // ── Main exported widget ──────────────────────────────────────────────────────
 export default function SocialWidget({
   followers: initialFollowers,
-  following,
+  following: initialFollowing,
 }: {
   followers: FollowUser[];
   following: FollowUser[];
 }) {
-  const [followers, setFollowers] = useState(initialFollowers);
-  const [modal, setModal] = useState<"followers" | "following" | null>(null);
+  const [followers, setFollowers]   = useState(initialFollowers);
+  const [following, setFollowing]   = useState(initialFollowing);
+  const [modal, setModal]           = useState<"followers" | "following" | null>(null);
+  const [confirm, setConfirm]       = useState<ConfirmState | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
-  function handleRemoveFollower(userId: string) {
-    setFollowers((prev) => prev.filter((u) => u.id !== userId));
+  // Users who mutually follow each other
+  const mutualIds = useMemo(() => {
+    const followerSet  = new Set(followers.map((u) => u.id));
+    const followingSet = new Set(following.map((u) => u.id));
+    return new Set([...followerSet].filter((id) => followingSet.has(id)));
+  }, [followers, following]);
+
+  // Remove a user from both or one list after action
+  function pruneFollowers(userId: string) {
+    setFollowers((p) => p.filter((u) => u.id !== userId));
+  }
+  function pruneFollowing(userId: string) {
+    setFollowing((p) => p.filter((u) => u.id !== userId));
+  }
+
+  // Called by FollowModal when the UserMinus button is clicked
+  function handleAction(user: FollowUser, mode: "followers" | "following") {
+    if (mutualIds.has(user.id)) {
+      setConfirm({
+        userId:    user.id,
+        userName:  user.full_name ?? "Bu kullanıcı",
+        avatarUrl: user.avatar_url,
+        mode:      mode === "following" ? "unfollow" : "remove",
+      });
+    } else {
+      // Not mutual — proceed directly without dialog
+      executeSingle(user.id, mode === "following" ? "unfollow" : "remove");
+    }
+  }
+
+  async function executeSingle(userId: string, mode: "unfollow" | "remove") {
+    if (mode === "unfollow") {
+      const result = await unfollowUserAction(userId);
+      if (!("error" in result)) pruneFollowing(userId);
+    } else {
+      const result = await removeFollowerAction(userId);
+      if (!("error" in result)) pruneFollowers(userId);
+    }
+    setConfirm(null);
+  }
+
+  async function executeMutual(userId: string, mode: "unfollow" | "remove") {
+    setConfirmLoading(true);
+    try {
+      await Promise.all([
+        unfollowUserAction(userId),
+        removeFollowerAction(userId),
+      ]);
+      pruneFollowing(userId);
+      pruneFollowers(userId);
+      setConfirm(null);
+    } finally {
+      setConfirmLoading(false);
+    }
   }
 
   return (
@@ -182,12 +337,8 @@ export default function SocialWidget({
             </div>
           )}
           <div className="text-left">
-            <p className="text-sm font-extrabold text-slate-800 leading-tight">
-              {followers.length}
-            </p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">
-              Takipçi
-            </p>
+            <p className="text-sm font-extrabold text-slate-800 leading-tight">{followers.length}</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">Takipçi</p>
           </div>
         </button>
 
@@ -204,32 +355,42 @@ export default function SocialWidget({
             </div>
           )}
           <div className="text-left">
-            <p className="text-sm font-extrabold text-slate-800 leading-tight">
-              {following.length}
-            </p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">
-              Takip Edilen
-            </p>
+            <p className="text-sm font-extrabold text-slate-800 leading-tight">{following.length}</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">Takip Edilen</p>
           </div>
         </button>
       </div>
 
+      {/* List modals */}
       {modal === "followers" && (
         <FollowModal
           title={`Takipçiler · ${followers.length}`}
           users={followers}
-          isFollowersView={true}
+          mutualIds={mutualIds}
+          mode="followers"
           onClose={() => setModal(null)}
-          onRemoveFollower={handleRemoveFollower}
+          onAction={(u) => handleAction(u, "followers")}
         />
       )}
       {modal === "following" && (
         <FollowModal
           title={`Takip Edilenler · ${following.length}`}
           users={following}
-          isFollowersView={false}
+          mutualIds={mutualIds}
+          mode="following"
           onClose={() => setModal(null)}
-          onRemoveFollower={() => {}}
+          onAction={(u) => handleAction(u, "following")}
+        />
+      )}
+
+      {/* Mutual-follow confirm dialog (renders on top of list modal) */}
+      {confirm && (
+        <MutualConfirmModal
+          confirm={confirm}
+          loading={confirmLoading}
+          onSingle={() => executeSingle(confirm.userId, confirm.mode)}
+          onMutual={() => executeMutual(confirm.userId, confirm.mode)}
+          onCancel={() => setConfirm(null)}
         />
       )}
     </>
