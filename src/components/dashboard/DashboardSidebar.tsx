@@ -45,8 +45,9 @@ const NAV_ITEMS = [
   { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
   { label: "Watchlist",   href: "#watchlist",             icon: Bookmark,  isWatchlist: true },
   { label: "Calendar",    href: "/dashboard/agenda",      icon: Calendar },
-  { label: "Okulum",      href: "/dashboard/school",      icon: School,    teacherOnly: true },
-  { label: "Favoriler",   href: "/dashboard/favorites",   icon: Heart,     teacherOnly: true },
+  { label: "Okulum",      href: "/dashboard/school",      icon: School,    teacherOnly: true  },
+  { label: "Okulum",      href: "/dashboard/school",      icon: School,    studentOnly: true  },
+  { label: "Favoriler",   href: "/dashboard/favorites",   icon: Heart,     teacherOnly: true  },
   { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
 ];
 
@@ -192,7 +193,9 @@ function NavContent({
             const { label, href, icon: Icon } = item;
             const isWatchlist   = (item as any).isWatchlist  as boolean | undefined;
             const isTeacherOnly = (item as any).teacherOnly  as boolean | undefined;
+            const isStudentOnly = (item as any).studentOnly  as boolean | undefined;
             if (isTeacherOnly && !isTeacher) return null;
+            if (isStudentOnly &&  isTeacher) return null;
             const isActive =
               !isWatchlist &&
               (href === "/dashboard"
