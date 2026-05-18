@@ -13,6 +13,7 @@ import {
   Sliders,
   Save,
   ShieldCheck,
+  ShieldOff,
   Loader2,
   KeyRound,
   Eye,
@@ -29,7 +30,9 @@ import {
 } from "lucide-react";
 import { Country, State } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
-import { updateUserPrivacyAction, updateProfileAction } from "@/lib/actions";
+import { updateUserPrivacyAction, updateProfileAction, unblockUserAction } from "@/lib/actions";
+import type { FollowUser } from "@/lib/actions";
+import { Avatar } from "@/components/ui/avatar";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 
@@ -71,9 +74,10 @@ interface SettingsClientProps {
   initialTwitterUrl: string;
   initialWebsiteUrl: string;
   initialUniversity: string;
+  initialBlockedUsers: FollowUser[];
 }
 
-type Tab = "profile" | "security" | "notifications" | "preferences";
+type Tab = "profile" | "security" | "notifications" | "preferences" | "blocked";
 
 const NAV_ITEMS: {
   id: Tab;
@@ -104,6 +108,12 @@ const NAV_ITEMS: {
     label: "Preferences",
     description: "Privacy and display options",
     icon: <Sliders className="w-4 h-4" />,
+  },
+  {
+    id: "blocked",
+    label: "Engellenenler",
+    description: "Engellediğin kullanıcılar",
+    icon: <ShieldOff className="w-4 h-4" />,
   },
 ];
 
@@ -194,8 +204,11 @@ export default function SettingsClient({
   initialTwitterUrl,
   initialWebsiteUrl,
   initialUniversity,
+  initialBlockedUsers,
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const [blockedUsers, setBlockedUsers] = useState<FollowUser[]>(initialBlockedUsers);
+  const [unblocking, setUnblocking] = useState<string | null>(null);
 
   // Profile fields
   const [fullName, setFullName] = useState(initialFullName);
@@ -787,6 +800,59 @@ export default function SettingsClient({
                         />
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {activeTab === "blocked" && (
+                  <div className="max-w-md space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShieldOff className="w-4 h-4 text-slate-400" />
+                      <p className="text-sm text-slate-500">
+                        {blockedUsers.length === 0
+                          ? "Engellenmiş kullanıcı yok."
+                          : `${blockedUsers.length} kullanıcı engellendi.`}
+                      </p>
+                    </div>
+
+                    {blockedUsers.length > 0 && (
+                      <div className="rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                        {blockedUsers.map((u) => (
+                          <div key={u.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+                            <Avatar
+                              src={u.avatar_url}
+                              name={u.full_name ?? "?"}
+                              size="sm"
+                              className="w-9 h-9 text-sm shrink-0"
+                            />
+                            <span className="flex-1 text-sm font-semibold text-slate-700 truncate">
+                              {u.full_name ?? "Steply Member"}
+                            </span>
+                            <button
+                              disabled={unblocking === u.id}
+                              onClick={async () => {
+                                setUnblocking(u.id);
+                                try {
+                                  const result = await unblockUserAction(u.id);
+                                  if (!("error" in result)) {
+                                    setBlockedUsers((prev) => prev.filter((b) => b.id !== u.id));
+                                  }
+                                } finally {
+                                  setUnblocking(null);
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-colors disabled:opacity-50 shrink-0"
+                            >
+                              {unblocking === u.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <ShieldCheck className="w-3 h-3" />
+                              )}
+                              Engeli Kaldır
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </motion.div>

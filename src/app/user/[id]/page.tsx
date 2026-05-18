@@ -6,6 +6,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { Github, Linkedin, Globe, Twitter, Building2, FolderOpen, ShieldOff } from "lucide-react";
 import ProfileProjectsPanel from "@/components/profile/ProfileProjectsPanel";
 import FollowButton from "@/components/profile/FollowButton";
+import BlockButton from "@/components/profile/BlockButton";
 
 export const dynamic = "force-dynamic";
 
@@ -58,11 +59,12 @@ export default async function PublicProfilePage({
     }
   }
 
-  // Follow state: does viewer follow this profile? Does this profile follow viewer?
+  // Follow + block state
   let isFollowing = false;
   let isFollowedByTarget = false;
+  let isBlocked = false;
   if (viewer && !isSelf) {
-    const [fwdRes, revRes] = await Promise.all([
+    const [fwdRes, revRes, blockRes] = await Promise.all([
       supabase
         .from('follows')
         .select('follower_id', { count: 'exact', head: true })
@@ -73,9 +75,15 @@ export default async function PublicProfilePage({
         .select('follower_id', { count: 'exact', head: true })
         .eq('follower_id', id)
         .eq('following_id', viewer.id),
+      supabase
+        .from('blocks')
+        .select('blocker_id', { count: 'exact', head: true })
+        .eq('blocker_id', viewer.id)
+        .eq('blocked_id', id),
     ]);
     isFollowing = (fwdRes.count ?? 0) > 0;
     isFollowedByTarget = (revRes.count ?? 0) > 0;
+    isBlocked = (blockRes.count ?? 0) > 0;
   }
 
   // is_public: true → public, false → private, null → treat as public
@@ -146,11 +154,14 @@ export default async function PublicProfilePage({
                   {profile.full_name ?? "Steply Member"}
                 </h1>
                 {viewer && !isSelf && (
-                  <FollowButton
-                    targetId={id}
-                    isFollowing={isFollowing}
-                    isFollowedByTarget={isFollowedByTarget}
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <FollowButton
+                      targetId={id}
+                      isFollowing={isFollowing}
+                      isFollowedByTarget={isFollowedByTarget}
+                    />
+                    <BlockButton targetId={id} isBlocked={isBlocked} />
+                  </div>
                 )}
               </div>
 

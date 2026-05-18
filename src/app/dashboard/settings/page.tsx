@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import SettingsClient from "./SettingsClient";
+import { getBlockedUsersAction } from "@/lib/actions";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -13,11 +14,10 @@ export default async function SettingsPage() {
     return redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, blockedUsers] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    getBlockedUsersAction(),
+  ]);
 
   return (
     <SettingsClient
@@ -34,6 +34,7 @@ export default async function SettingsPage() {
       initialTwitterUrl={profile?.twitter_url || ""}
       initialWebsiteUrl={profile?.website_url || ""}
       initialUniversity={(profile as any)?.university || ""}
+      initialBlockedUsers={blockedUsers}
     />
   );
 }

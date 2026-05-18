@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Search, Users } from "lucide-react";
+import { X, Search, Users, MessageSquare, UserMinus } from "lucide-react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
+import { removeFollowerAction } from "@/lib/actions";
 import type { FollowUser } from "@/lib/actions";
 
 // ── Avatar preview strip ──────────────────────────────────────────────────────
@@ -28,19 +29,34 @@ function AvatarStack({ users, max = 4 }: { users: FollowUser[]; max?: number }) 
 function FollowModal({
   title,
   users,
+  isFollowersView,
   onClose,
+  onRemoveFollower,
 }: {
   title: string;
   users: FollowUser[];
+  isFollowersView: boolean;
   onClose: () => void;
+  onRemoveFollower: (userId: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     if (!q) return users;
     return users.filter((u) => (u.full_name ?? "").toLowerCase().includes(q));
   }, [query, users]);
+
+  async function handleRemove(userId: string) {
+    setRemoving(userId);
+    try {
+      const result = await removeFollowerAction(userId);
+      if (!("error" in result)) onRemoveFollower(userId);
+    } finally {
+      setRemoving(null);
+    }
+  }
 
   return (
     <div
@@ -89,22 +105,42 @@ function FollowModal({
           ) : (
             <ul className="divide-y divide-slate-100">
               {filtered.map((u) => (
-                <li key={u.id}>
+                <li key={u.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                  <Avatar
+                    src={u.avatar_url}
+                    name={u.full_name ?? "?"}
+                    size="sm"
+                    className="w-9 h-9 text-sm shrink-0"
+                  />
                   <Link
                     href={`/user/${u.id}`}
                     onClick={onClose}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors"
+                    className="flex-1 text-sm font-semibold text-slate-700 truncate hover:text-violet-700 transition-colors"
                   >
-                    <Avatar
-                      src={u.avatar_url}
-                      name={u.full_name ?? "?"}
-                      size="sm"
-                      className="w-9 h-9 text-sm shrink-0"
-                    />
-                    <span className="text-sm font-semibold text-slate-700 truncate">
-                      {u.full_name ?? "Steply Member"}
-                    </span>
+                    {u.full_name ?? "Steply Member"}
                   </Link>
+
+                  {/* Message shortcut */}
+                  <Link
+                    href={`/dashboard/messages?userId=${u.id}`}
+                    onClick={onClose}
+                    title="Mesaj gönder"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors shrink-0"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </Link>
+
+                  {/* Remove follower (only in followers view) */}
+                  {isFollowersView && (
+                    <button
+                      onClick={() => handleRemove(u.id)}
+                      disabled={removing === u.id}
+                      title="Takipçiyi çıkar"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-40"
+                    >
+                      <UserMinus className="w-4 h-4" />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -117,13 +153,18 @@ function FollowModal({
 
 // ── Main exported widget ──────────────────────────────────────────────────────
 export default function SocialWidget({
-  followers,
+  followers: initialFollowers,
   following,
 }: {
   followers: FollowUser[];
   following: FollowUser[];
 }) {
+  const [followers, setFollowers] = useState(initialFollowers);
   const [modal, setModal] = useState<"followers" | "following" | null>(null);
+
+  function handleRemoveFollower(userId: string) {
+    setFollowers((prev) => prev.filter((u) => u.id !== userId));
+  }
 
   return (
     <>
@@ -131,7 +172,7 @@ export default function SocialWidget({
         {/* Followers pill */}
         <button
           onClick={() => setModal("followers")}
-          className="group flex items-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-violet-300 hover:shadow-md transition-all"
+          className="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-violet-300 hover:shadow-md transition-all"
         >
           {followers.length > 0 ? (
             <AvatarStack users={followers} />
@@ -153,7 +194,7 @@ export default function SocialWidget({
         {/* Following pill */}
         <button
           onClick={() => setModal("following")}
-          className="group flex items-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-violet-300 hover:shadow-md transition-all"
+          className="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-violet-300 hover:shadow-md transition-all"
         >
           {following.length > 0 ? (
             <AvatarStack users={following} />
@@ -177,14 +218,18 @@ export default function SocialWidget({
         <FollowModal
           title={`Takipçiler · ${followers.length}`}
           users={followers}
+          isFollowersView={true}
           onClose={() => setModal(null)}
+          onRemoveFollower={handleRemoveFollower}
         />
       )}
       {modal === "following" && (
         <FollowModal
           title={`Takip Edilenler · ${following.length}`}
           users={following}
+          isFollowersView={false}
           onClose={() => setModal(null)}
+          onRemoveFollower={() => {}}
         />
       )}
     </>

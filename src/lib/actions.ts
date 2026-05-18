@@ -1208,3 +1208,98 @@ export async function getFollowDataAction(userId: string): Promise<{
 
   return { followers, following };
 }
+
+export async function removeFollowerAction(
+  followerId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('follows')
+    .delete()
+    .eq('follower_id', followerId)
+    .eq('following_id', user.id);
+
+  if (error) {
+    console.error('[removeFollowerAction]', error.code, error.message);
+    return { error: error.message };
+  }
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+// ── Block system ───────────────────────────────────────────────────────────────
+
+export async function blockUserAction(
+  targetId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+  if (user.id === targetId) return { error: 'Cannot block yourself' };
+
+  const admin = createAdminClient();
+
+  const { error: blockErr } = await admin
+    .from('blocks')
+    .insert({ blocker_id: user.id, blocked_id: targetId });
+
+  if (blockErr && blockErr.code !== '23505') {
+    console.error('[blockUserAction] insert failed:', blockErr.code, blockErr.message);
+    return { error: blockErr.message };
+  }
+
+  // Remove all follow relationships between the two users
+  await Promise.all([
+    admin.from('follows').delete().eq('follower_id', user.id).eq('following_id', targetId),
+    admin.from('follows').delete().eq('follower_id', targetId).eq('following_id', user.id),
+  ]);
+
+  revalidatePath(`/user/${targetId}`);
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function unblockUserAction(
+  targetId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('blocks')
+    .delete()
+    .eq('blocker_id', user.id)
+    .eq('blocked_id', targetId);
+
+  if (error) {
+    console.error('[unblockUserAction]', error.code, error.message);
+    return { error: error.message };
+  }
+  revalidatePath(`/user/${targetId}`);
+  revalidatePath('/dashboard/settings');
+  return { success: true };
+}
+
+export async function getBlockedUsersAction(): Promise<FollowUser[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from('blocks')
+    .select('blocked_id, profiles!blocked_id(id, full_name, avatar_url)')
+    .eq('blocker_id', user.id);
+
+  return (data ?? []).map((r: any) => ({
+    id:         r.profiles?.id         ?? r.blocked_id,
+    full_name:  r.profiles?.full_name  ?? null,
+    avatar_url: r.profiles?.avatar_url ?? null,
+  }));
+}
