@@ -223,24 +223,40 @@ export default function AnimatedCharactersLoginPage({
     if (typeof window === 'undefined') return;
     if (!window.location.hash.includes('access_token=') || linkAccount) return;
 
+    console.log('[switch] hash detected, entering loading screen');
     setIsSwitchingAccount(true);
     const supabase = createClient();
 
+    // Escape hatch: if nothing fires within 15 s, exit loading and show the form
+    const escapeTimer = setTimeout(() => {
+      console.warn('[switch] 15s timeout — no SIGNED_IN/USER_UPDATED received, exiting loading screen');
+      setIsSwitchingAccount(false);
+    }, 15000);
+
     // Guard 1: token already processed before listener was registered
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[switch] getSession result:', session ? `user=${session.user.email}` : 'null', error ?? '');
       if (session) {
+        clearTimeout(escapeTimer);
+        console.log('[switch] session found via getSession, redirecting to /dashboard');
         window.location.href = '/dashboard';
       }
     });
 
     // Guard 2: catch SIGNED_IN (fresh login) or USER_UPDATED (account switch)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[switch] onAuthStateChange event:', event, session ? `user=${session.user.email}` : 'null');
       if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
+        clearTimeout(escapeTimer);
+        console.log('[switch] session confirmed via event, redirecting to /dashboard');
         window.location.href = '/dashboard';
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(escapeTimer);
+      subscription.unsubscribe();
+    };
   }, [linkAccount]);
 
   // Form state
