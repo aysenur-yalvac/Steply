@@ -1228,6 +1228,8 @@ export async function removeFollowerAction(
     return { error: error.message };
   }
   revalidatePath('/dashboard');
+  revalidatePath(`/user/${followerId}`);
+  revalidatePath(`/user/${user.id}`);
   return { success: true };
 }
 
