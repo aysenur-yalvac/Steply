@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Globe, MapPin, GraduationCap, Medal } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { Avatar } from "@/components/ui/avatar";
 import { BadgeIcon } from "@/components/profile/BadgeDisplay";
 import ActivityChartCard from "@/components/ui/activity-chart-card";
@@ -152,6 +153,9 @@ export default function LeaderboardClient({
     <div className="flex flex-col min-h-full bg-[#f8fafc]">
       {/* Page header */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
+        <div className="mb-3">
+          <BackButton href="/dashboard" variant="light" />
+        </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Analytics <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600">Leaderboard</span>

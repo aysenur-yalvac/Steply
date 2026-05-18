@@ -5,6 +5,7 @@ import { Heart, FolderOpen, ExternalLink, CheckCircle, Clock, Minus } from 'luci
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import FavoriteHeart from '@/components/ui/FavoriteHeart';
+import { BackButton } from '@/components/ui/back-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,9 @@ export default async function FavoritesPage() {
   return (
     <div className="flex flex-col min-h-full">
       <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-5">
+        <div className="mb-3">
+          <BackButton href="/dashboard" variant="light" />
+        </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Dashboard <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600">Favoriler</span>
