@@ -125471,5 +125471,17 @@
       "https://www.eskisehir.edu.tr/"
     ],
     "alpha_two_code": "TR"
+  },
+  {
+    "name": "Kütahya Sağlık Bilimleri Üniversitesi",
+    "country": "Türkiye",
+    "domains": [
+      "ksbu.edu.tr"
+    ],
+    "web_pages": [
+      "https://www.ksbu.edu.tr/"
+    ],
+    "state-province": "Kütahya",
+    "alpha_two_code": "TR"
   }
 ]
