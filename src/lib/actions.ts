@@ -975,17 +975,19 @@ export async function addLinkedAccountAction(
   const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
   if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadı.' };
 
-  // Fetch enrichment data before insert.
-  const [{ data: authUser }, { data: profile }] = await Promise.all([
+  // Fetch both sides' enrichment data.
+  const [{ data: authUser }, { data: profile }, { data: ownerAuthUser }, { data: ownerProfile }] = await Promise.all([
     admin.auth.admin.getUserById(foundUserId as string),
     admin.from('profiles').select('full_name, avatar_url').eq('id', foundUserId as string).maybeSingle(),
+    admin.auth.admin.getUserById(user.id),
+    admin.from('profiles').select('full_name, avatar_url').eq('id', user.id).maybeSingle(),
   ]);
 
   const linkedEmail   = authUser?.user?.email ?? email.toLowerCase();
   const linkedName    = (profile as any)?.full_name  ?? null;
   const linkedAvatar  = (profile as any)?.avatar_url ?? null;
 
-  // Check if already linked to avoid duplicate-key errors regardless of constraints.
+  // Forward row: current user → target
   const { data: existing } = await admin
     .from('linked_accounts')
     .select('id')
@@ -1010,6 +1012,24 @@ export async function addLinkedAccountAction(
       .single();
     if (insertErr || !inserted) return { error: insertErr?.message ?? 'Insert failed' };
     linkedId = inserted.id;
+  }
+
+  // Reverse row: target → current user (bidirectional so both sides see each other)
+  const { data: revExisting } = await admin
+    .from('linked_accounts')
+    .select('id')
+    .eq('owner_id', foundUserId as string)
+    .eq('linked_user_id', user.id)
+    .maybeSingle();
+
+  if (!revExisting) {
+    await admin.from('linked_accounts').insert({
+      owner_id: foundUserId as string,
+      linked_user_id: user.id,
+      email: ownerAuthUser?.user?.email ?? user.email ?? '',
+      display_name: (ownerProfile as any)?.full_name ?? null,
+      avatar_url: (ownerProfile as any)?.avatar_url ?? null,
+    });
   }
 
   return {

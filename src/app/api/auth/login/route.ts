@@ -74,16 +74,16 @@ export async function POST(request: Request) {
         .eq('linked_user_id', data.user.id)
         .maybeSingle()
 
-      let upsertError = null
       if (!existingLink) {
-        // Fetch profile for enrichment columns
-        const { data: linkedProfile } = await admin
-          .from('profiles')
-          .select('full_name, avatar_url')
-          .eq('id', data.user.id)
-          .maybeSingle()
+        // Fetch both profiles for enrichment columns
+        const [{ data: linkedProfile }, { data: ownerAuthUser }, { data: ownerProfile }] = await Promise.all([
+          admin.from('profiles').select('full_name, avatar_url').eq('id', data.user.id).maybeSingle(),
+          admin.auth.admin.getUserById(resolvedOwnerId),
+          admin.from('profiles').select('full_name, avatar_url').eq('id', resolvedOwnerId).maybeSingle(),
+        ])
 
-        const { error } = await admin
+        // Forward row: owner → linked
+        const { error: fwdError } = await admin
           .from('linked_accounts')
           .insert({
             owner_id: resolvedOwnerId,
@@ -92,13 +92,32 @@ export async function POST(request: Request) {
             display_name: (linkedProfile as any)?.full_name ?? null,
             avatar_url: (linkedProfile as any)?.avatar_url ?? null,
           })
-        upsertError = error
+
+        if (fwdError) {
+          console.error('[link_account] forward insert failed:', fwdError)
+          return NextResponse.redirect(linkErrorUrl('Hesap bağlanamadı: ' + fwdError.message), { status: 303 })
+        }
+
+        // Reverse row: linked → owner (so B can also see A in their switcher)
+        const { data: revExisting } = await admin
+          .from('linked_accounts')
+          .select('id')
+          .eq('owner_id', data.user.id)
+          .eq('linked_user_id', resolvedOwnerId)
+          .maybeSingle()
+
+        if (!revExisting) {
+          await admin.from('linked_accounts').insert({
+            owner_id: data.user.id,
+            linked_user_id: resolvedOwnerId,
+            email: ownerAuthUser?.user?.email ?? '',
+            display_name: (ownerProfile as any)?.full_name ?? null,
+            avatar_url: (ownerProfile as any)?.avatar_url ?? null,
+          })
+        }
       }
 
-      if (upsertError) {
-        console.error('[link_account] upsert failed:', upsertError)
-        return NextResponse.redirect(linkErrorUrl('Hesap bağlanamadı: ' + upsertError.message), { status: 303 })
-      }
+      // Both rows written (or already existed) — proceed
 
       // Clear the helper cookie and redirect to link-complete.
       // Pass linked_uid so switch-to-owner can verify the DB row directly
