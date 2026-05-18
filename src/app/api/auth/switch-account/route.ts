@@ -4,7 +4,9 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const origin = new URL(request.url).origin
+  const host  = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
+  const proto = request.headers.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
+  const origin = `${proto}://${host}`
 
   // Parse body
   let linked_user_id: string | undefined
