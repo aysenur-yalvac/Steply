@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle } from "lucide-react";
+import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/utils/supabase/client";
@@ -213,10 +213,13 @@ export default function AnimatedCharactersLoginPage({
   const isLogin = mode === "login";
   const router  = useRouter();
 
-  // Fast path: if URL contains a magic-link hash, redirect before Supabase fires events
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
+
+  // Fast path: if URL contains a magic-link hash, show loading screen and redirect
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.location.hash.includes('access_token=') || linkAccount) return;
+    setIsSwitchingAccount(true);
     const timer = setTimeout(() => {
       router.replace('/dashboard');
       router.refresh();
@@ -343,6 +346,15 @@ export default function AnimatedCharactersLoginPage({
   const passwordActive = password.length > 0;
   const passwordHidden = passwordActive && !showPassword;
   const passwordVisible = passwordActive && showPassword;
+
+  if (isSwitchingAccount) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
+        <Loader2 className="w-10 h-10 text-violet-400 animate-spin mb-4" />
+        <p className="text-sm font-medium text-slate-300">Hedef hesaba geçiş yapılıyor, lütfen bekleyin…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 grid lg:grid-cols-2" style={{ minHeight: "calc(100vh - 4rem)" }}>
