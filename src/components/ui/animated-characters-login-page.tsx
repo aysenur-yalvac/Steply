@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { createClient } from "@/utils/supabase/client";
 
 // ── Pupil (tracks mouse, no white eyeball) ────────────────────────────────────
 interface PupilProps {
@@ -209,6 +211,18 @@ export default function AnimatedCharactersLoginPage({
   ownerId?: string;
 }) {
   const isLogin = mode === "login";
+  const router  = useRouter();
+
+  // Redirect to /dashboard when a magic-link hash token is processed
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' && !linkAccount) {
+        router.replace('/dashboard');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [linkAccount, router]);
 
   // Form state
   const [showPassword, setShowPassword] = useState(false);
