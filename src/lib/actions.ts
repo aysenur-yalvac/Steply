@@ -1138,12 +1138,18 @@ export async function followUserAction(
   if (!user) return { error: 'Unauthorized' };
   if (user.id === targetId) return { error: 'Cannot follow yourself' };
 
-  const { error } = await supabase
+  // Use admin client to bypass RLS — auth check already done above
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('follows')
     .insert({ follower_id: user.id, following_id: targetId });
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error('[followUserAction] insert failed:', error.code, error.message);
+    return { error: error.message };
+  }
   revalidatePath(`/user/${targetId}`);
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
@@ -1154,14 +1160,20 @@ export async function unfollowUserAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
 
-  const { error } = await supabase
+  // Use admin client to bypass RLS — auth check already done above
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('follows')
     .delete()
     .eq('follower_id', user.id)
     .eq('following_id', targetId);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error('[unfollowUserAction] delete failed:', error.code, error.message);
+    return { error: error.message };
+  }
   revalidatePath(`/user/${targetId}`);
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
