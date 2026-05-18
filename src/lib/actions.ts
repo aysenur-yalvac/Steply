@@ -1052,33 +1052,35 @@ export async function removeLinkedAccountAction(
   if (!user) return { error: 'Unauthorized' };
   const admin = createAdminClient();
 
-  // Fetch the row first to know the other side's user id
+  // Fetch the row to get both sides' IDs
   const { data: row, error: fetchErr } = await admin
     .from('linked_accounts')
-    .select('linked_user_id')
+    .select('owner_id, linked_user_id')
     .eq('id', linkedId)
     .eq('owner_id', user.id)
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row) return { error: 'Bağlantı bulunamadı.' };
+  if (!row?.linked_user_id) return { error: 'Bağlantı bulunamadı veya linked_user_id eksik.' };
 
-  const targetUserId = row.linked_user_id;
+  const ownerUserId  = user.id;                 // A
+  const targetUserId = row.linked_user_id;      // B
 
-  // Delete forward row (current user → target)
+  // Delete A→B
   const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
-    .eq('id', linkedId)
-    .eq('owner_id', user.id);
+    .eq('owner_id', ownerUserId)
+    .eq('linked_user_id', targetUserId);
   if (fwdErr) return { error: fwdErr.message };
 
-  // Delete reverse row (target → current user) — ignore if it doesn't exist
-  await admin
+  // Delete B→A
+  const { error: revErr } = await admin
     .from('linked_accounts')
     .delete()
     .eq('owner_id', targetUserId)
-    .eq('linked_user_id', user.id);
+    .eq('linked_user_id', ownerUserId);
+  if (revErr) console.error('[removeLinkedAccount] reverse delete failed:', revErr.message);
 
   return { success: true };
 }
