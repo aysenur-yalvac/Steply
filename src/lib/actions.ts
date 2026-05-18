@@ -1332,14 +1332,17 @@ export async function searchUniversitiesAction(
 ): Promise<{ name: string; country: string }[]> {
   if (!query || query.trim().length < 2) return [];
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from('universities')
-    .select('name, country')
-    .ilike('name', `%${query.trim()}%`)
-    .order('name', { ascending: true })
-    .limit(12);
-  if (error) { console.error('[searchUniversities]', error.message); return []; }
-  return data ?? [];
+  // Uses search_universities() RPC which applies unaccent() on both sides,
+  // ensuring Turkish chars like İ/ı, Ş/ş, Ğ/ğ match regardless of case/diacritics.
+  const { data, error } = await admin.rpc('search_universities', {
+    q: query.trim(),
+    lim: 12,
+  });
+  if (error) {
+    console.error('[searchUniversities]', error.message);
+    return [];
+  }
+  return (data ?? []) as { name: string; country: string }[];
 }
 
 export async function getBlockedUsersAction(): Promise<FollowUser[]> {

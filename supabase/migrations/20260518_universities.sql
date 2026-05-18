@@ -1,13 +1,31 @@
--- Universities table + seed data (auto-generated from universities.json)
+-- Universities table + seed (auto-generated 2026-05-18, 10214 universities)
+-- Turkish chars handled via pg_trgm + unaccent; all TR entries normalized to Türkiye
+
 create extension if not exists pg_trgm;
+create extension if not exists unaccent;
 
 create table if not exists universities (
   id serial primary key,
   name text not null,
   country text not null
 );
+
 create index if not exists universities_name_trgm_idx on universities using gin (name gin_trgm_ops);
-create index if not exists universities_name_lower_idx on universities (lower(name) text_pattern_ops);
+create unique index if not exists universities_name_country_uniq on universities (lower(name), lower(country));
+
+-- RPC function for Turkish-safe case-insensitive search (unaccent strips diacritics both ways)
+create or replace function search_universities(q text, lim int default 12)
+returns table(name text, country text)
+language sql stable
+as $$
+  select name, country
+  from universities
+  where lower(unaccent(name)) like '%' || lower(unaccent(q)) || '%'
+  order by
+    case when lower(unaccent(name)) like lower(unaccent(q)) || '%' then 0 else 1 end,
+    name
+  limit lim;
+$$;
 
 insert into universities (name, country) values
   ('Fundação Hermínio Ometto', 'Brazil'),
@@ -510,7 +528,7 @@ insert into universities (name, country) values
   ('Haskell Indian Nations University', 'United States'),
   ('Hastings College', 'United States'),
   ('Haverford College in Pennsylvania', 'United States')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Hawaii Pacific University', 'United States'),
@@ -1013,7 +1031,7 @@ insert into universities (name, country) values
   ('University of Arkansas - Little Rock', 'United States'),
   ('University of Arkansas - Monticello', 'United States'),
   ('University of Baltimore', 'United States')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('University of Bridgeport', 'United States'),
@@ -1516,7 +1534,7 @@ insert into universities (name, country) values
   ('American University of Armenia', 'Armenia'),
   ('Eurasia International University', 'Armenia'),
   ('European Regional Educational Academy of Armenia', 'Armenia')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Yerevan Haibusak University', 'Armenia'),
@@ -2019,7 +2037,7 @@ insert into universities (name, country) values
   ('Centro Universitário Plinio Leite', 'Brazil'),
   ('Universidade Paulista', 'Brazil'),
   ('Universidade Federal de Rondônia', 'Brazil')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Universidade do Rio de Janeiro', 'Brazil'),
@@ -2522,7 +2540,7 @@ insert into universities (name, country) values
   ('Ningbo University', 'China'),
   ('Ningbo University of Technology', 'China'),
   ('North China Electric Power University', 'China')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Nanchang University', 'China'),
@@ -3025,7 +3043,7 @@ insert into universities (name, country) values
   ('Universidad Internacional SEK, Quito', 'Ecuador'),
   ('Universidad Agraria del Ecuador', 'Ecuador'),
   ('Universidad Andina Simón Bolívar', 'Ecuador')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Universidad del Azuay', 'Ecuador'),
@@ -3528,7 +3546,7 @@ insert into universities (name, country) values
   ('Fachhochschule für die Wirtschaft', 'Germany'),
   ('Fachhochschule der Wirtschaft', 'Germany'),
   ('Fachhochschule Eberswalde', 'Germany')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
   ('Fachhochschule Erfurt', 'Germany'),
@@ -3786,7 +3804,6 @@ insert into universities (name, country) values
   ('Lancaster University', 'Ghana'),
   ('Pan African Christian University College', 'Ghana'),
   ('Presbyterian University College', 'Ghana'),
-  ('Regent University College of Science and Technology', 'Ghana'),
   ('Sunyani Technical University', 'Ghana'),
   ('Takoradi Technical University', 'Ghana'),
   ('Trinity Theological Seminary', 'Ghana'),
@@ -4030,11 +4047,11 @@ insert into universities (name, country) values
   ('Gurukul University', 'India'),
   ('CCS Haryana Agricultural University', 'India'),
   ('Himachal Pradesh Agricultural University', 'India'),
-  ('Hemwati Nandan Bahuguna Garhwal University', 'India')
-on conflict do nothing;
+  ('Hemwati Nandan Bahuguna Garhwal University', 'India'),
+  ('Hidayatullah National Law University, Raipur', 'India')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('Hidayatullah National Law University, Raipur', 'India'),
   ('Sri Ramachardra Medical College and Research Institute', 'India'),
   ('Himachal Pradesh University', 'India'),
   ('Indian Agricultural Research Institute', 'India'),
@@ -4533,11 +4550,11 @@ insert into universities (name, country) values
   ('Bushehr University of Medical Sciences', 'Iran'),
   ('Birjand University of Medical Sciences', 'Iran'),
   ('Shahid Chamran University of Ahvaz', 'Iran'),
-  ('Islamic Azad University, Dehaghan', 'Iran')
-on conflict do nothing;
+  ('Islamic Azad University, Dehaghan', 'Iran'),
+  ('Delijan Payame Noor University', 'Iran')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('Delijan Payame Noor University', 'Iran'),
   ('Deylaman Institute of Higher Education', 'Iran'),
   ('Damghan University', 'Iran'),
   ('Islamic Azad University, Falavarjan', 'Iran'),
@@ -5036,11 +5053,11 @@ insert into universities (name, country) values
   ('Chiba Institute of Technology', 'Japan'),
   ('Hiroshima Institute of Technology', 'Japan'),
   ('International University of Health and Welfare', 'Japan'),
-  ('International University of Japan', 'Japan')
-on conflict do nothing;
+  ('International University of Japan', 'Japan'),
+  ('International University of Kagoshima', 'Japan')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('International University of Kagoshima', 'Japan'),
   ('Iwaki Meisei University', 'Japan'),
   ('Iwate Medical University', 'Japan'),
   ('Iwate Prefectural University', 'Japan'),
@@ -5539,11 +5556,11 @@ insert into universities (name, country) values
   ('Kenya Methodist University', 'Kenya'),
   ('Kisii University', 'Kenya'),
   ('Kenya Medical Training College', 'Kenya'),
-  ('Kenyatta University', 'Kenya')
-on conflict do nothing;
+  ('Kenyatta University', 'Kenya'),
+  ('Kiriri Womens University of Science and Technology', 'Kenya')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('Kiriri Womens University of Science and Technology', 'Kenya'),
   ('Laikipia University', 'Kenya'),
   ('Maseno University', 'Kenya'),
   ('Mount Kenya University', 'Kenya'),
@@ -6042,11 +6059,11 @@ insert into universities (name, country) values
   ('Kuala Terengganu City Polytechnic', 'Malaysia'),
   ('Merlimau Polytechnic', 'Malaysia'),
   ('Johore Bharu Primeir Polytechnic', 'Malaysia'),
-  ('Kuching Polytechnic', 'Malaysia')
-on conflict do nothing;
+  ('Kuching Polytechnic', 'Malaysia'),
+  ('Sultan Abdul Halim Muadzam Shah Polytechnic', 'Malaysia')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('Sultan Abdul Halim Muadzam Shah Polytechnic', 'Malaysia'),
   ('Melaka City Polytechnic', 'Malaysia'),
   ('Muadzam Shah Polytechnic', 'Malaysia'),
   ('Port Dickson Polytechnic', 'Malaysia'),
@@ -6545,11 +6562,11 @@ insert into universities (name, country) values
   ('Agder University College', 'Norway'),
   ('Bergen University College', 'Norway'),
   ('Bodo Regional University', 'Norway'),
-  ('Finnmark University College', 'Norway')
-on conflict do nothing;
+  ('Finnmark University College', 'Norway'),
+  ('Lillehammer University College', 'Norway')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('Lillehammer University College', 'Norway'),
   ('Molde University College', 'Norway'),
   ('National College of Art and Design', 'Norway'),
   ('Norwegian School of Economics and Business Administration', 'Norway'),
@@ -7048,11 +7065,11 @@ insert into universities (name, country) values
   ('Higher School o Business in Tarnow', 'Poland'),
   ('University of Finance and Management in Bialystok', 'Poland'),
   ('Aleksander Gieysztor School of Humanities in Pultusk', 'Poland'),
-  ('Ryszard Lazarski University of Commerce and Law in Warsaw', 'Poland')
-on conflict do nothing;
+  ('Ryszard Lazarski University of Commerce and Law in Warsaw', 'Poland'),
+  ('College of Computer Science in Lodz', 'Poland')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('College of Computer Science in Lodz', 'Poland'),
   ('Warsaw School of Information Technology', 'Poland'),
   ('University of Information Technology and Management in Rzeszow', 'Poland'),
   ('Gdynia Maritime Academy', 'Poland'),
@@ -7551,11 +7568,11 @@ insert into universities (name, country) values
   ('Windsor University School of Medicine', 'Saint Kitts and Nevis'),
   ('Spartan University of Health Sciences', 'Saint Lucia'),
   ('Trinity University School of Medicine', 'Saint Vincent and the Grenadines'),
-  ('National University of Samoa', 'Samoa')
-on conflict do nothing;
+  ('National University of Samoa', 'Samoa'),
+  ('University of San Marino', 'San Marino')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('University of San Marino', 'San Marino'),
   ('Imam Abdulrahman Bin Faisal University', 'Saudi Arabia'),
   ('College of Technology at Abha', 'Saudi Arabia'),
   ('Alfaisal University', 'Saudi Arabia'),
@@ -8054,11 +8071,11 @@ insert into universities (name, country) values
   ('National Changhua University of Education', 'Taiwan, Province of China'),
   ('National Chiayi University', 'Taiwan, Province of China'),
   ('National Dong Hwa University', 'Taiwan, Province of China'),
-  ('National Formosa University', 'Taiwan, Province of China')
-on conflict do nothing;
+  ('National Formosa University', 'Taiwan, Province of China'),
+  ('National Hsin-Chu Teachers College', 'Taiwan, Province of China')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('National Hsin-Chu Teachers College', 'Taiwan, Province of China'),
   ('National Hualien Teachers College', 'Taiwan, Province of China'),
   ('Nanhua University', 'Taiwan, Province of China'),
   ('National Institute of the Arts', 'Taiwan, Province of China'),
@@ -8220,100 +8237,100 @@ insert into universities (name, country) values
   ('Université de Tunis', 'Tunisia'),
   ('Université Virtuelle de Tunis', 'Tunisia'),
   ('Université Ez-Zitouna', 'Tunisia'),
-  ('Adnan Menderes University', 'Turkiye'),
-  ('Ahi Evran University', 'Turkiye'),
-  ('Akdeniz University', 'Turkiye'),
-  ('Anadolu University', 'Turkiye'),
-  ('Ankara University', 'Turkiye'),
-  ('Istanbul Arel University', 'Turkiye'),
-  ('Atatürk University', 'Turkiye'),
-  ('University of Kyrenia', 'Turkiye'),
-  ('Atilim University', 'Turkiye'),
-  ('Bahcesehir University', 'Turkiye'),
-  ('Balikesir University', 'Turkiye'),
-  ('Baskent University', 'Turkiye'),
-  ('Celal Bayar University', 'Turkiye'),
-  ('Beykent University', 'Turkiye'),
-  ('Bilecik University', 'Turkiye'),
-  ('Istanbul Bilgi University', 'Turkiye'),
-  ('Bilkent University', 'Turkiye'),
-  ('Boğaziçi University', 'Turkiye'),
-  ('Cag University', 'Turkiye'),
-  ('Cankaya University', 'Turkiye'),
-  ('Canakkale (18th March) University', 'Turkiye'),
-  ('Cukurova University', 'Turkiye'),
-  ('Cumhuriyet (Republik) University', 'Turkiye'),
-  ('Dokuz Eylül University', 'Turkiye'),
-  ('Turkish Naval Academy', 'Turkiye'),
-  ('Dicle (Tirgris) University', 'Turkiye'),
-  ('Dogus University', 'Turkiye'),
-  ('Dumlupinar University', 'Turkiye'),
-  ('Ege University', 'Turkiye'),
-  ('Erciyes University', 'Turkiye'),
-  ('Tobb Economics and Technology University', 'Turkiye'),
-  ('Firat (Euphrates) University', 'Turkiye'),
-  ('Fenerbahce University', 'Turkiye'),
-  ('Gaziantep University', 'Turkiye'),
-  ('Gazi University Ankara', 'Turkiye'),
-  ('Gaziosmanpasa University', 'Turkiye'),
-  ('Galatasaray University', 'Turkiye'),
-  ('Gebze Institute of Technology', 'Turkiye'),
-  ('Halic University', 'Turkiye'),
-  ('Harran University', 'Turkiye'),
-  ('Hacettepe University', 'Turkiye'),
-  ('Abant Izzet Baysal University', 'Turkiye'),
-  ('Istanbul Kultur University', 'Turkiye'),
-  ('Inönü University', 'Turkiye'),
-  ('Isik University', 'Turkiye'),
-  ('Istanbul Ticaret University', 'Turkiye'),
-  ('Istanbul Technical University', 'Turkiye'),
-  ('Izmir Institute of Technology', 'Turkiye'),
-  ('Kafkas University', 'Turkiye'),
-  ('Zonguldak Karaelmas University', 'Turkiye'),
-  ('Kadir Has University', 'Turkiye'),
-  ('Kilis 7 Aralık University', 'Turkiye'),
-  ('Kirikkale University', 'Turkiye'),
-  ('Necmettin Erbakan University', 'Turkiye'),
-  ('Kocaeli University', 'Turkiye'),
-  ('Kahramanmaras Sütcü Imam University', 'Turkiye'),
-  ('Karadeniz Technical University', 'Turkiye'),
-  ('Koç University', 'Turkiye'),
-  ('Maltepe University', 'Turkiye'),
-  ('Marmara University', 'Turkiye'),
-  ('Mersin University', 'Turkiye'),
-  ('Mustafa Kemal University', 'Turkiye'),
-  ('Mimar Sinan University', 'Turkiye'),
-  ('Mugla Sitki Kocman University', 'Turkiye'),
-  ('Omer Halisdemir University', 'Turkiye'),
-  ('Namik Kemal University', 'Turkiye'),
-  ('Middle East Technical University', 'Turkiye'),
-  ('Osmangazi University', 'Turkiye'),
-  ('Ordu University', 'Turkiye'),
-  ('Ozyegin University', 'Turkiye'),
-  ('Pamukkale University', 'Turkiye'),
-  ('Sabanci University', 'Turkiye'),
-  ('Sakarya University', 'Turkiye'),
-  ('Suleyman Demirel University', 'Turkiye'),
-  ('Istanbul Şehir University', 'Turkiye'),
-  ('Selcuk University', 'Turkiye'),
-  ('Tarsus University', 'Turkiye'),
-  ('Türkisch-Deutsche Universität', 'Turkiye'),
-  ('Trakya University', 'Turkiye'),
-  ('Ufuk University', 'Turkiye'),
-  ('Uludag University', 'Turkiye'),
-  ('Yalova University', 'Turkiye'),
-  ('Yasar University', 'Turkiye'),
-  ('Yildirim Beyazit University', 'Turkiye'),
-  ('Yeditepe University', 'Turkiye'),
-  ('Yildiz Technical University', 'Turkiye'),
-  ('Yüzüncü Yil (Centennial) University', 'Turkiye'),
-  ('Afyon Kocatepe University', 'Turkiye'),
-  ('Ankara Haci Bayram Veli University', 'Turkiye'),
-  ('Giresun University', 'Turkiye'),
-  ('Nigde Omer Halisdemir University', 'Turkiye'),
-  ('Istinye University', 'Turkiye'),
-  ('Antalya Bilim University', 'Turkiye'),
-  ('Istanbul Topkapi University', 'Turkiye'),
+  ('Adnan Menderes University', 'Türkiye'),
+  ('Ahi Evran University', 'Türkiye'),
+  ('Akdeniz University', 'Türkiye'),
+  ('Anadolu University', 'Türkiye'),
+  ('Ankara University', 'Türkiye'),
+  ('Istanbul Arel University', 'Türkiye'),
+  ('Atatürk University', 'Türkiye'),
+  ('University of Kyrenia', 'Türkiye'),
+  ('Atilim University', 'Türkiye'),
+  ('Bahcesehir University', 'Türkiye'),
+  ('Balikesir University', 'Türkiye'),
+  ('Baskent University', 'Türkiye'),
+  ('Celal Bayar University', 'Türkiye'),
+  ('Beykent University', 'Türkiye'),
+  ('Bilecik University', 'Türkiye'),
+  ('Istanbul Bilgi University', 'Türkiye'),
+  ('Bilkent University', 'Türkiye'),
+  ('Boğaziçi University', 'Türkiye'),
+  ('Cag University', 'Türkiye'),
+  ('Cankaya University', 'Türkiye'),
+  ('Canakkale (18th March) University', 'Türkiye'),
+  ('Cukurova University', 'Türkiye'),
+  ('Cumhuriyet (Republik) University', 'Türkiye'),
+  ('Dokuz Eylül University', 'Türkiye'),
+  ('Turkish Naval Academy', 'Türkiye'),
+  ('Dicle (Tirgris) University', 'Türkiye'),
+  ('Dogus University', 'Türkiye'),
+  ('Dumlupinar University', 'Türkiye'),
+  ('Ege University', 'Türkiye'),
+  ('Erciyes University', 'Türkiye'),
+  ('Tobb Economics and Technology University', 'Türkiye'),
+  ('Firat (Euphrates) University', 'Türkiye'),
+  ('Fenerbahce University', 'Türkiye'),
+  ('Gaziantep University', 'Türkiye'),
+  ('Gazi University Ankara', 'Türkiye'),
+  ('Gaziosmanpasa University', 'Türkiye'),
+  ('Galatasaray University', 'Türkiye'),
+  ('Gebze Institute of Technology', 'Türkiye'),
+  ('Halic University', 'Türkiye'),
+  ('Harran University', 'Türkiye'),
+  ('Hacettepe University', 'Türkiye'),
+  ('Abant Izzet Baysal University', 'Türkiye'),
+  ('Istanbul Kultur University', 'Türkiye'),
+  ('Inönü University', 'Türkiye'),
+  ('Isik University', 'Türkiye'),
+  ('Istanbul Ticaret University', 'Türkiye'),
+  ('Istanbul Technical University', 'Türkiye'),
+  ('Izmir Institute of Technology', 'Türkiye'),
+  ('Kafkas University', 'Türkiye'),
+  ('Zonguldak Karaelmas University', 'Türkiye'),
+  ('Kadir Has University', 'Türkiye'),
+  ('Kilis 7 Aralık University', 'Türkiye'),
+  ('Kirikkale University', 'Türkiye'),
+  ('Necmettin Erbakan University', 'Türkiye'),
+  ('Kocaeli University', 'Türkiye'),
+  ('Kahramanmaras Sütcü Imam University', 'Türkiye'),
+  ('Karadeniz Technical University', 'Türkiye'),
+  ('Koç University', 'Türkiye'),
+  ('Maltepe University', 'Türkiye'),
+  ('Marmara University', 'Türkiye'),
+  ('Mersin University', 'Türkiye'),
+  ('Mustafa Kemal University', 'Türkiye'),
+  ('Mimar Sinan University', 'Türkiye'),
+  ('Mugla Sitki Kocman University', 'Türkiye'),
+  ('Omer Halisdemir University', 'Türkiye'),
+  ('Namik Kemal University', 'Türkiye'),
+  ('Middle East Technical University', 'Türkiye'),
+  ('Osmangazi University', 'Türkiye'),
+  ('Ordu University', 'Türkiye'),
+  ('Ozyegin University', 'Türkiye'),
+  ('Pamukkale University', 'Türkiye'),
+  ('Sabanci University', 'Türkiye'),
+  ('Sakarya University', 'Türkiye'),
+  ('Suleyman Demirel University', 'Türkiye'),
+  ('Istanbul Şehir University', 'Türkiye'),
+  ('Selcuk University', 'Türkiye'),
+  ('Tarsus University', 'Türkiye'),
+  ('Türkisch-Deutsche Universität', 'Türkiye'),
+  ('Trakya University', 'Türkiye'),
+  ('Ufuk University', 'Türkiye'),
+  ('Uludag University', 'Türkiye'),
+  ('Yalova University', 'Türkiye'),
+  ('Yasar University', 'Türkiye'),
+  ('Yildirim Beyazit University', 'Türkiye'),
+  ('Yeditepe University', 'Türkiye'),
+  ('Yildiz Technical University', 'Türkiye'),
+  ('Yüzüncü Yil (Centennial) University', 'Türkiye'),
+  ('Afyon Kocatepe University', 'Türkiye'),
+  ('Ankara Haci Bayram Veli University', 'Türkiye'),
+  ('Giresun University', 'Türkiye'),
+  ('Nigde Omer Halisdemir University', 'Türkiye'),
+  ('Istinye University', 'Türkiye'),
+  ('Antalya Bilim University', 'Türkiye'),
+  ('Istanbul Topkapi University', 'Türkiye'),
   ('International Turkmen Turkish University', 'Turkmenistan'),
   ('Charisma University', 'Turks and Caicos Islands'),
   ('Busitema University', 'Uganda'),
@@ -8557,11 +8574,11 @@ insert into universities (name, country) values
   ('Richmond University - The American International University in London', 'United Kingdom'),
   ('Roehampton University of Surrey', 'United Kingdom'),
   ('University of Salford', 'United Kingdom'),
-  ('School of Advanced Study, University of London', 'United Kingdom')
-on conflict do nothing;
+  ('School of Advanced Study, University of London', 'United Kingdom'),
+  ('South Bank University', 'United Kingdom')
+on conflict (lower(name), lower(country)) do nothing;
 
 insert into universities (name, country) values
-  ('South Bank University', 'United Kingdom'),
   ('Schiller International University, London', 'United Kingdom'),
   ('Stratford College London', 'United Kingdom'),
   ('Saint George''s Hospital Medical School, University of London', 'United Kingdom'),
@@ -8762,87 +8779,87 @@ insert into universities (name, country) values
   ('Women''s University in Africa', 'Zimbabwe'),
   ('Zimbabwe Ezekiel Guti University', 'Zimbabwe'),
   ('Zimbabwe Open University', 'Zimbabwe'),
-  ('Abdullah Gul University', 'Turkiye'),
-  ('Adana Science and Technology University', 'Turkiye'),
-  ('Adiyaman University', 'Turkiye'),
-  ('Agri Ibrahim Cecen University', 'Turkiye'),
-  ('Aksaray University', 'Turkiye'),
-  ('Alanya Alaaddin Keykubat University', 'Turkiye'),
-  ('Amasya University', 'Turkiye'),
-  ('Ankara Social Science University', 'Turkiye'),
-  ('Ardahan University', 'Turkiye'),
-  ('Artvin Coruh University', 'Turkiye'),
-  ('Bandirma ONYEDI Eylul University', 'Turkiye'),
-  ('Bartin University', 'Turkiye'),
-  ('Batman University', 'Turkiye'),
-  ('Bayburt University', 'Turkiye'),
-  ('Bingol University', 'Turkiye'),
-  ('Bitlis Eren University', 'Turkiye'),
-  ('Bozok University', 'Turkiye'),
-  ('Bursa Technical University', 'Turkiye'),
-  ('Cankiri karatekin University', 'Turkiye'),
-  ('Duzce University', 'Turkiye'),
-  ('Erzincan Binali Yildirim University', 'Turkiye'),
-  ('Erzurum Technical University', 'Turkiye'),
-  ('Gebze Technical University', 'Turkiye'),
-  ('Gulhane Military Medical Academy', 'Turkiye'),
-  ('Gumushane University', 'Turkiye'),
-  ('Hakkari University', 'Turkiye'),
-  ('Air Force Academy', 'Turkiye'),
-  ('Hitit University', 'Turkiye'),
-  ('Igdir University', 'Turkiye'),
-  ('Iskenderun Technical University', 'Turkiye'),
-  ('Istanbul Medeniyet University', 'Turkiye'),
-  ('Istanbul University', 'Turkiye'),
-  ('Izmir Katip Celebi University', 'Turkiye'),
-  ('Karabuk University', 'Turkiye'),
-  ('karamanoglu mehmet bey University', 'Turkiye'),
-  ('Kastamonu University', 'Turkiye'),
-  ('Kirklareli University', 'Turkiye'),
-  ('Mardin Artuklu University', 'Turkiye'),
-  ('Mehmet Akif Ersoy University', 'Turkiye'),
-  ('Mimar Sinan Fine Arts University', 'Turkiye'),
-  ('Mus Alparslan University', 'Turkiye'),
-  ('Nevsehir Haci Bektas Veli University', 'Turkiye'),
-  ('Osmaniye Korkut Ata University', 'Turkiye'),
-  ('Recep Tayip Erdogan University', 'Turkiye'),
-  ('Siirt University', 'Turkiye'),
-  ('Sinop University', 'Turkiye'),
-  ('Sirnak University', 'Turkiye'),
-  ('Tunceli University', 'Turkiye'),
-  ('Health Sciences University', 'Turkiye'),
-  ('Usak University', 'Turkiye'),
-  ('Bulent Ecevit University', 'Turkiye'),
-  ('Acibadem University', 'Turkiye'),
-  ('Alanya Hamdullah Emin Pasa University', 'Turkiye'),
-  ('Avrasya University', 'Turkiye'),
-  ('Bezmialem Vakif University', 'Turkiye'),
-  ('Biruni University', 'Turkiye'),
-  ('Fatih Sultan Mehmet University', 'Turkiye'),
-  ('Gedik University', 'Turkiye'),
-  ('Hasan Kalyoncu University', 'Turkiye'),
-  ('Istanbul 29 Mayis University', 'Turkiye'),
-  ('Istanbul Aydin University', 'Turkiye'),
-  ('Istanbul Esenyurt University', 'Turkiye'),
-  ('Istanbul Gelisim University', 'Turkiye'),
-  ('Istanbul Kemerburgaz University', 'Turkiye'),
-  ('Istanbul Medipol University', 'Turkiye'),
-  ('Istanbul Rumeli University', 'Turkiye'),
-  ('Istanbul Sabahattin Zaim University', 'Turkiye'),
-  ('Karatay University', 'Turkiye'),
-  ('Ankara Yildirim Beyazit University', 'Turkiye'),
-  ('Konya Gida Tarim University', 'Turkiye'),
-  ('MEF University', 'Turkiye'),
-  ('Nisantasi University', 'Turkiye'),
-  ('Nuh Naci Yazgan University', 'Turkiye'),
-  ('Okan University', 'Turkiye'),
-  ('Piri Reis University', 'Turkiye'),
-  ('Sanko University', 'Turkiye'),
-  ('TED University', 'Turkiye'),
-  ('Toros University', 'Turkiye'),
-  ('Uskudar University', 'Turkiye'),
-  ('Yeni Yuzyil University', 'Turkiye'),
-  ('Yuksek ihtisas University', 'Turkiye'),
+  ('Abdullah Gul University', 'Türkiye'),
+  ('Adana Science and Technology University', 'Türkiye'),
+  ('Adiyaman University', 'Türkiye'),
+  ('Agri Ibrahim Cecen University', 'Türkiye'),
+  ('Aksaray University', 'Türkiye'),
+  ('Alanya Alaaddin Keykubat University', 'Türkiye'),
+  ('Amasya University', 'Türkiye'),
+  ('Ankara Social Science University', 'Türkiye'),
+  ('Ardahan University', 'Türkiye'),
+  ('Artvin Coruh University', 'Türkiye'),
+  ('Bandirma ONYEDI Eylul University', 'Türkiye'),
+  ('Bartin University', 'Türkiye'),
+  ('Batman University', 'Türkiye'),
+  ('Bayburt University', 'Türkiye'),
+  ('Bingol University', 'Türkiye'),
+  ('Bitlis Eren University', 'Türkiye'),
+  ('Bozok University', 'Türkiye'),
+  ('Bursa Technical University', 'Türkiye'),
+  ('Cankiri karatekin University', 'Türkiye'),
+  ('Duzce University', 'Türkiye'),
+  ('Erzincan Binali Yildirim University', 'Türkiye'),
+  ('Erzurum Technical University', 'Türkiye'),
+  ('Gebze Technical University', 'Türkiye'),
+  ('Gulhane Military Medical Academy', 'Türkiye'),
+  ('Gumushane University', 'Türkiye'),
+  ('Hakkari University', 'Türkiye'),
+  ('Air Force Academy', 'Türkiye'),
+  ('Hitit University', 'Türkiye'),
+  ('Igdir University', 'Türkiye'),
+  ('Iskenderun Technical University', 'Türkiye'),
+  ('Istanbul Medeniyet University', 'Türkiye'),
+  ('Istanbul University', 'Türkiye'),
+  ('Izmir Katip Celebi University', 'Türkiye'),
+  ('Karabuk University', 'Türkiye'),
+  ('karamanoglu mehmet bey University', 'Türkiye'),
+  ('Kastamonu University', 'Türkiye'),
+  ('Kirklareli University', 'Türkiye'),
+  ('Mardin Artuklu University', 'Türkiye'),
+  ('Mehmet Akif Ersoy University', 'Türkiye'),
+  ('Mimar Sinan Fine Arts University', 'Türkiye'),
+  ('Mus Alparslan University', 'Türkiye'),
+  ('Nevsehir Haci Bektas Veli University', 'Türkiye'),
+  ('Osmaniye Korkut Ata University', 'Türkiye'),
+  ('Recep Tayip Erdogan University', 'Türkiye'),
+  ('Siirt University', 'Türkiye'),
+  ('Sinop University', 'Türkiye'),
+  ('Sirnak University', 'Türkiye'),
+  ('Tunceli University', 'Türkiye'),
+  ('Health Sciences University', 'Türkiye'),
+  ('Usak University', 'Türkiye'),
+  ('Bulent Ecevit University', 'Türkiye'),
+  ('Acibadem University', 'Türkiye'),
+  ('Alanya Hamdullah Emin Pasa University', 'Türkiye'),
+  ('Avrasya University', 'Türkiye'),
+  ('Bezmialem Vakif University', 'Türkiye'),
+  ('Biruni University', 'Türkiye'),
+  ('Fatih Sultan Mehmet University', 'Türkiye'),
+  ('Gedik University', 'Türkiye'),
+  ('Hasan Kalyoncu University', 'Türkiye'),
+  ('Istanbul 29 Mayis University', 'Türkiye'),
+  ('Istanbul Aydin University', 'Türkiye'),
+  ('Istanbul Esenyurt University', 'Türkiye'),
+  ('Istanbul Gelisim University', 'Türkiye'),
+  ('Istanbul Kemerburgaz University', 'Türkiye'),
+  ('Istanbul Medipol University', 'Türkiye'),
+  ('Istanbul Rumeli University', 'Türkiye'),
+  ('Istanbul Sabahattin Zaim University', 'Türkiye'),
+  ('Karatay University', 'Türkiye'),
+  ('Ankara Yildirim Beyazit University', 'Türkiye'),
+  ('Konya Gida Tarim University', 'Türkiye'),
+  ('MEF University', 'Türkiye'),
+  ('Nisantasi University', 'Türkiye'),
+  ('Nuh Naci Yazgan University', 'Türkiye'),
+  ('Okan University', 'Türkiye'),
+  ('Piri Reis University', 'Türkiye'),
+  ('Sanko University', 'Türkiye'),
+  ('TED University', 'Türkiye'),
+  ('Toros University', 'Türkiye'),
+  ('Uskudar University', 'Türkiye'),
+  ('Yeni Yuzyil University', 'Türkiye'),
+  ('Yuksek ihtisas University', 'Türkiye'),
   ('Alabama Southern Community College', 'United States'),
   ('Bevill State Community College', 'United States'),
   ('Bishop State Community College', 'United States'),
@@ -8956,7 +8973,6 @@ insert into universities (name, country) values
   ('Fresno City College', 'United States'),
   ('Fullerton College', 'United States'),
   ('Gavilan College', 'United States'),
-  ('Glendale Community College', 'United States'),
   ('Golden West College', 'United States'),
   ('Grossmont College', 'United States'),
   ('Hartnell College', 'United States'),
@@ -9041,7 +9057,6 @@ insert into universities (name, country) values
   ('Trinidad State Junior College', 'United States'),
   ('Asnuntuck Community College', 'United States'),
   ('Capital Community College', 'United States'),
-  ('Gateway Community College', 'United States'),
   ('Housatonic Community College', 'United States'),
   ('Manchester Community College', 'United States'),
   ('Middlesex Community College', 'United States'),
@@ -9060,13 +9075,13 @@ insert into universities (name, country) values
   ('Tallahassee Community College', 'United States'),
   ('Albany Technical College', 'United States'),
   ('Andrew College', 'United States'),
-  ('Athens Technical College', 'United States')
-on conflict do nothing;
-
-insert into universities (name, country) values
+  ('Athens Technical College', 'United States'),
   ('Atlanta Technical College', 'United States'),
   ('Augusta Technical College', 'United States'),
-  ('Bainbridge State College', 'United States'),
+  ('Bainbridge State College', 'United States')
+on conflict (lower(name), lower(country)) do nothing;
+
+insert into universities (name, country) values
   ('Central Georgia Technical College', 'United States'),
   ('Chattahoochee Technical College', 'United States'),
   ('Columbus Technical College', 'United States'),
@@ -9168,7 +9183,6 @@ insert into universities (name, country) values
   ('Flint Hills Technical College', 'United States'),
   ('Fort Scott Community College', 'United States'),
   ('Garden City Community College', 'United States'),
-  ('Highland Community College', 'United States'),
   ('Hutchinson Community College', 'United States'),
   ('Independence Community College', 'United States'),
   ('Johnson County Community College', 'United States'),
@@ -9233,7 +9247,6 @@ insert into universities (name, country) values
   ('Holyoke Community College', 'United States'),
   ('Massachusetts Bay Community College', 'United States'),
   ('Massasoit Community College', 'United States'),
-  ('Middlesex Community College', 'United States'),
   ('Mount Wachusett Community College', 'United States'),
   ('Northern Essex Community College', 'United States'),
   ('North Shore Community College', 'United States'),
@@ -9331,7 +9344,6 @@ insert into universities (name, country) values
   ('Southeast Missouri Hospital College of Nursing and Health Sciences', 'United States'),
   ('State Fair Community College', 'United States'),
   ('St Charles Community College', 'United States'),
-  ('Three Rivers Community College', 'United States'),
   ('Wentworth Military Academy & Junior College', 'United States'),
   ('Aaniiih Nakoda College', 'United States'),
   ('Blackfeet Community College', 'United States'),
@@ -9355,7 +9367,6 @@ insert into universities (name, country) values
   ('Truckee Meadows Community College', 'United States'),
   ('Great Bay Community College', 'United States'),
   ('Lakes Region Community College', 'United States'),
-  ('Manchester Community College', 'United States'),
   ('Nashua Community College', 'United States'),
   ('NHTI-Concord''s Community College', 'United States'),
   ('River Valley Community College', 'United States'),
@@ -9483,9 +9494,7 @@ insert into universities (name, country) values
   ('Rowan-Cabarrus Community College', 'United States'),
   ('Sampson Community College', 'United States'),
   ('Sandhills Community College', 'United States'),
-  ('Southeastern Community College', 'United States'),
   ('South Piedmont Community College', 'United States'),
-  ('Southwestern Community College', 'United States'),
   ('Stanly Community College', 'United States'),
   ('Surry Community College', 'United States'),
   ('Tri-County Community College', 'United States'),
@@ -9563,10 +9572,7 @@ insert into universities (name, country) values
   ('Lehigh Carbon Community College', 'United States'),
   ('Luzerne County Community College', 'United States'),
   ('Manor College', 'United States'),
-  ('Montgomery County Community College', 'United States')
-on conflict do nothing;
-
-insert into universities (name, country) values
+  ('Montgomery County Community College', 'United States'),
   ('Pennsylvania Highlands Community College', 'United States'),
   ('Pennsylvania Institute of Technology', 'United States'),
   ('Pittsburgh Technical Institute', 'United States'),
@@ -9575,7 +9581,10 @@ insert into universities (name, country) values
   ('University of Pittsburgh-Titusville', 'United States'),
   ('Valley Forge Military Academy and College', 'United States'),
   ('Westmoreland County Community College', 'United States'),
-  ('Community College of Rhode Island', 'United States'),
+  ('Community College of Rhode Island', 'United States')
+on conflict (lower(name), lower(country)) do nothing;
+
+insert into universities (name, country) values
   ('Central Carolina Technical College', 'United States'),
   ('Denmark Technical College', 'United States'),
   ('Florence-Darlington Technical College', 'United States'),
@@ -9671,7 +9680,6 @@ insert into universities (name, country) values
   ('Latter-day Saints Business College', 'United States'),
   ('Salt Lake Community College', 'United States'),
   ('Community College of Vermont', 'United States'),
-  ('Blue Ridge Community College', 'United States'),
   ('Central Virginia Community College', 'United States'),
   ('Dabney S Lancaster Community College', 'United States'),
   ('Danville Community College', 'United States'),
@@ -9831,7 +9839,7 @@ insert into universities (name, country) values
   ('Ostbayerische Technische Hochschule Amberg-Weiden', 'Germany'),
   ('Centro Universitário UniFatecie', 'Brazil'),
   ('Häme University of Applied Sciences', 'Finland'),
-  ('Konya Technical University', 'Turkiye'),
+  ('Konya Technical University', 'Türkiye'),
   ('VNU University of Engineering and Technology', 'Viet Nam'),
   ('Corvinus University of Budapest', 'Hungary'),
   ('Óbuda University', 'Hungary'),
@@ -9844,9 +9852,9 @@ insert into universities (name, country) values
   ('Clark Atlanta University', 'United States'),
   ('Morehouse', 'United States'),
   ('Audencia', 'France'),
-  ('Izmir Bakırçay University', 'Turkiye'),
-  ('Izmir Democracy University', 'Turkiye'),
-  ('Izmir Tınaztepe University', 'Turkiye'),
+  ('Izmir Bakırçay University', 'Türkiye'),
+  ('Izmir Democracy University', 'Türkiye'),
+  ('Izmir Tınaztepe University', 'Türkiye'),
   ('University of St. Augustine for Health Sciences', 'United States'),
   ('Gwynedd Mercy University', 'United States'),
   ('California Institute of the Arts', 'United States'),
@@ -9990,7 +9998,6 @@ insert into universities (name, country) values
   ('GSFC University', 'India'),
   ('North-West Univeristy', 'South Africa'),
   ('Technological University Dublin', 'Ireland'),
-  ('Keio University', 'Japan'),
   ('Texas A&M University-Texarkana', 'United States'),
   ('Australian International School', 'Singapore'),
   ('Akademi Farmasi Yarsis Pekanbaru', 'Indonesia'),
@@ -9999,13 +10006,10 @@ insert into universities (name, country) values
   ('Cruzeiro do Sul University', 'Brazil'),
   ('Federal Institute of Education', 'Brazil'),
   ('Anurag University', 'India'),
-  ('Ateneo de Manila University', 'Philippines'),
-  ('University of Bath', 'United Kingdom'),
   ('Ulster University', 'United Kingdom'),
   ('Belhaven University', 'United States'),
   ('Berry College', 'United States'),
   ('Bishop Herber College', 'India'),
-  ('Pondicherry University', 'India'),
   ('Bloomfield College', 'United States'),
   ('Bridgewater State University', 'United States'),
   ('Nara Institute of Science and Technology', 'Japan'),
@@ -10016,10 +10020,8 @@ insert into universities (name, country) values
   ('University of Girona', 'Spain'),
   ('Tribhuvan University', 'Nepal'),
   ('Canadian International School of Hong Kong', 'Hong Kong'),
-  ('Chiba University', 'Japan'),
   ('Centro de Investigación en Química Aplicada', 'Mexico'),
   ('Collège de France', 'France'),
-  ('Cornell College', 'United States'),
   ('Covenant College', 'United States'),
   ('Chicago State University', 'United States'),
   ('California State University', 'United States'),
@@ -10066,10 +10068,7 @@ insert into universities (name, country) values
   ('Nicolaus Copernicus Astronomical Center of Pharmacology Polish Academy of Sciences', 'Poland'),
   ('Universidad Guadalajara Lamar', 'Mexico'),
   ('Ecole Hassania des Travaux Publics', 'Morocco'),
-  ('Island Drafting & Technical Institute', 'United States')
-on conflict do nothing;
-
-insert into universities (name, country) values
+  ('Island Drafting & Technical Institute', 'United States'),
   ('Bay Path University', 'United States'),
   ('Université Paris-Saclay', 'France'),
   ('Munster Technological University', 'Ireland'),
@@ -10085,7 +10084,10 @@ insert into universities (name, country) values
   ('Berkeley College', 'United States'),
   ('Florida Universitaria', 'Spain'),
   ('Schiller International University', 'United States'),
-  ('Universidade Estadual do Norte do Parana', 'Brazil'),
+  ('Universidade Estadual do Norte do Parana', 'Brazil')
+on conflict (lower(name), lower(country)) do nothing;
+
+insert into universities (name, country) values
   ('Shenyang Agricultural University', 'China'),
   ('Universidad EAN', 'Colombia'),
   ('Institute Français de la Mode', 'France'),
@@ -10108,19 +10110,18 @@ insert into universities (name, country) values
   ('The University of Montana Western', 'United States'),
   ('Queens University of Charlotte', 'United States'),
   ('Lincoln Memorial University', 'United States'),
-  ('OSTIM Technical University', 'Turkiye'),
-  ('Ankara Medipol University', 'Turkiye'),
-  ('Ankara Science University', 'Turkiye'),
-  ('University of Turkish Aeronautical Association', 'Turkiye'),
-  ('Ondokuz Mayıs University', 'Turkiye'),
-  ('İzmir University of Economics', 'Turkiye'),
+  ('OSTIM Technical University', 'Türkiye'),
+  ('Ankara Medipol University', 'Türkiye'),
+  ('Ankara Science University', 'Türkiye'),
+  ('University of Turkish Aeronautical Association', 'Türkiye'),
+  ('Ondokuz Mayıs University', 'Türkiye'),
+  ('İzmir University of Economics', 'Türkiye'),
   ('Greenville University', 'United States'),
   ('State University of New York at Oneonta', 'United States'),
   ('Northwestern Michigan College', 'United States'),
   ('Adrian College', 'United States'),
   ('Concordia University Wisconsin', 'United States'),
   ('Delaware Valley University', 'United States'),
-  ('Davis & Elkins College', 'United States'),
   ('Eckerd College', 'United States'),
   ('Universidad Ana G. Méndez', 'Puerto Rico'),
   ('University of South Carolina Upstate', 'United States'),
@@ -10174,7 +10175,6 @@ insert into universities (name, country) values
   ('Claremont Colleges', 'United States'),
   ('University of Economics and Humanities Warsaw', 'Poland'),
   ('Rowan College at Burlington County', 'United States'),
-  ('Thomas Jefferson University', 'United States'),
   ('Botswana Open University', 'Botswana'),
   ('Georgian College', 'Canada'),
   ('Lethbridge College', 'Canada'),
@@ -10204,7 +10204,7 @@ insert into universities (name, country) values
   ('Carnegie Mellon University Qatar', 'Qatar'),
   ('Taejae University', 'Korea, Republic of'),
   ('National Taipei University of Education', 'Taiwan, Province of China'),
-  ('Eskisehir Technical University', 'Turkiye'),
+  ('Eskisehir Technical University', 'Türkiye'),
   ('Harlaxton College', 'United Kingdom'),
   ('New College Swindon', 'United Kingdom'),
   ('University of Cumbria', 'United Kingdom'),
@@ -10259,7 +10259,6 @@ insert into universities (name, country) values
   ('Maricopa Community Colleges', 'United States'),
   ('Karl-Schiller-Berufskolleg (KSBK)', 'Germany'),
   ('Wingate University', 'United States'),
-  ('The Chinese University of Hong Kong', 'Hong Kong'),
   ('Scotland''s Rural College (SRUC)', 'United Kingdom'),
   ('Universidade do Vale do Paraíba – Univap', 'Brazil'),
   ('Universidade Anhembi Morumbi - UAM', 'Brazil'),
@@ -10303,5 +10302,5 @@ insert into universities (name, country) values
   ('Nha Trang University', 'Vietnam'),
   ('Chitkara Univerity', 'India'),
   ('St. Joseph''s College of Commerce', 'India')
-on conflict do nothing;
+on conflict (lower(name), lower(country)) do nothing;
 
