@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
 import { Github, Linkedin, Globe, Twitter, Building2, FolderOpen, ShieldOff } from "lucide-react";
 import ProfileProjectsPanel from "@/components/profile/ProfileProjectsPanel";
+import FollowButton from "@/components/profile/FollowButton";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,26 @@ export default async function PublicProfilePage({
         .eq('teacher_id', viewer.id);
       viewerWatchedIds = (watched ?? []).map((r: any) => r.project_id as string);
     }
+  }
+
+  // Follow state: does viewer follow this profile? Does this profile follow viewer?
+  let isFollowing = false;
+  let isFollowedByTarget = false;
+  if (viewer && !isSelf) {
+    const [fwdRes, revRes] = await Promise.all([
+      supabase
+        .from('follows')
+        .select('follower_id', { count: 'exact', head: true })
+        .eq('follower_id', viewer.id)
+        .eq('following_id', id),
+      supabase
+        .from('follows')
+        .select('follower_id', { count: 'exact', head: true })
+        .eq('follower_id', id)
+        .eq('following_id', viewer.id),
+    ]);
+    isFollowing = (fwdRes.count ?? 0) > 0;
+    isFollowedByTarget = (revRes.count ?? 0) > 0;
   }
 
   // is_public: true → public, false → private, null → treat as public
@@ -120,9 +141,18 @@ export default async function PublicProfilePage({
 
             {/* Name + info */}
             <div className="flex-1 min-w-0 pt-1">
-              <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-                {profile.full_name ?? "Steply Member"}
-              </h1>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
+                  {profile.full_name ?? "Steply Member"}
+                </h1>
+                {viewer && !isSelf && (
+                  <FollowButton
+                    targetId={id}
+                    isFollowing={isFollowing}
+                    isFollowedByTarget={isFollowedByTarget}
+                  />
+                )}
+              </div>
 
               {/* Private notice */}
               {isPrivate && (

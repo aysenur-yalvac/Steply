@@ -1121,3 +1121,78 @@ export async function getLeaderboardAction(
     rank: i + 1,
   }));
 }
+
+// ── Follow system ──────────────────────────────────────────────────────────────
+
+export type FollowUser = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
+export async function followUserAction(
+  targetId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+  if (user.id === targetId) return { error: 'Cannot follow yourself' };
+
+  const { error } = await supabase
+    .from('follows')
+    .insert({ follower_id: user.id, following_id: targetId });
+
+  if (error) return { error: error.message };
+  revalidatePath(`/user/${targetId}`);
+  return { success: true };
+}
+
+export async function unfollowUserAction(
+  targetId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { error } = await supabase
+    .from('follows')
+    .delete()
+    .eq('follower_id', user.id)
+    .eq('following_id', targetId);
+
+  if (error) return { error: error.message };
+  revalidatePath(`/user/${targetId}`);
+  return { success: true };
+}
+
+export async function getFollowDataAction(userId: string): Promise<{
+  followers: FollowUser[];
+  following: FollowUser[];
+}> {
+  const admin = createAdminClient();
+
+  const [followersRes, followingRes] = await Promise.all([
+    admin
+      .from('follows')
+      .select('follower_id, profiles!follower_id(id, full_name, avatar_url)')
+      .eq('following_id', userId),
+    admin
+      .from('follows')
+      .select('following_id, profiles!following_id(id, full_name, avatar_url)')
+      .eq('follower_id', userId),
+  ]);
+
+  const followers: FollowUser[] = (followersRes.data ?? []).map((r: any) => ({
+    id:         r.profiles?.id         ?? r.follower_id,
+    full_name:  r.profiles?.full_name  ?? null,
+    avatar_url: r.profiles?.avatar_url ?? null,
+  }));
+
+  const following: FollowUser[] = (followingRes.data ?? []).map((r: any) => ({
+    id:         r.profiles?.id         ?? r.following_id,
+    full_name:  r.profiles?.full_name  ?? null,
+    avatar_url: r.profiles?.avatar_url ?? null,
+  }));
+
+  return { followers, following };
+}

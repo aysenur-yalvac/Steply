@@ -11,6 +11,8 @@ import { Plus, FolderOpen, Search, Users, AlertTriangle, Clock } from 'lucide-re
 import EmptyState from '@/components/layout/EmptyState';
 import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
 import ProjectCard from '@/app/dashboard/ProjectCard';
+import SocialWidget from '@/components/dashboard/SocialWidget';
+import { getFollowDataAction } from '@/lib/actions';
 
 export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
   const searchParams = await props.searchParams;
@@ -88,6 +90,11 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     projects = all;
   }
 
+  // ── Follow data for social widget ───────────────────────────────────────────
+  const { followers, following } = user?.id
+    ? await getFollowDataAction(user.id)
+    : { followers: [], following: [] };
+
   // ── Upcoming agenda tasks (due within 24h, not completed) ────────────────────
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -136,11 +143,14 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
         <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
           {isTeacher ? 'Portfolio Overview' : 'My Projects'}
         </h1>
-        <p className="text-sm text-slate-500 mt-1.5 mb-5">
+        <p className="text-sm text-slate-500 mt-1.5 mb-4">
           {isTeacher
             ? 'Monitor the latest milestones of all watched student projects.'
             : 'Manage your active projects and keep your portfolio up to date.'}
         </p>
+        <div className="pb-5">
+          <SocialWidget followers={followers} following={following} />
+        </div>
       </div>
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
