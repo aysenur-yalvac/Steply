@@ -1051,12 +1051,35 @@ export async function removeLinkedAccountAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
   const admin = createAdminClient();
-  const { error } = await admin
+
+  // Fetch the row first to know the other side's user id
+  const { data: row, error: fetchErr } = await admin
+    .from('linked_accounts')
+    .select('linked_user_id')
+    .eq('id', linkedId)
+    .eq('owner_id', user.id)
+    .maybeSingle();
+
+  if (fetchErr) return { error: fetchErr.message };
+  if (!row) return { error: 'Bağlantı bulunamadı.' };
+
+  const targetUserId = row.linked_user_id;
+
+  // Delete forward row (current user → target)
+  const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
     .eq('id', linkedId)
     .eq('owner_id', user.id);
-  if (error) return { error: error.message };
+  if (fwdErr) return { error: fwdErr.message };
+
+  // Delete reverse row (target → current user) — ignore if it doesn't exist
+  await admin
+    .from('linked_accounts')
+    .delete()
+    .eq('owner_id', targetUserId)
+    .eq('linked_user_id', user.id);
+
   return { success: true };
 }
 

@@ -77,6 +77,8 @@ function NavContent({
 
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<LinkedAccount | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
   const [isSwitching, setIsSwitching] = useState(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
@@ -104,9 +106,17 @@ function NavContent({
   // Re-fetch every time the user opens the dropdown.
   useEffect(() => { if (isAccountMenuOpen) refreshAccounts(); }, [isAccountMenuOpen]);
 
-  async function handleRemoveAccount(id: string) {
-    await removeLinkedAccountAction(id);
-    setAccounts(prev => prev.filter(a => a.id !== id));
+  async function confirmRemoveAccount() {
+    if (!removeTarget || isRemoving) return;
+    setIsRemoving(true);
+    const result = await removeLinkedAccountAction(removeTarget.id);
+    if ('error' in result) {
+      setIsRemoving(false);
+      return;
+    }
+    setAccounts(prev => prev.filter(a => a.id !== removeTarget.id));
+    setRemoveTarget(null);
+    setIsRemoving(false);
   }
 
   async function confirmSwitch() {
@@ -292,7 +302,7 @@ function NavContent({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleRemoveAccount(acc.id)}
+                  onClick={() => { setRemoveTarget(acc); setIsAccountMenuOpen(false); }}
                   className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 hover:text-red-500 text-slate-400 transition-all"
                   title="Bağlantıyı kaldır"
                 >
@@ -351,6 +361,39 @@ function NavContent({
           Sign Out
         </button>
       </div>
+
+      {/* Remove account confirmation modal */}
+      {removeTarget && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-extrabold text-slate-800">Hesap Bağlantısını Kaldır</h3>
+              <p className="text-sm text-slate-500">
+                <span className="font-semibold text-slate-700">{removeTarget.linked_name || removeTarget.linked_email}</span>{" "}
+                hesabının bağlantısını kaldırmak istediğinize emin misiniz? Bu işlem her iki hesaptaki hızlı geçiş menüsünden de bu hesabı kaldıracaktır.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { if (!isRemoving) setRemoveTarget(null); }}
+                disabled={isRemoving}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={confirmRemoveAccount}
+                disabled={isRemoving}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-70"
+              >
+                {isRemoving ? "Kaldırılıyor..." : "Evet, Kaldır"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Switch account confirmation modal */}
       {switchTarget && (
