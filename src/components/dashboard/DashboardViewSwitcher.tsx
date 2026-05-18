@@ -22,7 +22,7 @@ type Project = {
   platform?: string | null;
   progress_percentage: number;
   tags?: string[];
-  profiles?: { full_name: string };
+  profiles?: { full_name: string; avatar_url?: string | null } | null;
 };
 
 type ViewMode = "kanban" | "list";

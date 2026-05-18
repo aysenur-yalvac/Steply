@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
@@ -47,20 +48,24 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
   }
 
   if (isTeacher) {
+    // Use admin client to bypass RLS on profiles join — teachers need to read
+    // student names from other users' profiles which the session client blocks.
+    const admin = createAdminClient();
     if (!q) {
-      const { data } = await supabase
-        .from('projects')
-        .select('*, profiles!student_id(full_name, is_public)')
-        .in('id', Array.from(watchedIds))
-        .order('created_at', { ascending: false });
-      // Strip projects whose owner went private after being watched
-      projects = (data || []).filter((p: any) => p.profiles?.is_public !== false);
+      const watchedArr = Array.from(watchedIds);
+      if (watchedArr.length > 0) {
+        const { data } = await admin
+          .from('projects')
+          .select('*, profiles!student_id(full_name, avatar_url, is_public)')
+          .in('id', watchedArr)
+          .order('created_at', { ascending: false });
+        projects = (data || []).filter((p: any) => p.profiles?.is_public !== false);
+      }
     } else {
-      const { data } = await supabase
+      const { data } = await admin
         .from('projects')
-        .select('*, profiles!student_id(full_name, is_public)')
+        .select('*, profiles!student_id(full_name, avatar_url, is_public)')
         .order('created_at', { ascending: false });
-      // Exclude projects whose owner has set their account to private
       let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
       all = all.filter((p: any) =>
         p.title.toLowerCase().includes(q) ||
