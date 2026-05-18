@@ -31,6 +31,7 @@ type Filters = {
   status: string[];
   priority: string[];
   tags: string[];
+  studentSearch: string;
 };
 
 // ── Filter constants ───────────────────────────────────────────────────────────
@@ -65,10 +66,12 @@ function getEffectivePriority(p: Project): string {
 }
 
 function applyFilters(projects: Project[], filters: Filters): Project[] {
+  const studentQ = filters.studentSearch.trim().toLowerCase();
   return projects.filter((p) => {
     if (filters.status.length > 0 && !filters.status.includes(projectStatus(p))) return false;
     if (filters.priority.length > 0 && !filters.priority.includes(getEffectivePriority(p))) return false;
     if (filters.tags.length > 0 && !filters.tags.some(t => (p.tags ?? []).includes(t))) return false;
+    if (studentQ && !(p.profiles?.full_name ?? "").toLowerCase().includes(studentQ)) return false;
     return true;
   });
 }
@@ -120,15 +123,20 @@ function tagColor(tag: string): string {
 function FilterDropdown({
   filters,
   onToggle,
+  onStudentSearch,
   onClear,
   allTags,
+  isTeacher,
 }: {
   filters: Filters;
   onToggle: (group: keyof Filters, value: string) => void;
+  onStudentSearch: (v: string) => void;
   onClear: () => void;
   allTags: string[];
+  isTeacher: boolean;
 }) {
-  const total = filters.status.length + filters.priority.length + filters.tags.length;
+  const total = filters.status.length + filters.priority.length + filters.tags.length
+    + (filters.studentSearch.trim() ? 1 : 0);
 
   const statusMeta: Record<string, { icon: React.ReactNode; color: string }> = {
     "To Do":     { icon: <Minus className="w-3 h-3" />,       color: "text-slate-500"  },
@@ -150,6 +158,20 @@ function FilterDropdown({
           </button>
         )}
       </div>
+
+      {/* Student search — teachers only */}
+      {isTeacher && (
+        <div className="px-4 pt-3 pb-2 border-b border-slate-100">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Öğrenci</p>
+          <input
+            type="text"
+            value={filters.studentSearch}
+            onChange={e => onStudentSearch(e.target.value)}
+            placeholder="İsme göre ara…"
+            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white transition-colors"
+          />
+        </div>
+      )}
 
       {/* Status */}
       <div className="px-4 pt-3 pb-2">
@@ -265,10 +287,15 @@ function FilterDropdown({
 
 // ── List view ──────────────────────────────────────────────────────────────────
 function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boolean }) {
+  const gridCols = isTeacher
+    ? "grid-cols-[1fr_130px_140px_100px_120px_40px]"
+    : "grid-cols-[1fr_140px_100px_120px_40px]";
+
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="grid grid-cols-[1fr_140px_100px_120px_40px] gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50">
+      <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project Name</span>
+        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
@@ -285,19 +312,27 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
               exit={{ opacity: 0, x: 8, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
               layout
               transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 28 }}
-              className="grid grid-cols-[1fr_140px_100px_120px_40px] gap-4 px-5 py-3.5 items-center hover:bg-slate-50/80 transition-colors group"
+              className={`grid ${gridCols} gap-4 px-5 py-3.5 items-center hover:bg-slate-50/80 transition-colors group`}
             >
               <div className="min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate leading-tight">{project.title}</p>
-                {isTeacher && project.profiles?.full_name && (
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">{project.profiles.full_name}</p>
-                )}
                 {project.description && cleanDescription(project.description) && (
                   <p className="text-[11px] text-slate-400 mt-0.5 truncate hidden sm:block">
                     {cleanDescription(project.description)}
                   </p>
                 )}
               </div>
+              {isTeacher && (
+                <div className="min-w-0">
+                  {project.profiles?.full_name ? (
+                    <span className="text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full truncate block max-w-[120px]">
+                      {project.profiles.full_name}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
+                </div>
+              )}
               <div><StatusBadge progress={project.progress_percentage} /></div>
               <div>
                 {(() => {
@@ -374,7 +409,7 @@ export default function DashboardViewSwitcher({
   currentUserId,
 }: Props) {
   const [viewMode,    setViewMode]    = useState<ViewMode>("kanban");
-  const [filters,     setFilters]     = useState<Filters>({ status: [], priority: [], tags: [] });
+  const [filters,     setFilters]     = useState<Filters>({ status: [], priority: [], tags: [], studentSearch: "" });
   const [filterOpen,  setFilterOpen]  = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -398,9 +433,10 @@ export default function DashboardViewSwitcher({
     });
   };
 
-  const clearFilters = () => setFilters({ status: [], priority: [], tags: [] });
+  const clearFilters = () => setFilters({ status: [], priority: [], tags: [], studentSearch: "" });
 
-  const activeCount     = filters.status.length + filters.priority.length + filters.tags.length;
+  const activeCount = filters.status.length + filters.priority.length + filters.tags.length
+    + (filters.studentSearch.trim() ? 1 : 0);
   const filteredProjects = applyFilters(projects, filters);
   const allTags = [...new Set(projects.flatMap(p => p.tags ?? []))].sort();
 
@@ -474,8 +510,10 @@ export default function DashboardViewSwitcher({
                   <FilterDropdown
                     filters={filters}
                     onToggle={toggleFilter}
+                    onStudentSearch={v => setFilters(f => ({ ...f, studentSearch: v }))}
                     onClear={clearFilters}
                     allTags={allTags}
+                    isTeacher={isTeacher}
                   />
                 </motion.div>
               )}
@@ -508,6 +546,7 @@ export default function DashboardViewSwitcher({
               ...filters.status.map(v => ({ label: v, group: "status" as const })),
               ...filters.priority.map(v => ({ label: v, group: "priority" as const })),
               ...filters.tags.map(v => ({ label: `#${v}`, group: "tags" as const, raw: v })),
+              ...(filters.studentSearch.trim() ? [{ label: `👤 ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
             ].map(({ label, group, ...rest }) => (
               <motion.span
                 key={label}
@@ -518,7 +557,11 @@ export default function DashboardViewSwitcher({
               >
                 {label}
                 <button
-                  onClick={() => toggleFilter(group, (rest as any).raw ?? label)}
+                  onClick={() =>
+                    group === "studentSearch"
+                      ? setFilters(f => ({ ...f, studentSearch: "" }))
+                      : toggleFilter(group as keyof Filters, (rest as any).raw ?? label)
+                  }
                   className="hover:text-violet-900 transition-colors"
                 >
                   <X className="w-3 h-3" />
