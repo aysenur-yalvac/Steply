@@ -1052,21 +1052,22 @@ export async function removeLinkedAccountAction(
   if (!user) return { error: 'Unauthorized' };
   const admin = createAdminClient();
 
-  // Fetch the row to get both sides' IDs
+  // Fetch the row to get both sides' IDs and the stored email of A
   const { data: row, error: fetchErr } = await admin
     .from('linked_accounts')
-    .select('owner_id, linked_user_id')
+    .select('owner_id, linked_user_id, email')
     .eq('id', linkedId)
     .eq('owner_id', user.id)
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row?.linked_user_id) return { error: 'Bağlantı bulunamadı veya linked_user_id eksik.' };
+  if (!row) return { error: 'Bağlantı bulunamadı.' };
 
-  const ownerUserId  = user.id;                 // A
-  const targetUserId = row.linked_user_id;      // B
+  const ownerUserId  = user.id;            // A's uuid
+  const ownerEmail   = user.email ?? '';   // A's email (fallback key for B's row)
+  const targetUserId = row.linked_user_id; // B's uuid (may be null on legacy rows)
 
-  // Delete A→B
+  // Delete A→B (forward row)
   const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
@@ -1074,13 +1075,17 @@ export async function removeLinkedAccountAction(
     .eq('linked_user_id', targetUserId);
   if (fwdErr) return { error: fwdErr.message };
 
-  // Delete B→A
-  const { error: revErr } = await admin
-    .from('linked_accounts')
-    .delete()
-    .eq('owner_id', targetUserId)
-    .eq('linked_user_id', ownerUserId);
-  if (revErr) console.error('[removeLinkedAccount] reverse delete failed:', revErr.message);
+  // Delete B→A (reverse row).
+  // Some legacy rows may have linked_user_id=null and only store A's email in the
+  // `email` column, so we match on either the uuid OR the stored email as fallback.
+  if (targetUserId) {
+    const { error: revErr } = await admin
+      .from('linked_accounts')
+      .delete()
+      .eq('owner_id', targetUserId)
+      .or(`linked_user_id.eq.${ownerUserId},email.eq.${ownerEmail}`);
+    if (revErr) console.error('[removeLinkedAccount] reverse delete failed:', revErr.message);
+  }
 
   return { success: true };
 }
