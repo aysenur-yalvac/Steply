@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
   // immediately before this call, so we trust the DB as the source of truth.
   const { data: link, error: linkError } = await admin
     .from('linked_accounts')
-    .select('linked_email')
-    .eq('owner_user_id', owner_id)
+    .select('id')
+    .eq('owner_id', owner_id)
     .eq('linked_user_id', linked_uid)
     .maybeSingle()
 

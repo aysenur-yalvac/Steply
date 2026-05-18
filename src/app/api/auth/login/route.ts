@@ -70,15 +70,28 @@ export async function POST(request: Request) {
       const { data: existingLink } = await admin
         .from('linked_accounts')
         .select('id')
-        .eq('owner_user_id', resolvedOwnerId)
+        .eq('owner_id', resolvedOwnerId)
         .eq('linked_user_id', data.user.id)
         .maybeSingle()
 
       let upsertError = null
       if (!existingLink) {
+        // Fetch profile for enrichment columns
+        const { data: linkedProfile } = await admin
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', data.user.id)
+          .maybeSingle()
+
         const { error } = await admin
           .from('linked_accounts')
-          .insert({ owner_user_id: resolvedOwnerId, linked_user_id: data.user.id })
+          .insert({
+            owner_id: resolvedOwnerId,
+            linked_user_id: data.user.id,
+            email: data.user.email ?? '',
+            display_name: (linkedProfile as any)?.full_name ?? null,
+            avatar_url: (linkedProfile as any)?.avatar_url ?? null,
+          })
         upsertError = error
       }
 

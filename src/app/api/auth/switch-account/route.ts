@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Verify the target is actually in this user's linked_accounts
+  // Verify the target is actually in this user's linked_accounts and fetch stored email
   const { data: link, error: linkError } = await admin
     .from('linked_accounts')
-    .select('id')
-    .eq('owner_user_id', user.id)
+    .select('id, email')
+    .eq('owner_id', user.id)
     .eq('linked_user_id', linked_user_id)
     .maybeSingle()
 
@@ -51,16 +51,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Account not linked to your profile' }, { status: 403 })
   }
 
-  // Fetch the target user's email from auth (not stored in linked_accounts).
-  const { data: targetUser, error: targetErr } = await admin.auth.admin.getUserById(linked_user_id)
-  if (targetErr || !targetUser?.user?.email) {
-    return NextResponse.json({ error: 'Target account not found' }, { status: 404 })
+  if (!link.email) {
+    return NextResponse.json({ error: 'Target account email not found' }, { status: 404 })
   }
 
   // Generate a one-time magic link for the target account (no email is sent)
   const { data: linkData, error: genError } = await admin.auth.admin.generateLink({
     type: 'magiclink',
-    email: targetUser.user.email,
+    email: link.email,
     options: {
       redirectTo: `${origin}/dashboard`,
     },
