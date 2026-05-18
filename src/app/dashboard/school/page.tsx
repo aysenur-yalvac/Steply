@@ -148,7 +148,7 @@ export default async function SchoolPage() {
       const { data: sameSchool } = await admin
         .from('profiles')
         .select('id, full_name, avatar_url, institution, role')
-        .eq('institution', institution)
+        .ilike('institution', institution.trim())
         .eq('role', 'student')
         .neq('id', user.id);
       const ids = (sameSchool ?? []).map((s: any) => s.id as string);
@@ -212,7 +212,7 @@ export default async function SchoolPage() {
     const { data: peers } = await admin
       .from('profiles')
       .select('id, full_name, avatar_url, institution, role')
-      .eq('institution', institution)
+      .ilike('institution', institution.trim())
       .neq('id', user.id);
 
     const students = (peers ?? []).filter((p: any) => p.role === 'student');

@@ -262,6 +262,7 @@ export default function SettingsClient({
       formData.set("twitter_url", twitterUrl);
       formData.set("website_url", websiteUrl);
       formData.set("university", university);
+      formData.set("institution", university); // school/page.tsx peers query uses institution column
       const result = await updateProfileAction(formData);
       if ("error" in result) {
         toast.error(result.error || "Failed to save profile.");

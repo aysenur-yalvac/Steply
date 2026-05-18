@@ -220,8 +220,10 @@ export async function updateProfileAction(formData: FormData) {
   const twitter_url = formData.get('twitter_url') as string;
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
-  const institution = formData.get('institution') as string;
-  const university  = formData.get('university')  as string | null;
+  const university  = (formData.get('university')  as string | null)?.trim() || null;
+  // institution is the canonical peer-matching column used by school/page.tsx.
+  // Always keep it in sync with the university combobox value.
+  const institution = university ?? ((formData.get('institution') as string)?.trim() || '');
 
   const { error } = await supabase.from('profiles').update({
     full_name,
@@ -236,13 +238,14 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
-    ...(university !== null ? { university } : {}),
+    university,
   }).eq('id', user.id);
 
   if (error) return { error: error.message };
 
   revalidatePath('/dashboard/profile', 'page');
   revalidatePath('/dashboard/settings', 'page');
+  revalidatePath('/dashboard/school', 'page');
   return { success: true };
 }
 
