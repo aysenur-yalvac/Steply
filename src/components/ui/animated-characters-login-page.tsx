@@ -213,7 +213,18 @@ export default function AnimatedCharactersLoginPage({
   const isLogin = mode === "login";
   const router  = useRouter();
 
-  // Redirect to /dashboard when a magic-link hash token is processed
+  // Fast path: if URL contains a magic-link hash, redirect before Supabase fires events
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.location.hash.includes('access_token=') || linkAccount) return;
+    const timer = setTimeout(() => {
+      router.replace('/dashboard');
+      router.refresh();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [linkAccount, router]);
+
+  // Fallback: redirect when Supabase client finishes processing the hash token
   useEffect(() => {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
