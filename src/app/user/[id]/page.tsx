@@ -59,6 +59,16 @@ export default async function PublicProfilePage({
     }
   }
 
+  // Favorites: any logged-in visitor can favorite projects
+  let viewerFavoritedIds: string[] = [];
+  if (viewer && !isSelf) {
+    const { data: favs } = await supabase
+      .from('project_favorites')
+      .select('project_id')
+      .eq('user_id', viewer.id);
+    viewerFavoritedIds = (favs ?? []).map((r: any) => r.project_id as string);
+  }
+
   // Follow + block state
   let isFollowing = false;
   let isFollowedByTarget = false;
@@ -244,6 +254,8 @@ export default async function PublicProfilePage({
                 projects={projects}
                 isTeacher={isViewerTeacher}
                 initialWatchedIds={viewerWatchedIds}
+                initialFavoritedIds={viewerFavoritedIds}
+                showFavorite={!!viewer && !isSelf}
               />
             )}
           </div>

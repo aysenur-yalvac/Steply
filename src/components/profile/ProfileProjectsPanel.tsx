@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Clock, FolderOpen, ExternalLink, Bookmark } from "lucide-react";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import { toggleWatchlistAction } from "@/lib/actions";
+import FavoriteHeart from "@/components/ui/FavoriteHeart";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Project = {
@@ -32,10 +33,14 @@ function ProfileProjectCard({
   project,
   isTeacher,
   isWatched: initialWatched,
+  isFavorited,
+  showFavorite,
 }: {
   project: Project;
   isTeacher: boolean;
   isWatched: boolean;
+  isFavorited: boolean;
+  showFavorite: boolean;
 }) {
   const isCompleted = project.progress_percentage === 100;
   const desc = cleanDesc(project.description ?? "");
@@ -76,25 +81,32 @@ function ProfileProjectCard({
               </span>
             )}
           </div>
-          {isTeacher && (
-            <button
-              type="button"
-              onClick={handleBookmark}
-              disabled={saving}
-              title={watched ? "Takipten çık" : "Takibe al"}
-              className={`p-1.5 rounded-lg transition-all shrink-0 ${
-                watched
-                  ? "text-violet-600 bg-violet-50 border border-violet-200 hover:bg-violet-100"
-                  : "text-slate-400 hover:text-violet-600 hover:bg-violet-50"
-              } disabled:opacity-50`}
-            >
-              <Bookmark
-                className="w-4 h-4"
-                fill={watched ? "currentColor" : "none"}
-                strokeWidth={watched ? 0 : 1.5}
-              />
-            </button>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Heart — favorites (any logged-in visitor) */}
+            {showFavorite && (
+              <FavoriteHeart projectId={project.id} initialFavorited={isFavorited} />
+            )}
+            {/* Bookmark — watchlist (teacher only) */}
+            {isTeacher && (
+              <button
+                type="button"
+                onClick={handleBookmark}
+                disabled={saving}
+                title={watched ? "Takipten çık" : "Takibe al"}
+                className={`p-1.5 rounded-lg transition-all shrink-0 ${
+                  watched
+                    ? "text-violet-600 bg-violet-50 border border-violet-200 hover:bg-violet-100"
+                    : "text-slate-400 hover:text-violet-600 hover:bg-violet-50"
+                } disabled:opacity-50`}
+              >
+                <Bookmark
+                  className="w-4 h-4"
+                  fill={watched ? "currentColor" : "none"}
+                  strokeWidth={watched ? 0 : 1.5}
+                />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Title */}
@@ -186,10 +198,14 @@ export default function ProfileProjectsPanel({
   projects,
   isTeacher = false,
   initialWatchedIds = [],
+  initialFavoritedIds = [],
+  showFavorite = false,
 }: {
   projects: Project[];
   isTeacher?: boolean;
   initialWatchedIds?: string[];
+  initialFavoritedIds?: string[];
+  showFavorite?: boolean;
 }) {
   const [filter, setFilter] = useState<FilterState>("all");
 
@@ -273,7 +289,7 @@ export default function ProfileProjectsPanel({
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                       </motion.div>
                     ))
                   : <EmptySlot label="completed" />
@@ -305,7 +321,7 @@ export default function ProfileProjectsPanel({
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                       </motion.div>
                     ))
                   : <EmptySlot label="in-progress" />
@@ -326,7 +342,7 @@ export default function ProfileProjectsPanel({
             {filteredSingle.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {filteredSingle.map((p) => (
-                  <ProfileProjectCard key={p.id} project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} />
+                  <ProfileProjectCard key={p.id} project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                 ))}
               </div>
             ) : (

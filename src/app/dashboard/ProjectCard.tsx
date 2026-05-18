@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { updateProgress, deleteProjectAction } from './actions';
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
+import FavoriteHeart from '@/components/ui/FavoriteHeart';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import toast from 'react-hot-toast';
 
@@ -45,6 +46,7 @@ export default function ProjectCard({
   project,
   isTeacher,
   isWatched: initialIsWatched = false,
+  isFavorited: initialIsFavorited = false,
   teacherNote: initialTeacherNote = '',
   teacherNameForNote,
   currentUserId,
@@ -53,6 +55,7 @@ export default function ProjectCard({
   project: Project;
   isTeacher?: boolean;
   isWatched?: boolean;
+  isFavorited?: boolean;
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
@@ -61,6 +64,7 @@ export default function ProjectCard({
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
+  const showFavoriteHeart = currentUserId !== project.student_id;
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
@@ -216,6 +220,9 @@ export default function ProjectCard({
         {/* Footer: watch + github + delete */}
         <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2">
+            {showFavoriteHeart && (
+              <FavoriteHeart projectId={project.id} initialFavorited={initialIsFavorited} size="sm" />
+            )}
             <button
               onClick={handleToggleWatch}
               className="p-1 rounded-full transition-colors text-slate-400 hover:text-violet-600"

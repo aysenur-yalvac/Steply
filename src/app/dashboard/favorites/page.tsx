@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Heart, FolderOpen, ExternalLink, CheckCircle, Clock, Minus } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
+import FavoriteHeart from '@/components/ui/FavoriteHeart';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,20 +19,21 @@ export default async function FavoritesPage() {
 
   const admin = createAdminClient();
 
-  // Fetch all watched projects with student profile data
-  const { data: watched } = await admin
-    .from('mentored_projects')
+  // Fetch favorited project IDs from project_favorites
+  const { data: favRows } = await admin
+    .from('project_favorites')
     .select('project_id')
-    .eq('teacher_id', user.id);
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
 
-  const watchedIds = (watched ?? []).map((r: any) => r.project_id as string);
+  const favIds = (favRows ?? []).map((r: any) => r.project_id as string);
 
   let projects: any[] = [];
-  if (watchedIds.length > 0) {
+  if (favIds.length > 0) {
     const { data } = await admin
       .from('projects')
       .select('id, title, description, progress_percentage, tags, student_id, profiles!student_id(full_name, avatar_url)')
-      .in('id', watchedIds)
+      .in('id', favIds)
       .order('created_at', { ascending: false });
     projects = data ?? [];
   }
@@ -55,7 +57,7 @@ export default async function FavoritesPage() {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Favoriler</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Yer işareti koyduğun tüm öğrenci projeleri.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Kalplediğin öğrenci projeleri.</p>
           </div>
         </div>
       </div>
@@ -68,18 +70,18 @@ export default async function FavoritesPage() {
             </div>
             <p className="text-sm text-slate-500 font-medium">Henüz favori projen yok.</p>
             <p className="text-xs text-slate-400 text-center max-w-xs">
-              Öğrenci profillerinde Bookmark butonuna tıklayarak projeleri buraya ekleyebilirsin.
+              Öğrenci profillerindeki ❤️ ikonuna tıklayarak projeleri buraya ekleyebilirsin.
             </p>
           </div>
         ) : (
           <>
             <p className="text-xs font-semibold text-slate-400 mb-5">
-              {projects.length} proje kaydedildi
+              {projects.length} proje favorilendi
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               {projects.map((p: any) => {
                 const status = statusLabel(p.progress_percentage);
-                const studentName  = p.profiles?.full_name  ?? 'Öğrenci';
+                const studentName   = p.profiles?.full_name  ?? 'Öğrenci';
                 const studentAvatar = p.profiles?.avatar_url ?? null;
                 const desc = (p.description ?? '').replace(/\[.*?\]/g, '').trim();
 
@@ -89,8 +91,8 @@ export default async function FavoritesPage() {
                     className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
                   >
                     <div className="p-5 flex flex-col flex-1 gap-3">
-                      {/* Status */}
-                      <div className="flex items-center gap-2">
+                      {/* Status + heart */}
+                      <div className="flex items-center justify-between gap-2">
                         {status === 'completed' ? (
                           <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
                             <CheckCircle className="w-3 h-3" /> Tamamlandı
@@ -104,6 +106,8 @@ export default async function FavoritesPage() {
                             <Minus className="w-3 h-3" /> Başlamadı
                           </span>
                         )}
+                        {/* Heart toggle — removing from favorites */}
+                        <FavoriteHeart projectId={p.id} initialFavorited={true} size="sm" />
                       </div>
 
                       {/* Title */}

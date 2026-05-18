@@ -95,6 +95,16 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     ? await getFollowDataAction(user.id)
     : { followers: [], following: [] };
 
+  // ── Favorited project IDs (for heart buttons on non-owned cards) ─────────────
+  let favoritedIds = new Set<string>();
+  if (user?.id) {
+    const { data: favData } = await supabase
+      .from('project_favorites')
+      .select('project_id')
+      .eq('user_id', user.id);
+    favoritedIds = new Set((favData ?? []).map((r: any) => r.project_id as string));
+  }
+
   // ── Upcoming agenda tasks (due within 24h, not completed) ────────────────────
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -267,6 +277,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
                   isTeacher={isTeacher}
                   currentUserId={user?.id}
                   isWatched={watchedIds.has(p.id)}
+                  isFavorited={favoritedIds.has(p.id)}
                   isCollaborator
                 />
               ))}

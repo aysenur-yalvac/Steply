@@ -1288,6 +1288,43 @@ export async function unblockUserAction(
   return { success: true };
 }
 
+// ── Project favorites ──────────────────────────────────────────────────────────
+
+export async function toggleProjectFavoriteAction(
+  projectId: string,
+): Promise<{ success: true; favorited: boolean } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+
+  const { data: existing } = await admin
+    .from('project_favorites')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .eq('project_id', projectId)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await admin
+      .from('project_favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('project_id', projectId);
+    if (error) { console.error('[toggleFavorite] delete:', error.message); return { error: error.message }; }
+    revalidatePath('/dashboard/favorites');
+    return { success: true, favorited: false };
+  } else {
+    const { error } = await admin
+      .from('project_favorites')
+      .insert({ user_id: user.id, project_id: projectId });
+    if (error) { console.error('[toggleFavorite] insert:', error.message); return { error: error.message }; }
+    revalidatePath('/dashboard/favorites');
+    return { success: true, favorited: true };
+  }
+}
+
 export async function getBlockedUsersAction(): Promise<FollowUser[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
