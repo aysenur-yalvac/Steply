@@ -215,17 +215,28 @@ export default function AnimatedCharactersLoginPage({
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
-  // When a magic-link hash is present, show the loading screen and wait for
-  // Supabase to finish processing the token before redirecting — no blind timeouts.
+  // When a magic-link hash is present, show the loading screen then redirect.
+  // Two guards needed: getSession() for tokens already processed before mount,
+  // and onAuthStateChange for SIGNED_IN + USER_UPDATED (fired when switching
+  // accounts while another session is already active).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.location.hash.includes('access_token=') || linkAccount) return;
 
     setIsSwitchingAccount(true);
-
     const supabase = createClient();
+
+    // Guard 1: token may have been processed before the listener was registered
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/dashboard');
+        router.refresh();
+      }
+    });
+
+    // Guard 2: catch the event when Supabase finishes processing the hash
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
         router.replace('/dashboard');
         router.refresh();
       }
