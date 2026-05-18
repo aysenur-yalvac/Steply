@@ -129,7 +129,7 @@ function FilterDropdown({
   isTeacher,
 }: {
   filters: Filters;
-  onToggle: (group: keyof Filters, value: string) => void;
+  onToggle: (group: 'status' | 'priority' | 'tags', value: string) => void;
   onStudentSearch: (v: string) => void;
   onClear: () => void;
   allTags: string[];
@@ -423,7 +423,7 @@ export default function DashboardViewSwitcher({
     return () => document.removeEventListener("mousedown", handle);
   }, [filterOpen]);
 
-  const toggleFilter = (group: keyof Filters, value: string) => {
+  const toggleFilter = (group: 'status' | 'priority' | 'tags', value: string) => {
     setFilters((prev) => {
       const arr = prev[group];
       return {
@@ -560,7 +560,7 @@ export default function DashboardViewSwitcher({
                   onClick={() =>
                     group === "studentSearch"
                       ? setFilters(f => ({ ...f, studentSearch: "" }))
-                      : toggleFilter(group as keyof Filters, (rest as any).raw ?? label)
+                      : toggleFilter(group as 'status' | 'priority' | 'tags', (rest as any).raw ?? label)
                   }
                   className="hover:text-violet-900 transition-colors"
                 >
