@@ -82,8 +82,21 @@ export default async function DashboardLayout({
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 
-        <div className="flex-1 overflow-y-auto relative z-10">
-          {children}
+        <div className="flex-1 overflow-y-auto relative z-10 flex flex-col">
+          <div className="flex-1">
+            {children}
+          </div>
+          <footer className="shrink-0 py-3 text-center text-xs text-slate-400 border-t border-slate-100/80 bg-white/40 backdrop-blur-sm">
+            Powered by{' '}
+            <a
+              href="https://must-b.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-violet-400 hover:text-violet-600 transition-colors"
+            >
+              Must-b
+            </a>
+          </footer>
         </div>
       </div>
     </div>
