@@ -209,11 +209,12 @@ export default async function SchoolPage() {
   let schoolTeachers: PersonRow[] = [];
 
   if (institution) {
-    const { data: peers } = await admin
+    const { data: peers, error: peersError } = await admin
       .from('profiles')
       .select('id, full_name, avatar_url, institution, role')
       .ilike('institution', institution.trim())
       .neq('id', user.id);
+    console.log('DB Sonucu:', peers, 'Hata:', peersError, 'institution:', institution);
 
     const students = (peers ?? []).filter((p: any) => p.role === 'student');
     const teachers = (peers ?? []).filter((p: any) => p.role === 'teacher');

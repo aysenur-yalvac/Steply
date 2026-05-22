@@ -221,9 +221,7 @@ export async function updateProfileAction(formData: FormData) {
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
   const university  = (formData.get('university')  as string | null)?.trim() || null;
-  // institution is the canonical peer-matching column used by school/page.tsx.
-  // Always keep it in sync with the university combobox value.
-  const institution = university ?? ((formData.get('institution') as string)?.trim() || '');
+  const institution = university ?? ((formData.get('institution') as string)?.trim() || null);
 
   const { error } = await supabase.from('profiles').update({
     full_name,
@@ -238,10 +236,14 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
-    university,
   }).eq('id', user.id);
 
   if (error) return { error: error.message };
+
+  // university column may not exist if migration not yet applied — best-effort
+  if (university !== null) {
+    await (supabase as any).from('profiles').update({ university }).eq('id', user.id);
+  }
 
   revalidatePath('/dashboard/profile', 'page');
   revalidatePath('/dashboard/settings', 'page');

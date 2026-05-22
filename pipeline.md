@@ -6,6 +6,11 @@
 
 ## Aktif Görevler
 
+| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
+|----------|-----------|--------------|-------|----------|
+| BE-057 | Backend_Agent | `actions.ts`: institution fallback `''`→`null`; university best-effort ayrı update | Tamamlandı | QA: OK |
+| BE-058 | Backend_Agent | `school/page.tsx`: peers sorgusu sonrası console.log debug | Tamamlandı | QA: OK |
+
 > ⚠️ **Manuel Adım Gerekli (4 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
 > 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
