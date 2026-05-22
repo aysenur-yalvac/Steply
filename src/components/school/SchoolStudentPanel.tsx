@@ -105,7 +105,15 @@ function PersonCard({ s, colorIndex }: { s: StudentRow; colorIndex: number }) {
   );
 }
 
-export default function SchoolStudentPanel({ students }: { students: StudentRow[] }) {
+export default function SchoolStudentPanel({
+  students,
+  label = 'Okul Arkadaşları',
+  emptyMessage = 'Henüz okulundan başka kayıtlı öğrenci yok.',
+}: {
+  students: StudentRow[];
+  label?: string;
+  emptyMessage?: string;
+}) {
   const [activeFilter, setActiveFilter] = useState<string>('Hepsi');
 
   const gradeFilters = ['Hepsi', ...GRADE_ORDER.filter((g) =>
@@ -135,7 +143,7 @@ export default function SchoolStudentPanel({ students }: { students: StudentRow[
           <div className="p-1.5 rounded-lg border bg-violet-50 border-violet-200">
             <GraduationCap className="w-4 h-4 text-violet-600" />
           </div>
-          <h2 className="text-base font-bold text-slate-700">Okul Arkadaşları</h2>
+          <h2 className="text-base font-bold text-slate-700">{label}</h2>
           <span
             className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center"
             style={{ background: '#EDE9FE', color: '#7C3AED' }}
@@ -168,7 +176,7 @@ export default function SchoolStudentPanel({ students }: { students: StudentRow[
           <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
             <GraduationCap className="w-6 h-6 text-slate-300" />
           </div>
-          <p className="text-sm text-slate-500 font-medium">Henüz okulundan başka kayıtlı öğrenci yok.</p>
+          <p className="text-sm text-slate-500 font-medium">{emptyMessage}</p>
           <p className="text-xs text-slate-400 text-center max-w-xs">Arkadaşlarını Steply&apos;ye davet et!</p>
         </div>
       ) : (

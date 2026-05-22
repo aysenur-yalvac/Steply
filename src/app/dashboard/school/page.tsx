@@ -236,21 +236,19 @@ export default async function SchoolPage() {
       <div className="flex flex-col min-h-full">
         <PageHeader institution={institution} subtitle="öğrenciler" />
         <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
-          {/* Watched */}
-          <section>
-            <SectionHeader
-              icon={<UserCheck className="w-4 h-4" />} label="Takip Ettiklerim" count={allWatched.length}
-              iconBg="bg-violet-50" iconBorder="border-violet-200" iconColor="text-violet-600"
-              countBg="#EDE9FE" countColor="#7C3AED"
-            />
-            {allWatched.length === 0
-              ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Henüz takip ettiğin öğrenci yok." sub="Öğrenci profillerindeki Bookmark butonuyla projeleri takibe alabilirsin." />
-              : <PeopleGrid people={allWatched} accentColor="violet" />}
-          </section>
+          {/* Watched students — rendered as student cards, NOT teacher cards */}
+          <SchoolStudentPanel
+            students={allWatched as StudentRow[]}
+            label="Takip Ettiklerim"
+            emptyMessage="Henüz takip ettiğin öğrenci yok."
+          />
 
-          {/* School students grouped by grade */}
+          {/* All school students grouped by grade */}
           {institution && (
-            <SchoolStudentPanel students={otherStudents as StudentRow[]} />
+            <SchoolStudentPanel
+              students={otherStudents as StudentRow[]}
+              label="Okuldaki Diğer Öğrenciler"
+            />
           )}
 
           {!institution && <NoInstitutionNotice />}
@@ -271,7 +269,7 @@ export default async function SchoolPage() {
       .neq('id', user.id);
     console.log('DB Sonucu:', peers, 'Hata:', peersError, 'institution:', institution);
 
-    const students = (peers ?? []).filter((p: any) => p.role === 'student' || !p.role);
+    const students = (peers ?? []).filter((p: any) => p.role === 'student');
     const teachers = (peers ?? []).filter((p: any) => p.role === 'teacher');
 
     const [studentIds, teacherIds] = [
