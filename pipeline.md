@@ -10,6 +10,11 @@
 |----------|-----------|--------------|-------|----------|
 | BE-057 | Backend_Agent | `actions.ts`: institution fallback `''`→`null`; university best-effort ayrı update | Tamamlandı | QA: OK |
 | BE-058 | Backend_Agent | `school/page.tsx`: peers sorgusu sonrası console.log debug | Tamamlandı | QA: OK |
+| BE-059 | Backend_Agent | `actions.ts`: updateProfileAction'a `role` + `grade` alanları eklendi | Tamamlandı | QA: OK |
+| FE-055 | Frontend_Agent | `settings/page.tsx`: `initialRole` + `initialGrade` prop'ları eklendi | Tamamlandı | QA: OK |
+| FE-056 | Frontend_Agent | `SettingsClient.tsx`: Rol dropdown (Öğrenci/Öğretmen) + Sınıf dropdown (zorunlu, öğrenciye özel) | Tamamlandı | QA: OK |
+| FE-057 | Frontend_Agent | `SchoolStudentPanel.tsx`: client-side sınıf filtresi + GRADE_ORDER gruplama | Tamamlandı | QA: OK |
+| FE-058 | Frontend_Agent | `school/page.tsx`: grade query'e eklendi; öğretmenler üstte; öğrenciler SchoolStudentPanel'e geçirildi | Tamamlandı | QA: OK |
 
 > ⚠️ **Manuel Adım Gerekli (4 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
