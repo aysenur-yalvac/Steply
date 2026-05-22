@@ -61,6 +61,8 @@ const ALL_AVATARS = [
 ];
 const AVATAR_VISIBLE = 5;
 
+const GRADE_OPTIONS = ['Hazırlık', '1. Sınıf', '2. Sınıf', '3. Sınıf', '4. Sınıf', 'Mezun'];
+
 interface SettingsClientProps {
   email: string;
   initialFullName: string;
@@ -75,6 +77,8 @@ interface SettingsClientProps {
   initialTwitterUrl: string;
   initialWebsiteUrl: string;
   initialUniversity: string;
+  initialRole: string;
+  initialGrade: string;
   initialBlockedUsers: FollowUser[];
 }
 
@@ -205,6 +209,8 @@ export default function SettingsClient({
   initialTwitterUrl,
   initialWebsiteUrl,
   initialUniversity,
+  initialRole,
+  initialGrade,
   initialBlockedUsers,
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
@@ -224,6 +230,8 @@ export default function SettingsClient({
   const [avatarExpanded, setAvatarExpanded] = useState(false);
   const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
   const [university, setUniversity]   = useState(initialUniversity);
+  const [role, setRole]               = useState(initialRole || 'student');
+  const [grade, setGrade]             = useState(initialGrade || '');
   const [linkedinUrl, setLinkedinUrl] = useState(initialLinkedinUrl);
   const [twitterUrl, setTwitterUrl] = useState(initialTwitterUrl);
   const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
@@ -262,7 +270,13 @@ export default function SettingsClient({
       formData.set("twitter_url", twitterUrl);
       formData.set("website_url", websiteUrl);
       formData.set("university", university);
-      formData.set("institution", university); // school/page.tsx peers query uses institution column
+      formData.set("institution", university);
+      formData.set("role", role);
+      formData.set("grade", role === 'student' ? grade : '');
+      if (role === 'student' && !grade) {
+        toast.error("Öğrenci rolü için sınıf seçimi zorunludur.");
+        return;
+      }
       const result = await updateProfileAction(formData);
       if ("error" in result) {
         toast.error(result.error || "Failed to save profile.");
@@ -555,6 +569,48 @@ export default function SettingsClient({
                       />
                       <p className="text-[11px] text-slate-400">Yazarak arama yap, listeden seç.</p>
                     </div>
+
+                    {/* Role */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="s-role" className="text-sm font-medium text-slate-600">Rolünüz</label>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <select
+                          id="s-role"
+                          value={role}
+                          onChange={(e) => { setRole(e.target.value); if (e.target.value === 'teacher') setGrade(''); }}
+                          className={selectCls}
+                        >
+                          <option value="student">Öğrenci</option>
+                          <option value="teacher">Öğretmen</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Grade — shown only for students */}
+                    {role === 'student' && (
+                      <div className="space-y-1.5">
+                        <label htmlFor="s-grade" className="text-sm font-medium text-slate-600">
+                          Sınıfınız <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <select
+                            id="s-grade"
+                            value={grade}
+                            onChange={(e) => setGrade(e.target.value)}
+                            required
+                            className={selectCls}
+                          >
+                            <option value="">Sınıf seçin...</option>
+                            {GRADE_OPTIONS.map((g) => (
+                              <option key={g} value={g}>{g}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <p className="text-[11px] text-slate-400">Öğrenci hesapları için zorunludur.</p>
+                      </div>
+                    )}
 
                     {/* Location — Country + City dropdowns */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

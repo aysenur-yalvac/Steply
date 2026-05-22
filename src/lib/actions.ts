@@ -222,6 +222,8 @@ export async function updateProfileAction(formData: FormData) {
   const avatar_url = formData.get('avatar_url') as string;
   const university  = (formData.get('university')  as string | null)?.trim() || null;
   const institution = university ?? ((formData.get('institution') as string)?.trim() || null);
+  const role        = (formData.get('role') as string | null) || null;
+  const grade       = (formData.get('grade') as string | null)?.trim() || null;
 
   const { error } = await supabase.from('profiles').update({
     full_name,
@@ -236,6 +238,8 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
+    role: role as any,
+    grade: grade as any,
   }).eq('id', user.id);
 
   if (error) return { error: error.message };

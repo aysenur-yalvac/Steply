@@ -34,6 +34,8 @@ export default async function SettingsPage() {
       initialTwitterUrl={profile?.twitter_url || ""}
       initialWebsiteUrl={profile?.website_url || ""}
       initialUniversity={profile?.institution || (profile as any)?.university || ""}
+      initialRole={(profile?.role as string) || "student"}
+      initialGrade={(profile as any)?.grade || ""}
       initialBlockedUsers={blockedUsers}
     />
   );

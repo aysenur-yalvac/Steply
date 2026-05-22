@@ -1,10 +1,11 @@
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
-import { School, UserCheck, Users, ExternalLink, GraduationCap } from 'lucide-react';
+import { School, UserCheck, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
+import SchoolStudentPanel, { type StudentRow } from '@/components/school/SchoolStudentPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,7 @@ type PersonRow = {
   avatar_url: string | null;
   institution: string | null;
   role: string | null;
+  grade: string | null;
   projectCount: number;
 };
 
@@ -105,6 +107,7 @@ async function buildPeopleRows(
     avatar_url:   s.avatar_url,
     institution:  s.institution,
     role:         s.role ?? null,
+    grade:        s.grade ?? null,
     projectCount: countMap[s.id] ?? 0,
   }));
 }
@@ -147,7 +150,7 @@ export default async function SchoolPage() {
     if (institution) {
       const { data: sameSchool } = await admin
         .from('profiles')
-        .select('id, full_name, avatar_url, institution, role')
+        .select('id, full_name, avatar_url, institution, role, grade')
         .ilike('institution', institution.trim())
         .eq('role', 'student')
         .neq('id', user.id);
@@ -162,7 +165,7 @@ export default async function SchoolPage() {
     let extraWatched: PersonRow[] = [];
     if (watchedNotInSchool.length > 0) {
       const { data: extra } = await admin
-        .from('profiles').select('id, full_name, avatar_url, institution, role').in('id', watchedNotInSchool);
+        .from('profiles').select('id, full_name, avatar_url, institution, role, grade').in('id', watchedNotInSchool);
       extraWatched = await buildPeopleRows(admin, watchedNotInSchool, extra ?? []);
     }
 
@@ -174,6 +177,7 @@ export default async function SchoolPage() {
       <div className="flex flex-col min-h-full">
         <PageHeader institution={institution} subtitle="öğrenciler" />
         <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
+          {/* Watched */}
           <section>
             <SectionHeader
               icon={<UserCheck className="w-4 h-4" />} label="Takip Ettiklerim" count={allWatched.length}
@@ -185,17 +189,9 @@ export default async function SchoolPage() {
               : <PeopleGrid people={allWatched} />}
           </section>
 
+          {/* School students grouped by grade */}
           {institution && (
-            <section>
-              <SectionHeader
-                icon={<Users className="w-4 h-4" />} label="Okuldaki Diğer Öğrenciler" count={otherStudents.length}
-                iconBg="bg-slate-50" iconBorder="border-slate-200" iconColor="text-slate-500"
-                countBg="#F1F5F9" countColor="#475569"
-              />
-              {otherStudents.length === 0
-                ? <EmptyState icon={<Users className="w-6 h-6 text-slate-300" />} message="Okulundan başka kayıtlı öğrenci bulunamadı." />
-                : <PeopleGrid people={otherStudents} />}
-            </section>
+            <SchoolStudentPanel students={otherStudents as StudentRow[]} />
           )}
 
           {!institution && <NoInstitutionNotice />}
@@ -211,12 +207,12 @@ export default async function SchoolPage() {
   if (institution) {
     const { data: peers, error: peersError } = await admin
       .from('profiles')
-      .select('id, full_name, avatar_url, institution, role')
+      .select('id, full_name, avatar_url, institution, role, grade')
       .ilike('institution', institution.trim())
       .neq('id', user.id);
     console.log('DB Sonucu:', peers, 'Hata:', peersError, 'institution:', institution);
 
-    const students = (peers ?? []).filter((p: any) => p.role === 'student');
+    const students = (peers ?? []).filter((p: any) => p.role === 'student' || !p.role);
     const teachers = (peers ?? []).filter((p: any) => p.role === 'teacher');
 
     const [studentIds, teacherIds] = [
@@ -235,20 +231,8 @@ export default async function SchoolPage() {
       <PageHeader institution={institution} subtitle="okul topluluğun" />
       <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
 
-        {/* Students */}
-        <section>
-          <SectionHeader
-            icon={<GraduationCap className="w-4 h-4" />} label="Okul Arkadaşları" count={schoolStudents.length}
-            iconBg="bg-violet-50" iconBorder="border-violet-200" iconColor="text-violet-600"
-            countBg="#EDE9FE" countColor="#7C3AED"
-          />
-          {schoolStudents.length === 0
-            ? <EmptyState icon={<GraduationCap className="w-6 h-6 text-slate-300" />} message="Henüz okulundan başka kayıtlı öğrenci yok." sub="Arkadaşlarını Steply'ye davet et!" />
-            : <PeopleGrid people={schoolStudents} />}
-        </section>
-
-        {/* Teachers */}
-        {(schoolTeachers.length > 0 || institution) && (
+        {/* Teachers section — at the top */}
+        {institution && (
           <section>
             <SectionHeader
               icon={<UserCheck className="w-4 h-4" />} label="Öğretmenler" count={schoolTeachers.length}
@@ -260,6 +244,9 @@ export default async function SchoolPage() {
               : <PeopleGrid people={schoolTeachers} />}
           </section>
         )}
+
+        {/* Students grouped by grade with filter */}
+        <SchoolStudentPanel students={schoolStudents as StudentRow[]} />
 
         {!institution && <NoInstitutionNotice />}
       </div>
