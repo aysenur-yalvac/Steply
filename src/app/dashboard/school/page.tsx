@@ -97,7 +97,7 @@ function TeacherCard({ person, colorIndex = 0 }: { person: PersonRow; colorIndex
   );
 }
 
-function PeopleGrid({ people, accentColor }: { people: PersonRow[]; accentColor?: 'violet' | 'blue' }) {
+function PeopleGrid({ people }: { people: PersonRow[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {people.map((p, i) => <TeacherCard key={p.id} person={p} colorIndex={i} />)}
@@ -184,102 +184,26 @@ export default async function SchoolPage() {
     .eq('id', user.id)
     .single();
 
-  const role        = profile?.role ?? 'student';
   const institution = profile?.institution ?? null;
   const admin       = createAdminClient();
 
-  // ── TEACHER VIEW ─────────────────────────────────────────────────────────────
-  if (role === 'teacher') {
-    // Watched student IDs (via mentored_projects)
-    const { data: mentored } = await admin
-      .from('mentored_projects')
-      .select('project_id')
-      .eq('teacher_id', user.id);
-
-    let watchedStudentIds: string[] = [];
-    if ((mentored ?? []).length > 0) {
-      const projectIds = (mentored ?? []).map((r: any) => r.project_id as string);
-      const { data: watchedProjects } = await admin
-        .from('projects').select('student_id').in('id', projectIds);
-      watchedStudentIds = [...new Set((watchedProjects ?? []).map((r: any) => r.student_id as string))];
-    }
-
-    // Students at the same institution
-    let schoolStudents: PersonRow[] = [];
-    if (institution) {
-      const { data: sameSchool } = await admin
-        .from('profiles')
-        .select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number')
-        .ilike('institution', institution.trim())
-        .eq('role', 'student')
-        .neq('id', user.id);
-      const ids = (sameSchool ?? []).map((s: any) => s.id as string);
-      schoolStudents = await buildPeopleRows(admin, ids, sameSchool ?? []);
-    }
-
-    // Watched students NOT at this institution (cross-school)
-    const watchedNotInSchool = watchedStudentIds.filter(
-      (id) => !schoolStudents.some((s) => s.id === id),
-    );
-    let extraWatched: PersonRow[] = [];
-    if (watchedNotInSchool.length > 0) {
-      const { data: extra } = await admin
-        .from('profiles').select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number').in('id', watchedNotInSchool);
-      extraWatched = await buildPeopleRows(admin, watchedNotInSchool, extra ?? []);
-    }
-
-    const watchedStudents = schoolStudents.filter((s) => watchedStudentIds.includes(s.id));
-    const otherStudents   = schoolStudents.filter((s) => !watchedStudentIds.includes(s.id));
-    const allWatched      = [...watchedStudents, ...extraWatched];
-
-    return (
-      <div className="flex flex-col min-h-full">
-        <PageHeader institution={institution} subtitle="öğrenciler" />
-        <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
-          {/* Watched students — rendered as student cards, NOT teacher cards */}
-          <SchoolStudentPanel
-            students={allWatched as StudentRow[]}
-            label="Takip Ettiklerim"
-            emptyMessage="Henüz takip ettiğin öğrenci yok."
-          />
-
-          {/* All school students grouped by grade */}
-          {institution && (
-            <SchoolStudentPanel
-              students={otherStudents as StudentRow[]}
-              label="Okuldaki Diğer Öğrenciler"
-            />
-          )}
-
-          {!institution && <NoInstitutionNotice />}
-        </div>
-      </div>
-    );
-  }
-
-  // ── STUDENT VIEW ─────────────────────────────────────────────────────────────
+  // ── UNIFIED VIEW ─────────────────────────────────────────────────────────────
   let schoolStudents: PersonRow[] = [];
   let schoolTeachers: PersonRow[] = [];
 
   if (institution) {
-    const { data: peers, error: peersError } = await admin
+    const { data: peers } = await admin
       .from('profiles')
       .select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number')
       .ilike('institution', institution.trim())
       .neq('id', user.id);
-    console.log('DB Sonucu:', peers, 'Hata:', peersError, 'institution:', institution);
 
     const students = (peers ?? []).filter((p: any) => p.role === 'student');
     const teachers = (peers ?? []).filter((p: any) => p.role === 'teacher');
 
-    const [studentIds, teacherIds] = [
-      students.map((s: any) => s.id as string),
-      teachers.map((t: any) => t.id as string),
-    ];
-
     [schoolStudents, schoolTeachers] = await Promise.all([
-      buildPeopleRows(admin, studentIds, students),
-      buildPeopleRows(admin, teacherIds, teachers),
+      buildPeopleRows(admin, students.map((s: any) => s.id as string), students),
+      buildPeopleRows(admin, teachers.map((t: any) => t.id as string), teachers),
     ]);
   }
 
@@ -288,22 +212,22 @@ export default async function SchoolPage() {
       <PageHeader institution={institution} subtitle="okul topluluğun" />
       <div className="flex-1 p-6 lg:p-8 flex flex-col gap-10">
 
-        {/* Teachers section — at the top */}
         {institution && (
-          <section>
-            <SectionHeader
-              icon={<UserCheck className="w-4 h-4" />} label="Öğretmenler" count={schoolTeachers.length}
-              iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600"
-              countBg="#DBEAFE" countColor="#2563EB"
-            />
-            {schoolTeachers.length === 0
-              ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
-              : <PeopleGrid people={schoolTeachers} accentColor="blue" />}
-          </section>
-        )}
+          <>
+            <section>
+              <SectionHeader
+                icon={<UserCheck className="w-4 h-4" />} label="Öğretmenler" count={schoolTeachers.length}
+                iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600"
+                countBg="#DBEAFE" countColor="#2563EB"
+              />
+              {schoolTeachers.length === 0
+                ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
+                : <PeopleGrid people={schoolTeachers} />}
+            </section>
 
-        {/* Students grouped by grade with filter */}
-        <SchoolStudentPanel students={schoolStudents as StudentRow[]} />
+            <SchoolStudentPanel students={schoolStudents as StudentRow[]} />
+          </>
+        )}
 
         {!institution && <NoInstitutionNotice />}
       </div>
