@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
-import { School, UserCheck, ExternalLink } from 'lucide-react';
+import { School, UserCheck, ExternalLink, Mail, IdCard, Phone, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
@@ -16,35 +16,75 @@ type PersonRow = {
   institution: string | null;
   role: string | null;
   grade: string | null;
+  school_number: string | null;
+  school_email: string | null;
+  phone_number: string | null;
   projectCount: number;
 };
 
 // ── Shared UI helpers ──────────────────────────────────────────────────────────
 
-function PeopleGrid({ people }: { people: PersonRow[] }) {
+function SchoolCard({ person, accentColor = 'violet' }: { person: PersonRow; accentColor?: 'violet' | 'blue' }) {
+  const accent = accentColor === 'blue'
+    ? { badge: 'bg-blue-50 text-blue-600 border-blue-100', hover: 'hover:border-blue-200', icon: 'text-blue-400' }
+    : { badge: 'bg-violet-50 text-violet-600 border-violet-100', hover: 'hover:border-violet-200', icon: 'text-violet-400' };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-      {people.map((s) => (
-        <Link
-          key={s.id}
-          href={`/user/${s.id}`}
-          className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-violet-200 transition-all flex items-center gap-4 p-4"
-        >
-          <Avatar src={s.avatar_url} name={s.full_name ?? '?'} size="md" className="w-11 h-11 text-base shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-800 text-sm truncate group-hover:text-violet-700 transition-colors">
-              {s.full_name ?? 'Steply Üyesi'}
-            </p>
-            {s.institution && (
-              <p className="text-xs text-slate-400 truncate">{s.institution}</p>
-            )}
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              {s.projectCount} public proje
-            </p>
-          </div>
-          <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-violet-500 shrink-0 transition-colors" />
-        </Link>
-      ))}
+    <Link
+      href={`/user/${person.id}`}
+      className={`group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md ${accent.hover} transition-all h-[220px] flex flex-col p-4`}
+    >
+      {/* Top: avatar + name */}
+      <div className="flex items-start gap-3 mb-3">
+        <Avatar src={person.avatar_url} name={person.full_name ?? '?'} size="md" className="w-11 h-11 text-base shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className={`font-bold text-slate-800 text-sm truncate group-hover:${accentColor === 'blue' ? 'text-blue-700' : 'text-violet-700'} transition-colors`}>
+            {person.full_name ?? 'Steply Üyesi'}
+          </p>
+          {person.grade && (
+            <span className={`inline-block mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${accent.badge}`}>
+              {person.grade}
+            </span>
+          )}
+        </div>
+        <ExternalLink className={`w-3.5 h-3.5 ${accent.icon} shrink-0 opacity-0 group-hover:opacity-100 transition-opacity`} />
+      </div>
+
+      {/* Middle: info rows — always 3 rows for symmetry */}
+      <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <IdCard className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <span className={`text-xs truncate ${person.school_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+            {person.school_number ?? 'Numara girilmemiş'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 min-w-0">
+          <Mail className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <span className={`text-xs truncate ${person.school_email ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+            {person.school_email ?? 'Okul e-postası girilmemiş'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 min-w-0">
+          <Phone className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <span className={`text-xs truncate ${person.phone_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+            {person.phone_number ?? 'Telefon belirtilmemiş'}
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom: project count */}
+      <div className="flex items-center gap-1.5 pt-2 border-t border-slate-50 mt-auto">
+        <FolderOpen className="w-3.5 h-3.5 text-slate-300" />
+        <span className="text-[11px] text-slate-400">{person.projectCount} public proje</span>
+      </div>
+    </Link>
+  );
+}
+
+function PeopleGrid({ people, accentColor }: { people: PersonRow[]; accentColor?: 'violet' | 'blue' }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {people.map((p) => <SchoolCard key={p.id} person={p} accentColor={accentColor} />)}
     </div>
   );
 }
@@ -102,13 +142,16 @@ async function buildPeopleRows(
     countMap[r.student_id] = (countMap[r.student_id] ?? 0) + 1;
   });
   return rawRows.map((s: any) => ({
-    id:           s.id,
-    full_name:    s.full_name,
-    avatar_url:   s.avatar_url,
-    institution:  s.institution,
-    role:         s.role ?? null,
-    grade:        s.grade ?? null,
-    projectCount: countMap[s.id] ?? 0,
+    id:            s.id,
+    full_name:     s.full_name,
+    avatar_url:    s.avatar_url,
+    institution:   s.institution,
+    role:          s.role ?? null,
+    grade:         s.grade ?? null,
+    school_number: s.school_number ?? null,
+    school_email:  s.school_email ?? null,
+    phone_number:  s.phone_number ?? null,
+    projectCount:  countMap[s.id] ?? 0,
   }));
 }
 
@@ -150,7 +193,7 @@ export default async function SchoolPage() {
     if (institution) {
       const { data: sameSchool } = await admin
         .from('profiles')
-        .select('id, full_name, avatar_url, institution, role, grade')
+        .select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number')
         .ilike('institution', institution.trim())
         .eq('role', 'student')
         .neq('id', user.id);
@@ -165,7 +208,7 @@ export default async function SchoolPage() {
     let extraWatched: PersonRow[] = [];
     if (watchedNotInSchool.length > 0) {
       const { data: extra } = await admin
-        .from('profiles').select('id, full_name, avatar_url, institution, role, grade').in('id', watchedNotInSchool);
+        .from('profiles').select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number').in('id', watchedNotInSchool);
       extraWatched = await buildPeopleRows(admin, watchedNotInSchool, extra ?? []);
     }
 
@@ -186,7 +229,7 @@ export default async function SchoolPage() {
             />
             {allWatched.length === 0
               ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Henüz takip ettiğin öğrenci yok." sub="Öğrenci profillerindeki Bookmark butonuyla projeleri takibe alabilirsin." />
-              : <PeopleGrid people={allWatched} />}
+              : <PeopleGrid people={allWatched} accentColor="violet" />}
           </section>
 
           {/* School students grouped by grade */}
@@ -207,7 +250,7 @@ export default async function SchoolPage() {
   if (institution) {
     const { data: peers, error: peersError } = await admin
       .from('profiles')
-      .select('id, full_name, avatar_url, institution, role, grade')
+      .select('id, full_name, avatar_url, institution, role, grade, school_number, school_email, phone_number')
       .ilike('institution', institution.trim())
       .neq('id', user.id);
     console.log('DB Sonucu:', peers, 'Hata:', peersError, 'institution:', institution);
@@ -241,7 +284,7 @@ export default async function SchoolPage() {
             />
             {schoolTeachers.length === 0
               ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
-              : <PeopleGrid people={schoolTeachers} />}
+              : <PeopleGrid people={schoolTeachers} accentColor="blue" />}
           </section>
         )}
 

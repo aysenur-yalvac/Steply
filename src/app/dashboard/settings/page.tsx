@@ -36,6 +36,9 @@ export default async function SettingsPage() {
       initialUniversity={profile?.institution || (profile as any)?.university || ""}
       initialRole={(profile?.role as string) || "student"}
       initialGrade={(profile as any)?.grade || ""}
+      initialSchoolNumber={(profile as any)?.school_number || ""}
+      initialSchoolEmail={(profile as any)?.school_email || ""}
+      initialPhoneNumber={profile?.phone_number || ""}
       initialBlockedUsers={blockedUsers}
     />
   );

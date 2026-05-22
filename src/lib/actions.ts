@@ -220,10 +220,12 @@ export async function updateProfileAction(formData: FormData) {
   const twitter_url = formData.get('twitter_url') as string;
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
-  const university  = (formData.get('university')  as string | null)?.trim() || null;
-  const institution = university ?? ((formData.get('institution') as string)?.trim() || null);
-  const role        = (formData.get('role') as string | null) || null;
-  const grade       = (formData.get('grade') as string | null)?.trim() || null;
+  const university     = (formData.get('university')     as string | null)?.trim() || null;
+  const institution    = university ?? ((formData.get('institution') as string)?.trim() || null);
+  const role           = (formData.get('role')           as string | null) || null;
+  const grade          = (formData.get('grade')          as string | null)?.trim() || null;
+  const school_number  = (formData.get('school_number')  as string | null)?.trim() || null;
+  const school_email   = (formData.get('school_email')   as string | null)?.trim() || null;
 
   const { error } = await supabase.from('profiles').update({
     full_name,
@@ -240,6 +242,8 @@ export async function updateProfileAction(formData: FormData) {
     institution,
     role: role as any,
     grade: grade as any,
+    school_number: school_number as any,
+    school_email: school_email as any,
   }).eq('id', user.id);
 
   if (error) return { error: error.message };
