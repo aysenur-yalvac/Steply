@@ -21,6 +21,7 @@ export default async function SettingsPage() {
 
   return (
     <SettingsClient
+      userId={user.id}
       email={user.email ?? ""}
       initialFullName={profile?.full_name || user.user_metadata?.full_name || ""}
       initialBio={profile?.bio || ""}

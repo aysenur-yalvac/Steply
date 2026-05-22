@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   User,
   Lock,
@@ -29,6 +29,8 @@ import {
   Image as ImageIcon,
   IdCard,
   Phone,
+  Upload,
+  Camera,
 } from "lucide-react";
 import { Country, State } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
@@ -66,6 +68,7 @@ const AVATAR_VISIBLE = 5;
 const GRADE_OPTIONS = ['Hazırlık', '1. Sınıf', '2. Sınıf', '3. Sınıf', '4. Sınıf', 'Mezun'];
 
 interface SettingsClientProps {
+  userId: string;
   email: string;
   initialFullName: string;
   initialBio: string;
@@ -201,6 +204,7 @@ function NotifRow({
 }
 
 export default function SettingsClient({
+  userId,
   email,
   initialFullName,
   initialBio,
@@ -244,6 +248,13 @@ export default function SettingsClient({
   const [schoolEmail, setSchoolEmail]     = useState(initialSchoolEmail || '');
   const [phoneNumber, setPhoneNumber]     = useState(initialPhoneNumber || '');
   const [linkedinUrl, setLinkedinUrl]     = useState(initialLinkedinUrl);
+  const [pendingFile, setPendingFile]     = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl]       = useState<string | null>(null);
+  const fileInputRef                      = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
   const [twitterUrl, setTwitterUrl] = useState(initialTwitterUrl);
   const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
@@ -287,13 +298,35 @@ export default function SettingsClient({
           return;
         }
       }
+
+      let avatarUrl = selectedAvatar;
+
+      // Upload photo to Supabase Storage if a new file was selected
+      if (pendingFile) {
+        const ext = pendingFile.name.split('.').pop() ?? 'jpg';
+        const path = `${userId}/${Date.now()}.${ext}`;
+        const supabaseClient = createClient();
+        const { error: uploadError } = await supabaseClient.storage
+          .from('avatars')
+          .upload(path, pendingFile, { upsert: true, contentType: pendingFile.type });
+        if (uploadError) {
+          toast.error(`Fotoğraf yüklenemedi: ${uploadError.message}`);
+          return;
+        }
+        const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(path);
+        avatarUrl = urlData.publicUrl;
+        setSelectedAvatar(avatarUrl);
+        setPendingFile(null);
+        toast.success("Profil fotoğrafı güncellendi.");
+      }
+
       const formData = new FormData();
       formData.set("full_name", fullName);
       formData.set("bio", bio);
       formData.set("company", company);
       formData.set("country", Country.getCountryByCode(countryIso)?.name || "");
       formData.set("location", selectedCity);
-      formData.set("avatar_url", selectedAvatar);
+      formData.set("avatar_url", avatarUrl);
       formData.set("github_url", githubUrl);
       formData.set("linkedin_url", linkedinUrl);
       formData.set("twitter_url", twitterUrl);
@@ -307,13 +340,22 @@ export default function SettingsClient({
       formData.set("phone_number", phoneNumber);
       const result = await updateProfileAction(formData);
       if ("error" in result) {
-        toast.error(result.error || "Failed to save profile.");
+        toast.error(result.error || "Profil kaydedilemedi.");
       } else {
-        toast.success("Profile saved successfully.");
+        toast.success("Profil başarıyla kaydedildi.");
       }
     } finally {
       setIsProfileSaving(false);
     }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    setPendingFile(file);
   }
 
   async function handlePasswordChange(e: React.FormEvent) {
@@ -461,91 +503,120 @@ export default function SettingsClient({
                 {activeTab === "profile" && (
                   <form onSubmit={handleProfileSave} className="space-y-6 max-w-xl">
 
-                    {/* Avatar selector */}
+                    {/* Profile photo upload */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-violet-500" /> Avatar
+                        <Camera className="w-4 h-4 text-violet-500" /> Profil Fotoğrafı
                       </label>
                       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          {ALL_AVATARS.slice(0, AVATAR_VISIBLE).map((av) => (
-                            <button
-                              key={av}
-                              type="button"
-                              onClick={() => setSelectedAvatar(av)}
-                              className="relative w-11 h-11 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
-                              style={selectedAvatar === av ? { boxShadow: "0 0 0 3px #7C3AFF" } : {}}
-                            >
-                              <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
-                              {selectedAvatar === av && (
-                                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
-                                  <Check className="w-3.5 h-3.5 text-white drop-shadow" strokeWidth={3} />
-                                </span>
-                              )}
-                            </button>
-                          ))}
+                        {/* Photo preview + click-to-upload */}
+                        <div className="flex items-center gap-5">
                           <button
                             type="button"
-                            onClick={() => setAvatarExpanded((v) => !v)}
-                            className="w-11 h-11 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 group border-2 border-slate-200 hover:border-violet-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
                           >
-                            <motion.span animate={{ rotate: avatarExpanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                              <ChevronDown className="w-4 h-4" />
-                            </motion.span>
+                            <img
+                              src={previewUrl ?? selectedAvatar}
+                              alt="Profil fotoğrafı"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                              <Camera className="w-5 h-5 text-white" />
+                              <span className="text-[10px] text-white font-semibold">Değiştir</span>
+                            </span>
                           </button>
-                        </div>
-                        <AnimatePresence initial={false}>
-                          {avatarExpanded && (
-                            <motion.div
-                              key="avatar-grid"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                              className="overflow-hidden"
-                            >
-                              <div className="grid grid-cols-5 gap-3 pt-3">
-                                {ALL_AVATARS.slice(AVATAR_VISIBLE).map((av) => (
-                                  <button
-                                    key={av}
-                                    type="button"
-                                    onClick={() => setSelectedAvatar(av)}
-                                    className="relative w-11 h-11 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
-                                    style={selectedAvatar === av ? { boxShadow: "0 0 0 3px #7C3AFF" } : {}}
-                                  >
-                                    <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
-                                    {selectedAvatar === av && (
-                                      <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
-                                        <Check className="w-3.5 h-3.5 text-white drop-shadow" strokeWidth={3} />
-                                      </span>
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
 
-                        {/* Custom photo URL */}
-                        <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
-                          <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                            <ImageIcon className="w-3.5 h-3.5 text-violet-400" />
-                            Gerçek profil fotoğrafı URL&apos;i (son 6 ayda çekilmiş net yüz fotoğrafı)
-                          </p>
-                          <input
-                            type="url"
-                            value={selectedAvatar.startsWith('https://api.dicebear') ? '' : selectedAvatar}
-                            onChange={(e) => {
-                              const val = e.target.value.trim();
-                              if (val) setSelectedAvatar(val);
-                            }}
-                            onBlur={(e) => {
-                              if (!e.target.value.trim()) setSelectedAvatar(ALL_AVATARS[0]);
-                            }}
-                            placeholder="https://…/profilim.jpg"
-                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-xs"
-                          />
-                          <p className="text-[11px] text-slate-400">URL boş bırakılırsa seçili avatar kullanılır.</p>
+                          <div className="flex-1 min-w-0">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 text-white text-xs font-semibold hover:bg-violet-700 transition-colors shadow-sm shadow-violet-200"
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              {pendingFile ? 'Farklı fotoğraf seç' : 'Fotoğraf yükle'}
+                            </button>
+                            {pendingFile ? (
+                              <p className="text-[11px] text-emerald-600 font-medium mt-1.5 truncate">
+                                ✓ {pendingFile.name} seçildi — kaydet butonuna bas
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-slate-400 mt-1.5">
+                                Son 6 ayda çekilmiş net yüz fotoğrafı · JPG, PNG, WEBP
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+
+                        {/* DiceBear avatar fallback */}
+                        <div className="mt-4 pt-3 border-t border-slate-100">
+                          <p className="text-[11px] text-slate-400 mb-2 font-medium">veya illüstrasyon seç:</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {ALL_AVATARS.slice(0, AVATAR_VISIBLE).map((av) => (
+                              <button
+                                key={av}
+                                type="button"
+                                onClick={() => { setSelectedAvatar(av); setPendingFile(null); setPreviewUrl(null); }}
+                                className="relative w-9 h-9 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
+                                style={selectedAvatar === av && !pendingFile ? { boxShadow: "0 0 0 2.5px #7C3AFF" } : {}}
+                              >
+                                <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                                {selectedAvatar === av && !pendingFile && (
+                                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
+                                    <Check className="w-3 h-3 text-white drop-shadow" strokeWidth={3} />
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setAvatarExpanded((v) => !v)}
+                              className="w-9 h-9 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
+                            >
+                              <motion.span animate={{ rotate: avatarExpanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </motion.span>
+                            </button>
+                          </div>
+                          <AnimatePresence initial={false}>
+                            {avatarExpanded && (
+                              <motion.div
+                                key="avatar-grid"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="grid grid-cols-6 gap-2 pt-3">
+                                  {ALL_AVATARS.slice(AVATAR_VISIBLE).map((av) => (
+                                    <button
+                                      key={av}
+                                      type="button"
+                                      onClick={() => { setSelectedAvatar(av); setPendingFile(null); setPreviewUrl(null); }}
+                                      className="relative w-9 h-9 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
+                                      style={selectedAvatar === av && !pendingFile ? { boxShadow: "0 0 0 2.5px #7C3AFF" } : {}}
+                                    >
+                                      <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                                      {selectedAvatar === av && !pendingFile && (
+                                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
+                                          <Check className="w-3 h-3 text-white drop-shadow" strokeWidth={3} />
+                                        </span>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>
@@ -798,7 +869,9 @@ export default function SettingsClient({
                         ) : (
                           <Save className="w-4 h-4" strokeWidth={1.5} />
                         )}
-                        {isProfileSaving ? "Saving..." : "Save Profile Changes"}
+                        {isProfileSaving
+                          ? (pendingFile ? "Fotoğraf yükleniyor..." : "Kaydediliyor...")
+                          : "Profili Kaydet"}
                       </button>
                     </div>
                   </form>
