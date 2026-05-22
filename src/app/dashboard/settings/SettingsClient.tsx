@@ -288,7 +288,7 @@ export default function SettingsClient({
         toast.error("Öğrenci rolü için sınıf seçimi zorunludur.");
         return;
       }
-      if (university) {
+      if (university && role === 'student') {
         if (!schoolNumber.trim()) {
           toast.error("Okul numarası zorunludur.");
           return;
@@ -335,7 +335,7 @@ export default function SettingsClient({
       formData.set("institution", university);
       formData.set("role", role);
       formData.set("grade", role === 'student' ? grade : '');
-      formData.set("school_number", schoolNumber);
+      formData.set("school_number", role === 'student' ? schoolNumber : '');
       formData.set("school_email", schoolEmail);
       formData.set("phone_number", phoneNumber);
       const result = await updateProfileAction(formData);
@@ -738,28 +738,38 @@ export default function SettingsClient({
                       <div className="space-y-3 pt-1">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 flex items-center gap-1.5">
                           <IdCard className="w-3.5 h-3.5" /> Okul Bilgileri
-                          <span className="text-rose-400 font-normal normal-case tracking-normal ml-1">— Zorunlu</span>
+                          {role === 'student' && (
+                            <span className="text-rose-400 font-normal normal-case tracking-normal ml-1">— Zorunlu</span>
+                          )}
                         </p>
-                        <div className="space-y-1.5">
-                          <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600">
-                            Okul Numarası <span className="text-rose-500">*</span>
-                          </label>
-                          <div className="relative">
-                            <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
-                              id="s-school-number"
-                              type="text"
-                              value={schoolNumber}
-                              onChange={(e) => setSchoolNumber(e.target.value)}
-                              placeholder="Örn: 20240001"
-                              required
-                              className={`${inputCls} pl-9`}
-                            />
+
+                        {/* Okul Numarası — sadece öğrenciler için */}
+                        {role === 'student' && (
+                          <div className="space-y-1.5">
+                            <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600">
+                              Okul Numarası <span className="text-rose-500">*</span>
+                            </label>
+                            <div className="relative">
+                              <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <input
+                                id="s-school-number"
+                                type="text"
+                                value={schoolNumber}
+                                onChange={(e) => setSchoolNumber(e.target.value)}
+                                placeholder="Örn: 20240001"
+                                className={`${inputCls} pl-9`}
+                              />
+                            </div>
                           </div>
-                        </div>
+                        )}
+
+                        {/* Okul E-postası — öğrenci için zorunlu, öğretmen için opsiyonel */}
                         <div className="space-y-1.5">
                           <label htmlFor="s-school-email" className="text-sm font-medium text-slate-600">
-                            Okul E-postası <span className="text-rose-500">*</span>
+                            Okul E-postası{' '}
+                            {role === 'student'
+                              ? <span className="text-rose-500">*</span>
+                              : <span className="text-slate-400 font-normal text-xs">(isteğe bağlı)</span>}
                           </label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -769,7 +779,6 @@ export default function SettingsClient({
                               value={schoolEmail}
                               onChange={(e) => setSchoolEmail(e.target.value)}
                               placeholder="Örn: ad.soyad@okul.edu.tr"
-                              required
                               className={`${inputCls} pl-9`}
                             />
                           </div>
