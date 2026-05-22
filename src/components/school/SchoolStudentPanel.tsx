@@ -68,26 +68,35 @@ function PersonCard({ s, colorIndex }: { s: StudentRow; colorIndex: number }) {
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
           </div>
-          {s.grade && (
+          {s.role !== 'teacher' && s.grade && (
             <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
               {s.grade}
+            </span>
+          )}
+          {s.role === 'teacher' && (
+            <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+              Öğretmen
             </span>
           )}
         </div>
 
         <div className="space-y-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <IdCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className={`text-sm font-medium truncate ${s.school_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-              {s.school_number ?? 'No girilmemiş'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className={`text-sm font-medium truncate ${s.school_email ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-              {s.school_email ?? 'Okul maili yok'}
-            </span>
-          </div>
+          {s.role !== 'teacher' && (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <IdCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className={`text-sm font-medium truncate ${s.school_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                  {s.school_number ?? 'No girilmemiş'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className={`text-sm font-medium truncate ${s.school_email ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                  {s.school_email ?? 'Okul maili yok'}
+                </span>
+              </div>
+            </>
+          )}
           <div className="flex items-center gap-2 min-w-0">
             <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className={`text-sm font-medium truncate ${s.phone_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
