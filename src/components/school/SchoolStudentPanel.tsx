@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink, GraduationCap, Users, IdCard, Mail, Phone, FolderOpen } from "lucide-react";
+import PhotoLightbox from "@/components/ui/PhotoLightbox";
 
 export type StudentRow = {
   id: string;
@@ -37,7 +38,15 @@ function PhotoPlaceholder({ name, colorIndex }: { name: string | null; colorInde
   );
 }
 
-function PersonCard({ s, colorIndex }: { s: StudentRow; colorIndex: number }) {
+function PersonCard({
+  s,
+  colorIndex,
+  onPhotoClick,
+}: {
+  s: StudentRow;
+  colorIndex: number;
+  onPhotoClick: (src: string, name: string | null) => void;
+}) {
   const isReal = s.avatar_url && !s.avatar_url.includes('dicebear') && !s.avatar_url.includes('api.');
 
   return (
@@ -45,8 +54,15 @@ function PersonCard({ s, colorIndex }: { s: StudentRow; colorIndex: number }) {
       href={`/user/${s.id}`}
       className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-violet-200 transition-all h-36 flex flex-row overflow-hidden"
     >
-      {/* LEFT: photo — w-32 for sharper fill */}
-      <div className="w-32 shrink-0 overflow-hidden rounded-l-2xl">
+      {/* LEFT: photo */}
+      <div
+        className={`w-32 shrink-0 overflow-hidden rounded-l-2xl ${isReal ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+        onClick={(e) => {
+          if (!isReal) return;
+          e.preventDefault();
+          onPhotoClick(s.avatar_url!, s.full_name);
+        }}
+      >
         {isReal ? (
           <img
             src={s.avatar_url!}
@@ -124,6 +140,7 @@ export default function SchoolStudentPanel({
   emptyMessage?: string;
 }) {
   const [activeFilter, setActiveFilter] = useState<string>('Hepsi');
+  const [lightbox, setLightbox] = useState<{ src: string; name: string | null } | null>(null);
 
   const gradeFilters = ['Hepsi', ...GRADE_ORDER.filter((g) =>
     students.some((s) => s.grade === g)
@@ -202,13 +219,26 @@ export default function SchoolStudentPanel({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {items.map((s, idx) => (
-                    <PersonCard key={s.id} s={s} colorIndex={groupStart + idx} />
+                    <PersonCard
+                      key={s.id}
+                      s={s}
+                      colorIndex={groupStart + idx}
+                      onPhotoClick={(src, name) => setLightbox({ src, name })}
+                    />
                   ))}
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {lightbox && (
+        <PhotoLightbox
+          src={lightbox.src}
+          name={lightbox.name}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </section>
   );

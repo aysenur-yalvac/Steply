@@ -1,10 +1,11 @@
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
-import { School, UserCheck, ExternalLink, Phone, FolderOpen } from 'lucide-react';
+import { School, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import SchoolStudentPanel, { type StudentRow } from '@/components/school/SchoolStudentPanel';
+import TeacherGrid, { type TeacherRow } from '@/components/school/TeacherGrid';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,89 +22,6 @@ type PersonRow = {
   projectCount: number;
 };
 
-// ── Shared UI helpers ──────────────────────────────────────────────────────────
-
-function PhotoPlaceholder({ name, colorIndex }: { name: string | null; colorIndex: number }) {
-  const palettes = [
-    'from-violet-500 to-purple-600',
-    'from-blue-500 to-cyan-500',
-    'from-emerald-500 to-teal-500',
-    'from-rose-500 to-pink-500',
-    'from-amber-500 to-orange-500',
-  ];
-  const initials = (name ?? '?').split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-  return (
-    <div className={`w-full h-full bg-gradient-to-br ${palettes[colorIndex % palettes.length]} flex items-center justify-center`}>
-      <span className="text-white font-extrabold text-xl select-none">{initials}</span>
-    </div>
-  );
-}
-
-function CardPhoto({ avatarUrl, name, colorIndex }: { avatarUrl: string | null; name: string | null; colorIndex: number }) {
-  const isReal = avatarUrl && !avatarUrl.includes('dicebear') && !avatarUrl.includes('api.');
-  return (
-    <div className="w-32 shrink-0 overflow-hidden rounded-l-2xl">
-      {isReal ? (
-        <img
-          src={avatarUrl!}
-          alt={name ?? ''}
-          className="w-full h-full object-cover object-center"
-          style={{ imageRendering: 'auto', WebkitFontSmoothing: 'antialiased' } as React.CSSProperties}
-        />
-      ) : (
-        <PhotoPlaceholder name={name} colorIndex={colorIndex} />
-      )}
-    </div>
-  );
-}
-
-/* Teacher card — no school_number / school_email */
-function TeacherCard({ person, colorIndex = 0 }: { person: PersonRow; colorIndex?: number }) {
-  return (
-    <Link
-      href={`/user/${person.id}`}
-      className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all h-36 flex flex-row overflow-hidden"
-    >
-      <CardPhoto avatarUrl={person.avatar_url} name={person.full_name} colorIndex={colorIndex} />
-
-      <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
-        <div className="min-w-0">
-          <div className="flex items-start justify-between gap-1">
-            <p className="text-base font-bold text-slate-900 leading-tight truncate group-hover:text-blue-700 transition-colors">
-              {person.full_name ?? 'Steply Üyesi'}
-            </p>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
-          </div>
-          <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-            Öğretmen
-          </span>
-        </div>
-
-        <div className="space-y-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className={`text-sm font-medium truncate ${person.phone_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
-              {person.phone_number ?? 'Telefon belirtilmemiş'}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
-          <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs font-medium text-slate-500">{person.projectCount} proje</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function PeopleGrid({ people }: { people: PersonRow[] }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {people.map((p, i) => <TeacherCard key={p.id} person={p} colorIndex={i} />)}
-    </div>
-  );
-}
 
 function EmptyState({ icon, message, sub }: { icon: React.ReactNode; message: string; sub?: string }) {
   return (
@@ -222,7 +140,7 @@ export default async function SchoolPage() {
               />
               {schoolTeachers.length === 0
                 ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
-                : <PeopleGrid people={schoolTeachers} />}
+                : <TeacherGrid teachers={schoolTeachers as TeacherRow[]} />}
             </section>
 
             <SchoolStudentPanel students={schoolStudents as StudentRow[]} />

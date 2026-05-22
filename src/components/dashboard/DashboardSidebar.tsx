@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronLeft,
   MessageSquare,
   Plus,
   ChevronsUpDown,
@@ -75,7 +76,14 @@ function NavContent({
   userId,
   onClose,
   onOpenWatchlist,
-}: SidebarProps & { onClose: () => void; onOpenWatchlist: () => void }) {
+  collapsed = false,
+  onToggleExpand,
+}: SidebarProps & {
+  onClose: () => void;
+  onOpenWatchlist: () => void;
+  collapsed?: boolean;
+  onToggleExpand?: () => void;
+}) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const router = useRouter();
@@ -164,30 +172,53 @@ function NavContent({
 
   return (
     <div className="flex flex-col h-full select-none">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-slate-100">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-          onClick={onClose}
-        >
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-            <img
-              src="/image_5.png"
-              alt="Steply"
-              className="w-9 h-9 object-cover scale-110"
-              style={{ clipPath: "inset(2px)" }}
-            />
+      {/* Logo + toggle */}
+      <div className={`border-b border-slate-100 ${collapsed ? 'flex flex-col items-center gap-2 px-2 py-3' : 'px-5 py-5'}`}>
+        {collapsed ? (
+          <>
+            <Link href="/dashboard" onClick={onClose} className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
+              <img src="/image_5.png" alt="Steply" className="w-10 h-10 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
+            </Link>
+            {onToggleExpand && (
+              <button
+                type="button"
+                onClick={onToggleExpand}
+                title="Genişlet"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity" onClick={onClose}>
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                <img src="/image_5.png" alt="Steply" className="w-9 h-9 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
+              </div>
+              <span className="font-extrabold text-xl tracking-tight text-slate-800">Steply</span>
+            </Link>
+            {onToggleExpand && (
+              <button
+                type="button"
+                onClick={onToggleExpand}
+                title="Daralt"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <span className="font-extrabold text-xl tracking-tight text-slate-800">Steply</span>
-        </Link>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-          Main Menu
-        </p>
+      <nav className={`flex-1 py-4 overflow-y-auto ${collapsed ? 'px-1' : 'px-3'}`}>
+        {!collapsed && (
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
+            Main Menu
+          </p>
+        )}
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const { label, href, icon: Icon } = item;
@@ -203,7 +234,16 @@ function NavContent({
                 : pathname.startsWith(href));
 
             if (isWatchlist) {
-              return (
+              return collapsed ? (
+                <button
+                  key={label}
+                  onClick={() => { onOpenWatchlist(); onClose(); }}
+                  title={label}
+                  className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150"
+                >
+                  <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                </button>
+              ) : (
                 <button
                   key={label}
                   onClick={() => { onOpenWatchlist(); onClose(); }}
@@ -215,7 +255,22 @@ function NavContent({
               );
             }
 
-            return (
+            return collapsed ? (
+              <Link
+                key={label}
+                href={href}
+                prefetch={true}
+                onClick={onClose}
+                title={label}
+                className={`flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${
+                  isActive
+                    ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                }`}
+              >
+                <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+              </Link>
+            ) : (
               <Link
                 key={label}
                 href={href}
@@ -236,45 +291,79 @@ function NavContent({
         </div>
 
         {/* Tools section */}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mt-5 mb-2">
-          Tools
-        </p>
+        {!collapsed && (
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mt-5 mb-2">
+            Tools
+          </p>
+        )}
+        {collapsed && <div className="mt-3" />}
         <div className="space-y-0.5">
-          <Link
-            href="/dashboard/messages"
-            prefetch={true}
-            onClick={onClose}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 relative ${
-              pathname === "/dashboard/messages"
-                ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-            Messages
-            {(unreadCount || 0) > 0 && (
-              <span className="ml-auto min-w-[20px] h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
-
-          {!isTeacher && (
+          {collapsed ? (
             <Link
-              href="/dashboard/projects/new"
+              href="/dashboard/messages"
               prefetch={true}
               onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-all duration-150"
+              title="Messages"
+              className={`relative flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${
+                pathname === "/dashboard/messages"
+                  ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+              }`}
             >
-              <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-              New Project
+              <MessageSquare className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+              {(unreadCount || 0) > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
+              )}
             </Link>
+          ) : (
+            <Link
+              href="/dashboard/messages"
+              prefetch={true}
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 relative ${
+                pathname === "/dashboard/messages"
+                  ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              }`}
+            >
+              <MessageSquare className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              Messages
+              {(unreadCount || 0) > 0 && (
+                <span className="ml-auto min-w-[20px] h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
+
+          {!isTeacher && (
+            collapsed ? (
+              <Link
+                href="/dashboard/projects/new"
+                prefetch={true}
+                onClick={onClose}
+                title="New Project"
+                className="flex items-center justify-center py-2.5 rounded-xl text-violet-500 hover:bg-violet-50 transition-all duration-150"
+              >
+                <Plus className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/projects/new"
+                prefetch={true}
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-all duration-150"
+              >
+                <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+                New Project
+              </Link>
+            )
           )}
         </div>
       </nav>
 
       {/* User footer */}
-      <div className="relative p-3 border-t border-slate-100">
+      <div className={`relative border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>
 
         {/* Account switcher dropdown — absolute so it floats above footer without shifting layout */}
         {isAccountMenuOpen && (
@@ -339,36 +428,59 @@ function NavContent({
           </div>
         )}
 
-        {/* Profile button + switcher toggle */}
-        <div className="flex items-center gap-1 mb-1">
-          <Link
-            href="/dashboard/profile"
-            onClick={onClose}
-            className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
-          >
-            <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-800 truncate">{userName || userEmail}</p>
-              <p className="text-[10px] text-slate-500 capitalize font-medium">{role || "student"}</p>
+        {collapsed ? (
+          /* Collapsed footer: avatar + signout only */
+          <div className="flex flex-col items-center gap-2">
+            <Link
+              href="/dashboard/profile"
+              onClick={onClose}
+              title={userName || userEmail || "Profil"}
+              className="rounded-full hover:ring-2 hover:ring-violet-400 transition-all"
+            >
+              <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={36} />
+            </Link>
+            <button
+              onClick={() => signOut()}
+              title="Sign Out"
+              className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+            >
+              <LogOut className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Profile button + switcher toggle */}
+            <div className="flex items-center gap-1 mb-1">
+              <Link
+                href="/dashboard/profile"
+                onClick={onClose}
+                className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+              >
+                <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-800 truncate">{userName || userEmail}</p>
+                  <p className="text-[10px] text-slate-500 capitalize font-medium">{role || "student"}</p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsAccountMenuOpen(o => !o)}
+                className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                title="Hesap değiştir"
+              >
+                <ChevronsUpDown className="w-4 h-4" />
+              </button>
             </div>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setIsAccountMenuOpen(o => !o)}
-            className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-            title="Hesap değiştir"
-          >
-            <ChevronsUpDown className="w-4 h-4" />
-          </button>
-        </div>
 
-        <button
-          onClick={() => signOut()}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
-        >
-          <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-          Sign Out
-        </button>
+            <button
+              onClick={() => signOut()}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
+            >
+              <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              Sign Out
+            </button>
+          </>
+        )}
       </div>
 
       {/* Remove account confirmation modal */}
@@ -448,6 +560,7 @@ function NavContent({
 export default function DashboardSidebar(props: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <>
@@ -460,12 +573,17 @@ export default function DashboardSidebar(props: SidebarProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full border-r border-white/60" style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      {/* Desktop sidebar — collapsible */}
+      <aside
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out ${isExpanded ? 'w-64' : 'w-[72px]'}`}
+        style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+      >
         <NavContent
           {...props}
           onClose={() => {}}
           onOpenWatchlist={() => setWatchlistOpen(true)}
+          collapsed={!isExpanded}
+          onToggleExpand={() => setIsExpanded(v => !v)}
         />
       </aside>
 
