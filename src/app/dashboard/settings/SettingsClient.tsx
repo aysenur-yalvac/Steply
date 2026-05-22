@@ -525,6 +525,28 @@ export default function SettingsClient({
                             </motion.div>
                           )}
                         </AnimatePresence>
+
+                        {/* Custom photo URL */}
+                        <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+                          <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                            <ImageIcon className="w-3.5 h-3.5 text-violet-400" />
+                            Gerçek profil fotoğrafı URL&apos;i (son 6 ayda çekilmiş net yüz fotoğrafı)
+                          </p>
+                          <input
+                            type="url"
+                            value={selectedAvatar.startsWith('https://api.dicebear') ? '' : selectedAvatar}
+                            onChange={(e) => {
+                              const val = e.target.value.trim();
+                              if (val) setSelectedAvatar(val);
+                            }}
+                            onBlur={(e) => {
+                              if (!e.target.value.trim()) setSelectedAvatar(ALL_AVATARS[0]);
+                            }}
+                            placeholder="https://…/profilim.jpg"
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-xs"
+                          />
+                          <p className="text-[11px] text-slate-400">URL boş bırakılırsa seçili avatar kullanılır.</p>
+                        </div>
                       </div>
                     </div>
 
