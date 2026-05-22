@@ -45,55 +45,60 @@ function PersonCard({ s, colorIndex }: { s: StudentRow; colorIndex: number }) {
       href={`/user/${s.id}`}
       className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-violet-200 transition-all h-36 flex flex-row overflow-hidden"
     >
-      {/* LEFT: photo */}
-      <div className="w-28 shrink-0 overflow-hidden rounded-l-2xl">
+      {/* LEFT: photo — w-32 for sharper fill */}
+      <div className="w-32 shrink-0 overflow-hidden rounded-l-2xl">
         {isReal ? (
-          <img src={s.avatar_url!} alt={s.full_name ?? ''} className="w-full h-full object-cover" />
+          <img
+            src={s.avatar_url!}
+            alt={s.full_name ?? ''}
+            className="w-full h-full object-cover object-center"
+            style={{ imageRendering: 'auto' } as React.CSSProperties}
+          />
         ) : (
           <PhotoPlaceholder name={s.full_name} colorIndex={colorIndex} />
         )}
       </div>
 
       {/* RIGHT: info */}
-      <div className="flex-1 flex flex-col justify-between p-3 min-w-0">
+      <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <p className="font-bold text-slate-800 text-sm leading-tight truncate group-hover:text-violet-700 transition-colors">
+            <p className="text-base font-bold text-slate-900 leading-tight truncate group-hover:text-violet-700 transition-colors">
               {s.full_name ?? 'Steply Üyesi'}
             </p>
-            <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
           </div>
           {s.grade && (
-            <span className="inline-block mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
+            <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
               {s.grade}
             </span>
           )}
         </div>
 
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <IdCard className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${s.school_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+        <div className="space-y-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <IdCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className={`text-sm font-medium truncate ${s.school_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
               {s.school_number ?? 'No girilmemiş'}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Mail className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${s.school_email ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className={`text-sm font-medium truncate ${s.school_email ? 'text-slate-700' : 'text-slate-400 italic'}`}>
               {s.school_email ?? 'Okul maili yok'}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Phone className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${s.phone_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className={`text-sm font-medium truncate ${s.phone_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
               {s.phone_number ?? 'Telefon yok'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 pt-1 border-t border-slate-50">
-          <FolderOpen className="w-3 h-3 text-slate-300" />
-          <span className="text-[10px] text-slate-400">{s.projectCount} proje</span>
+        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
+          <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-medium text-slate-500">{s.projectCount} proje</span>
         </div>
       </div>
     </Link>

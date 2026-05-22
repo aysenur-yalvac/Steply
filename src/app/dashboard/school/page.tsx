@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
-import { School, UserCheck, ExternalLink, Mail, IdCard, Phone, FolderOpen } from 'lucide-react';
+import { School, UserCheck, ExternalLink, Phone, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import SchoolStudentPanel, { type StudentRow } from '@/components/school/SchoolStudentPanel';
@@ -39,69 +39,58 @@ function PhotoPlaceholder({ name, colorIndex }: { name: string | null; colorInde
   );
 }
 
-function SchoolCard({ person, accentColor = 'violet', colorIndex = 0 }: {
-  person: PersonRow; accentColor?: 'violet' | 'blue'; colorIndex?: number;
-}) {
-  const isReal = person.avatar_url && !person.avatar_url.includes('dicebear') && !person.avatar_url.includes('api.');
-  const hoverBorder = accentColor === 'blue' ? 'hover:border-blue-200' : 'hover:border-violet-200';
-  const badgeCls = accentColor === 'blue'
-    ? 'bg-blue-50 text-blue-600 border-blue-100'
-    : 'bg-violet-50 text-violet-600 border-violet-100';
+function CardPhoto({ avatarUrl, name, colorIndex }: { avatarUrl: string | null; name: string | null; colorIndex: number }) {
+  const isReal = avatarUrl && !avatarUrl.includes('dicebear') && !avatarUrl.includes('api.');
+  return (
+    <div className="w-32 shrink-0 overflow-hidden rounded-l-2xl">
+      {isReal ? (
+        <img
+          src={avatarUrl!}
+          alt={name ?? ''}
+          className="w-full h-full object-cover object-center"
+          style={{ imageRendering: 'auto', WebkitFontSmoothing: 'antialiased' } as React.CSSProperties}
+        />
+      ) : (
+        <PhotoPlaceholder name={name} colorIndex={colorIndex} />
+      )}
+    </div>
+  );
+}
 
+/* Teacher card — no school_number / school_email */
+function TeacherCard({ person, colorIndex = 0 }: { person: PersonRow; colorIndex?: number }) {
   return (
     <Link
       href={`/user/${person.id}`}
-      className={`group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md ${hoverBorder} transition-all h-36 flex flex-row overflow-hidden`}
+      className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all h-36 flex flex-row overflow-hidden"
     >
-      {/* LEFT: photo */}
-      <div className="w-28 shrink-0 overflow-hidden rounded-l-2xl">
-        {isReal ? (
-          <img src={person.avatar_url!} alt={person.full_name ?? ''} className="w-full h-full object-cover" />
-        ) : (
-          <PhotoPlaceholder name={person.full_name} colorIndex={colorIndex} />
-        )}
-      </div>
+      <CardPhoto avatarUrl={person.avatar_url} name={person.full_name} colorIndex={colorIndex} />
 
-      {/* RIGHT: info */}
-      <div className="flex-1 flex flex-col justify-between p-3 min-w-0">
+      <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <p className={`font-bold text-slate-800 text-sm leading-tight truncate group-hover:${accentColor === 'blue' ? 'text-blue-700' : 'text-violet-700'} transition-colors`}>
+            <p className="text-base font-bold text-slate-900 leading-tight truncate group-hover:text-blue-700 transition-colors">
               {person.full_name ?? 'Steply Üyesi'}
             </p>
-            <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
           </div>
-          {person.grade && (
-            <span className={`inline-block mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${badgeCls}`}>
-              {person.grade}
-            </span>
-          )}
+          <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+            Öğretmen
+          </span>
         </div>
 
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <IdCard className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${person.school_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
-              {person.school_number ?? 'No girilmemiş'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Mail className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${person.school_email ? 'text-slate-600' : 'text-slate-300 italic'}`}>
-              {person.school_email ?? 'Okul maili yok'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Phone className="w-3 h-3 text-slate-300 shrink-0" />
-            <span className={`text-[11px] truncate ${person.phone_number ? 'text-slate-600' : 'text-slate-300 italic'}`}>
-              {person.phone_number ?? 'Telefon yok'}
+        <div className="space-y-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className={`text-sm font-medium truncate ${person.phone_number ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+              {person.phone_number ?? 'Telefon belirtilmemiş'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 pt-1 border-t border-slate-50">
-          <FolderOpen className="w-3 h-3 text-slate-300" />
-          <span className="text-[10px] text-slate-400">{person.projectCount} proje</span>
+        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
+          <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-xs font-medium text-slate-500">{person.projectCount} proje</span>
         </div>
       </div>
     </Link>
@@ -111,7 +100,7 @@ function SchoolCard({ person, accentColor = 'violet', colorIndex = 0 }: {
 function PeopleGrid({ people, accentColor }: { people: PersonRow[]; accentColor?: 'violet' | 'blue' }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {people.map((p, i) => <SchoolCard key={p.id} person={p} accentColor={accentColor} colorIndex={i} />)}
+      {people.map((p, i) => <TeacherCard key={p.id} person={p} colorIndex={i} />)}
     </div>
   );
 }
