@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-07-11 (Operasyon 18 — Deploy_Chef)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-07-11 (Operasyon 18 — Hotfix: middleware timeout)
 
 ---
 
@@ -8,7 +8,8 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-_Aktif görev yok — tüm görevler arşive taşındı._
+| BE-060 | Backend_Agent | `middleware.ts`: matcher'a `api/`, font/css/js/map uzantıları eklendi | Tamamlandı | QA: OK |
+| BE-061 | Backend_Agent | `utils/supabase/middleware.ts`: `getUser()` 4.5s timeout + try/catch; sonsuz döngü koruması; PUBLIC_PATHS sabitleri | Tamamlandı | QA: OK |
 
 > ⚠️ **Manuel Adım Gerekli (4 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
