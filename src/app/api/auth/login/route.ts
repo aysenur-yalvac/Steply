@@ -42,10 +42,13 @@ export async function POST(request: Request) {
       message = 'Please verify your email address. Check your inbox (and spam folder).'
     }
     // Keep link_account params so middleware doesn't redirect the logged-in user away.
-    const base = linkAccount === 'true' && ownerId
-      ? `${requestUrl.origin}/auth/login?link_account=true&owner_id=${ownerId}`
-      : `${requestUrl.origin}/auth/login`
-    return NextResponse.redirect(`${base}&message=${encodeURIComponent(message)}`, { status: 303 })
+    const errorUrl = new URL('/auth/login', requestUrl.origin)
+    if (linkAccount === 'true' && ownerId) {
+      errorUrl.searchParams.set('link_account', 'true')
+      errorUrl.searchParams.set('owner_id', ownerId)
+    }
+    errorUrl.searchParams.set('message', message)
+    return NextResponse.redirect(errorUrl.toString(), { status: 303 })
   }
 
   // Resolve owner_id: form hidden input is the primary source; cookie is the fallback
