@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-05-06 (Operasyon 17 — Deploy_Chef)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-07-11 (Operasyon 18 — Deploy_Chef)
 
 ---
 
@@ -8,23 +8,13 @@
 
 | Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
 |----------|-----------|--------------|-------|----------|
-| BE-057 | Backend_Agent | `actions.ts`: institution fallback `''`→`null`; university best-effort ayrı update | Tamamlandı | QA: OK |
-| BE-058 | Backend_Agent | `school/page.tsx`: peers sorgusu sonrası console.log debug | Tamamlandı | QA: OK |
-| BE-059 | Backend_Agent | `actions.ts`: updateProfileAction'a `role` + `grade` alanları eklendi | Tamamlandı | QA: OK |
-| FE-055 | Frontend_Agent | `settings/page.tsx`: `initialRole` + `initialGrade` prop'ları eklendi | Tamamlandı | QA: OK |
-| FE-056 | Frontend_Agent | `SettingsClient.tsx`: Rol dropdown (Öğrenci/Öğretmen) + Sınıf dropdown (zorunlu, öğrenciye özel) | Tamamlandı | QA: OK |
-| FE-057 | Frontend_Agent | `SchoolStudentPanel.tsx`: client-side sınıf filtresi + GRADE_ORDER gruplama | Tamamlandı | QA: OK |
-| FE-058 | Frontend_Agent | `school/page.tsx`: grade query'e eklendi; öğretmenler üstte; öğrenciler SchoolStudentPanel'e geçirildi | Tamamlandı | QA: OK |
+_Aktif görev yok — tüm görevler arşive taşındı._
 
 > ⚠️ **Manuel Adım Gerekli (4 migration):**
 > 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
 > 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
 > 3. `supabase/migrations/20260424_project_activities.sql` — aktivite akışı
 > 4. `supabase/migrations/20260504_project_tags.sql` — etiket sütunu
-
-| Görev ID | Departman | Görev Tanımı | Durum | QA Onayı |
-|----------|-----------|--------------|-------|----------|
-_Aktif görev yok — tüm görevler arşive taşındı._
 
 ---
 
@@ -95,18 +85,25 @@ _Aktif görev yok — tüm görevler arşive taşındı._
 | BE-056 | Backend_Agent | `/api/auth/switch-account/route.ts`: POST endpoint; owner doğrulama + linked_accounts kontrolü + admin.auth.admin.generateLink ile magic link döner | 2026-05-04 | QA: OK |
 | FE-053 | Frontend_Agent | `DashboardSidebar.tsx`: confirmSwitch → /api/auth/switch-account POST + window.location.href ile magic link yönlendirmesi; isSwitching loading state; "Geçiş yapılıyor..." butonu | 2026-05-04 | QA: OK |
 | BE-029..FE-037 | Backend+Frontend | Görev sistemi, aktivite akışı, etiket sistemi (bkz. Operasyon 16 arşivi) | 2026-05-06 | QA: OK |
+| BE-057 | Backend_Agent | `actions.ts`: institution fallback `''`→`null`; university best-effort ayrı update | 2026-07-11 | QA: OK |
+| BE-058 | Backend_Agent | `school/page.tsx`: peers sorgusu sonrası console.log debug | 2026-07-11 | QA: OK |
+| BE-059 | Backend_Agent | `actions.ts`: updateProfileAction'a `role` + `grade` alanları eklendi | 2026-07-11 | QA: OK |
+| FE-055 | Frontend_Agent | `settings/page.tsx`: `initialRole` + `initialGrade` prop'ları eklendi | 2026-07-11 | QA: OK |
+| FE-056 | Frontend_Agent | `SettingsClient.tsx`: Rol dropdown (Öğrenci/Öğretmen) + Sınıf dropdown (zorunlu, öğrenciye özel) | 2026-07-11 | QA: OK |
+| FE-057 | Frontend_Agent | `SchoolStudentPanel.tsx`: client-side sınıf filtresi + GRADE_ORDER gruplama | 2026-07-11 | QA: OK |
+| FE-058 | Frontend_Agent | `school/page.tsx`: grade query'e eklendi; öğretmenler üstte; öğrenciler SchoolStudentPanel'e geçirildi | 2026-07-11 | QA: OK |
 
 ---
 
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 99
-Tamamlandı      : 99
+Toplam Görev    : 106
+Tamamlandı      : 106
 Yapılıyor       : 0
-QA Onaylı       : 99
+QA Onaylı       : 106
 Deploy Hazır    : EVET ✅
-Son Deploy      : 2026-05-06 — commit 5416eeb — Deploy_Chef tarafından push edildi
+Son Deploy      : 2026-07-11 — commit 9dfbea3 — Deploy_Chef tarafından arşivlendi
 ⚠️ Manuel SQL migration'lar hâlâ uygulanmalı (Supabase Dashboard):
   - 20260424_notifications.sql
   - 20260424_project_tasks.sql
