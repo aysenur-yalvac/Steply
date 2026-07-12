@@ -55,28 +55,8 @@ async function trackProjectType(platform: string): Promise<void> {
   }
 }
 
-export async function createProject(formData: FormData): Promise<{ success: boolean }> {
-  const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const github_link = formData.get("github_link") as string;
-  const start_date = formData.get("start_date") as string;
-  const end_date = formData.get("end_date") as string;
-  const progress_percentage = Number(formData.get("progress_percentage")) || 0;
-  const priority = (formData.get("priority") as string) || "Medium";
-  const platform = (formData.get("platform") as string) || "General";
-
-  const tagsRaw = formData.get("tags") as string | null;
-  let tags: string[] = [];
-  try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
-
-  // Helper: safe serializable error message
+export async function createProject(formData: FormData): Promise<{ success: true } | { success: false; error: string }> {
+  // Helper: safe serializable error message (defined first — used in all branches)
   function safeMsg(err: unknown): string {
     if (!err) return "Unknown error";
     if (typeof err === "object") {
@@ -88,14 +68,41 @@ export async function createProject(formData: FormData): Promise<{ success: bool
     return String(err);
   }
 
-  // Attempt 1: insert with priority + platform columns
+  let supabase;
+  let user;
+  try {
+    supabase = await createClient();
+    const { data: { user: u }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !u) {
+      redirect("/auth/login");
+      return { success: false, error: "Oturum bulunamadı." };
+    }
+    user = u;
+  } catch (e) {
+    // redirect() throws internally in Next.js — re-throw so it works correctly
+    throw e;
+  }
+
+  const title = (formData.get("title") as string)?.trim();
+  const description = (formData.get("description") as string) || "";
+  const progress_percentage = Number(formData.get("progress_percentage")) || 0;
+  const priority = (formData.get("priority") as string) || "Medium";
+  const platform = (formData.get("platform") as string) || "General";
+
+  const tagsRaw = formData.get("tags") as string | null;
+  let tags: string[] = [];
+  try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
+
+  if (!title) {
+    return { success: false, error: "Proje başlığı boş olamaz." };
+  }
+
+  // Attempt 1: insert with priority + platform + tags columns
+  // (these columns may not exist in older DB schemas — the fallback handles that)
   const { error } = await supabase.from("projects").insert({
     student_id: user.id,
     title,
     description,
-    github_link: github_link || null,
-    start_date: start_date || null,
-    end_date: end_date || null,
     progress_percentage,
     priority,
     platform,
@@ -112,14 +119,13 @@ export async function createProject(formData: FormData): Promise<{ success: bool
       (error as any).code === "42703";
 
     if (isMissingColumn) {
-      // Columns not yet in schema — embed metadata in description as fallback
-      // Use formData values directly to guarantee the exact user-selected priority (e.g. "Low") is stored
-      const embeddedPriority = (formData.get("priority") as string) || priority;
-      const embeddedPlatform = (formData.get("platform") as string) || platform;
+      // priority/platform/tags columns not yet in DB schema —
+      // embed metadata into description as fallback, insert only core columns
       const augmentedDesc = [
         description,
-        `[Priority: ${embeddedPriority}]`,
-        embeddedPlatform && embeddedPlatform !== "General" ? `[Platform: ${embeddedPlatform}]` : "",
+        `[Priority: ${priority}]`,
+        platform && platform !== "General" ? `[Platform: ${platform}]` : "",
+        tags.length > 0 ? `[Tags: ${tags.join(", ")}]` : "",
       ]
         .filter(Boolean)
         .join("\n");
@@ -128,19 +134,16 @@ export async function createProject(formData: FormData): Promise<{ success: bool
         student_id: user.id,
         title,
         description: augmentedDesc,
-        github_link: github_link || null,
-        start_date: start_date || null,
-        end_date: end_date || null,
         progress_percentage,
       });
 
       if (error2) {
-        console.error("FALLBACK_INSERT_ERROR:", error2);
-        throw new Error(safeMsg(error2));
+        console.error("[createProject] FALLBACK_INSERT_ERROR:", error2);
+        return { success: false, error: safeMsg(error2) };
       }
     } else {
-      console.error("FULL_DATABASE_ERROR:", error);
-      throw new Error(msg);
+      console.error("[createProject] INSERT_ERROR:", error);
+      return { success: false, error: msg };
     }
   }
 

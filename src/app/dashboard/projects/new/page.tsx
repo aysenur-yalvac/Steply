@@ -82,7 +82,11 @@ export default function NewProjectPage() {
 
     setIsPending(true);
     try {
-      await createProject(formData);
+      const result = await createProject(formData);
+      if (!result.success) {
+        toast.error(result.error || 'An error occurred');
+        return;
+      }
       toast.success('Project created successfully!');
       router.push('/dashboard');
     } catch (err: any) {
