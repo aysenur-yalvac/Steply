@@ -1,6 +1,6 @@
 # Steply — Pipeline
 
-> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-07-11 (Operasyon 18 — Hotfix: middleware timeout)
+> **Yönetici:** PM_Steply | **Son Güncelleme:** 2026-07-21 (Operasyon 19 — Auth redirect fix + FULL_SCHEMA_SETUP.sql)
 
 ---
 
@@ -10,12 +10,14 @@
 |----------|-----------|--------------|-------|----------|
 | BE-060 | Backend_Agent | `middleware.ts`: matcher'a `api/`, font/css/js/map uzantıları eklendi | Tamamlandı | QA: OK |
 | BE-061 | Backend_Agent | `utils/supabase/middleware.ts`: `getUser()` 4.5s timeout + try/catch; sonsuz döngü koruması; PUBLIC_PATHS sabitleri | Tamamlandı | QA: OK |
+| BE-062 | Backend_Agent | `api/auth/register/route.ts`: `signUp` çağrısına `emailRedirectTo: ${origin}/auth/callback` eklendi (Site URL artık steply-app.vercel.app) | Tamamlandı | QA: OK |
+| BE-063 | Backend_Agent | `supabase/FULL_SCHEMA_SETUP.sql`: 31 migration dosyasıyla tek tek karşılaştırıldı, tam kapsadığı teyit edildi, git'e commit edildi | Tamamlandı | QA: OK |
 
-> ⚠️ **Manuel Adım Gerekli (4 migration):**
-> 1. `supabase/migrations/20260424_notifications.sql` — bildirim sistemi
-> 2. `supabase/migrations/20260424_project_tasks.sql` — görev sistemi
-> 3. `supabase/migrations/20260424_project_activities.sql` — aktivite akışı
-> 4. `supabase/migrations/20260504_project_tags.sql` — etiket sütunu
+> ⚠️ **Manuel Adım Gerekli:**
+> `FULL_SCHEMA_SETUP.sql` artık bekleyen 9 migration dahil tüm şemayı (initial_schema'dan add_ksbu'ya kadar) tek dosyada kapsıyor — Supabase SQL Editor'da tek seferde çalıştırılabilir. Ayrıca çalıştırılması gereken tek istisna:
+> - `supabase/migrations/20260518_universities.sql` — 10.214 satırlık üniversite seed verisi (boyut nedeniyle ayrı tutuldu)
+>
+> ⚠️ **Güvenlik notu (kod değişikliği gerektirmiyor, teyit bekliyor):** `blocks` ve `project_favorites` tablolarında RLS hiç etkinleştirilmemiş (kaynak migration'larda da yok — FULL_SCHEMA bunu olduğu gibi yansıtıyor). Anon/authenticated erişimde bu iki tabloya kısıtlamasız yazma/okuma riski var. PM onayı ile ayrı bir BE görevi açılabilir.
 
 ---
 
@@ -99,20 +101,12 @@
 ## Pipeline Durumu
 
 ```
-Toplam Görev    : 106
-Tamamlandı      : 106
+Toplam Görev    : 108
+Tamamlandı      : 108
 Yapılıyor       : 0
-QA Onaylı       : 106
-Deploy Hazır    : EVET ✅
-Son Deploy      : 2026-07-11 — commit 9dfbea3 — Deploy_Chef tarafından arşivlendi
-⚠️ Manuel SQL migration'lar hâlâ uygulanmalı (Supabase Dashboard):
-  - 20260424_notifications.sql
-  - 20260424_project_tasks.sql
-  - 20260424_project_activities.sql
-  - 20260504_project_tags.sql
-  - 20260505_user_activities.sql
-  - 20260505_profiles_analytics.sql
-  - 20260506_weighted_scoring.sql
-  - 20260507_add_complete_project_action.sql
-  - 20260508_linked_accounts.sql
+QA Onaylı       : 108
+Deploy Hazır    : EVET ✅ (BE-062, BE-063 commit edildi — ce75b90, 06c6a61 — henüz push edilmedi)
+⚠️ Manuel SQL adımı (Supabase Dashboard, SQL Editor):
+  - supabase/FULL_SCHEMA_SETUP.sql çalıştır (tüm şemayı tek seferde kurar)
+  - supabase/migrations/20260518_universities.sql çalıştır (üniversite seed verisi, ayrı)
 ```
