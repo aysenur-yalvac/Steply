@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GraduationCap, Search, X, Loader2, ChevronDown } from "lucide-react";
 import { searchUniversitiesAction } from "@/lib/actions";
+import toast from "react-hot-toast";
 
 interface UniversityComboboxProps {
   value: string;
@@ -34,7 +35,8 @@ export default function UniversityCombobox({
     if (q.trim().length < 2) { setResults([]); setOpen(false); return; }
     setLoading(true);
     try {
-      const data = await searchUniversitiesAction(q);
+      const { results: data, error } = await searchUniversitiesAction(q);
+      if (error) toast.error(`Üniversite araması başarısız: ${error}`);
       setResults(data);
       setOpen(data.length > 0);
       setHighlighted(-1);

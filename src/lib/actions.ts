@@ -246,7 +246,28 @@ export async function updateProfileAction(formData: FormData) {
     school_email: school_email as any,
   }).eq('id', user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    // company/country/location/grade/school_number/school_email may not exist yet
+    // on this DB (pending migration) — retry with only the guaranteed-present
+    // core columns so the rest of the profile (incl. institution) still saves.
+    if ((error as any).code === '42703') {
+      const { error: coreError } = await supabase.from('profiles').update({
+        full_name,
+        phone_number,
+        bio,
+        github_url,
+        linkedin_url,
+        twitter_url,
+        website_url,
+        avatar_url,
+        institution,
+        role: role as any,
+      }).eq('id', user.id);
+      if (coreError) return { error: coreError.message };
+    } else {
+      return { error: error.message };
+    }
+  }
 
   // university column may not exist if migration not yet applied — best-effort
   if (university !== null) {
@@ -1342,8 +1363,8 @@ export async function toggleProjectFavoriteAction(
 
 export async function searchUniversitiesAction(
   query: string,
-): Promise<{ name: string; country: string }[]> {
-  if (!query || query.trim().length < 2) return [];
+): Promise<{ results: { name: string; country: string }[]; error?: string }> {
+  if (!query || query.trim().length < 2) return { results: [] };
   const admin = createAdminClient();
   // Uses search_universities() RPC which applies unaccent() on both sides,
   // ensuring Turkish chars like İ/ı, Ş/ş, Ğ/ğ match regardless of case/diacritics.
@@ -1353,9 +1374,9 @@ export async function searchUniversitiesAction(
   });
   if (error) {
     console.error('[searchUniversities]', error.message);
-    return [];
+    return { results: [], error: error.message };
   }
-  return (data ?? []) as { name: string; country: string }[];
+  return { results: (data ?? []) as { name: string; country: string }[] };
 }
 
 export async function getBlockedUsersAction(): Promise<FollowUser[]> {

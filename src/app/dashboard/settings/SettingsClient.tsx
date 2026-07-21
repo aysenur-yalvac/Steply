@@ -304,16 +304,18 @@ export default function SettingsClient({
       // Upload photo to Supabase Storage if a new file was selected
       if (pendingFile) {
         const ext = pendingFile.name.split('.').pop() ?? 'jpg';
-        const path = `${userId}/${Date.now()}.${ext}`;
+        const path = `avatars/${userId}/${Date.now()}.${ext}`;
         const supabaseClient = createClient();
+        // No dedicated 'avatars' bucket exists — reuse the 'project-files' bucket
+        // (already public + has authenticated read/write storage policies).
         const { error: uploadError } = await supabaseClient.storage
-          .from('avatars')
+          .from('project-files')
           .upload(path, pendingFile, { upsert: true, contentType: pendingFile.type });
         if (uploadError) {
           toast.error(`Fotoğraf yüklenemedi: ${uploadError.message}`);
           return;
         }
-        const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(path);
+        const { data: urlData } = supabaseClient.storage.from('project-files').getPublicUrl(path);
         avatarUrl = urlData.publicUrl;
         setSelectedAvatar(avatarUrl);
         setPendingFile(null);
@@ -680,17 +682,6 @@ export default function SettingsClient({
                       </div>
                     </div>
 
-                    {/* University — autocomplete from universities table */}
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-slate-600">University / Institution</label>
-                      <UniversityCombobox
-                        value={university}
-                        onChange={setUniversity}
-                        placeholder="Üniversite veya kurum ara..."
-                      />
-                      <p className="text-[11px] text-slate-400">Yazarak arama yap, listeden seç.</p>
-                    </div>
-
                     {/* Role */}
                     <div className="space-y-1.5">
                       <label htmlFor="s-role" className="text-sm font-medium text-slate-600">Rolünüz</label>
@@ -733,16 +724,28 @@ export default function SettingsClient({
                       </div>
                     )}
 
-                    {/* School fields — shown when institution is set */}
-                    {university && (
-                      <div className="space-y-3 pt-1">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 flex items-center gap-1.5">
-                          <IdCard className="w-3.5 h-3.5" /> Okul Bilgileri
-                          {role === 'student' && (
-                            <span className="text-rose-400 font-normal normal-case tracking-normal ml-1">— Zorunlu</span>
-                          )}
-                        </p>
+                    {/* Okul Bilgileri — school/university selection + number/email */}
+                    <div className="space-y-3 pt-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 flex items-center gap-1.5">
+                        <IdCard className="w-3.5 h-3.5" /> Okul Bilgileri
+                        {role === 'student' && (
+                          <span className="text-rose-400 font-normal normal-case tracking-normal ml-1">— Zorunlu</span>
+                        )}
+                      </p>
 
+                      {/* Okul / Üniversite — universities tablosundan aranarak seçilir */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-600">Okul / Üniversite</label>
+                        <UniversityCombobox
+                          value={university}
+                          onChange={setUniversity}
+                          placeholder="Üniversite veya kurum ara..."
+                        />
+                        <p className="text-[11px] text-slate-400">Yazarak arama yap, listeden seç.</p>
+                      </div>
+
+                      {university && (
+                        <>
                         {/* Okul Numarası — sadece öğrenciler için */}
                         {role === 'student' && (
                           <div className="space-y-1.5">
@@ -783,8 +786,9 @@ export default function SettingsClient({
                             />
                           </div>
                         </div>
-                      </div>
-                    )}
+                        </>
+                      )}
+                    </div>
 
                     {/* Phone — optional */}
                     <div className="space-y-1.5">

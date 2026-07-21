@@ -53,8 +53,23 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     twitter_url     TEXT,
     instagram_url   TEXT,
     website_url     TEXT,
+    company         TEXT,                        -- Settings: iş yeri / kurum
+    country         TEXT,                        -- Settings: ülke
+    location        TEXT,                        -- Settings: şehir/il
+    grade           TEXT,                        -- Settings: öğrenci sınıfı
+    school_number   TEXT,                        -- Settings: okul numarası
+    school_email    TEXT,                        -- Settings: okul e-postası
     created_at      TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
+
+-- Bu 6 sütun tabloya sonradan eklendi (20260721_profile_extra_fields.sql).
+-- Tablo zaten mevcutsa yukarıdaki CREATE TABLE no-op olur — ALTER TABLE ile garantiye alınıyor.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS grade TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS school_number TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS school_email TEXT;
 
 -- ── projects ──────────────────────────────────────────────────
 -- Öğrencilerin proje kayıtları.
