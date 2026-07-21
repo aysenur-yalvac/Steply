@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?message=${encodeURIComponent('Registration failed. Email might be in use.')}`,
+      `${requestUrl.origin}/auth/register?message=${encodeURIComponent(error.message)}`,
       { status: 303 }
     )
   }
