@@ -24,23 +24,23 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors z-10"
         aria-label="Kapat"
       >
-        <X className="w-5 h-5" />
+        <X className="w-6 h-6" />
       </button>
 
       <div
-        className="relative max-w-sm w-full"
+        className="relative w-full max-w-[min(90vw,36rem)] mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={name ?? ""}
-          className="w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl"
+          className="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
         />
         {name && (
-          <p className="mt-3 text-center text-white text-sm font-semibold drop-shadow">
+          <p className="mt-4 text-center text-white text-lg font-semibold drop-shadow">
             {name}
           </p>
         )}
