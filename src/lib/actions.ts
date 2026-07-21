@@ -959,15 +959,15 @@ export async function getLinkedAccountsAction(): Promise<LinkedAccount[]> {
     const admin = createAdminClient();
     const { data } = await admin
       .from('linked_accounts')
-      .select('id, linked_user_id, email, display_name, avatar_url')
-      .eq('owner_id', user.id)
+      .select('id, linked_user_id, linked_email, linked_name, linked_avatar')
+      .eq('owner_user_id', user.id)
       .order('created_at', { ascending: true });
     return (data ?? []).map((row: any) => ({
       id: row.id,
       linked_user_id: row.linked_user_id,
-      linked_email: row.email,
-      linked_name: row.display_name,
-      linked_avatar: row.avatar_url,
+      linked_email: row.linked_email,
+      linked_name: row.linked_name,
+      linked_avatar: row.linked_avatar,
     }));
   } catch {
     return [];
@@ -1004,7 +1004,7 @@ export async function addLinkedAccountAction(
   const { data: existing } = await admin
     .from('linked_accounts')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('owner_user_id', user.id)
     .eq('linked_user_id', foundUserId as string)
     .maybeSingle();
 
@@ -1015,11 +1015,11 @@ export async function addLinkedAccountAction(
     const { data: inserted, error: insertErr } = await admin
       .from('linked_accounts')
       .insert({
-        owner_id: user.id,
+        owner_user_id: user.id,
         linked_user_id: foundUserId as string,
-        email: linkedEmail,
-        display_name: linkedName,
-        avatar_url: linkedAvatar,
+        linked_email: linkedEmail,
+        linked_name: linkedName,
+        linked_avatar: linkedAvatar,
       })
       .select('id')
       .single();
@@ -1031,17 +1031,17 @@ export async function addLinkedAccountAction(
   const { data: revExisting } = await admin
     .from('linked_accounts')
     .select('id')
-    .eq('owner_id', foundUserId as string)
+    .eq('owner_user_id', foundUserId as string)
     .eq('linked_user_id', user.id)
     .maybeSingle();
 
   if (!revExisting) {
     await admin.from('linked_accounts').insert({
-      owner_id: foundUserId as string,
+      owner_user_id: foundUserId as string,
       linked_user_id: user.id,
-      email: ownerAuthUser?.user?.email ?? user.email ?? '',
-      display_name: (ownerProfile as any)?.full_name ?? null,
-      avatar_url: (ownerProfile as any)?.avatar_url ?? null,
+      linked_email: ownerAuthUser?.user?.email ?? user.email ?? '',
+      linked_name: (ownerProfile as any)?.full_name ?? null,
+      linked_avatar: (ownerProfile as any)?.avatar_url ?? null,
     });
   }
 
@@ -1068,9 +1068,9 @@ export async function removeLinkedAccountAction(
   // Fetch the row to get both sides' IDs and the stored email of A
   const { data: row, error: fetchErr } = await admin
     .from('linked_accounts')
-    .select('owner_id, linked_user_id, email')
+    .select('owner_user_id, linked_user_id, linked_email')
     .eq('id', linkedId)
-    .eq('owner_id', user.id)
+    .eq('owner_user_id', user.id)
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
@@ -1084,19 +1084,19 @@ export async function removeLinkedAccountAction(
   const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
-    .eq('owner_id', ownerUserId)
+    .eq('owner_user_id', ownerUserId)
     .eq('linked_user_id', targetUserId);
   if (fwdErr) return { error: fwdErr.message };
 
   // Delete B→A (reverse row).
   // Some legacy rows may have linked_user_id=null and only store A's email in the
-  // `email` column, so we match on either the uuid OR the stored email as fallback.
+  // `linked_email` column, so we match on either the uuid OR the stored email as fallback.
   if (targetUserId) {
     const { error: revErr } = await admin
       .from('linked_accounts')
       .delete()
-      .eq('owner_id', targetUserId)
-      .or(`linked_user_id.eq.${ownerUserId},email.eq.${ownerEmail}`);
+      .eq('owner_user_id', targetUserId)
+      .or(`linked_user_id.eq.${ownerUserId},linked_email.eq.${ownerEmail}`);
     if (revErr) console.error('[removeLinkedAccount] reverse delete failed:', revErr.message);
   }
 

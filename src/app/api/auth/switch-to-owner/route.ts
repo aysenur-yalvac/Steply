@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const { data: link, error: linkError } = await admin
     .from('linked_accounts')
     .select('id')
-    .eq('owner_id', owner_id)
+    .eq('owner_user_id', owner_id)
     .eq('linked_user_id', linked_uid)
     .maybeSingle()
 

@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       const { data: existingLink } = await admin
         .from('linked_accounts')
         .select('id')
-        .eq('owner_id', resolvedOwnerId)
+        .eq('owner_user_id', resolvedOwnerId)
         .eq('linked_user_id', data.user.id)
         .maybeSingle()
 
@@ -89,11 +89,11 @@ export async function POST(request: Request) {
         const { error: fwdError } = await admin
           .from('linked_accounts')
           .insert({
-            owner_id: resolvedOwnerId,
+            owner_user_id: resolvedOwnerId,
             linked_user_id: data.user.id,
-            email: data.user.email ?? '',
-            display_name: (linkedProfile as any)?.full_name ?? null,
-            avatar_url: (linkedProfile as any)?.avatar_url ?? null,
+            linked_email: data.user.email ?? '',
+            linked_name: (linkedProfile as any)?.full_name ?? null,
+            linked_avatar: (linkedProfile as any)?.avatar_url ?? null,
           })
 
         if (fwdError) {
@@ -105,17 +105,17 @@ export async function POST(request: Request) {
         const { data: revExisting } = await admin
           .from('linked_accounts')
           .select('id')
-          .eq('owner_id', data.user.id)
+          .eq('owner_user_id', data.user.id)
           .eq('linked_user_id', resolvedOwnerId)
           .maybeSingle()
 
         if (!revExisting) {
           await admin.from('linked_accounts').insert({
-            owner_id: data.user.id,
+            owner_user_id: data.user.id,
             linked_user_id: resolvedOwnerId,
-            email: ownerAuthUser?.user?.email ?? '',
-            display_name: (ownerProfile as any)?.full_name ?? null,
-            avatar_url: (ownerProfile as any)?.avatar_url ?? null,
+            linked_email: ownerAuthUser?.user?.email ?? '',
+            linked_name: (ownerProfile as any)?.full_name ?? null,
+            linked_avatar: (ownerProfile as any)?.avatar_url ?? null,
           })
         }
       }
