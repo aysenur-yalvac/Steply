@@ -266,7 +266,7 @@ export async function addAgendaTaskAction(title: string, due_date: string) {
 
   const { data, error } = await supabase.from('agenda_tasks').insert({
     user_id: user.id,
-    task_title: title,
+    title,
     due_date
   }).select().single();
 

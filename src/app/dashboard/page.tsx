@@ -113,7 +113,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
 
   const { data: upcomingTasks } = await supabase
     .from('agenda_tasks')
-    .select('id, task_title, due_date')
+    .select('id, title, due_date')
     .eq('user_id', user?.id)
     .eq('is_completed', false)
     .lte('due_date', tomorrowStr)
@@ -188,7 +188,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
                     }`}
                   >
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
-                    <span className="flex-1 truncate">{task.task_title}</span>
+                    <span className="flex-1 truncate">{task.title}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
                       {isToday ? 'Due Today!' : 'Due Tomorrow'}
                     </span>
