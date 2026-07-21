@@ -12,6 +12,11 @@
 | BE-061 | Backend_Agent | `utils/supabase/middleware.ts`: `getUser()` 4.5s timeout + try/catch; sonsuz döngü koruması; PUBLIC_PATHS sabitleri | Tamamlandı | QA: OK |
 | BE-062 | Backend_Agent | `api/auth/register/route.ts`: `signUp` çağrısına `emailRedirectTo: ${origin}/auth/callback` eklendi (Site URL artık steply-app.vercel.app) | Tamamlandı | QA: OK |
 | BE-063 | Backend_Agent | `supabase/FULL_SCHEMA_SETUP.sql`: 31 migration dosyasıyla tek tek karşılaştırıldı, tam kapsadığı teyit edildi, git'e commit edildi | Tamamlandı | QA: OK |
+| BE-064 | Backend_Agent | `api/auth/register/route.ts`: sabit "Email might be in use" mesajı kaldırıldı, gerçek `error.message` redirect'e taşındı (DB/trigger hatası artık ekranda görünür) | Tamamlandı | QA: OK |
+
+> 🔍 **Açık Sorun — Kayıt hatası (BE-064 sonrası tanı bekliyor):** `auth.users` boşken kayıt her seferinde başarısız oluyordu. Kod tarafında `register/route.ts` incelendi: `signUp` dışında ekstra bir insert adımı yok — profil satırı DB'deki `handle_new_user()` trigger'ı ile oluşuyor (kolon uyuşmazlığı bulunamadı, `email`/`role`/`institution` şema ile uyumlu). En olası neden: trigger içindeki `profiles` insert'i bir DB kısıtlamasına çarpıp exception fırlatıyor → tüm transaction (auth.users dahil) rollback oluyor, bu yüzden auth.users boş görünüyor. BE-064 deploy edildikten sonra bir sonraki kayıt denemesinde gerçek Postgres hatası `?message=` içinde görünecek — o mesaj gelince kesin teşhis konabilir. Şüpheli adaylar: (a) `profiles.email` UNIQUE kısıtlamasına çarpan eski/orphan bir satır (b) `FULL_SCHEMA_SETUP.sql` henüz Supabase'e uygulanmadıysa trigger/tablo eksik/eski olabilir.
+>
+> 🐛 **Ayrı bug (bu görevin kapsamı dışında, sadece not düşüldü):** `api/auth/login/route.ts` içindeki `linked_accounts` insert'i (`owner_id`, `email`, `display_name`, `avatar_url` kolonlarıyla) gerçek şema ile uyuşmuyor — tablo `owner_user_id`, `linked_email`, `linked_name`, `linked_avatar` kullanıyor. Hesap bağlama özelliği şu an bu yüzden hata veriyor olmalı. PM onayı ile ayrı BE görevi açılabilir.
 
 > ⚠️ **Manuel Adım Gerekli:**
 > `FULL_SCHEMA_SETUP.sql` artık bekleyen 9 migration dahil tüm şemayı (initial_schema'dan add_ksbu'ya kadar) tek dosyada kapsıyor — Supabase SQL Editor'da tek seferde çalıştırılabilir. Ayrıca çalıştırılması gereken tek istisna:
