@@ -7,6 +7,7 @@ import { Github, Linkedin, Twitter, Globe, MapPin, Building2, Pencil, Graduation
 import ActivityChartCard from '@/components/ui/activity-chart-card';
 import BadgeDisplay from '@/components/profile/BadgeDisplay';
 import { getUserActivitiesAction } from '@/lib/actions';
+import { sanitizeInstitution } from '@/lib/utils';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -96,10 +97,10 @@ export default async function ProfilePage() {
                     {[profile.location, profile.country].filter(Boolean).join(", ")}
                   </span>
                 )}
-                {(profile as any).university && (
+                {sanitizeInstitution((profile as any).university) && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100">
                     <GraduationCap className="w-3.5 h-3.5" />
-                    {(profile as any).university}
+                    {sanitizeInstitution((profile as any).university)}
                   </span>
                 )}
               </div>

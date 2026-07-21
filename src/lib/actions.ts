@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { sanitizeInstitution } from "@/lib/utils";
 
 export type ProjectFile = {
   id?: string;
@@ -220,8 +221,8 @@ export async function updateProfileAction(formData: FormData) {
   const twitter_url = formData.get('twitter_url') as string;
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
-  const university     = (formData.get('university')     as string | null)?.trim() || null;
-  const institution    = university ?? ((formData.get('institution') as string)?.trim() || null);
+  const university     = sanitizeInstitution(formData.get('university') as string | null);
+  const institution    = university ?? sanitizeInstitution(formData.get('institution') as string | null);
   const role           = (formData.get('role')           as string | null) || null;
   const grade          = (formData.get('grade')          as string | null)?.trim() || null;
   const school_number  = (formData.get('school_number')  as string | null)?.trim() || null;

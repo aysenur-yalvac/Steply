@@ -288,6 +288,10 @@ export default function SettingsClient({
         toast.error("Öğrenci rolü için sınıf seçimi zorunludur.");
         return;
       }
+      if (university.includes('@')) {
+        toast.error("Okul/Üniversite alanına bir e-posta adresi değil, listeden bir okul seçmelisiniz.");
+        return;
+      }
       if (university && role === 'student') {
         if (!schoolNumber.trim()) {
           toast.error("Okul numarası zorunludur.");

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, User as UserIcon } from 'lucide-react';
 import { searchUsersAction, UserSearchResult } from '@/lib/social-actions';
+import { sanitizeInstitution } from '@/lib/utils';
 
 interface UserSearchProps {
   onSelectUser: (user: UserSearchResult) => void;
@@ -100,8 +101,8 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                     <div className="overflow-hidden flex-1">
                       <div className="font-semibold text-slate-200 text-sm truncate group-hover:text-white transition-colors">{user.full_name}</div>
                       <div className="text-xs text-slate-500 truncate mt-0.5">{user.email}</div>
-                      {user.institution && (
-                        <div className="text-xs text-slate-400 truncate mt-0.5">{user.institution}</div>
+                      {sanitizeInstitution(user.institution) && (
+                        <div className="text-xs text-slate-400 truncate mt-0.5">{sanitizeInstitution(user.institution)}</div>
                       )}
                     </div>
                     {user.steply_score !== undefined && (

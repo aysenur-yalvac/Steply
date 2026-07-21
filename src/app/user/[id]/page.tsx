@@ -7,6 +7,7 @@ import { Github, Linkedin, Globe, Twitter, Building2, FolderOpen, ShieldOff } fr
 import ProfileProjectsPanel from "@/components/profile/ProfileProjectsPanel";
 import FollowButton from "@/components/profile/FollowButton";
 import BlockButton from "@/components/profile/BlockButton";
+import { sanitizeInstitution } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -188,10 +189,10 @@ export default async function PublicProfilePage({
               {/* Public info */}
               {!isPrivate && (
                 <>
-                  {profile.institution && (
+                  {sanitizeInstitution(profile.institution) && (
                     <span className="flex items-center gap-1.5 mt-2 text-sm text-slate-500 font-medium">
                       <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      {profile.institution}
+                      {sanitizeInstitution(profile.institution)}
                     </span>
                   )}
 

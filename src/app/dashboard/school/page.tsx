@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import SchoolStudentPanel, { type StudentRow } from '@/components/school/SchoolStudentPanel';
 import TeacherGrid, { type TeacherRow } from '@/components/school/TeacherGrid';
+import { sanitizeInstitution } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,7 +103,9 @@ export default async function SchoolPage() {
     .eq('id', user.id)
     .single();
 
-  const institution = profile?.institution ?? null;
+  // Guards against legacy bad data / free-typed input where an email address
+  // ended up stored as the institution — never display or match on that.
+  const institution = sanitizeInstitution(profile?.institution);
   const admin       = createAdminClient();
 
   // ── UNIFIED VIEW ─────────────────────────────────────────────────────────────
@@ -187,7 +190,7 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
             <p className="mt-2 text-sm text-indigo-300 font-medium capitalize">{subtitle}</p>
           </>
         ) : (
-          <h1 className="text-3xl font-extrabold text-white/60 tracking-tight">Okul bilgisi ayarlanmamış</h1>
+          <h1 className="text-3xl font-extrabold text-white/60 tracking-tight">Henüz bir okul seçilmedi</h1>
         )}
       </div>
     </div>
@@ -198,7 +201,7 @@ function NoInstitutionNotice() {
   return (
     <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
       <School className="w-8 h-8 text-slate-300" />
-      <p className="text-sm text-slate-500 font-medium">Okul bilgisi bulunamadı.</p>
+      <p className="text-sm text-slate-500 font-medium">Henüz bir okul seçilmedi.</p>
       <p className="text-xs text-slate-400 text-center max-w-xs">
         Profil ayarlarından okul/kurum bilgini ekleyerek aynı okuldaki herkesi görebilirsin.
       </p>
