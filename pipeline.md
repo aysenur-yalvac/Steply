@@ -19,10 +19,23 @@
 | BE-065 | Backend_Agent | `linked_accounts` kolon adı uyumsuzluğu düzeltildi: `owner_id`→`owner_user_id`, `email`→`linked_email`, `display_name`→`linked_name`, `avatar_url`→`linked_avatar`. Etkilenen dosyalar: `api/auth/login/route.ts`, `lib/actions.ts` (getLinkedAccountsAction/addLinkedAccountAction/removeLinkedAccountAction), `api/auth/switch-account/route.ts`, `api/auth/switch-to-owner/route.ts` | Tamamlandı | QA: OK |
 | BE-066 | Backend_Agent | `agenda_tasks`: `addAgendaTaskAction` `task_title` yerine gerçek kolon `title` insert ediyor artık; `dashboard/page.tsx` Upcoming Tasks banner'ı da aynı kolonu düzeltildi | Tamamlandı | QA: OK |
 | FE-059 | Frontend_Agent | `AgendaClient.tsx`: `Task.task_title`→`title` tip/render düzeltmesi; `handleAddTask` artık `res.success===false` durumunda `toast.error(res.error)` ile gerçek Supabase hatasını gösteriyor (önceden sessizce yutuluyordu) | Tamamlandı | QA: OK |
+| FE-060 | Frontend_Agent | `SettingsClient.tsx`: avatar upload `avatars`→`project-files` bucket'ına (avatars/ öneki) düzeltildi; Okul/Üniversite combobox "Okul Bilgileri" panelinin içine, her zaman görünür şekilde taşındı | Tamamlandı | QA: OK |
+| BE-067 | Backend_Agent | `profiles` tablosuna eksik 6 kolon eklendi (`company`, `country`, `location`, `grade`, `school_number`, `school_email`) — migration `20260721_profile_extra_fields.sql` + `FULL_SCHEMA_SETUP.sql` güncellendi. `updateProfileAction` bu kolonlar eklenene kadar 42703 hatasında fallback ile institution/university'yi yine de kaydediyor; `searchUniversitiesAction` artık RPC hatasını yutmuyor | Tamamlandı | QA: OK |
 
 > ⚠️ **Manuel Adım Gerekli:**
 > `FULL_SCHEMA_SETUP.sql` artık bekleyen 9 migration dahil tüm şemayı (initial_schema'dan add_ksbu'ya kadar) tek dosyada kapsıyor — Supabase SQL Editor'da tek seferde çalıştırılabilir. Ayrıca çalıştırılması gereken tek istisna:
 > - `supabase/migrations/20260518_universities.sql` — 10.214 satırlık üniversite seed verisi (boyut nedeniyle ayrı tutuldu)
+>
+> ⚠️ **Yeni manuel adım (BE-067):** `FULL_SCHEMA_SETUP.sql` güncellendi — `profiles` tablosuna 6 yeni sütun (`company`, `country`, `location`, `grade`, `school_number`, `school_email`) eklendi. Daha önce tam script'i çalıştırdıysan, en azından şu bloğu SQL Editor'da tekrar çalıştır:
+> ```sql
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company TEXT;
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS country TEXT;
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS location TEXT;
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS grade TEXT;
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS school_number TEXT;
+> ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS school_email TEXT;
+> ```
+> Bu çalıştırılmadan Settings'te Company/Country/Location/Grade/Okul Numarası alanları kaydedilmeyecek (kod fallback ile institution/university'yi yine de kaydediyor, diğerlerini sessizce atlıyor).
 >
 > ⚠️ **Güvenlik notu (kod değişikliği gerektirmiyor, teyit bekliyor):** `blocks` ve `project_favorites` tablolarında RLS hiç etkinleştirilmemiş (kaynak migration'larda da yok — FULL_SCHEMA bunu olduğu gibi yansıtıyor). Anon/authenticated erişimde bu iki tabloya kısıtlamasız yazma/okuma riski var. PM onayı ile ayrı bir BE görevi açılabilir.
 
