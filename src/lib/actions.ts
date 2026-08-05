@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
@@ -34,7 +34,7 @@ export async function saveFileRecordAction(
 
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return { error: "Oturum bulunamadı. Lütfen tekrar giriş yapın." };
+    if (authError || !user) return { error: "Oturum bulunamadÄ±. LÃ¼tfen tekrar giriÅŸ yapÄ±n." };
 
     const admin = createAdminClient();
 
@@ -44,8 +44,8 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .single();
 
-    if (projectError) return { error: `DB Select Hatası: ${projectError.message} (Code: ${projectError.code})` };
-    if (!project) return { error: `Proje bulunamadı (projectId: ${projectId})` };
+    if (projectError) return { error: `DB Select HatasÄ±: ${projectError.message} (Code: ${projectError.code})` };
+    if (!project) return { error: `Proje bulunamadÄ± (projectId: ${projectId})` };
 
     // Allow owner OR verified collaborator
     if (project.student_id !== user.id) {
@@ -55,7 +55,7 @@ export async function saveFileRecordAction(
         .eq("project_id", projectId)
         .eq("user_id", user.id)
         .maybeSingle();
-      if (!membership) return { error: "Bu proje için yetkiniz yok." };
+      if (!membership) return { error: "Bu proje iÃ§in yetkiniz yok." };
     }
 
     const { data: { publicUrl } } = admin.storage.from(BUCKET_ID).getPublicUrl(filePath);
@@ -77,20 +77,20 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .select();
 
-    if (updateError) return { error: `DB Update Hatası: ${updateError.message} (Code: ${updateError.code})` };
-    if (!updatedRow || updatedRow.length === 0) return { error: "Veritabanı güncellenmedi: Proje ID eşleşmedi." };
+    if (updateError) return { error: `DB Update HatasÄ±: ${updateError.message} (Code: ${updateError.code})` };
+    if (!updatedRow || updatedRow.length === 0) return { error: "VeritabanÄ± gÃ¼ncellenmedi: Proje ID eÅŸleÅŸmedi." };
 
     revalidatePath("/dashboard/projects");
     revalidatePath(`/dashboard/projects/${projectId}`);
 
-    await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yüklendi.`);
+    await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yÃ¼klendi.`);
 
     return { success: true, file: newFile };
 
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[saveFileRecord] UNCAUGHT EXCEPTION:", e);
-    return { error: `Beklenmedik bir sunucu hatası oluştu: ${msg}` };
+    return { error: `Beklenmedik bir sunucu hatasÄ± oluÅŸtu: ${msg}` };
   }
 }
 
@@ -249,7 +249,7 @@ export async function updateProfileAction(formData: FormData) {
 
   if (error) {
     // company/country/location/grade/school_number/school_email may not exist yet
-    // on this DB (pending migration) — retry with only the guaranteed-present
+    // on this DB (pending migration) â€” retry with only the guaranteed-present
     // core columns so the rest of the profile (incl. institution) still saves.
     if ((error as any).code === '42703') {
       const { error: coreError } = await supabase.from('profiles').update({
@@ -270,7 +270,7 @@ export async function updateProfileAction(formData: FormData) {
     }
   }
 
-  // university column may not exist if migration not yet applied — best-effort
+  // university column may not exist if migration not yet applied â€” best-effort
   if (university !== null) {
     await (supabase as any).from('profiles').update({ university }).eq('id', user.id);
   }
@@ -392,7 +392,7 @@ export async function getWatchlistAction() {
   return { success: true, data: formattedData };
 }
 
-// ── Notification System ──────────────────────────────────────────────────────
+// â”€â”€ Notification System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type Notification = {
   id: string;
@@ -464,7 +464,7 @@ export async function markAllNotificationsReadAction(): Promise<{ success: boole
   return { success: true };
 }
 
-// ── Project Activity Stream ──────────────────────────────────────────────────
+// â”€â”€ Project Activity Stream â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ProjectActivity = {
   id: string;
@@ -525,7 +525,7 @@ export async function getProjectActivitiesAction(projectId: string): Promise<Pro
   })) as ProjectActivity[];
 }
 
-// ── Project Tasks ────────────────────────────────────────────────────────────
+// â”€â”€ Project Tasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ProjectTask = {
   id: string;
@@ -578,7 +578,7 @@ export async function addProjectTask(
   if (error || !data) return { error: error?.message ?? 'Insert failed' };
 
   await recalculateProgress(ctx.admin, projectId);
-  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni gÃ¶rev eklendi: ${title.trim()}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -615,7 +615,15 @@ export async function toggleTaskCompletion(
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
   if (isCompleted) {
     recordUserActionAction('complete_task').catch(() => {});
-    if (progress === 100) recordUserActionAction('complete_project').catch(() => {});
+    // Auto-advance: todo → in_progress on first completed task (no auto-complete)
+    const { data: proj } = await ctx.admin
+      .from('projects')
+      .select('status')
+      .eq('id', projectId)
+      .single();
+    if (proj?.status === 'todo') {
+      await ctx.admin.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+    }
   }
   revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath('/dashboard/profile');
@@ -647,12 +655,12 @@ export async function deleteProjectTask(
   if (error) return { error: error.message };
 
   const progress = await recalculateProgress(ctx.admin, projectId);
-  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `Görev silindi: ${taskRow?.title ?? taskId}`);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `GÃ¶rev silindi: ${taskRow?.title ?? taskId}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
 
-// ── Project Discussions ──────────────────────────────────────────────────────
+// â”€â”€ Project Discussions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ProjectNote = {
   id: string;
@@ -673,7 +681,7 @@ export async function addProjectNoteAction(
   if (!ctx) return { error: 'Unauthorized' };
 
   const trimmed = content.trim();
-  if (!trimmed) return { error: 'Not boş olamaz.' };
+  if (!trimmed) return { error: 'Not boÅŸ olamaz.' };
 
   const { data, error } = await ctx.admin
     .from('project_discussions')
@@ -693,7 +701,7 @@ export async function addProjectNoteAction(
 
   // Notify all other team members (fire-and-forget)
   try {
-    const senderName = profile?.full_name ?? 'Bir üye';
+    const senderName = profile?.full_name ?? 'Bir Ã¼ye';
 
     const [projectRow, memberRows] = await Promise.all([
       ctx.admin.from('projects').select('title, student_id').eq('id', projectId).single(),
@@ -713,7 +721,7 @@ export async function addProjectNoteAction(
         createNotificationAction(
           uid,
           'message',
-          `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaştı.`,
+          `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaÅŸtÄ±.`,
           trimmed.slice(0, 120),
           projectId,
         ),
@@ -738,7 +746,7 @@ export async function addProjectNoteAction(
   };
 }
 
-// ── Project Tags ─────────────────────────────────────────────────────────────
+// â”€â”€ Project Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function updateProjectTagsAction(
   projectId: string,
@@ -791,7 +799,7 @@ export async function getProjectNotesAction(projectId: string): Promise<ProjectN
   })) as ProjectNote[];
 }
 
-// ── Trending Tags ─────────────────────────────────────────────────────────────
+// â”€â”€ Trending Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function getTrendingTagsAction(
   limit = 20
@@ -817,7 +825,7 @@ export async function getTrendingTagsAction(
     .map(([tag, count]) => ({ tag, count }));
 }
 
-// ── User Activity (Heatmap + Score) ──────────────────────────────────────────
+// â”€â”€ User Activity (Heatmap + Score) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ActivityDay = { date: string; activity_count: number; daily_score?: number };
 
@@ -852,7 +860,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
     if ((projectCount ?? 0) >= 1  && !current.has('first_project')) toAdd.push('first_project');
     if ((projectCount ?? 0) >= 10 && !current.has('prolific'))      toAdd.push('prolific');
 
-    // streak badge — need activity for 7 consecutive days ending today
+    // streak badge â€” need activity for 7 consecutive days ending today
     const last7: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(); d.setDate(d.getDate() - i);
@@ -866,7 +874,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
     const activeDates = new Set((streakRows ?? []).map((r: any) => r.date as string));
     if (last7.every(d => activeDates.has(d)) && !current.has('streak_7')) toAdd.push('streak_7');
 
-    // ranking badges — only if total_score > 0
+    // ranking badges â€” only if total_score > 0
     const score = profile?.total_score ?? 0;
     if (score > 0) {
       const { count: higherGlobal } = await admin
@@ -903,8 +911,8 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     });
 
     if (rpcErr) {
-      console.error('Puanlama Hatası (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
-      // RPC not yet deployed — manual fallback with weighted points
+      console.error('Puanlama HatasÄ± (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
+      // RPC not yet deployed â€” manual fallback with weighted points
       const POINTS: Record<ActionType, number> = {
         create_project: 10,
         complete_project: 20,
@@ -939,10 +947,10 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
       }).eq('id', user.id);
     }
 
-    // Award badges — non-blocking
+    // Award badges â€” non-blocking
     awardBadgesInternal(user.id, admin).catch(() => {});
   } catch (e) {
-    console.error('Puanlama Hatası (exception):', e);
+    console.error('Puanlama HatasÄ± (exception):', e);
   }
 }
 
@@ -963,7 +971,7 @@ export async function getUserActivitiesAction(userId: string): Promise<ActivityD
   return (data ?? []) as ActivityDay[];
 }
 
-// ── Linked Accounts (Multi-Account Switcher) ─────────────────────────────────
+// â”€â”€ Linked Accounts (Multi-Account Switcher) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type LinkedAccount = {
   id: string;
@@ -1003,12 +1011,12 @@ export async function addLinkedAccountAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
   if (email.toLowerCase() === user.email?.toLowerCase())
-    return { error: 'Kendi hesabınızı ekleyemezsiniz.' };
+    return { error: 'Kendi hesabÄ±nÄ±zÄ± ekleyemezsiniz.' };
 
   const admin = createAdminClient();
 
   const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
-  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadı.' };
+  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadÄ±.' };
 
   // Fetch both sides' enrichment data.
   const [{ data: authUser }, { data: profile }, { data: ownerAuthUser }, { data: ownerProfile }] = await Promise.all([
@@ -1022,7 +1030,7 @@ export async function addLinkedAccountAction(
   const linkedName    = (profile as any)?.full_name  ?? null;
   const linkedAvatar  = (profile as any)?.avatar_url ?? null;
 
-  // Forward row: current user → target
+  // Forward row: current user â†’ target
   const { data: existing } = await admin
     .from('linked_accounts')
     .select('id')
@@ -1049,7 +1057,7 @@ export async function addLinkedAccountAction(
     linkedId = inserted.id;
   }
 
-  // Reverse row: target → current user (bidirectional so both sides see each other)
+  // Reverse row: target â†’ current user (bidirectional so both sides see each other)
   const { data: revExisting } = await admin
     .from('linked_accounts')
     .select('id')
@@ -1096,13 +1104,13 @@ export async function removeLinkedAccountAction(
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row) return { error: 'Bağlantı bulunamadı.' };
+  if (!row) return { error: 'BaÄŸlantÄ± bulunamadÄ±.' };
 
   const ownerUserId  = user.id;            // A's uuid
   const ownerEmail   = user.email ?? '';   // A's email (fallback key for B's row)
   const targetUserId = row.linked_user_id; // B's uuid (may be null on legacy rows)
 
-  // Delete A→B (forward row)
+  // Delete Aâ†’B (forward row)
   const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
@@ -1110,7 +1118,7 @@ export async function removeLinkedAccountAction(
     .eq('linked_user_id', targetUserId);
   if (fwdErr) return { error: fwdErr.message };
 
-  // Delete B→A (reverse row).
+  // Delete Bâ†’A (reverse row).
   // Some legacy rows may have linked_user_id=null and only store A's email in the
   // `linked_email` column, so we match on either the uuid OR the stored email as fallback.
   if (targetUserId) {
@@ -1138,7 +1146,7 @@ export async function getLeaderboardAction(
     .limit(50);
 
   if (scope === 'turkey') {
-    query = (query as any).or('country.ilike.%türkiye%,country.ilike.%turkey%,country.ilike.%turkiye%');
+    query = (query as any).or('country.ilike.%tÃ¼rkiye%,country.ilike.%turkey%,country.ilike.%turkiye%');
   }
   if (scope === 'university' && userUniversity) {
     query = query.eq('university', userUniversity);
@@ -1157,7 +1165,7 @@ export async function getLeaderboardAction(
   }));
 }
 
-// ── Follow system ──────────────────────────────────────────────────────────────
+// â”€â”€ Follow system â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type FollowUser = {
   id: string;
@@ -1173,7 +1181,7 @@ export async function followUserAction(
   if (!user) return { error: 'Unauthorized' };
   if (user.id === targetId) return { error: 'Cannot follow yourself' };
 
-  // Use admin client to bypass RLS — auth check already done above
+  // Use admin client to bypass RLS â€” auth check already done above
   const admin = createAdminClient();
   const { error } = await admin
     .from('follows')
@@ -1195,7 +1203,7 @@ export async function unfollowUserAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
 
-  // Use admin client to bypass RLS — auth check already done above
+  // Use admin client to bypass RLS â€” auth check already done above
   const admin = createAdminClient();
   const { error } = await admin
     .from('follows')
@@ -1268,7 +1276,7 @@ export async function removeFollowerAction(
   return { success: true };
 }
 
-// ── Block system ───────────────────────────────────────────────────────────────
+// â”€â”€ Block system â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function blockUserAction(
   targetId: string,
@@ -1323,7 +1331,7 @@ export async function unblockUserAction(
   return { success: true };
 }
 
-// ── Project favorites ──────────────────────────────────────────────────────────
+// â”€â”€ Project favorites â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function toggleProjectFavoriteAction(
   projectId: string,
@@ -1360,7 +1368,7 @@ export async function toggleProjectFavoriteAction(
   }
 }
 
-// ── Universities ──────────────────────────────────────────────────────────────
+// â”€â”€ Universities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function searchUniversitiesAction(
   query: string,
@@ -1368,7 +1376,7 @@ export async function searchUniversitiesAction(
   if (!query || query.trim().length < 2) return { results: [] };
   const admin = createAdminClient();
   // Uses search_universities() RPC which applies unaccent() on both sides,
-  // ensuring Turkish chars like İ/ı, Ş/ş, Ğ/ğ match regardless of case/diacritics.
+  // ensuring Turkish chars like Ä°/Ä±, Å/ÅŸ, Ä/ÄŸ match regardless of case/diacritics.
   const { data, error } = await admin.rpc('search_universities', {
     q: query.trim(),
     lim: 12,
@@ -1396,4 +1404,63 @@ export async function getBlockedUsersAction(): Promise<FollowUser[]> {
     full_name:  r.profiles?.full_name  ?? null,
     avatar_url: r.profiles?.avatar_url ?? null,
   }));
+}
+
+// ── Project Status Management ────────────────────────────────────────────────
+
+export type ProjectStatus = 'todo' | 'in_progress' | 'in_review' | 'completed';
+
+/**
+ * Manually mark a project as completed. Only the project owner can do this.
+ * Sets status = 'completed' and records end_date.
+ */
+export async function markProjectCompletedAction(
+  projectId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+  if (ctx.role !== 'owner') return { error: 'Only the project owner can mark a project as completed.' };
+
+  const today = new Date().toISOString().split('T')[0];
+  const { error } = await ctx.admin
+    .from('projects')
+    .update({ status: 'completed', end_date: today })
+    .eq('id', projectId);
+
+  if (error) return { error: error.message };
+
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'project_completed', 'Proje tamamlandı olarak işaretlendi.');
+  recordUserActionAction('complete_project').catch(() => {});
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/profile');
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+/**
+ * Update the kanban status of a project (owner only).
+ * Does NOT touch progress_percentage — that is milestone-only.
+ */
+export async function updateProjectStatusAction(
+  projectId: string,
+  status: ProjectStatus,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+  if (ctx.role !== 'owner') return { error: 'Only the project owner can change the project status.' };
+
+  const { error } = await ctx.admin
+    .from('projects')
+    .update({ status })
+    .eq('id', projectId);
+
+  if (error) return { error: error.message };
+
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'status_changed', `Proje durumu güncellendi: ${status}`);
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath('/dashboard');
+  return { success: true };
 }

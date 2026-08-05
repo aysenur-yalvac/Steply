@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +22,7 @@ import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import toast from "react-hot-toast";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_COLORS = [
   "bg-violet-100 text-violet-700 border-violet-200",
   "bg-sky-100 text-sky-700 border-sky-200",
@@ -50,11 +50,12 @@ type Project = {
   priority?: string | null;
   platform?: string | null;
   progress_percentage: number;
+  status?: string;
   tags?: string[];
   profiles?: { full_name: string; avatar_url?: string | null } | null;
 };
 
-// ── Priority badge helpers ─────────────────────────────────────────────────────
+// â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
   Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200",     dot: "bg-teal-500"   },
   Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-500"  },
@@ -88,13 +89,13 @@ function strHash(s: string) {
   return s.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 }
 
-// ── Avatar group helpers ───────────────────────────────────────────────────────
+// â”€â”€ Avatar group helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AVATAR_COLORS = ["#7C3AFF", "#FF7F50", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444"];
 function avatarColor(seed: string) {
   return AVATAR_COLORS[strHash(seed) % AVATAR_COLORS.length];
 }
 
-// ── KanbanCard ────────────────────────────────────────────────────────────────
+// â”€â”€ KanbanCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function KanbanCard({
   project,
   isTeacher,
@@ -145,7 +146,7 @@ function KanbanCard({
     try {
       if (localProgress === 100 && savedProgress !== 100) {
         toast.success("Congratulations! Project completed!", {
-          icon: "🎉",
+          icon: "ğŸ‰",
           style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
         });
         import("canvas-confetti").then((m) =>
@@ -281,7 +282,7 @@ function KanbanCard({
               <span>{new Date(project.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
             {project.start_date && project.end_date && (
-              <span className="text-slate-300">→</span>
+              <span className="text-slate-300">â†’</span>
             )}
             {project.end_date && (
               <span>{new Date(project.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
@@ -314,7 +315,7 @@ function KanbanCard({
         </div>
       </div>
 
-      {/* ── Expanded detail panel ─────────────────────────────────────────── */}
+      {/* â”€â”€ Expanded detail panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -426,7 +427,7 @@ function KanbanCard({
                     {saveStatus === "saving" && <Loader2 className="w-3 h-3 animate-spin" />}
                     {saveStatus === "done"   && <Check   className="w-3 h-3" />}
                     {saveStatus === "idle"   && <Save    className="w-3 h-3" />}
-                    {saveStatus === "saving" ? "Saving…" : saveStatus === "done" ? "Saved" : "Save"}
+                    {saveStatus === "saving" ? "Savingâ€¦" : saveStatus === "done" ? "Saved" : "Save"}
                   </motion.button>
                 </div>
               )}
@@ -548,7 +549,7 @@ function KanbanCard({
   );
 }
 
-// ── Column config ──────────────────────────────────────────────────────────────
+// â”€â”€ Column config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const COLUMN_CONFIG = {
   todo: {
     label: "To Do",
@@ -655,7 +656,7 @@ function KanbanColumn({
   );
 }
 
-// ── Main export ────────────────────────────────────────────────────────────────
+// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function KanbanBoard({
   projects,
   isTeacher,
@@ -669,9 +670,9 @@ export function KanbanBoard({
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
 }) {
-  const todo      = projects.filter((p) => p.progress_percentage === 0);
-  const inReview  = projects.filter((p) => p.progress_percentage > 0 && p.progress_percentage < 100);
-  const completed = projects.filter((p) => p.progress_percentage === 100);
+  const todo      = projects.filter((p) => (p.status ?? 'todo') === 'todo');
+  const inReview  = projects.filter((p) => { const s = p.status ?? 'todo'; return s === 'in_progress' || s === 'in_review'; });
+  const completed = projects.filter((p) => p.status === 'completed');
 
   const common = { isTeacher, watchedIds, projectNotes, currentUserId };
 

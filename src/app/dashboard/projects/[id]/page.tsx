@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+﻿import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
@@ -13,7 +13,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
 import { BackButton } from '@/components/ui/back-button';
 import { Avatar } from '@/components/ui/avatar';
-import { ProjectFile, ProjectTask, getProjectActivitiesAction, getProjectNotesAction } from '@/lib/actions';
+import { ProjectFile, ProjectTask, getProjectActivitiesAction, getProjectNotesAction, markProjectCompletedAction } from '@/lib/actions';
 import ProjectTags from '@/components/projects/ProjectTags';
 
 export default async function ProjectDetailPage({
@@ -178,7 +178,8 @@ export default async function ProjectDetailPage({
     isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
   ]);
 
-  const isCompleted = project.progress_percentage === 100;
+  const projectStatus = (project as any).status ?? 'todo';
+  const isCompleted = projectStatus === 'completed';
 
   const cleanedDescription = (project.description ?? "")
     .replace(/\[.*?\]/g, "")
@@ -333,10 +334,39 @@ export default async function ProjectDetailPage({
           <div className="flex flex-col gap-8">
             <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
-                Progress Status
+                Project Status
               </h3>
+
+              {/* Status badge */}
+              <div className="mb-4">
+                {projectStatus === 'completed' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed
+                  </span>
+                )}
+                {projectStatus === 'in_review' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> In Review
+                  </span>
+                )}
+                {projectStatus === 'in_progress' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200">
+                    <span className="w-2 h-2 rounded-full bg-violet-500 inline-block" /> In Progress
+                  </span>
+                )}
+                {projectStatus === 'todo' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                    <span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do
+                  </span>
+                )}
+              </div>
+
+              {/* Milestone progress */}
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Milestone Progress
+              </h4>
               <div className="flex justify-between items-end mb-2">
-                <span className="text-3xl font-black text-slate-800">
+                <span className="text-2xl font-black text-slate-800">
                   %{project.progress_percentage}
                 </span>
               </div>
@@ -345,6 +375,32 @@ export default async function ProjectDetailPage({
                 isCompleted={isCompleted}
                 className="h-3"
               />
+
+              {/* Mark as Finished button — owner only, not yet completed */}
+              {isOwner && !isCompleted && (
+                <form
+                  action={async () => {
+                    'use server';
+                    await markProjectCompletedAction(projectId);
+                  }}
+                  className="mt-5"
+                >
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-bold transition-all shadow-md"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Projeyi Bitir
+                  </button>
+                </form>
+              )}
+
+              {isCompleted && (
+                <div className="mt-4 flex items-center gap-2 text-emerald-700 text-sm font-semibold">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Bu proje tamamlandı olarak işaretlendi.
+                </div>
+              )}
             </div>
 
             {isTeacher && (

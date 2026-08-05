@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,7 @@ import { Plus, SlidersHorizontal, CheckCircle, Clock, Minus, ExternalLink, X } f
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
 import { GooeySearchBar } from "@/components/ui/animated-search-bar";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Project = {
   id: string;
   student_id?: string;
@@ -21,6 +21,7 @@ type Project = {
   priority?: string | null;
   platform?: string | null;
   progress_percentage: number;
+  status?: string;
   tags?: string[];
   profiles?: { full_name: string; avatar_url?: string | null } | null;
 };
@@ -34,7 +35,7 @@ type Filters = {
   studentSearch: string;
 };
 
-// ── Filter constants ───────────────────────────────────────────────────────────
+// â”€â”€ Filter constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const STATUS_OPTIONS  = ["To Do", "In Review", "Completed"] as const;
 const PRIORITY_OPTIONS = ["Low", "Medium", "High"]          as const;
 
@@ -49,15 +50,15 @@ const PRIORITY_DOT: Record<string, string> = {
   High:   "bg-red-500",
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function projectStatus(p: Project): string {
-  if (p.progress_percentage === 100) return "Completed";
-  if (p.progress_percentage > 0)     return "In Review";
+  if (p.status === 'completed') return "Completed";
+  if (p.status === 'in_review' || p.status === 'in_progress') return "In Review";
   return "To Do";
 }
 
 // Mirror KanbanBoard's getPriority: column first, then [Priority: X] in description,
-// then "Medium" as display default — so filter always matches the visible badge.
+// then "Medium" as display default â€” so filter always matches the visible badge.
 function getEffectivePriority(p: Project): string {
   if (p.priority?.trim()) return p.priority.trim();
   const match = (p.description ?? "").match(/\[Priority:\s*([^\]]+)\]/i);
@@ -80,7 +81,7 @@ function cleanDescription(raw: string): string {
   return raw.replace(/\[.*?\]/g, "").trim();
 }
 
-// ── Status badge ───────────────────────────────────────────────────────────────
+// â”€â”€ Status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function StatusBadge({ progress }: { progress: number }) {
   if (progress === 100) {
     return (
@@ -103,7 +104,7 @@ function StatusBadge({ progress }: { progress: number }) {
   );
 }
 
-// ── Filter Dropdown ────────────────────────────────────────────────────────────
+// â”€â”€ Filter Dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_COLORS: Record<number, string> = {
   0: "bg-violet-100 text-violet-700 border-violet-200",
   1: "bg-sky-100 text-sky-700 border-sky-200",
@@ -159,15 +160,15 @@ function FilterDropdown({
         )}
       </div>
 
-      {/* Student search — teachers only */}
+      {/* Student search â€” teachers only */}
       {isTeacher && (
         <div className="px-4 pt-3 pb-2 border-b border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Öğrenci</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ã–ÄŸrenci</p>
           <input
             type="text"
             value={filters.studentSearch}
             onChange={e => onStudentSearch(e.target.value)}
-            placeholder="İsme göre ara…"
+            placeholder="Ä°sme gÃ¶re araâ€¦"
             className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white transition-colors"
           />
         </div>
@@ -285,7 +286,7 @@ function FilterDropdown({
   );
 }
 
-// ── List view ──────────────────────────────────────────────────────────────────
+// â”€â”€ List view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boolean }) {
   const gridCols = isTeacher
     ? "grid-cols-[1fr_130px_140px_100px_120px_40px]"
@@ -295,10 +296,10 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
     <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project Name</span>
-        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
+        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ã–ÄŸrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">BitiÅŸ Tarihi</span>
         <span />
       </div>
 
@@ -329,7 +330,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                       {project.profiles.full_name}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-300">—</span>
+                    <span className="text-xs text-slate-300">â€”</span>
                   )}
                 </div>
               )}
@@ -353,8 +354,8 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                     <span className="text-xs font-medium text-emerald-600">
                       {new Date(dateStr).toLocaleDateString("tr-TR")}
                     </span>
-                  ) : <span className="text-xs text-slate-300">—</span>;
-                })() : <span className="text-xs text-slate-300">—</span>}
+                  ) : <span className="text-xs text-slate-300">â€”</span>;
+                })() : <span className="text-xs text-slate-300">â€”</span>}
               </div>
               <div>
                 <Link
@@ -390,7 +391,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface Props {
   projects: Project[];
   isTeacher: boolean;
@@ -442,7 +443,7 @@ export default function DashboardViewSwitcher({
 
   return (
     <>
-      {/* ── Controls row ──────────────────────────────────────────────────── */}
+      {/* â”€â”€ Controls row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {/* View tabs */}
         <div className="flex items-center gap-1 p-1.5 bg-slate-100 rounded-xl">
@@ -532,7 +533,7 @@ export default function DashboardViewSwitcher({
         </div>
       </div>
 
-      {/* ── Active filter chips ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Active filter chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {activeCount > 0 && (
           <motion.div
@@ -546,7 +547,7 @@ export default function DashboardViewSwitcher({
               ...filters.status.map(v => ({ label: v, group: "status" as const })),
               ...filters.priority.map(v => ({ label: v, group: "priority" as const })),
               ...filters.tags.map(v => ({ label: `#${v}`, group: "tags" as const, raw: v })),
-              ...(filters.studentSearch.trim() ? [{ label: `👤 ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
+              ...(filters.studentSearch.trim() ? [{ label: `ğŸ‘¤ ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
             ].map(({ label, group, ...rest }) => (
               <motion.span
                 key={label}
@@ -578,7 +579,7 @@ export default function DashboardViewSwitcher({
         )}
       </AnimatePresence>
 
-      {/* ── Empty state when filters match nothing ─────────────────────────── */}
+      {/* â”€â”€ Empty state when filters match nothing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {filteredProjects.length === 0 && activeCount > 0 && (
           <motion.div
@@ -596,7 +597,7 @@ export default function DashboardViewSwitcher({
         )}
       </AnimatePresence>
 
-      {/* ── View content ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ View content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {filteredProjects.length > 0 && (
         <div className="relative mt-6">
           <AnimatePresence mode="wait">
