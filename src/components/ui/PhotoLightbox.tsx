@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 interface PhotoLightboxProps {
@@ -24,12 +24,40 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
   const [isDragging, setIsDragging] = useState(false);
 
   const frameRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const pinchDistRef = useRef<number | null>(null);
 
+  /** Resmin container dışına tamamen çıkmasını önleyen sınır hesabı */
+  const clampPosition = useCallback(
+    (x: number, y: number, currentScale: number) => {
+      const frame = frameRef.current;
+      const img = imgRef.current;
+      if (!frame || !img) return { x, y };
+
+      const fw = frame.clientWidth;
+      const fh = frame.clientHeight;
+      const iw = img.clientWidth * currentScale;
+      const ih = img.clientHeight * currentScale;
+
+      // Maksimum kaydırma: resmin yalnızca yarısı ekrandan çıkabilir
+      const maxX = Math.max(0, (iw - fw) / 2);
+      const maxY = Math.max(0, (ih - fh) / 2);
+
+      return {
+        x: Math.min(maxX, Math.max(-maxX, x)),
+        y: Math.min(maxY, Math.max(-maxY, y)),
+      };
+    },
+    []
+  );
+
   function setScale(updater: number | ((s: number) => number)) {
     setScaleRaw((prev) => {
-      const raw = typeof updater === "function" ? (updater as (s: number) => number)(prev) : updater;
+      const raw =
+        typeof updater === "function"
+          ? (updater as (s: number) => number)(prev)
+          : updater;
       const next = clampScale(raw);
       if (next <= MIN_SCALE) setPosition({ x: 0, y: 0 });
       return next;
@@ -46,32 +74,72 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
     onClose();
   }
 
-  // Reset zoom/pan whenever a different photo is opened.
+  // Farklı fotoğraf açıldığında zoom/pan sıfırla
   useEffect(() => {
     resetZoom();
   }, [src]);
 
+  // Escape tuşu ile kapat
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Wheel / touchpad pinch → zoom only, never scrolls/zooms the page behind it.
+  // Mouse drag-to-pan: sadece zoom > 1 iken aktif
+  function handleMouseDown(e: React.MouseEvent) {
+    if (scale <= 1) return;
+    e.preventDefault();
+    setIsDragging(true);
+    dragOffsetRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  }
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    function handleMouseMove(e: MouseEvent) {
+      const rawX = e.clientX - dragOffsetRef.current.x;
+      const rawY = e.clientY - dragOffsetRef.current.y;
+      setScaleRaw((currentScale) => {
+        setPosition(clampPosition(rawX, rawY, currentScale));
+        return currentScale;
+      });
+    }
+
+    function handleMouseUp() {
+      setIsDragging(false);
+    }
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, clampPosition]);
+
+  // Wheel / touchpad pinch → zoom (sayfayı kaydırmaz)
   useEffect(() => {
     const el = frameRef.current;
     if (!el) return;
+
     function handleWheel(e: WheelEvent) {
       e.preventDefault();
       e.stopPropagation();
       setScale((s) => s - e.deltaY * 0.0015 * s);
     }
+
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, []);
 
-  // Touch: two fingers = pinch-to-zoom, one finger = pan (only while zoomed in).
+  // Touch: 2 parmak = pinch-to-zoom, 1 parmak = pan (zoom > 1 iken)
   useEffect(() => {
     const el = frameRef.current;
     if (!el) return;
@@ -99,9 +167,11 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
       } else if (e.touches.length === 1 && isDragging) {
         e.preventDefault();
         const t = e.touches[0];
-        setPosition({
-          x: t.clientX - dragOffsetRef.current.x,
-          y: t.clientY - dragOffsetRef.current.y,
+        const rawX = t.clientX - dragOffsetRef.current.x;
+        const rawY = t.clientY - dragOffsetRef.current.y;
+        setScaleRaw((currentScale) => {
+          setPosition(clampPosition(rawX, rawY, currentScale));
+          return currentScale;
         });
       }
     }
@@ -121,29 +191,7 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
       el.removeEventListener("touchend", handleTouchEnd);
       el.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [scale, position, isDragging]);
-
-  // Mouse drag-to-pan (only while zoomed in).
-  function handleMouseDown(e: React.MouseEvent) {
-    if (scale <= 1) return;
-    e.preventDefault();
-    setIsDragging(true);
-    dragOffsetRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-  }
-
-  useEffect(() => {
-    if (!isDragging) return;
-    function handleMouseMove(e: MouseEvent) {
-      setPosition({ x: e.clientX - dragOffsetRef.current.x, y: e.clientY - dragOffsetRef.current.y });
-    }
-    function handleMouseUp() { setIsDragging(false); }
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging]);
+  }, [scale, position, isDragging, clampPosition]);
 
   const controlBtnCls =
     "p-2 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors disabled:opacity-30 disabled:pointer-events-none";
@@ -172,6 +220,7 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
           style={{ touchAction: "none" }}
         >
           <img
+            ref={imgRef}
             src={src}
             alt={name ?? ""}
             draggable={false}
@@ -180,12 +229,17 @@ export default function PhotoLightbox({ src, name, onClose }: PhotoLightboxProps
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
               transition: isDragging ? "none" : "transform 0.15s ease-out",
-              cursor: scale > 1 ? (isDragging ? "grabbing" : "grab") : "default",
+              cursor:
+                scale > 1
+                  ? isDragging
+                    ? "grabbing"
+                    : "grab"
+                  : "default",
             }}
           />
         </div>
 
-        {/* Zoom controls */}
+        {/* Zoom kontrolleri */}
         <div
           className="mt-3 flex items-center justify-center gap-2"
           onClick={(e) => e.stopPropagation()}
