@@ -334,7 +334,11 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                   )}
                 </div>
               )}
-              <div><StatusBadge progress={project.progress_percentage} /></div>
+              <div>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}`}>
+                  {projectStatus(project)}
+                </span>
+              </div>
               <div>
                 {(() => {
                   const p   = getEffectivePriority(project);

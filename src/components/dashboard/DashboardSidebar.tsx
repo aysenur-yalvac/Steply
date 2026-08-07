@@ -574,8 +574,29 @@ export default function DashboardSidebar(props: SidebarProps) {
       </button>
 
       {/* Desktop sidebar — collapsible */}
+      
+      {/* Desktop overlay when expanded */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="hidden lg:block fixed inset-0 z-40 bg-slate-900/10 backdrop-blur-sm"
+            onClick={() => setIsExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Desktop sidebar - collapsible */}
       <aside
-        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out ${isExpanded ? 'w-64' : 'w-[72px]'}`}
+        onClick={(e) => {
+          if (!isExpanded) {
+            setIsExpanded(true);
+          }
+        }}
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out cursor-pointer ${isExpanded ? 'w-64 cursor-default relative z-50' : 'w-[72px] hover:bg-white/90 relative z-50'}`}
         style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
       >
         <NavContent
