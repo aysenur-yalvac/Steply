@@ -40,7 +40,7 @@ export async function saveFileRecordAction(
 
     const { data: project, error: projectError } = await admin
       .from("projects")
-      .select("student_id, files")
+      .select("student_id, files, status")
       .eq("id", projectId)
       .single();
 
@@ -85,6 +85,10 @@ export async function saveFileRecordAction(
 
     await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yÃ¼klendi.`);
 
+    if (project.status === 'todo') {
+      await admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
+    }
+
     return { success: true, file: newFile };
 
   } catch (e: unknown) {
@@ -104,7 +108,7 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
 
   const { data: project, error: projectError } = await admin
     .from("projects")
-    .select("student_id, files")
+    .select("student_id, files, status")
     .eq("id", projectId)
     .single();
 
@@ -579,6 +583,10 @@ export async function addProjectTask(
 
   await recalculateProgress(ctx.admin, projectId);
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni gÃ¶rev eklendi: ${title.trim()}`);
+  const { data: projAdd } = await ctx.admin.from('projects').select('status').eq('id', projectId).single();
+  if (projAdd?.status === 'todo') {
+    await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
+  }
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -615,15 +623,15 @@ export async function toggleTaskCompletion(
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, actionType, description);
   if (isCompleted) {
     recordUserActionAction('complete_task').catch(() => {});
-    // Auto-advance: todo → in_progress on first completed task (no auto-complete)
-    const { data: proj } = await ctx.admin
-      .from('projects')
-      .select('status')
-      .eq('id', projectId)
-      .single();
-    if (proj?.status === 'todo') {
-      await ctx.admin.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
-    }
+  }
+  // Auto-advance: todo -> in_review on any task toggle
+  const { data: proj } = await ctx.admin
+    .from('projects')
+    .select('status')
+    .eq('id', projectId)
+    .single();
+  if (proj?.status === 'todo') {
+    await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
   }
   revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath('/dashboard/profile');

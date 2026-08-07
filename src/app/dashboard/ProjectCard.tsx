@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import {
@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { updateProgress, deleteProjectAction } from './actions';
+import { deleteProjectAction } from './actions';
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
 import FavoriteHeart from '@/components/ui/FavoriteHeart';
-import AnimatedProgressBar from '@/components/ui/AnimatedProgressBar';
+
 import toast from 'react-hot-toast';
 
 const TAG_COLORS = [
@@ -38,6 +38,7 @@ type Project = {
   start_date: string;
   end_date: string;
   progress_percentage: number;
+  status?: string;
   tags?: string[];
   profiles?: { full_name: string; avatar_url?: string | null };
 };
@@ -61,8 +62,6 @@ export default function ProjectCard({
   currentUserId?: string;
   isCollaborator?: boolean;
 }) {
-  const [localProgress, setLocalProgress] = useState(project.progress_percentage);
-  const [isDragging,    setIsDragging]    = useState(false);
   const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const showFavoriteHeart = currentUserId !== project.student_id;
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
@@ -70,23 +69,11 @@ export default function ProjectCard({
   const [isDeleting,    setIsDeleting]    = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
 
-  const isCompleted = localProgress === 100;
+  const isCompleted = project.status === 'completed';
   const canAddNote  = currentUserId === project.student_id;
 
   const cleanDesc = (project.description ?? '').replace(/\[.*?\]/g, '').trim();
 
-  const handleUpdate = async (formData: FormData) => {
-    if (localProgress === 100 && project.progress_percentage !== 100) {
-      toast.success('Congratulations! Project completed!', {
-        icon: '🎉',
-        style: { borderRadius: '12px', background: '#1e293b', color: '#e2e8f0', border: '1px solid #7C3AFF' },
-      });
-      import('canvas-confetti').then((m) =>
-        m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#7C3AFF', '#FF7F50', '#A020F0'] })
-      );
-    }
-    await updateProgress(formData);
-  };
 
   const handleToggleWatch = async () => {
     const prev = isWatched;
@@ -259,86 +246,6 @@ export default function ProjectCard({
 
       {/* ── Progress + actions panel ───────────────────────────────────────── */}
       <div className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4">
-
-        {/* Progress bar */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
-            <span className="text-xs font-extrabold text-violet-600">{localProgress}%</span>
-          </div>
-          <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-2" />
-        </div>
-
-        {/* Slider for non-teachers */}
-        {!isTeacher && (
-          <form action={handleUpdate} className="flex items-center gap-2">
-            <input type="hidden" name="id" value={project.id} />
-            <div className="relative flex-1">
-              <AnimatePresence>
-                {isDragging && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                    className="absolute -top-7 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg pointer-events-none z-20 text-white bg-violet-600"
-                    style={{ left: `${localProgress}%`, transform: 'translateX(-50%)' }}
-                  >
-                    {localProgress}%
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <input
-                type="range"
-                name="progress"
-                min="0" max="100" step="5"
-                value={localProgress}
-                onChange={(e) => setLocalProgress(parseInt(e.target.value))}
-                onMouseDown={() => setIsDragging(true)}
-                onMouseUp={() => setIsDragging(false)}
-                onMouseLeave={() => setIsDragging(false)}
-                onTouchStart={() => setIsDragging(true)}
-                onTouchEnd={() => setIsDragging(false)}
-                className="
-                  w-full cursor-grab active:cursor-grabbing appearance-none
-                  [&::-webkit-slider-runnable-track]:h-1.5
-                  [&::-webkit-slider-runnable-track]:rounded-full
-                  [&::-webkit-slider-runnable-track]:bg-slate-200
-                  [&::-webkit-slider-thumb]:appearance-none
-                  [&::-webkit-slider-thumb]:w-4
-                  [&::-webkit-slider-thumb]:h-4
-                  [&::-webkit-slider-thumb]:-mt-[5px]
-                  [&::-webkit-slider-thumb]:rounded-full
-                  [&::-webkit-slider-thumb]:bg-violet-600
-                  [&::-webkit-slider-thumb]:shadow-md
-                  [&::-webkit-slider-thumb]:cursor-grab
-                  [&::-webkit-slider-thumb]:transition-transform
-                  [&::-webkit-slider-thumb]:hover:scale-110
-                  [&::-moz-range-track]:h-1.5
-                  [&::-moz-range-track]:rounded-full
-                  [&::-moz-range-track]:bg-slate-200
-                  [&::-moz-range-thumb]:w-4
-                  [&::-moz-range-thumb]:h-4
-                  [&::-moz-range-thumb]:rounded-full
-                  [&::-moz-range-thumb]:bg-violet-600
-                  [&::-moz-range-thumb]:border-none
-                  [&::-moz-range-thumb]:shadow-md
-                  [&::-moz-range-progress]:bg-violet-600
-                  [&::-moz-range-progress]:rounded-full
-                  [&::-moz-range-progress]:h-1.5
-                "
-                style={{
-                  background: `linear-gradient(to right, #7C3AFF 0%, #7C3AFF ${localProgress}%, #e2e8f0 ${localProgress}%, #e2e8f0 100%)`,
-                }}
-              />
-            </div>
-            <button
-              type="submit"
-              className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors shrink-0"
-            >
-              <Save className="w-3 h-3" /> Save
-            </button>
-          </form>
-        )}
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 flex-wrap">

@@ -17,9 +17,9 @@ import {
   FolderOpen,
 } from "lucide-react";
 import Link from "next/link";
-import { updateProgress, deleteProjectAction } from "@/app/dashboard/actions";
+import { deleteProjectAction } from "@/app/dashboard/actions";
 import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
-import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
+
 import toast from "react-hot-toast";
 
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -139,38 +139,6 @@ function KanbanCard({
   const idSum              = strHash(project.id);
   const commentCount       = ((idSum >> 2) % 6) + 1;
   const studentName        = project.profiles?.full_name || "?";
-
-  const handleSave = async () => {
-    if (!hasUnsavedChanges || saveStatus === "saving") return;
-    setSaveStatus("saving");
-    try {
-      if (localProgress === 100 && savedProgress !== 100) {
-        toast.success("Congratulations! Project completed!", {
-          icon: "ğŸ‰",
-          style: { borderRadius: "12px", background: "#1e293b", color: "#e2e8f0", border: "1px solid #7C3AFF" },
-        });
-        import("canvas-confetti").then((m) =>
-          m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#7C3AFF", "#FF7F50", "#A020F0"] })
-        );
-      }
-      const formData = new FormData();
-      formData.set("id", project.id);
-      formData.set("progress", String(localProgress));
-      await updateProgress(formData);
-      setSavedProgress(localProgress);
-      setSaveStatus("done");
-      setTimeout(() => setSaveStatus("idle"), 1000);
-      if (localProgress !== 100) {
-        toast.success("Saved!", {
-          style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
-        });
-      }
-    } catch {
-      toast.error("Failed to save progress");
-      setLocalProgress(savedProgress);
-      setSaveStatus("idle");
-    }
-  };
 
   const handleToggleWatch = async () => {
     const prev = isWatched;
@@ -333,105 +301,6 @@ function KanbanCard({
               transition={{ duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] }}
               className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4"
             >
-              {/* Progress */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
-                  <span className="text-xs font-extrabold text-violet-600">{localProgress}%</span>
-                </div>
-                <AnimatedProgressBar progress={localProgress} isCompleted={isCompleted} className="h-1.5" />
-              </div>
-
-              {/* Progress slider for students */}
-              {!isTeacher && (
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <AnimatePresence>
-                      {isDragging && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                          className="absolute -top-7 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg pointer-events-none z-20 text-white bg-violet-600"
-                          style={{ left: `${localProgress}%`, transform: "translateX(-50%)" }}
-                        >
-                          {localProgress}%
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="5"
-                      value={localProgress}
-                      onChange={(e) => setLocalProgress(parseInt(e.target.value))}
-                      onMouseDown={() => setIsDragging(true)}
-                      onMouseUp={() => setIsDragging(false)}
-                      onMouseLeave={() => setIsDragging(false)}
-                      onTouchStart={() => setIsDragging(true)}
-                      onTouchEnd={() => setIsDragging(false)}
-                      className="
-                        w-full cursor-grab active:cursor-grabbing appearance-none
-                        [&::-webkit-slider-runnable-track]:h-1.5
-                        [&::-webkit-slider-runnable-track]:rounded-full
-                        [&::-webkit-slider-runnable-track]:bg-slate-200
-                        [&::-webkit-slider-thumb]:appearance-none
-                        [&::-webkit-slider-thumb]:w-4
-                        [&::-webkit-slider-thumb]:h-4
-                        [&::-webkit-slider-thumb]:-mt-[5px]
-                        [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-violet-600
-                        [&::-webkit-slider-thumb]:shadow-md
-                        [&::-webkit-slider-thumb]:cursor-grab
-                        [&::-webkit-slider-thumb]:transition-transform
-                        [&::-webkit-slider-thumb]:hover:scale-110
-                        [&::-moz-range-track]:h-1.5
-                        [&::-moz-range-track]:rounded-full
-                        [&::-moz-range-track]:bg-slate-200
-                        [&::-moz-range-thumb]:w-4
-                        [&::-moz-range-thumb]:h-4
-                        [&::-moz-range-thumb]:rounded-full
-                        [&::-moz-range-thumb]:bg-violet-600
-                        [&::-moz-range-thumb]:border-none
-                        [&::-moz-range-thumb]:shadow-md
-                        [&::-moz-range-progress]:bg-violet-600
-                        [&::-moz-range-progress]:rounded-full
-                        [&::-moz-range-progress]:h-1.5
-                      "
-                      style={{
-                        background: `linear-gradient(to right, #7C3AFF 0%, #7C3AFF ${localProgress}%, #e2e8f0 ${localProgress}%, #e2e8f0 100%)`,
-                      }}
-                    />
-                  </div>
-
-                  <motion.button
-                    onClick={handleSave}
-                    disabled={!hasUnsavedChanges || saveStatus === "saving"}
-                    animate={hasUnsavedChanges && saveStatus === "idle"
-                      ? { boxShadow: ["0 0 0px rgba(124,58,255,0)", "0 0 10px rgba(124,58,255,0.55)", "0 0 0px rgba(124,58,255,0)"] }
-                      : { boxShadow: "0 0 0px rgba(124,58,255,0)" }
-                    }
-                    transition={{ duration: 1.4, repeat: hasUnsavedChanges && saveStatus === "idle" ? Infinity : 0, ease: "easeInOut" }}
-                    whileTap={{ scale: 0.93 }}
-                    className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
-                      saveStatus === "saving"
-                        ? "bg-violet-400 text-white cursor-wait"
-                        : saveStatus === "done"
-                          ? "bg-emerald-500 text-white"
-                          : hasUnsavedChanges
-                            ? "bg-violet-600 text-white hover:bg-violet-700"
-                            : "bg-slate-100 text-slate-400 cursor-default"
-                    }`}
-                  >
-                    {saveStatus === "saving" && <Loader2 className="w-3 h-3 animate-spin" />}
-                    {saveStatus === "done"   && <Check   className="w-3 h-3" />}
-                    {saveStatus === "idle"   && <Save    className="w-3 h-3" />}
-                    {saveStatus === "saving" ? "Savingâ€¦" : saveStatus === "done" ? "Saved" : "Save"}
-                  </motion.button>
-                </div>
-              )}
-
               {/* Action buttons */}
               <div className="flex items-center gap-2 flex-wrap">
                 {project.github_link && (
