@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -97,7 +97,7 @@ function NavContent({
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
 
-  // Refresh accounts from server — called on mount and each time dropdown opens.
+  // Refresh accounts from server â€” called on mount and each time dropdown opens.
   async function refreshAccounts() {
     setIsLoadingAccounts(true);
     try {
@@ -107,7 +107,7 @@ function NavContent({
         setAccounts(data);
       }
     } catch {
-      // silent — keep stale list
+      // silent â€” keep stale list
     } finally {
       setIsLoadingAccounts(false);
     }
@@ -136,7 +136,7 @@ function NavContent({
     if (!switchTarget || isSwitching) return;
 
     if (!switchTarget.linked_user_id) {
-      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı. Hesabı silip tekrar ekleyin.");
+      setSwitchError("Bu hesap iÃ§in kullanÄ±cÄ± ID'si bulunamadÄ±. HesabÄ± silip tekrar ekleyin.");
       return;
     }
 
@@ -153,7 +153,7 @@ function NavContent({
       const data = await res.json();
 
       if (!res.ok || !data.url) {
-        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu. Tekrar deneyin.');
+        setSwitchError(data.error ?? 'Hesap geÃ§iÅŸi baÅŸarÄ±sÄ±z oldu. Tekrar deneyin.');
         setIsSwitching(false);
         return;
       }
@@ -165,7 +165,7 @@ function NavContent({
       window.location.href = data.url;
     } catch (e) {
       console.error('[switch-account] network error:', e);
-      setSwitchError('Ağ hatası. İnternet bağlantınızı kontrol edin.');
+      setSwitchError('AÄŸ hatasÄ±. Ä°nternet baÄŸlantÄ±nÄ±zÄ± kontrol edin.');
       setIsSwitching(false);
     }
   }
@@ -183,7 +183,7 @@ function NavContent({
               <button
                 type="button"
                 onClick={onToggleExpand}
-                title="Genişlet"
+                title="GeniÅŸlet"
                 className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -365,7 +365,7 @@ function NavContent({
       {/* User footer */}
       <div className={`relative border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>
 
-        {/* Account switcher dropdown — absolute so it floats above footer without shifting layout */}
+        {/* Account switcher dropdown â€” absolute so it floats above footer without shifting layout */}
         {isAccountMenuOpen && (
           <div className="absolute bottom-[calc(100%+8px)] left-3 right-3 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-[100]">
             {/* Current account */}
@@ -380,10 +380,10 @@ function NavContent({
 
             {/* Linked accounts */}
             {isLoadingAccounts && accounts.length === 0 && (
-              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Yükleniyor…</div>
+              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">YÃ¼kleniyorâ€¦</div>
             )}
             {!isLoadingAccounts && accounts.length === 0 && (
-              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Bağlı hesap yok</div>
+              <div className="px-3 py-2 text-[11px] text-slate-400 text-center">BaÄŸlÄ± hesap yok</div>
             )}
             {accounts.map(acc => (
               <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 group">
@@ -402,14 +402,14 @@ function NavContent({
                   type="button"
                   onClick={() => { setRemoveTarget(acc); setIsAccountMenuOpen(false); }}
                   className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 hover:text-red-500 text-slate-400 transition-all"
-                  title="Bağlantıyı kaldır"
+                  title="BaÄŸlantÄ±yÄ± kaldÄ±r"
                 >
                   <UserX className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
 
-            {/* Add account — redirect to login with owner_id for back-linking */}
+            {/* Add account â€” redirect to login with owner_id for back-linking */}
             <button
               type="button"
               disabled={!userId}
@@ -466,7 +466,7 @@ function NavContent({
                 type="button"
                 onClick={() => setIsAccountMenuOpen(o => !o)}
                 className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                title="Hesap değiştir"
+                title="Hesap deÄŸiÅŸtir"
               >
                 <ChevronsUpDown className="w-4 h-4" />
               </button>
@@ -488,10 +488,10 @@ function NavContent({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800">Hesap Bağlantısını Kaldır</h3>
+              <h3 className="text-base font-extrabold text-slate-800">Hesap BaÄŸlantÄ±sÄ±nÄ± KaldÄ±r</h3>
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-700">{removeTarget.linked_name || removeTarget.linked_email}</span>{" "}
-                hesabının bağlantısını kaldırmak istediğinize emin misiniz? Bu işlem her iki hesaptaki hızlı geçiş menüsünden de bu hesabı kaldıracaktır.
+                hesabÄ±nÄ±n baÄŸlantÄ±sÄ±nÄ± kaldÄ±rmak istediÄŸinize emin misiniz? Bu iÅŸlem her iki hesaptaki hÄ±zlÄ± geÃ§iÅŸ menÃ¼sÃ¼nden de bu hesabÄ± kaldÄ±racaktÄ±r.
               </p>
             </div>
             <div className="flex gap-2">
@@ -501,7 +501,7 @@ function NavContent({
                 disabled={isRemoving}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
-                Vazgeç
+                VazgeÃ§
               </button>
               <button
                 type="button"
@@ -509,7 +509,7 @@ function NavContent({
                 disabled={isRemoving}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-70"
               >
-                {isRemoving ? "Kaldırılıyor..." : "Evet, Kaldır"}
+                {isRemoving ? "KaldÄ±rÄ±lÄ±yor..." : "Evet, KaldÄ±r"}
               </button>
             </div>
           </div>
@@ -521,10 +521,10 @@ function NavContent({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800">Hesap Değiştir</h3>
+              <h3 className="text-base font-extrabold text-slate-800">Hesap DeÄŸiÅŸtir</h3>
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-700">{switchTarget.linked_name || switchTarget.linked_email}</span>{" "}
-                hesabına geçmek üzeresiniz. Mevcut oturumunuz kapatılacak.
+                hesabÄ±na geÃ§mek Ã¼zeresiniz. Mevcut oturumunuz kapatÄ±lacak.
               </p>
             </div>
             {switchError && (
@@ -539,7 +539,7 @@ function NavContent({
                 disabled={isSwitching}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
-                İptal
+                Ä°ptal
               </button>
               <button
                 type="button"
@@ -547,7 +547,7 @@ function NavContent({
                 disabled={isSwitching}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-70"
               >
-                {isSwitching ? "Geçiş yapılıyor..." : "Geç"}
+                {isSwitching ? "GeÃ§iÅŸ yapÄ±lÄ±yor..." : "GeÃ§"}
               </button>
             </div>
           </div>
@@ -573,7 +573,7 @@ export default function DashboardSidebar(props: SidebarProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* Desktop sidebar — collapsible */}
+      {/* Desktop sidebar â€” collapsible */}
       
       {/* Desktop overlay when expanded */}
       <AnimatePresence>
@@ -583,7 +583,7 @@ export default function DashboardSidebar(props: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="hidden lg:block fixed inset-0 z-40 bg-slate-900/10 backdrop-blur-sm"
+            className="hidden lg:block fixed inset-0 z-40 bg-transparent"
             onClick={() => setIsExpanded(false)}
           />
         )}
@@ -648,3 +648,4 @@ export default function DashboardSidebar(props: SidebarProps) {
     </>
   );
 }
+

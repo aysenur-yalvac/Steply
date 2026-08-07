@@ -223,6 +223,7 @@ export default async function ProjectDetailPage({
           <div className="flex-1 min-w-0">
             <ProjectTabsWrapper
               showNotesTab={isTeamMember || isTeacher}
+              hasNotes={projectNotes.length > 0 || reviews.length > 0}
               overviewContent={
                 <div className="flex flex-col gap-8">
                   <ProjectEditableContent
@@ -244,7 +245,7 @@ export default async function ProjectDetailPage({
                     isCompleted={isCompleted}
                     isCollaborator={isCollaborator}
                   />
-                  {isTeamMember && <ActivityTimeline activities={activities} />}
+                  
                 </div>
               }
               milestonesContent={
@@ -367,6 +368,11 @@ export default async function ProjectDetailPage({
                 </div>
               )}
             </div>
+            
+            {/* Activity Stream moved to right sidebar */}
+            {isTeamMember && (
+              <ActivityTimeline activities={activities} />
+            )}
           </div>
         </div>
       </div>
