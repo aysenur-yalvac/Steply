@@ -352,14 +352,18 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                 })()}
               </div>
               <div>
-                {project.progress_percentage === 100 ? (() => {
+                {projectStatus(project) === 'Completed' ? (() => {
                   const dateStr = project.end_date || project.updated_at || project.created_at;
                   return dateStr ? (
                     <span className="text-xs font-medium text-emerald-600">
                       {new Date(dateStr).toLocaleDateString("tr-TR")}
                     </span>
-                  ) : <span className="text-xs text-slate-300">â€”</span>;
-                })() : <span className="text-xs text-slate-300">â€”</span>}
+                  ) : <span className="text-xs text-slate-300">-</span>;
+                })() : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest bg-violet-50 text-violet-600 border border-violet-100">
+                    Devam Ediyor
+                  </span>
+                )}
               </div>
               <div>
                 <Link
