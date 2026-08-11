@@ -19,7 +19,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const [tool, setTool] = useState('none'); // none, pen, eraser, rect, circle
   const [color, setColor] = useState('#ef4444');
   const [strokeWidth, setStrokeWidth] = useState(4);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
   
   const isDrawing = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +73,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   const savedLines = annotations
     .filter((a: any) => a.annotation_data.type === 'drawing')
-    .flatMap((a: any) => a.annotation_data.lines || []);
+    .flatMap((a: any) => typeof a.annotation_data.lines === 'string' ? JSON.parse(a.annotation_data.lines) : (a.annotation_data.lines || []));
 
   const currentLines = history[historyStep] || [];
   const allLines = [...savedLines, ...currentLines];
@@ -92,11 +92,12 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   const currentShapeRef = useRef<any>(null);
   const layerRef = useRef<any>(null);
+  const eraserCursorRef = useRef<any>(null);
 
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
-    const pos = e.target.getStage().getPointerPosition();
+    const pos = e.target.getStage().getRelativePointerPosition();
     
     let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
@@ -116,9 +117,15 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   const handleMouseMove = (e: any) => {
     const stage = e.target.getStage();
-    const pos = stage.getPointerPosition();
-    setMousePos(pos);
+    const pos = stage.getRelativePointerPosition();
+    
 
+    // Update eraser cursor directly
+    if (tool === 'eraser' && eraserCursorRef.current) {
+      eraserCursorRef.current.position({ x: pos.x, y: pos.y });
+      layerRef.current?.batchDraw();
+    }
+    
     if (!isDrawing.current || !canAnnotate || tool === 'none' || !currentShapeRef.current) return;
     
     // Direct DOM/Konva manipulation to avoid React re-render lag
@@ -223,11 +230,11 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
                       } else {
                         // type 'line' (pen or eraser)
                         // Backward compatibility: old lines might not have type, fallback to line
-                        return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={isEraser ? width * 2 : width} tension={0.5} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} />;
+                        return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={isEraser ? width * 2 : width} tension={0.5} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} closed={false} fillEnabled={false} fill="transparent" />;
                       }
                     })}
-                    {tool === 'eraser' && !isDrawing.current && (
-                      <Circle x={mousePos.x} y={mousePos.y} radius={strokeWidth} fill="rgba(0,0,0,0.1)" stroke="#ef4444" strokeWidth={1} />
+                    {tool === 'eraser' && (
+                      <Circle ref={eraserCursorRef} x={-100} y={-100} radius={strokeWidth} fill="rgba(0,0,0,0.1)" stroke="#ef4444" strokeWidth={1} listening={false} />
                     )}
                   </Layer>
                 </Stage>

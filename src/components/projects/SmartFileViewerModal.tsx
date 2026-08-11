@@ -75,7 +75,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     
       let res;
       if (stagedAnnotation.type === 'drawing') {
-        res = await saveFileDrawingsAction(projectId, file.url, stagedAnnotation.lines);
+        res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(stagedAnnotation.lines));
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
