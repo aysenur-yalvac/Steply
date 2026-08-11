@@ -69,7 +69,7 @@ export default function PdfViewer({ file, annotations, onStageAnnotation, canAnn
   // No, let's keep it simple. Only one staged annotation at a time.
 
   return (
-    <div className="h-full flex flex-col bg-slate-100">
+    <div className="h-full w-full flex flex-col bg-slate-100 overflow-hidden">
       {/* Toolbar */}
       <div className="flex items-center gap-4 p-3 bg-white border-b border-slate-200 justify-center">
         <div className="flex items-center gap-2 mr-6 text-sm font-semibold text-slate-600">
@@ -114,7 +114,7 @@ export default function PdfViewer({ file, annotations, onStageAnnotation, canAnn
         )}
       </div>
 
-      <div className="flex-1 overflow-auto flex items-start justify-center p-4">
+      <div className="flex-1 h-full overflow-auto flex items-start justify-center p-4">
         <div className="relative shadow-lg bg-white" ref={containerRef}>
           <Document
             file={file.url}

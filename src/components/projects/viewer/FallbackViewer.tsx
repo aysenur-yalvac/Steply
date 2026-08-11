@@ -12,8 +12,8 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, c
   };
 
   return (
-    <div className="h-full flex flex-col md:flex-row bg-slate-50">
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50">
+    <div className="h-full w-full flex flex-col md:flex-row bg-slate-50 overflow-hidden">
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white overflow-auto">
         <File className="w-24 h-24 text-slate-300 mb-4" />
         <h3 className="text-xl font-bold text-slate-700">{file.name}</h3>
         <p className="text-sm text-slate-500 mt-2">Bu dosya türü için tarayıcı önizlemesi desteklenmiyor.</p>
@@ -27,7 +27,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, c
           Dosyayı İndir
         </a>
       </div>
-      <div className="w-full md:w-80 bg-white border-l border-slate-200 flex flex-col">
+      <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col">
         <div className="p-4 border-b border-slate-200 bg-slate-50">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" />

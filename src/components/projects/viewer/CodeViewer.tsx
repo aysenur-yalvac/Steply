@@ -44,13 +44,13 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, canAn
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-indigo-500"/></div>;
 
   return (
-    <div className="h-full flex flex-col md:flex-row bg-slate-50">
-      <div className="flex-1 overflow-auto bg-white p-4">
+    <div className="h-full w-full flex flex-col md:flex-row bg-slate-50 overflow-hidden">
+      <div className="flex-1 h-full overflow-auto bg-white p-4">
         <SyntaxHighlighter language={getLanguage(file.name)} style={vs} showLineNumbers>
           {code}
         </SyntaxHighlighter>
       </div>
-      <div className="w-full md:w-80 bg-slate-100 border-l border-slate-200 flex flex-col">
+      <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col">
         <div className="p-4 border-b border-slate-200 bg-white">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" />

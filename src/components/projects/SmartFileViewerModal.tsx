@@ -75,19 +75,19 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
+      <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 md:p-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+          className="absolute inset-0"
           onClick={onClose}
         />
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full max-w-6xl h-full bg-slate-50 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          className="relative w-full h-full max-w-[96vw] max-h-[92vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">

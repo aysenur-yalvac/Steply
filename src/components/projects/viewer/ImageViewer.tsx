@@ -52,7 +52,7 @@ export default function ImageViewer({ file, annotations, onStageAnnotation, canA
   const scale = Math.min(containerWidth / image.width, containerHeight / image.height, 1);
 
   return (
-    <div className="h-full flex flex-col bg-slate-100">
+    <div className="h-full w-full flex flex-col bg-slate-100 overflow-hidden">
       {canAnnotate && (
         <div className="flex items-center gap-4 p-3 bg-white border-b border-slate-200 justify-center">
           <button 
@@ -75,7 +75,7 @@ export default function ImageViewer({ file, annotations, onStageAnnotation, canA
           </button>
         </div>
       )}
-      <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+      <div className="flex-1 h-full overflow-auto flex items-center justify-center p-4">
         <div className="shadow-lg bg-white" style={{ width: image.width * scale, height: image.height * scale }}>
           <Stage
             width={image.width * scale}
