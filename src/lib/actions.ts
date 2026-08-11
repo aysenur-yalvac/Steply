@@ -572,8 +572,7 @@ export async function addProjectTask(
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
-
-  const { data, error } = await ctx.admin
+    const { data, error } = await ctx.admin
     .from('project_tasks')
     .insert({ project_id: projectId, title: title.trim(), is_completed: false })
     .select()
@@ -1522,7 +1521,12 @@ export async function saveFileAnnotationAction(
     const ctx = await assertProjectAccess(supabase, projectId);
     if (!ctx) return { error: 'Unauthorized' };
 
-    const { data, error } = await ctx.admin
+    
+      const fileName = fileUrl.split('/').pop() || 'Dosya';
+      const isNote = annotationData?.type === 'sticky_note';
+      await logProjectActivity(ctx.admin, projectId, ctx.user.id, isNote ? 'file_noted' : 'file_annotated', `${ctx.user.user_metadata?.full_name || 'Kullanıcı'} '${fileName}' isimli dosyaya yeni ${isNote ? 'not' : 'işaretleme'} ekledi.`);
+
+      const { data, error } = await ctx.admin
       .from('file_annotations')
       .insert({
         project_id: projectId,
@@ -1582,6 +1586,49 @@ export async function deleteFileAnnotationAction(projectId: string, annotationId
 
     if (error) return { error: error.message };
     return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+
+export async function saveFileDrawingsAction(
+  projectId: string,
+  fileUrl: string,
+  drawingData: any
+) {
+  try {
+    const supabase = await createClient();
+    const ctx = await assertProjectAccess(supabase, projectId);
+    if (!ctx) return { error: 'Unauthorized' };
+
+    const { data, error } = await ctx.admin
+      .from('file_annotations')
+      .insert({
+        project_id: projectId,
+        file_url: fileUrl,
+        author_id: ctx.user.id,
+        annotation_data: { type: 'drawing', lines: drawingData }
+      })
+      .select('*')
+      .single();
+
+    if (error) return { error: error.message };
+
+    // Activity log for drawing
+    const fileName = fileUrl.split('/').pop() || 'Dosya';
+    await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'file_annotated', `${ctx.user.user_metadata?.full_name || 'Kullanıcı'} '${fileName}' isimli dosyaya yeni çizim/işaretleme ekledi.`);
+
+    if (data) {
+      const { data: profile } = await ctx.admin
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .eq('id', ctx.user.id)
+        .single();
+      if (profile) data.author = profile;
+    }
+
+    return { data };
   } catch (error: any) {
     return { error: error.message };
   }

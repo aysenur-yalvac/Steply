@@ -8,7 +8,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
 
   
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   }, [annotations]);
 
   

@@ -8,7 +8,7 @@ import ImageViewer from './viewer/ImageViewer';
 import PdfViewer from './viewer/PdfViewer';
 import CodeViewer from './viewer/CodeViewer';
 import FallbackViewer from './viewer/FallbackViewer';
-import { getFileAnnotationsAction, saveFileAnnotationAction } from '@/lib/actions';
+import { getFileAnnotationsAction, saveFileAnnotationAction, saveFileDrawingsAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
 
 import { ProjectFile } from '@/lib/actions';
@@ -72,7 +72,14 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     setIsSaving(true);
     
     // Save to DB
-    const res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
+    
+      let res;
+      if (stagedAnnotation.type === 'drawing') {
+        res = await saveFileDrawingsAction(projectId, file.url, stagedAnnotation.lines);
+      } else {
+        res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
+      }
+
     
     if (res.error) {
       toast.error('Not kaydedilemedi: ' + res.error);

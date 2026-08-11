@@ -40,7 +40,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   }, [annotations]);
 
   
@@ -90,6 +90,9 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     onStageAnnotation({ type: 'drawing', lines: history[historyStep + 1] });
   };
 
+  const currentShapeRef = useRef<any>(null);
+  const layerRef = useRef<any>(null);
+
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
@@ -99,9 +102,12 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
     if (tool === 'circle') newShape = { type: 'circle', tool, points: [pos.x, pos.y, 0], color, strokeWidth };
     
+    currentShapeRef.current = newShape;
+
+    // To prevent React re-renders, we could manually inject a Konva Node into the layer here, 
+    // but the easiest way is to push it to state ONCE on mouse down, 
+    // then mutate the Konva node directly during mousemove.
     const newLines = [...currentLines, newShape];
-    
-    // Update history
     const newHistory = history.slice(0, historyStep + 1);
     newHistory.push(newLines);
     setHistory(newHistory);
@@ -113,33 +119,56 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     const pos = stage.getPointerPosition();
     setMousePos(pos);
 
-    if (!isDrawing.current || !canAnnotate || tool === 'none') return;
+    if (!isDrawing.current || !canAnnotate || tool === 'none' || !currentShapeRef.current) return;
     
-    const newLines = [...currentLines];
-    let lastLine = { ...newLines[newLines.length - 1] };
+    // Direct DOM/Konva manipulation to avoid React re-render lag
+    const shape = currentShapeRef.current;
     
     if (tool === 'pen' || tool === 'eraser') {
-      lastLine.points = lastLine.points.concat([pos.x, pos.y]);
+      shape.points.push(pos.x, pos.y);
     } else if (tool === 'rect') {
-      lastLine.points = [lastLine.points[0], lastLine.points[1], pos.x, pos.y];
+      shape.points = [shape.points[0], shape.points[1], pos.x, pos.y];
     } else if (tool === 'circle') {
-      const dx = pos.x - lastLine.points[0];
-      const dy = pos.y - lastLine.points[1];
+      const dx = pos.x - shape.points[0];
+      const dy = pos.y - shape.points[1];
       const radius = Math.sqrt(dx * dx + dy * dy);
-      lastLine.points = [lastLine.points[0], lastLine.points[1], radius];
+      shape.points = [shape.points[0], shape.points[1], radius];
     }
     
-    newLines.splice(newLines.length - 1, 1, lastLine);
-    
-    const newHistory = [...history];
-    newHistory[historyStep] = newLines;
-    setHistory(newHistory);
+    // Find the actual Konva node and update it directly
+    const layer = layerRef.current;
+    if (layer) {
+      const nodes = layer.getChildren();
+      const lastNode = nodes[nodes.length - 2]; // -2 because the eraser cursor is the very last node!
+      if (lastNode) {
+        if (tool === 'pen' || tool === 'eraser') {
+          lastNode.points(shape.points);
+        } else if (tool === 'rect') {
+          lastLinePointsToRect(lastNode, shape.points);
+        } else if (tool === 'circle') {
+          lastNode.radius(shape.points[2]);
+        }
+        layer.batchDraw();
+      }
+    }
+  };
+
+  const lastLinePointsToRect = (node: any, pts: number[]) => {
+    node.x(Math.min(pts[0], pts[2]));
+    node.y(Math.min(pts[1], pts[3]));
+    node.width(Math.abs(pts[2] - pts[0]));
+    node.height(Math.abs(pts[3] - pts[1]));
   };
 
   const handleMouseUp = () => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = false;
-    onStageAnnotation({ type: 'drawing', lines: currentLines });
+    // We update the state once at the end so React reconciles the mutated ref data
+    const finalHistory = [...history];
+    finalHistory[historyStep] = [...currentLines.slice(0, -1), currentShapeRef.current];
+    setHistory(finalHistory);
+    onStageAnnotation({ type: 'drawing', lines: finalHistory[historyStep] });
+    currentShapeRef.current = null;
   };
 
   if (loading) return <div className="h-full w-full flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin w-8 h-8 text-indigo-500"/></div>;
@@ -180,7 +209,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
             {dimensions.width > 0 && (tool !== 'none' || allLines.length > 0) && (
               <div className="absolute inset-0" style={{ pointerEvents: tool === 'none' ? 'none' : 'auto' }}>
                 <Stage width={dimensions.width} height={dimensions.height} onMouseDown={handleMouseDown} onMousemove={handleMouseMove} onMouseup={handleMouseUp} onTouchStart={handleMouseDown} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}>
-                  <Layer>
+                  <Layer ref={layerRef}>
                     {allLines.map((line: any, i: number) => {
                       const isEraser = line.tool === 'eraser';
                       const strokeColor = isEraser ? '#ffffff' : (line.color || '#ef4444');
