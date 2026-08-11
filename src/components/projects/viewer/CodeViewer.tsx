@@ -1,20 +1,25 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { MessageSquare, Loader2, PenTool, Eraser } from 'lucide-react';
-import { Stage, Layer, Line } from 'react-konva';
+import { MessageSquare, Loader2, PenTool, Eraser, Undo, Redo, Square, Circle as CircleIcon } from 'lucide-react';
+import { Stage, Layer, Line, Rect, Circle } from 'react-konva';
+import { ColorPicker } from '@/components/ui/color-picker';
 
 export default function CodeViewer({ file, annotations, onStageAnnotation, onImmediateSave, canAnnotate }: any) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState('');
   
-  // Drawing state
-  const [lines, setLines] = useState<any[]>([]);
-  const [tool, setTool] = useState('pen'); // pen, eraser, or null (disabled)
+  // Drawing states
+  const [history, setHistory] = useState<any[]>([[]]); // array of line arrays
+  const [historyStep, setHistoryStep] = useState(0);
+  const [tool, setTool] = useState('none'); // none, pen, eraser, rect, circle
+  const [color, setColor] = useState('#ef4444');
+  const [strokeWidth, setStrokeWidth] = useState(4);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
   const isDrawing = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -22,32 +27,20 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   useEffect(() => {
     fetch(file.url)
       .then(r => r.text())
-      .then(t => {
-        setCode(t);
-        setLoading(false);
-      })
-      .catch(e => {
-        console.error(e);
-        setLoading(false);
-      });
+      .then(t => { setCode(t); setLoading(false); })
+      .catch(e => { console.error(e); setLoading(false); });
   }, [file]);
 
-  // Update canvas size when code is loaded or resized
   useEffect(() => {
     if (!loading && containerRef.current) {
-      const el = containerRef.current;
-      setDimensions({ width: el.scrollWidth, height: el.scrollHeight });
+      setDimensions({ width: containerRef.current.scrollWidth, height: containerRef.current.scrollHeight });
     }
   }, [loading, code]);
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
-    if (onImmediateSave) {
-      // Optimistic UI handled by onImmediateSave in Modal
-      onImmediateSave({ type: 'sticky_note', text: noteText });
-    } else {
-      onStageAnnotation({ type: 'sticky_note', text: noteText });
-    }
+    if (onImmediateSave) onImmediateSave({ type: 'sticky_note', text: noteText });
+    else onStageAnnotation({ type: 'sticky_note', text: noteText });
     setNoteText('');
   };
 
@@ -64,34 +57,75 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     }
   };
 
-  // Combine saved drawing annotations
   const savedLines = annotations
     .filter((a: any) => a.annotation_data.type === 'drawing')
     .flatMap((a: any) => a.annotation_data.lines || []);
 
-  const allLines = [...savedLines, ...lines];
+  const currentLines = history[historyStep] || [];
+  const allLines = [...savedLines, ...currentLines];
+
+  const handleUndo = () => {
+    if (historyStep === 0) return;
+    setHistoryStep(historyStep - 1);
+    onStageAnnotation({ type: 'drawing', lines: history[historyStep - 1] });
+  };
+
+  const handleRedo = () => {
+    if (historyStep === history.length - 1) return;
+    setHistoryStep(historyStep + 1);
+    onStageAnnotation({ type: 'drawing', lines: history[historyStep + 1] });
+  };
 
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
-    setLines([...lines, { tool, points: [pos.x, pos.y] }]);
+    
+    let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
+    if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
+    if (tool === 'circle') newShape = { type: 'circle', tool, points: [pos.x, pos.y, 0], color, strokeWidth };
+    
+    const newLines = [...currentLines, newShape];
+    
+    // Update history
+    const newHistory = history.slice(0, historyStep + 1);
+    newHistory.push(newLines);
+    setHistory(newHistory);
+    setHistoryStep(newHistory.length - 1);
   };
 
   const handleMouseMove = (e: any) => {
-    if (!isDrawing.current || !canAnnotate || tool === 'none') return;
     const stage = e.target.getStage();
-    const point = stage.getPointerPosition();
-    let lastLine = lines[lines.length - 1];
-    lastLine.points = lastLine.points.concat([point.x, point.y]);
-    lines.splice(lines.length - 1, 1, lastLine);
-    setLines(lines.concat());
+    const pos = stage.getPointerPosition();
+    setMousePos(pos);
+
+    if (!isDrawing.current || !canAnnotate || tool === 'none') return;
+    
+    const newLines = [...currentLines];
+    let lastLine = { ...newLines[newLines.length - 1] };
+    
+    if (tool === 'pen' || tool === 'eraser') {
+      lastLine.points = lastLine.points.concat([pos.x, pos.y]);
+    } else if (tool === 'rect') {
+      lastLine.points = [lastLine.points[0], lastLine.points[1], pos.x, pos.y];
+    } else if (tool === 'circle') {
+      const dx = pos.x - lastLine.points[0];
+      const dy = pos.y - lastLine.points[1];
+      const radius = Math.sqrt(dx * dx + dy * dy);
+      lastLine.points = [lastLine.points[0], lastLine.points[1], radius];
+    }
+    
+    newLines.splice(newLines.length - 1, 1, lastLine);
+    
+    const newHistory = [...history];
+    newHistory[historyStep] = newLines;
+    setHistory(newHistory);
   };
 
   const handleMouseUp = () => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = false;
-    onStageAnnotation({ type: 'drawing', lines });
+    onStageAnnotation({ type: 'drawing', lines: currentLines });
   };
 
   if (loading) return <div className="h-full w-full flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin w-8 h-8 text-indigo-500"/></div>;
@@ -104,74 +138,54 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
         
         {/* Drawing Toolbar */}
         {canAnnotate && (
-          <div className="flex items-center gap-4 p-3 bg-white border-b border-slate-200 justify-center shrink-0">
-            <button 
-              onClick={() => setTool('none')} 
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'none' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}
-            >
-               Sadece Oku / Seç
-            </button>
-            <button 
-              onClick={() => setTool('pen')} 
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}
-            >
-              <PenTool className="w-4 h-4" /> Çiz
-            </button>
-            <button 
-              onClick={() => setTool('eraser')} 
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}
-            >
-              <Eraser className="w-4 h-4" /> Sil
-            </button>
-            <button 
-              onClick={() => { setLines([]); onStageAnnotation(null); }} 
-              className="px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold text-red-500 hover:bg-red-50"
-            >
-              Temizle
-            </button>
+          <div className="flex flex-wrap items-center gap-2 p-2 bg-white border-b border-slate-200 shrink-0">
+            <button onClick={() => setTool('none')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'none' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}>Seç/Oku</button>
+            <button onClick={() => setTool('pen')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><PenTool className="w-4 h-4" /> Çiz</button>
+            <button onClick={() => setTool('rect')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'rect' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Square className="w-4 h-4" /></button>
+            <button onClick={() => setTool('circle')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'circle' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><CircleIcon className="w-4 h-4" /></button>
+            <button onClick={() => setTool('eraser')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Eraser className="w-4 h-4" /> Sil</button>
+            
+            <div className="w-px h-6 bg-slate-200 mx-2" />
+            
+            <ColorPicker color={color} onChange={setColor} strokeWidth={strokeWidth} onStrokeWidthChange={setStrokeWidth} />
+            
+            <div className="w-px h-6 bg-slate-200 mx-2" />
+            
+            <button onClick={handleUndo} disabled={historyStep === 0} className="p-1.5 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><Undo className="w-5 h-5" /></button>
+            <button onClick={handleRedo} disabled={historyStep === history.length - 1} className="p-1.5 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><Redo className="w-5 h-5" /></button>
           </div>
         )}
 
-        {/* Scrollable Container containing BOTH code and canvas */}
-        <div className="flex-1 h-full overflow-auto relative p-4" ref={containerRef}>
+        {/* Scrollable Container */}
+        <div className="flex-1 h-full overflow-auto relative p-4" ref={containerRef} style={{ cursor: tool === 'none' ? 'default' : tool === 'eraser' ? 'none' : 'crosshair' }}>
           <div style={{ position: 'relative' }}>
-            <SyntaxHighlighter 
-              language={getLanguage(file.name)} 
-              style={vs} 
-              showLineNumbers
-              customStyle={{ margin: 0, padding: 0, overflow: 'visible', background: 'transparent' }}
-            >
+            <SyntaxHighlighter language={getLanguage(file.name)} style={vs} showLineNumbers customStyle={{ margin: 0, padding: 0, overflow: 'visible', background: 'transparent' }}>
               {code}
             </SyntaxHighlighter>
 
-            {/* Drawing Canvas Overlay */}
             {dimensions.width > 0 && (tool !== 'none' || allLines.length > 0) && (
               <div className="absolute inset-0" style={{ pointerEvents: tool === 'none' ? 'none' : 'auto' }}>
-                <Stage
-                  width={dimensions.width}
-                  height={dimensions.height}
-                  onMouseDown={handleMouseDown}
-                  onMousemove={handleMouseMove}
-                  onMouseup={handleMouseUp}
-                  onTouchStart={handleMouseDown}
-                  onTouchMove={handleMouseMove}
-                  onTouchEnd={handleMouseUp}
-                >
+                <Stage width={dimensions.width} height={dimensions.height} onMouseDown={handleMouseDown} onMousemove={handleMouseMove} onMouseup={handleMouseUp} onTouchStart={handleMouseDown} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}>
                   <Layer>
-                    {allLines.map((line: any, i: number) => (
-                      <Line
-                        key={i}
-                        points={line.points}
-                        stroke={line.tool === 'eraser' ? '#ffffff' : '#ef4444'}
-                        strokeWidth={line.tool === 'eraser' ? 20 : 4}
-                        tension={0.5}
-                        lineCap="round"
-                        lineJoin="round"
-                        globalCompositeOperation={
-                          line.tool === 'eraser' ? 'destination-out' : 'source-over'
-                        }
-                      />
-                    ))}
+                    {allLines.map((line: any, i: number) => {
+                      const isEraser = line.tool === 'eraser';
+                      const strokeColor = isEraser ? '#ffffff' : (line.color || '#ef4444');
+                      const width = line.strokeWidth || 4;
+                      const globalComp = isEraser ? 'destination-out' : 'source-over';
+                      
+                      if (line.type === 'rect') {
+                        return <Rect key={i} x={Math.min(line.points[0], line.points[2])} y={Math.min(line.points[1], line.points[3])} width={Math.abs(line.points[2] - line.points[0])} height={Math.abs(line.points[3] - line.points[1])} stroke={strokeColor} strokeWidth={width} globalCompositeOperation={globalComp} />;
+                      } else if (line.type === 'circle') {
+                        return <Circle key={i} x={line.points[0]} y={line.points[1]} radius={line.points[2]} stroke={strokeColor} strokeWidth={width} globalCompositeOperation={globalComp} />;
+                      } else {
+                        // type 'line' (pen or eraser)
+                        // Backward compatibility: old lines might not have type, fallback to line
+                        return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={isEraser ? width * 2 : width} tension={0.5} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} />;
+                      }
+                    })}
+                    {tool === 'eraser' && !isDrawing.current && (
+                      <Circle x={mousePos.x} y={mousePos.y} radius={strokeWidth} fill="rgba(0,0,0,0.1)" stroke="#ef4444" strokeWidth={1} />
+                    )}
                   </Layer>
                 </Stage>
               </div>
@@ -183,10 +197,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
       {/* Notes Sidebar */}
       <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col shrink-0">
         <div className="p-4 border-b border-slate-200 bg-white">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-indigo-500" />
-            Notlar
-          </h3>
+          <h3 className="font-bold text-slate-800 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-indigo-500" /> Notlar</h3>
         </div>
         <div className="flex-1 p-4 overflow-auto space-y-4">
           {annotations.map((a: any, i: number) => (

@@ -1484,9 +1484,23 @@ export async function getFileAnnotationsAction(fileUrl: string) {
     const admin = createAdminClient();
     const { data: annotations, error } = await admin
       .from('file_annotations')
-      .select('*, author:profiles!author_id(full_name, avatar_url)')
+      .select('*')
       .eq('file_url', fileUrl)
       .order('created_at', { ascending: true });
+      
+    if (annotations && annotations.length > 0) {
+      const authorIds = [...new Set(annotations.map((a: any) => a.author_id))];
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
+        
+      if (profiles) {
+        annotations.forEach((a: any) => {
+          a.author = profiles.find((p: any) => p.id === a.author_id);
+        });
+      }
+    }
 
     if (error) {
       console.error('Error fetching annotations:', error);
@@ -1516,7 +1530,7 @@ export async function saveFileAnnotationAction(
         author_id: ctx.user.id,
         annotation_data: annotationData
       })
-      .select('*, author:profiles!author_id(full_name, avatar_url)')
+      .select('*')
       .single();
 
     if (error) {
