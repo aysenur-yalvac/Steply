@@ -1472,3 +1472,92 @@ export async function updateProjectStatusAction(
   revalidatePath('/dashboard');
   return { success: true };
 }
+
+
+// ==========================================
+// Smart File Annotations
+// ==========================================
+
+export async function getFileAnnotationsAction(fileUrl: string) {
+  try {
+    const supabase = await createClient();
+    const admin = createAdminClient();
+    const { data: annotations, error } = await admin
+      .from('file_annotations')
+      .select('*, author:profiles!author_id(full_name, avatar_url)')
+      .eq('file_url', fileUrl)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching annotations:', error);
+      return { error: error.message };
+    }
+    return { data: annotations };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function saveFileAnnotationAction(
+  projectId: string,
+  fileUrl: string,
+  annotationData: any
+) {
+  try {
+    const supabase = await createClient();
+    const ctx = await assertProjectAccess(supabase, projectId);
+    if (!ctx) return { error: 'Unauthorized' };
+
+    const { data, error } = await ctx.admin
+      .from('file_annotations')
+      .insert({
+        project_id: projectId,
+        file_url: fileUrl,
+        author_id: ctx.user.id,
+        annotation_data: annotationData
+      })
+      .select('*, author:profiles!author_id(full_name, avatar_url)')
+      .single();
+
+    if (error) {
+      console.error('Error saving annotation:', error);
+      return { error: error.message };
+    }
+
+    return { data };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteFileAnnotationAction(projectId: string, annotationId: string) {
+  try {
+    const supabase = await createClient();
+    const ctx = await assertProjectAccess(supabase, projectId);
+    if (!ctx) return { error: 'Unauthorized' };
+
+    // Delete if the user is the author or project owner
+    // First fetch the annotation to check author
+    const { data: annotation, error: fetchError } = await ctx.admin
+      .from('file_annotations')
+      .select('author_id')
+      .eq('id', annotationId)
+      .single();
+      
+    if (fetchError || !annotation) return { error: 'Annotation not found' };
+    
+    if (annotation.author_id !== ctx.user.id && ctx.role !== 'owner') {
+      return { error: 'Sadece kendi notunuzu veya proje sahibi silebilir' };
+    }
+
+    const { error } = await ctx.admin
+      .from('file_annotations')
+      .delete()
+      .eq('id', annotationId);
+
+    if (error) return { error: error.message };
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

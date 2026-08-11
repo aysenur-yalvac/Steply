@@ -5,6 +5,8 @@ import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide
 import { saveFileRecordAction, deleteFileAction, ProjectFile } from '@/lib/actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
+import SmartFileViewerModal from './SmartFileViewerModal';
+import { Eye } from 'lucide-react';
 
 const BUCKET_ID = "project-files";
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -34,6 +36,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   const canManageFiles = isOwner || isCollaborator;
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
+  const [viewerFile, setViewerFile] = useState<ProjectFile | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [makePrivate, setMakePrivate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -269,6 +272,14 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
           {files.filter(f => f.isPrivate).length} gizli dosya gizlendi.
         </p>
       )}
+      
+      <SmartFileViewerModal
+        isOpen={!!viewerFile}
+        onClose={() => setViewerFile(null)}
+        file={viewerFile}
+        projectId={projectId}
+        canManageFiles={canManageFiles}
+      />
     </div>
   );
 }
