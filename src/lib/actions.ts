@@ -1534,11 +1534,22 @@ export async function saveFileAnnotationAction(
       .single();
 
     if (error) {
-      console.error('Error saving annotation:', error);
-      return { error: error.message };
-    }
+        console.error('Error saving annotation:', error);
+        return { error: error.message };
+      }
 
-    return { data };
+      if (data) {
+        const { data: profile } = await ctx.admin
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .eq('id', ctx.user.id)
+          .single();
+        if (profile) {
+          data.author = profile;
+        }
+      }
+  
+      return { data };
   } catch (error: any) {
     return { error: error.message };
   }
