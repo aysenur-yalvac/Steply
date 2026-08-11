@@ -611,7 +611,10 @@ export async function toggleTaskCompletion(
     .eq('id', taskId)
     .eq('project_id', projectId);
 
-  if (error) return { error: error.message };
+  if (error) {
+      console.error('SUPABASE DRAWING SAVE ERROR:', error);
+      return { error: error.message };
+    }
 
   const progress = await recalculateProgress(ctx.admin, projectId);
   const taskTitle = taskRow?.title ?? taskId;

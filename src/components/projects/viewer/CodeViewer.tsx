@@ -14,8 +14,10 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Drawing states
-  const [history, setHistory] = useState<any[]>([[]]); // array of line arrays
+  const [history, setHistory] = useState<any[]>([[]]);
+  const historyRef = useRef<any[]>([[]]); // array of line arrays
   const [historyStep, setHistoryStep] = useState(0);
+  const historyStepRef = useRef(0);
   const [tool, setTool] = useState('none'); // none, pen, eraser, rect, circle
   const [color, setColor] = useState('#ef4444');
   const [strokeWidth, setStrokeWidth] = useState(4);
@@ -75,19 +77,31 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     .filter((a: any) => a.annotation_data.type === 'drawing')
     .flatMap((a: any) => typeof a.annotation_data.lines === 'string' ? JSON.parse(a.annotation_data.lines) : (a.annotation_data.lines || []));
 
-  const currentLines = history[historyStep] || [];
-  const allLines = [...savedLines, ...currentLines];
+  
+  // Update refs on initial load if empty
+  useEffect(() => {
+    if (savedLines.length > 0 && historyRef.current[0].length === 0 && historyRef.current.length === 1) {
+      historyRef.current = [savedLines];
+      setHistory([savedLines]);
+      setHistoryStep(0);
+      historyStepRef.current = 0;
+    }
+  }, [annotations]);
+  
+  const allLines = history[historyStep] || [];
 
   const handleUndo = () => {
     if (historyStep === 0) return;
-    setHistoryStep(historyStep - 1);
-    onStageAnnotation({ type: 'drawing', lines: history[historyStep - 1] });
+    historyStepRef.current -= 1;
+    setHistoryStep(historyStepRef.current);
+    onStageAnnotation({ type: 'drawing', lines: historyRef.current[historyStepRef.current] });
   };
 
   const handleRedo = () => {
     if (historyStep === history.length - 1) return;
-    setHistoryStep(historyStep + 1);
-    onStageAnnotation({ type: 'drawing', lines: history[historyStep + 1] });
+    historyStepRef.current += 1;
+    setHistoryStep(historyStepRef.current);
+    onStageAnnotation({ type: 'drawing', lines: historyRef.current[historyStepRef.current] });
   };
 
   const currentShapeRef = useRef<any>(null);
@@ -98,6 +112,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
     const pos = e.target.getStage().getRelativePointerPosition();
+    if (!pos) return;
     
     let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
@@ -108,9 +123,11 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     // To prevent React re-renders, we could manually inject a Konva Node into the layer here, 
     // but the easiest way is to push it to state ONCE on mouse down, 
     // then mutate the Konva node directly during mousemove.
-    const newLines = [...currentLines, newShape];
-    const newHistory = history.slice(0, historyStep + 1);
+    const newLines = [...(historyRef.current[historyStepRef.current] || []), newShape];
+    const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
     newHistory.push(newLines);
+    historyRef.current = newHistory;
+    historyStepRef.current = newHistory.length - 1;
     setHistory(newHistory);
     setHistoryStep(newHistory.length - 1);
   };
@@ -118,6 +135,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const handleMouseMove = (e: any) => {
     const stage = e.target.getStage();
     const pos = stage.getRelativePointerPosition();
+    if (!pos) return;
     
 
     // Update eraser cursor directly
@@ -171,10 +189,13 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = false;
     // We update the state once at the end so React reconciles the mutated ref data
-    const finalHistory = [...history];
-    finalHistory[historyStep] = [...currentLines.slice(0, -1), currentShapeRef.current];
+    const finalHistory = [...historyRef.current];
+    const currStep = historyStepRef.current;
+    const currLines = finalHistory[currStep] || [];
+    finalHistory[currStep] = [...currLines.slice(0, -1), currentShapeRef.current];
+    historyRef.current = finalHistory;
     setHistory(finalHistory);
-    onStageAnnotation({ type: 'drawing', lines: finalHistory[historyStep] });
+    onStageAnnotation({ type: 'drawing', lines: finalHistory[currStep] });
     currentShapeRef.current = null;
   };
 
