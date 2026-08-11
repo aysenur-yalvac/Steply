@@ -34,6 +34,7 @@ interface Props {
     end_date?: string | null;
     student_id?: string;
     github_link?: string | null;
+    created_at?: string | null;
     profiles?: { full_name: string; avatar_url?: string | null } | null;
     is_private?: boolean;
   };
@@ -381,7 +382,7 @@ export default function ProjectEditableContent({
               <Calendar className="w-4 h-4 text-slate-400" /> Başlangıç
             </span>
             <span className="text-sm text-slate-600 font-medium">
-              {project.start_date ? new Date(project.start_date).toLocaleDateString("tr-TR") : "Belirtilmedi"}
+              {project.start_date || project.created_at ? new Date(project.start_date || project.created_at).toLocaleDateString("tr-TR") : "Belirtilmedi"}
             </span>
           </div>
 

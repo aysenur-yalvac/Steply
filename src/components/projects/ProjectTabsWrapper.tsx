@@ -26,6 +26,7 @@ export default function ProjectTabsWrapper({
   hasNotes,
 }: ProjectTabsWrapperProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [hasViewedNotes, setHasViewedNotes] = useState(false);
 
   const tabs = [
     { id: 'overview', label: 'Genel Bakış & Takım', icon: Layers },
@@ -46,12 +47,15 @@ export default function ProjectTabsWrapper({
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
+              onClick={() => {
+                setActiveTab(tab.id as TabType);
+                if (tab.id === 'notes') setHasViewedNotes(true);
+              }}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative ${isActive ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border border-slate-100 hover:border-violet-200'}`}
             >
               <Icon className="w-5 h-5" />
               {tab.label}
-              {tab.id === 'notes' && hasNotes && (
+              {tab.id === 'notes' && hasNotes && !hasViewedNotes && activeTab !== 'notes' && (
                 <span className="absolute top-3 right-4 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               )}
             </button>

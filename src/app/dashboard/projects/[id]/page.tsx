@@ -235,6 +235,7 @@ export default async function ProjectDetailPage({
                       end_date:           project.end_date,
                       student_id:         project.student_id,
                       github_link:        project.github_link,
+                      created_at:         project.created_at,
                       is_private:         (project as any).is_private ?? false,
                       profiles:           ownerName
                         ? { full_name: ownerName, avatar_url: ownerAvatarUrl }

@@ -929,7 +929,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
         add_log: 2,
       };
       const points = POINTS[actionType] ?? 1;
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString();
 
       const { data: existing } = await admin
         .from('user_activities')
