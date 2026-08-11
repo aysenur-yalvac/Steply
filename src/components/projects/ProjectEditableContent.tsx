@@ -382,7 +382,7 @@ export default function ProjectEditableContent({
               <Calendar className="w-4 h-4 text-slate-400" /> Başlangıç
             </span>
             <span className="text-sm text-slate-600 font-medium">
-              {project.start_date || project.created_at ? new Date(project.start_date || project.created_at).toLocaleDateString("tr-TR") : "Belirtilmedi"}
+              {project.start_date || project.created_at ? new Date((project.start_date || project.created_at) as string).toLocaleDateString("tr-TR") : "Belirtilmedi"}
             </span>
           </div>
 
