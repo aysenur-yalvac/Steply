@@ -55,6 +55,18 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     setIsLoading(false);
   };
 
+  
+  const handleImmediateSave = async (data: any) => {
+    if (!file) return;
+    const res = await saveFileAnnotationAction(projectId, file.url, data);
+    if (res.error) {
+      toast.error('Not kaydedilemedi: ' + res.error);
+    } else if (res.data) {
+      toast.success('Not eklendi!');
+      setAnnotations((prev) => [...prev, res.data]);
+    }
+  };
+
   const handleSaveAnnotation = async () => {
     if (!file || !stagedAnnotation) return;
     setIsSaving(true);
@@ -134,6 +146,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                     file={file} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
+                    onImmediateSave={handleImmediateSave}
                     canAnnotate={canManageFiles} 
                   />
                 )}
@@ -142,6 +155,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                     file={file} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
+                    onImmediateSave={handleImmediateSave}
                     canAnnotate={canManageFiles} 
                   />
                 )}
@@ -150,6 +164,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                     file={file} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
+                    onImmediateSave={handleImmediateSave}
                     canAnnotate={canManageFiles} 
                   />
                 )}
@@ -158,6 +173,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                     file={file} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
+                    onImmediateSave={handleImmediateSave}
                     canAnnotate={canManageFiles} 
                   />
                 )}

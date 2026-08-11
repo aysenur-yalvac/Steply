@@ -2,12 +2,16 @@
 import React, { useState } from 'react';
 import { MessageSquare, File } from 'lucide-react';
 
-export default function FallbackViewer({ file, annotations, onStageAnnotation, canAnnotate }: any) {
+export default function FallbackViewer({ file, annotations, onStageAnnotation, onImmediateSave, canAnnotate }: any) {
   const [noteText, setNoteText] = useState('');
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
-    onStageAnnotation({ type: 'sticky_note', text: noteText });
+    if (onImmediateSave) {
+      onImmediateSave({ type: 'sticky_note', text: noteText });
+    } else {
+      onStageAnnotation({ type: 'sticky_note', text: noteText });
+    }
     setNoteText('');
   };
 
@@ -52,7 +56,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, c
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
               placeholder="Dosya hakkında not yazın..."
-              className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              className="w-full text-sm p-3 text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
               rows={3}
             />
             <button
