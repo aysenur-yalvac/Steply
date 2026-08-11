@@ -111,8 +111,24 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
-    const pos = e.target.getStage().getRelativePointerPosition();
-    if (!pos) return;
+    
+    const stage = e.target.getStage();
+    const container = stage.container();
+    const rect = container.getBoundingClientRect();
+    
+    // React-konva wraps events in e.evt
+    const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
+    const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
+
+    const scaleX = stage.scaleX() || 1;
+    const scaleY = stage.scaleY() || 1;
+    
+    const pos = {
+      x: (clientX - rect.left) / scaleX,
+      y: (clientY - rect.top) / scaleY
+    };
+    if (isNaN(pos.x) || isNaN(pos.y)) return;
+
     
     let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
@@ -134,8 +150,24 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   const handleMouseMove = (e: any) => {
     const stage = e.target.getStage();
-    const pos = stage.getRelativePointerPosition();
-    if (!pos) return;
+    
+    
+    const container = stage.container();
+    const rect = container.getBoundingClientRect();
+    
+    // React-konva wraps events in e.evt
+    const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
+    const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
+
+    const scaleX = stage.scaleX() || 1;
+    const scaleY = stage.scaleY() || 1;
+    
+    const pos = {
+      x: (clientX - rect.left) / scaleX,
+      y: (clientY - rect.top) / scaleY
+    };
+    if (isNaN(pos.x) || isNaN(pos.y)) return;
+
     
 
     // Update eraser cursor directly
