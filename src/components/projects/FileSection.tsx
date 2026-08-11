@@ -209,7 +209,8 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
           visibleFiles.map((file, idx) => (
             <div
               key={file.id ?? idx}
-              className={`group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 transition-colors ${(file as PendingFile).pending ? 'opacity-60 animate-pulse pointer-events-none' : ''}`}
+              onClick={() => { if (!(file as PendingFile).pending) setViewerFile(file as ProjectFile); }}
+              className={`group flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-indigo-200 hover:bg-slate-100 cursor-pointer transition-colors ${(file as PendingFile).pending ? 'opacity-60 animate-pulse pointer-events-none' : ''}`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0 relative">
@@ -239,11 +240,22 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                   <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
                 ) : (
                   <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewerFile(file as ProjectFile);
+                      }}
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                      title="Görüntüle & Not Ekle"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                     <a
                       href={file.url}
                       target="_blank"
                       rel="noreferrer"
                       download
+                      onClick={(e) => e.stopPropagation()}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                       title="İndir"
                     >
@@ -251,7 +263,10 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                     </a>
                     {canManageFiles && (
                       <button
-                        onClick={() => handleDelete(file.url)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(file.url);
+                        }}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all"
                         title="Sil"
                       >
