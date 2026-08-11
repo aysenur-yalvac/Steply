@@ -11,6 +11,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Drawing states
   const [history, setHistory] = useState<any[]>([[]]); // array of line arrays
@@ -36,6 +37,19 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
       setDimensions({ width: containerRef.current.scrollWidth, height: containerRef.current.scrollHeight });
     }
   }, [loading, code]);
+
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [annotations]);
+
+  
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAddNote();
+    }
+  };
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
@@ -214,6 +228,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
             </div>
           ))}
           {annotations.length === 0 && <p className="text-sm text-slate-400 italic text-center mt-10">Henüz not eklenmedi.</p>}
+          <div ref={messagesEndRef} />
         </div>
         
         {canAnnotate && (
@@ -221,6 +236,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
             <textarea
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Dosya hakkında not yazın..."
               className="w-full text-sm p-3 text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
               rows={3}

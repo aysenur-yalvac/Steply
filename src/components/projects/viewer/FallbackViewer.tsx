@@ -1,9 +1,23 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, File } from 'lucide-react';
 
 export default function FallbackViewer({ file, annotations, onStageAnnotation, onImmediateSave, canAnnotate }: any) {
   const [noteText, setNoteText] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [annotations]);
+
+  
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAddNote();
+    }
+  };
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
@@ -49,12 +63,14 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
             </div>
           ))}
           {annotations.length === 0 && <p className="text-sm text-slate-400 italic text-center mt-10">Henüz not eklenmedi.</p>}
+          <div ref={messagesEndRef} />
         </div>
         {canAnnotate && (
           <div className="p-4 bg-slate-50 border-t border-slate-200">
             <textarea
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Dosya hakkında not yazın..."
               className="w-full text-sm p-3 text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
               rows={3}
