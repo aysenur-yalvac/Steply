@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Save } from 'lucide-react';
 import ImageViewer from './viewer/ImageViewer';
@@ -24,6 +25,11 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   const [annotations, setAnnotations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // New annotation data staged by the viewer (from konva or notes)
   const [stagedAnnotation, setStagedAnnotation] = useState<any>(null);
@@ -67,27 +73,27 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     setIsSaving(false);
   };
 
-  if (!isOpen || !file) return null;
+  if (!mounted || !isOpen || !file) return null;
 
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
   const isCode = file.type.startsWith('text/') || file.type === 'application/json' || file.type === 'application/javascript';
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 md:p-6">
+      <div className="fixed inset-0 w-screen h-screen z-[9999] bg-black/80 flex flex-col p-4 md:p-8">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0"
+          className="absolute inset-0 bg-transparent"
           onClick={onClose}
         />
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full h-full max-w-[96vw] max-h-[92vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl"
+          className="w-full h-full bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
@@ -160,6 +166,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
