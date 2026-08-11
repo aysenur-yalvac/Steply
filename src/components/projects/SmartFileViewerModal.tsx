@@ -67,29 +67,35 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     }
   };
 
-  const handleSaveAnnotation = async () => {
+  const handleSaveAnnotation = () => {
     if (!file || !stagedAnnotation) return;
     setIsSaving(true);
     
-    // Save to DB
-    
+    const savePromise = async () => {
       let res;
       if (stagedAnnotation.type === 'drawing') {
         res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(stagedAnnotation.lines));
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
+      if (res.error) throw new Error(res.error.message || res.error);
+      return res.data;
+    };
 
-    
-    if (res.error) {
-      toast.error('Not kaydedilemedi: ' + res.error);
-    } else if (res.data) {
-      toast.success('Not başarıyla kaydedildi!');
-      setAnnotations((prev) => [...prev, res.data]);
-      setStagedAnnotation(null);
-    }
-    
-    setIsSaving(false);
+    toast.promise(savePromise(), {
+      loading: 'Kaydediliyor...',
+      success: (data) => {
+        setAnnotations((prev) => [...prev, data]);
+        setStagedAnnotation(null);
+        setIsSaving(false);
+        return 'Çizimler başarıyla kaydedildi!';
+      },
+      error: (err) => {
+        setIsSaving(false);
+        console.error("🔥 SUPABASE GERÇEK HATA:", err);
+        return 'Hata: ' + err.message;
+      }
+    });
   };
 
   if (!mounted || !isOpen || !file) return null;

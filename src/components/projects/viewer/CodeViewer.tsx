@@ -107,28 +107,19 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const currentShapeRef = useRef<any>(null);
   const layerRef = useRef<any>(null);
   const eraserCursorRef = useRef<any>(null);
+  const activeDrawingRef = useRef<any>(null);
 
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
-    
     const stage = e.target.getStage();
     const container = stage.container();
     const rect = container.getBoundingClientRect();
-    
-    // React-konva wraps events in e.evt
     const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
     const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
-
     const scaleX = stage.scaleX() || 1;
     const scaleY = stage.scaleY() || 1;
-    
-    const pos = {
-      x: (clientX - rect.left) / scaleX,
-      y: (clientY - rect.top) / scaleY
-    };
-    if (isNaN(pos.x) || isNaN(pos.y)) return;
-
+    const pos = { x: (clientX - rect.left) / scaleX, y: (clientY - rect.top) / scaleY };
     
     let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
@@ -136,16 +127,15 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     
     currentShapeRef.current = newShape;
 
-    // To prevent React re-renders, we could manually inject a Konva Node into the layer here, 
-    // but the easiest way is to push it to state ONCE on mouse down, 
-    // then mutate the Konva node directly during mousemove.
-    const newLines = [...(historyRef.current[historyStepRef.current] || []), newShape];
-    const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
-    newHistory.push(newLines);
-    historyRef.current = newHistory;
-    historyStepRef.current = newHistory.length - 1;
-    setHistory(newHistory);
-    setHistoryStep(newHistory.length - 1);
+    // Direct DOM: make active line visible
+    if (activeDrawingRef.current) {
+      activeDrawingRef.current.points(newShape.points);
+      activeDrawingRef.current.stroke(color);
+      activeDrawingRef.current.strokeWidth(tool === 'eraser' ? strokeWidth * 2 : strokeWidth);
+      activeDrawingRef.current.globalCompositeOperation(tool === 'eraser' ? 'destination-out' : 'source-over');
+      activeDrawingRef.current.show();
+      layerRef.current?.batchDraw();
+    }
   };
 
   const handleMouseMove = (e: any) => {
@@ -220,14 +210,21 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const handleMouseUp = () => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = false;
-    // We update the state once at the end so React reconciles the mutated ref data
-    const finalHistory = [...historyRef.current];
-    const currStep = historyStepRef.current;
-    const currLines = finalHistory[currStep] || [];
-    finalHistory[currStep] = [...currLines.slice(0, -1), currentShapeRef.current];
-    historyRef.current = finalHistory;
-    setHistory(finalHistory);
-    onStageAnnotation({ type: 'drawing', lines: finalHistory[currStep] });
+    
+    if (activeDrawingRef.current) {
+      activeDrawingRef.current.hide();
+    }
+
+    if (currentShapeRef.current) {
+      const newLines = [...(historyRef.current[historyStepRef.current] || []), currentShapeRef.current];
+      const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
+      newHistory.push(newLines);
+      historyRef.current = newHistory;
+      historyStepRef.current = newHistory.length - 1;
+      setHistory(newHistory);
+      setHistoryStep(historyStepRef.current);
+      onStageAnnotation({ type: 'drawing', lines: newLines });
+    }
     currentShapeRef.current = null;
   };
 
@@ -286,7 +283,10 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
                         return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={isEraser ? width * 2 : width} tension={0.5} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} closed={false} fillEnabled={false} fill="transparent" />;
                       }
                     })}
-                    {tool === 'eraser' && (
+                    {tool !== 'none' && (
+                        <Line ref={activeDrawingRef} points={[]} stroke="#000" strokeWidth={2} tension={0.5} lineCap="round" lineJoin="round" closed={false} fillEnabled={false} fill="transparent" listening={false} />
+                      )}
+                      {tool === 'eraser' && (
                       <Circle ref={eraserCursorRef} x={-100} y={-100} radius={strokeWidth} fill="rgba(0,0,0,0.1)" stroke="#ef4444" strokeWidth={1} listening={false} />
                     )}
                   </Layer>
