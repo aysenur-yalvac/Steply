@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { MessageSquare, Loader2, PenTool, Eraser, Undo, Redo, Square, Circle as CircleIcon } from 'lucide-react';
-import { Stage, Layer, Line, Rect, Circle } from 'react-konva';
+import { MessageSquare, Loader2, PenTool, Eraser, Undo, Redo, Square, Circle as CircleIcon, Minus, MoveRight } from 'lucide-react';
+import { Stage, Layer, Line, Rect, Circle, Arrow } from 'react-konva';
 import { ColorPicker } from '@/components/ui/color-picker';
 
 export default function CodeViewer({ file, annotations, onStageAnnotation, onImmediateSave, canAnnotate }: any) {
@@ -114,6 +114,10 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const layerRef = useRef<any>(null);
   const eraserCursorRef = useRef<any>(null);
   const activeDrawingRef = useRef<any>(null);
+    const previewRectRef = useRef<any>(null);
+    const previewCircleRef = useRef<any>(null);
+    const previewLineRef = useRef<any>(null);
+    const originRef = useRef<{x: number, y: number} | null>(null);
 
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
@@ -127,21 +131,33 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     const scaleY = stage.scaleY() || 1;
     const pos = { x: (clientX - rect.left) / scaleX, y: (clientY - rect.top) / scaleY };
     
-    let newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
+    originRef.current = { x: pos.x, y: pos.y };
+    let newShape: any = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
+    if (tool === 'pen') newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
     if (tool === 'circle') newShape = { type: 'circle', tool, points: [pos.x, pos.y, 0], color, strokeWidth };
-    
+    if (tool === 'line') newShape = { type: 'straightline', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
+    if (tool === 'arrow') newShape = { type: 'arrow', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
+
     currentShapeRef.current = newShape;
 
-    // Direct DOM: make active line visible
-    if (activeDrawingRef.current) {
-      activeDrawingRef.current.points(newShape.points);
-      activeDrawingRef.current.stroke(color);
-      activeDrawingRef.current.strokeWidth(tool === 'eraser' ? strokeWidth * 2 : strokeWidth);
-      activeDrawingRef.current.globalCompositeOperation(tool === 'eraser' ? 'destination-out' : 'source-over');
-      activeDrawingRef.current.show();
-      layerRef.current?.batchDraw();
+    // Show correct preview shape
+    if (tool === 'pen' || tool === 'eraser') {
+      if (activeDrawingRef.current) {
+        activeDrawingRef.current.points(newShape.points);
+        activeDrawingRef.current.stroke(color);
+        activeDrawingRef.current.strokeWidth(tool === 'eraser' ? strokeWidth * 2 : strokeWidth);
+        activeDrawingRef.current.globalCompositeOperation(tool === 'eraser' ? 'destination-out' : 'source-over');
+        activeDrawingRef.current.show();
+      }
+    } else if (tool === 'rect') {
+      if (previewRectRef.current) { previewRectRef.current.x(pos.x); previewRectRef.current.y(pos.y); previewRectRef.current.width(0); previewRectRef.current.height(0); previewRectRef.current.stroke(color); previewRectRef.current.strokeWidth(strokeWidth); previewRectRef.current.show(); }
+    } else if (tool === 'circle') {
+      if (previewCircleRef.current) { previewCircleRef.current.x(pos.x); previewCircleRef.current.y(pos.y); previewCircleRef.current.radius(0); previewCircleRef.current.stroke(color); previewCircleRef.current.strokeWidth(strokeWidth); previewCircleRef.current.show(); }
+    } else if (tool === 'line' || tool === 'arrow') {
+      if (previewLineRef.current) { previewLineRef.current.points([pos.x, pos.y, pos.x, pos.y]); previewLineRef.current.stroke(color); previewLineRef.current.strokeWidth(strokeWidth); if (tool === 'arrow') { previewLineRef.current.pointerAtEnd(true); previewLineRef.current.pointerLength(12); previewLineRef.current.pointerWidth(10); } else { previewLineRef.current.pointerAtEnd(false); } previewLineRef.current.show(); }
     }
+    layerRef.current?.batchDraw();
   };
 
   const handleMouseMove = (e: any) => {
@@ -163,13 +179,28 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (!isDrawing.current || !canAnnotate || tool === 'none' || !currentShapeRef.current) return;
     
     const shape = currentShapeRef.current;
+    const origin = originRef.current;
+    if (!origin) return;
+
     if (tool === 'pen' || tool === 'eraser') {
       shape.points.push(pos.x, pos.y);
       if (activeDrawingRef.current) activeDrawingRef.current.points(shape.points);
     } else if (tool === 'rect') {
-      // not fully supported without a Rect ref
+      const x = Math.min(origin.x, pos.x);
+      const y = Math.min(origin.y, pos.y);
+      const w = Math.abs(pos.x - origin.x);
+      const h = Math.abs(pos.y - origin.y);
+      shape.points = [origin.x, origin.y, pos.x, pos.y];
+      if (previewRectRef.current) { previewRectRef.current.x(x); previewRectRef.current.y(y); previewRectRef.current.width(w); previewRectRef.current.height(h); }
     } else if (tool === 'circle') {
-      // not fully supported without a Circle ref
+      const dx = pos.x - origin.x;
+      const dy = pos.y - origin.y;
+      const radius = Math.sqrt(dx * dx + dy * dy);
+      shape.points = [origin.x, origin.y, radius];
+      if (previewCircleRef.current) { previewCircleRef.current.x(origin.x); previewCircleRef.current.y(origin.y); previewCircleRef.current.radius(radius); }
+    } else if (tool === 'line' || tool === 'arrow') {
+      shape.points = [origin.x, origin.y, pos.x, pos.y];
+      if (previewLineRef.current) previewLineRef.current.points([origin.x, origin.y, pos.x, pos.y]);
     }
     
     layerRef.current?.batchDraw();
@@ -186,9 +217,11 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = false;
     
-    if (activeDrawingRef.current) {
-      activeDrawingRef.current.hide();
-    }
+    if (activeDrawingRef.current) activeDrawingRef.current.hide();
+    if (previewRectRef.current) previewRectRef.current.hide();
+    if (previewCircleRef.current) previewCircleRef.current.hide();
+    if (previewLineRef.current) previewLineRef.current.hide();
+    originRef.current = null;
 
     if (currentShapeRef.current) {
       let finalLines = [...(historyRef.current[historyStepRef.current] || [])];
@@ -245,6 +278,8 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
             <button onClick={() => setTool('pen')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><PenTool className="w-4 h-4" /> Çiz</button>
             <button onClick={() => setTool('rect')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'rect' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Square className="w-4 h-4" /></button>
             <button onClick={() => setTool('circle')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'circle' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><CircleIcon className="w-4 h-4" /></button>
+            <button onClick={() => setTool('line')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'line' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Minus className="w-4 h-4" /></button>
+            <button onClick={() => setTool('arrow')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'arrow' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><MoveRight className="w-4 h-4" /></button>
             <button onClick={() => setTool('eraser')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Eraser className="w-4 h-4" /> Sil</button>
             
             <div className="w-px h-6 bg-slate-200 mx-2" />
@@ -279,18 +314,25 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
                         return <Rect key={i} x={Math.min(line.points[0], line.points[2])} y={Math.min(line.points[1], line.points[3])} width={Math.abs(line.points[2] - line.points[0])} height={Math.abs(line.points[3] - line.points[1])} stroke={strokeColor} strokeWidth={width} globalCompositeOperation={globalComp} />;
                       } else if (line.type === 'circle') {
                         return <Circle key={i} x={line.points[0]} y={line.points[1]} radius={line.points[2]} stroke={strokeColor} strokeWidth={width} globalCompositeOperation={globalComp} />;
+                      } else if (line.type === 'straightline') {
+                        return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={width} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} />;
+                      } else if (line.type === 'arrow') {
+                        return <Arrow key={i} points={line.points} stroke={strokeColor} strokeWidth={width} fill={strokeColor} pointerAtEnd={true} pointerLength={12} pointerWidth={10} globalCompositeOperation={globalComp} />;
                       } else {
-                        // type 'line' (pen or eraser)
-                        // Backward compatibility: old lines might not have type, fallback to line
+                        // type 'line' (pen or eraser) - freehand
                         return <Line key={i} points={line.points} stroke={strokeColor} strokeWidth={isEraser ? width * 2 : width} tension={0.5} lineCap="round" lineJoin="round" globalCompositeOperation={globalComp} closed={false} fillEnabled={false} fill="transparent" />;
                       }
                     })}
                     {tool !== 'none' && (
                         <Line ref={activeDrawingRef} points={[]} stroke="#000" strokeWidth={2} tension={0.5} lineCap="round" lineJoin="round" closed={false} fillEnabled={false} fill="transparent" listening={false} />
                       )}
-                      {tool === 'eraser' && (
+                        {tool === 'eraser' && (
                       <Circle ref={eraserCursorRef} x={-100} y={-100} radius={strokeWidth} fill="rgba(0,0,0,0.1)" stroke="#ef4444" strokeWidth={1} listening={false} />
                     )}
+                      {/* Preview shapes for shape tools */}
+                      <Rect ref={previewRectRef} x={0} y={0} width={0} height={0} stroke={color} strokeWidth={strokeWidth} listening={false} visible={false} fill="transparent" dash={[6, 3]} />
+                      <Circle ref={previewCircleRef} x={0} y={0} radius={0} stroke={color} strokeWidth={strokeWidth} listening={false} visible={false} fill="transparent" dash={[6, 3]} />
+                      <Arrow ref={previewLineRef} points={[0, 0, 0, 0]} stroke={color} strokeWidth={strokeWidth} listening={false} visible={false} fill={color} pointerAtEnd={false} />
                   </Layer>
                 </Stage>
               </div>
