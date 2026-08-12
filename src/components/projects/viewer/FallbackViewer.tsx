@@ -9,10 +9,13 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
 
   
   useEffect(() => {
+      const timer = setTimeout(() => {
         if (notesContainerRef.current) {
           notesContainerRef.current.scrollTop = notesContainerRef.current.scrollHeight;
         }
-      }, [annotations]);
+      }, 100);
+      return () => clearTimeout(timer);
+    }, [annotations]);
 
   
   const handleKeyDown = (e: any) => {
