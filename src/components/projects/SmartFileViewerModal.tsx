@@ -67,35 +67,33 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     }
   };
 
-  const handleSaveAnnotation = () => {
+  const handleSaveAnnotation = async () => {
     if (!file || !stagedAnnotation) return;
     setIsSaving(true);
     
-    const savePromise = async () => {
+    try {
+      toast.loading("Kaydediliyor...", { id: "save-toast" });
       let res;
       if (stagedAnnotation.type === 'drawing') {
         res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(stagedAnnotation.lines));
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
+      
       if (res.error) throw new Error(res.error.message || res.error);
-      return res.data;
-    };
-
-    toast.promise(savePromise(), {
-      loading: 'Kaydediliyor...',
-      success: (data) => {
-        setAnnotations((prev) => [...prev, data]);
-        setStagedAnnotation(null);
-        setIsSaving(false);
-        return 'Çizimler başarıyla kaydedildi!';
-      },
-      error: (err) => {
-        setIsSaving(false);
-        console.error("🔥 SUPABASE GERÇEK HATA:", err);
-        return 'Hata: ' + err.message;
-      }
-    });
+      
+      toast.dismiss("save-toast");
+      toast.success("Not/Çizim başarıyla kaydedildi!");
+      setAnnotations((prev) => [...prev, res.data]);
+      setStagedAnnotation(null);
+      setIsSaving(false);
+      onClose(); // Modal ancak kayıt başarılı olduktan sonra kapatılmalı
+    } catch (err: any) {
+      toast.dismiss("save-toast");
+      setIsSaving(false);
+      console.error("🔥 SUPABASE GERÇEK HATA:", err);
+      toast.error("Kayıt Hatası: " + err.message);
+    }
   };
 
   if (!mounted || !isOpen || !file) return null;

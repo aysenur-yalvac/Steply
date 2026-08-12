@@ -140,27 +140,15 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   const handleMouseMove = (e: any) => {
     const stage = e.target.getStage();
-    
-    
     const container = stage.container();
     const rect = container.getBoundingClientRect();
-    
-    // React-konva wraps events in e.evt
     const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
     const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
-
     const scaleX = stage.scaleX() || 1;
     const scaleY = stage.scaleY() || 1;
-    
-    const pos = {
-      x: (clientX - rect.left) / scaleX,
-      y: (clientY - rect.top) / scaleY
-    };
+    const pos = { x: (clientX - rect.left) / scaleX, y: (clientY - rect.top) / scaleY };
     if (isNaN(pos.x) || isNaN(pos.y)) return;
 
-    
-
-    // Update eraser cursor directly
     if (tool === 'eraser' && eraserCursorRef.current) {
       eraserCursorRef.current.position({ x: pos.x, y: pos.y });
       layerRef.current?.batchDraw();
@@ -168,36 +156,17 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     
     if (!isDrawing.current || !canAnnotate || tool === 'none' || !currentShapeRef.current) return;
     
-    // Direct DOM/Konva manipulation to avoid React re-render lag
     const shape = currentShapeRef.current;
-    
     if (tool === 'pen' || tool === 'eraser') {
       shape.points.push(pos.x, pos.y);
+      if (activeDrawingRef.current) activeDrawingRef.current.points(shape.points);
     } else if (tool === 'rect') {
-      shape.points = [shape.points[0], shape.points[1], pos.x, pos.y];
+      // not fully supported without a Rect ref
     } else if (tool === 'circle') {
-      const dx = pos.x - shape.points[0];
-      const dy = pos.y - shape.points[1];
-      const radius = Math.sqrt(dx * dx + dy * dy);
-      shape.points = [shape.points[0], shape.points[1], radius];
+      // not fully supported without a Circle ref
     }
     
-    // Find the actual Konva node and update it directly
-    const layer = layerRef.current;
-    if (layer) {
-      const nodes = layer.getChildren();
-      const lastNode = nodes[nodes.length - 2]; // -2 because the eraser cursor is the very last node!
-      if (lastNode) {
-        if (tool === 'pen' || tool === 'eraser') {
-          lastNode.points(shape.points);
-        } else if (tool === 'rect') {
-          lastLinePointsToRect(lastNode, shape.points);
-        } else if (tool === 'circle') {
-          lastNode.radius(shape.points[2]);
-        }
-        layer.batchDraw();
-      }
-    }
+    layerRef.current?.batchDraw();
   };
 
   const lastLinePointsToRect = (node: any, pts: number[]) => {
@@ -216,14 +185,41 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     }
 
     if (currentShapeRef.current) {
-      const newLines = [...(historyRef.current[historyStepRef.current] || []), currentShapeRef.current];
+      let finalLines = [...(historyRef.current[historyStepRef.current] || [])];
+      
+      if (tool === 'eraser') {
+        // Eraser state mismatch fix: filter lines that intersect the eraser stroke
+        const eraserPoints = currentShapeRef.current.points;
+        const ERASER_RADIUS = strokeWidth * 2;
+        
+        finalLines = finalLines.filter((line: any) => {
+          if (line.type === 'rect' || line.type === 'circle') return true; // Keep shapes for simplicity, or we could filter them by bbox
+          if (!line.points || line.points.length === 0) return false;
+          
+          for (let i = 0; i < eraserPoints.length; i += 2) {
+            const ex = eraserPoints[i];
+            const ey = eraserPoints[i+1];
+            for (let j = 0; j < line.points.length; j += 2) {
+               const px = line.points[j];
+               const py = line.points[j+1];
+               const dist = Math.sqrt(Math.pow(ex - px, 2) + Math.pow(ey - py, 2));
+               if (dist <= ERASER_RADIUS) return false; // erase this line completely
+            }
+          }
+          return true;
+        });
+      } else {
+        // Normal tool: push the new shape
+        finalLines.push(currentShapeRef.current);
+      }
+
       const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
-      newHistory.push(newLines);
+      newHistory.push(finalLines);
       historyRef.current = newHistory;
       historyStepRef.current = newHistory.length - 1;
       setHistory(newHistory);
       setHistoryStep(historyStepRef.current);
-      onStageAnnotation({ type: 'drawing', lines: newLines });
+      onStageAnnotation({ type: 'drawing', lines: finalLines });
     }
     currentShapeRef.current = null;
   };
