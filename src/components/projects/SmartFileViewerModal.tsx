@@ -71,7 +71,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     e?.preventDefault();
     e?.stopPropagation();
 
-    if (!file || !stagedAnnotation) { alert("Eksik dosya veya çizim!"); return; }
+    if (!file || !stagedAnnotation) return;
 
     try {
       setIsSaving(true);
@@ -84,18 +84,19 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
       }
 
       if (res?.error) {
-        alert("KAYIT HATASI: " + res.error);
+        toast.error("Kaydedilemedi", { position: "bottom-right" });
         return;
       }
 
-      alert("BAŞARILI: Çizim kaydedildi!");
+      toast.success("Kaydedildi", { position: "bottom-right" });
       setAnnotations((prev) => [...prev, res.data]);
       setStagedAnnotation(null);
       
       // ANCAK KAYIT BAŞARILIYSA MODALI KAPAT:
       onClose();
     } catch (err: any) {
-      alert("KOD HATASI: " + err.message);
+      toast.error("Kaydedilemedi", { position: "bottom-right" });
+      console.error("Save error:", err);
     } finally {
       setIsSaving(false);
     }
@@ -132,12 +133,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
             <div className="flex items-center gap-3">
               <button
                   type="button"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert("1. TIKLAMA ALINDI!");
-                    await handleSaveAnnotation(e);
-                  }}
+                  onClick={handleSaveAnnotation}
                   disabled={isSaving || !stagedAnnotation}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 relative z-50 pointer-events-auto"
                 >
