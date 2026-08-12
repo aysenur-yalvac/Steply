@@ -134,6 +134,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     originRef.current = { x: pos.x, y: pos.y };
     let newShape: any = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
     if (tool === 'pen') newShape = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
+    if (tool === 'eraser') newShape = { type: 'eraser', tool: 'eraser', points: [pos.x, pos.y], color: '#000', strokeWidth };
     if (tool === 'rect') newShape = { type: 'rect', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
     if (tool === 'circle') newShape = { type: 'circle', tool, points: [pos.x, pos.y, 0], color, strokeWidth };
     if (tool === 'line') newShape = { type: 'straightline', tool, points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth };
@@ -182,9 +183,37 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     const origin = originRef.current;
     if (!origin) return;
 
-    if (tool === 'pen' || tool === 'eraser') {
+    if (tool === 'pen') {
       shape.points.push(pos.x, pos.y);
       if (activeDrawingRef.current) activeDrawingRef.current.points(shape.points);
+    } else if (tool === 'eraser') {
+      // Real-time hit-test: delete any shape the eraser touches immediately
+      shape.points.push(pos.x, pos.y);
+      const ERASER_RADIUS = strokeWidth * 2;
+      const currentLines = historyRef.current[historyStepRef.current] || [];
+      const surviving = currentLines.filter((line: any) => {
+        if (!line.points || line.points.length === 0) return false;
+        // Check all points of this line against cursor position
+        for (let j = 0; j < line.points.length; j += 2) {
+          const px = line.points[j];
+          const py = line.points[j + 1];
+          const dist = Math.sqrt(Math.pow(pos.x - px, 2) + Math.pow(pos.y - py, 2));
+          if (dist <= ERASER_RADIUS) return false;
+        }
+        return true;
+      });
+      // If something was erased, update React state immediately so rerender removes it visually
+      if (surviving.length !== currentLines.length) {
+        const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
+        newHistory.push(surviving);
+        historyRef.current = newHistory;
+        historyStepRef.current = newHistory.length - 1;
+        setHistory([...newHistory]);
+        setHistoryStep(historyStepRef.current);
+        onStageAnnotation({ type: 'drawing', lines: surviving });
+        // Update currentShapeRef so mouseup finalLines is correct
+        currentShapeRef.current.points = shape.points;
+      }
     } else if (tool === 'rect') {
       const x = Math.min(origin.x, pos.x);
       const y = Math.min(origin.y, pos.y);
@@ -227,26 +256,8 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
       let finalLines = [...(historyRef.current[historyStepRef.current] || [])];
       
       if (tool === 'eraser') {
-        // Eraser state mismatch fix: filter lines that intersect the eraser stroke
-        const eraserPoints = currentShapeRef.current.points;
-        const ERASER_RADIUS = strokeWidth * 2;
-        
-        finalLines = finalLines.filter((line: any) => {
-          if (line.type === 'rect' || line.type === 'circle') return true; // Keep shapes for simplicity, or we could filter them by bbox
-          if (!line.points || line.points.length === 0) return false;
-          
-          for (let i = 0; i < eraserPoints.length; i += 2) {
-            const ex = eraserPoints[i];
-            const ey = eraserPoints[i+1];
-            for (let j = 0; j < line.points.length; j += 2) {
-               const px = line.points[j];
-               const py = line.points[j+1];
-               const dist = Math.sqrt(Math.pow(ex - px, 2) + Math.pow(ey - py, 2));
-               if (dist <= ERASER_RADIUS) return false; // erase this line completely
-            }
-          }
-          return true;
-        });
+        // Real-time erasure already happened in mousemove; just use current history state
+        finalLines = historyRef.current[historyStepRef.current] || [];
       } else {
         // Normal tool: push the new shape
         finalLines.push(currentShapeRef.current);
