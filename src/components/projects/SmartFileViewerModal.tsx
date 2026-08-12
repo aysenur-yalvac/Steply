@@ -67,9 +67,9 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     }
   };
 
-  const handleSaveAnnotation = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSaveAnnotation = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
 
     if (!file || !stagedAnnotation) { alert("Eksik dosya veya çizim!"); return; }
 
@@ -121,7 +121,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full h-full bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl"
+          className="w-full h-full bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl relative z-10" onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
@@ -130,17 +130,20 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
               <p className="text-xs text-slate-500">Smart Preview & Annotation</p>
             </div>
             <div className="flex items-center gap-3">
-              {stagedAnnotation && (
-                <button
+              <button
                   type="button"
-                    onClick={handleSaveAnnotation}
-                    disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-70"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert("1. TIKLAMA ALINDI!");
+                    await handleSaveAnnotation(e);
+                  }}
+                  disabled={isSaving || !stagedAnnotation}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 relative z-50 pointer-events-auto"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
-              )}
               <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-colors"
               >
