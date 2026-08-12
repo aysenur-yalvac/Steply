@@ -67,33 +67,37 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
     }
   };
 
-  const handleSaveAnnotation = async () => {
-    alert("KAYDET TIKLANDI"); // DEBUG: user asked for this
-    if (!file || !stagedAnnotation) { alert("Missing file or staged annotation!"); return; }
-    setIsSaving(true);
-    
+  const handleSaveAnnotation = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!file || !stagedAnnotation) { alert("Eksik dosya veya çizim!"); return; }
+
     try {
-      toast.loading("Kaydediliyor...", { id: "save-toast" });
+      setIsSaving(true);
+
       let res;
       if (stagedAnnotation.type === 'drawing') {
         res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(stagedAnnotation.lines));
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
-      
-      if (res.error) throw new Error(res.error.message || res.error);
-      
-      toast.dismiss("save-toast");
-      toast.success("Not/Çizim başarıyla kaydedildi!");
+
+      if (res?.error) {
+        alert("KAYIT HATASI: " + res.error);
+        return;
+      }
+
+      alert("BAŞARILI: Çizim kaydedildi!");
       setAnnotations((prev) => [...prev, res.data]);
       setStagedAnnotation(null);
-      setIsSaving(false);
-      onClose(); // Modal ancak kayıt başarılı olduktan sonra kapatılmalı
+      
+      // ANCAK KAYIT BAŞARILIYSA MODALI KAPAT:
+      onClose();
     } catch (err: any) {
-      toast.dismiss("save-toast");
+      alert("KOD HATASI: " + err.message);
+    } finally {
       setIsSaving(false);
-      console.error("🔥 SUPABASE GERÇEK HATA:", err);
-      toast.error("Kayıt Hatası: " + err.message);
     }
   };
 
@@ -129,7 +133,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
               {stagedAnnotation && (
                 <button
                   type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSaveAnnotation(); }}
+                    onClick={handleSaveAnnotation}
                     disabled={isSaving}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-70"
                 >

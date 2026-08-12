@@ -13,7 +13,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
         if (notesContainerRef.current) {
           notesContainerRef.current.scrollTop = notesContainerRef.current.scrollHeight;
         }
-      }, 100);
+      }, 150);
       return () => clearTimeout(timer);
     }, [annotations]);
 

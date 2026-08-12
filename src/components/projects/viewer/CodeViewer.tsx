@@ -47,7 +47,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
         if (notesContainerRef.current) {
           notesContainerRef.current.scrollTop = notesContainerRef.current.scrollHeight;
         }
-      }, 100);
+      }, 150);
       return () => clearTimeout(timer);
     }, [annotations]);
 
