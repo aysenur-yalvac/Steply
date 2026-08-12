@@ -46,7 +46,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
       {/* Content — always wraps, never scrolls horizontally */}
       <div className="relative">
         <div
-          className={`text-sm leading-relaxed whitespace-pre-line break-all overflow-hidden ${
+          className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${
             isLong && !expanded ? "max-h-[150px]" : "max-h-none"
           }`}
           style={{ wordBreak: "break-all" }}
@@ -205,7 +205,7 @@ export default function ProjectNotes({
             onKeyDown={handleKeyDown}
             placeholder="Bir mesaj yaz…"
             rows={1}
-            maxLength={1000}
+            maxLength={100000}
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
