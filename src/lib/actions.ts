@@ -1003,19 +1003,54 @@ export async function getLinkedAccountsAction(): Promise<LinkedAccount[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
     const admin = createAdminClient();
-    const { data } = await admin
+
+    // 1. Check if current user is a linked user (child)
+    const { data: asLinked } = await admin
+      .from('linked_accounts')
+      .select('owner_user_id')
+      .eq('linked_user_id', user.id)
+      .maybeSingle();
+
+    const rootOwnerId = asLinked?.owner_user_id || user.id;
+
+    // 2. Fetch all linked accounts for this cluster
+    const { data: clusterLinks } = await admin
       .from('linked_accounts')
       .select('id, linked_user_id, linked_email, linked_name, linked_avatar')
-      .eq('owner_user_id', user.id)
+      .eq('owner_user_id', rootOwnerId)
       .order('created_at', { ascending: true });
-    return (data ?? []).map((row: any) => ({
+
+    let results = (clusterLinks ?? []).map((row: any) => ({
       id: row.id,
       linked_user_id: row.linked_user_id,
       linked_email: row.linked_email,
       linked_name: row.linked_name,
       linked_avatar: row.linked_avatar,
     }));
-  } catch {
+
+    // 3. If current user is a child, the OWNER should also be listed as a switchable target!
+    if (rootOwnerId !== user.id) {
+      const { data: ownerProfile } = await admin
+        .from('profiles')
+        .select('id, email, full_name, avatar_url')
+        .eq('id', rootOwnerId)
+        .maybeSingle();
+      
+      if (ownerProfile) {
+        results.push({
+          id: 'owner-' + ownerProfile.id,
+          linked_user_id: ownerProfile.id,
+          linked_email: ownerProfile.email || '',
+          linked_name: ownerProfile.full_name || 'Ana Hesap',
+          linked_avatar: ownerProfile.avatar_url || null,
+        });
+      }
+    }
+
+    // Filter out the currently active user from the switch list
+    return results.filter(r => r.linked_user_id !== user.id);
+  } catch (e) {
+    console.error("getLinkedAccountsAction error:", e);
     return [];
   }
 }

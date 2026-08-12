@@ -43,26 +43,46 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Verify the target is actually in this user's linked_accounts and fetch stored email
-  const { data: link, error: linkError } = await admin
+  // Verify the target belongs to the same cluster
+  // 1. Find the root owner for the current user
+  const { data: asLinked } = await admin
     .from('linked_accounts')
-    .select('id, linked_email')
-    .eq('owner_user_id', user.id)
-    .eq('linked_user_id', linked_user_id)
+    .select('owner_user_id')
+    .eq('linked_user_id', user.id)
     .maybeSingle()
+    
+  const rootOwnerId = asLinked?.owner_user_id || user.id;
 
-  if (linkError || !link) {
-    return NextResponse.json({ error: 'Account not linked to your profile' }, { status: 403 })
+  let targetEmail = null;
+
+  // Case A: Target is the root owner itself
+  if (linked_user_id === rootOwnerId) {
+    const { data: ownerProfile } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', rootOwnerId)
+      .maybeSingle()
+    if (ownerProfile) targetEmail = ownerProfile.email;
+  } else {
+    // Case B: Target is a child of the root owner
+    const { data: link } = await admin
+      .from('linked_accounts')
+      .select('id, linked_email')
+      .eq('owner_user_id', rootOwnerId)
+      .eq('linked_user_id', linked_user_id)
+      .maybeSingle()
+      
+    if (link) targetEmail = link.linked_email;
   }
 
-  if (!link.linked_email) {
-    return NextResponse.json({ error: 'Target account email not found' }, { status: 404 })
+  if (!targetEmail) {
+    return NextResponse.json({ error: 'Account not linked to your profile or email not found' }, { status: 403 })
   }
 
   // Generate a one-time magic link for the target account (no email is sent)
   const { data: linkData, error: genError } = await admin.auth.admin.generateLink({
     type: 'magiclink',
-    email: link.linked_email,
+    email: targetEmail,
     options: {
       redirectTo: `${origin}/dashboard`,
     },

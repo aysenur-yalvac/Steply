@@ -375,7 +375,7 @@ function NavContent({
                 <p className="text-xs font-bold text-violet-800 truncate">{userName || userEmail}</p>
                 <p className="text-[10px] text-violet-500 capitalize">{role || "student"}</p>
               </div>
-              <Check className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+              <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
             </div>
 
             {/* Linked accounts */}
