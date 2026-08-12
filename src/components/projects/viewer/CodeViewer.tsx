@@ -12,6 +12,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+    const notesContainerRef = useRef<HTMLDivElement>(null);
   
   // Drawing states
   const [history, setHistory] = useState<any[]>([[]]);
@@ -42,8 +43,10 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
   
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-  }, [annotations]);
+      if (notesContainerRef.current) {
+        notesContainerRef.current.scrollTop = notesContainerRef.current.scrollHeight;
+      }
+    }, [annotations]);
 
   
   const handleKeyDown = (e: any) => {
@@ -298,7 +301,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
         <div className="p-4 border-b border-slate-200 bg-white">
           <h3 className="font-bold text-slate-800 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-indigo-500" /> Notlar</h3>
         </div>
-        <div className="flex-1 p-4 overflow-auto space-y-4">
+        <div ref={notesContainerRef} className="flex-1 p-4 overflow-auto space-y-4">
           {annotations.map((a: any, i: number) => (
             <div key={i} className="bg-yellow-100/80 p-3 rounded-xl border border-yellow-200 shadow-sm">
               <div className="flex items-center gap-2 mb-2">

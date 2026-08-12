@@ -68,7 +68,8 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   };
 
   const handleSaveAnnotation = async () => {
-    if (!file || !stagedAnnotation) return;
+    alert("KAYDET TIKLANDI"); // DEBUG: user asked for this
+    if (!file || !stagedAnnotation) { alert("Missing file or staged annotation!"); return; }
     setIsSaving(true);
     
     try {

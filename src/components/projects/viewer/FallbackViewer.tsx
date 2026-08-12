@@ -5,11 +5,14 @@ import { MessageSquare, File } from 'lucide-react';
 export default function FallbackViewer({ file, annotations, onStageAnnotation, onImmediateSave, canAnnotate }: any) {
   const [noteText, setNoteText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+    const notesContainerRef = useRef<HTMLDivElement>(null);
 
   
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-  }, [annotations]);
+        if (notesContainerRef.current) {
+          notesContainerRef.current.scrollTop = notesContainerRef.current.scrollHeight;
+        }
+      }, [annotations]);
 
   
   const handleKeyDown = (e: any) => {
@@ -52,7 +55,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
             Notlar
           </h3>
         </div>
-        <div className="flex-1 p-4 overflow-auto space-y-4">
+        <div ref={notesContainerRef} className="flex-1 p-4 overflow-auto space-y-4">
           {annotations.map((a: any, i: number) => (
             <div key={i} className="bg-yellow-100/80 p-3 rounded-xl border border-yellow-200 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
