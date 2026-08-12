@@ -30,26 +30,29 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = note.content.length > LONG_MSG_CHARS;
 
+  // 1. Bubble Container styling
   const bubbleBase = isOwn
-    ? "bg-[#7C3AFF] text-white rounded-2xl rounded-br-none shadow-md"
-    : "bg-white text-gray-800 rounded-2xl rounded-bl-none shadow-sm border border-gray-100";
+    ? "bg-violet-50 border border-violet-100 rounded-2xl rounded-tr-none shadow-sm"
+    : "bg-gray-100 border border-gray-200/60 rounded-2xl rounded-tl-none shadow-sm";
 
   const toggleColor = isOwn
-    ? "text-violet-200 hover:text-white"
-    : "text-[#7C3AFF] hover:text-[#6D28D9]";
+    ? "text-violet-600 hover:text-violet-800"
+    : "text-gray-600 hover:text-gray-800";
 
-  const fromColor = isOwn ? "from-[#7C3AFF]" : "from-white";
+  const fromColor = isOwn ? "from-violet-50" : "from-gray-100";
+
+  // Create timestamp
+  const timestamp = note.created_at 
+    ? new Date(note.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    : "";
 
   return (
-    <div className={`w-full px-4 py-3 ${bubbleBase}`}>
-
-      {/* Content — always wraps, never scrolls horizontally */}
+    <div className={`max-w-[85%] w-fit px-4 py-3 ${bubbleBase}`}>
       <div className="relative">
         <div
-          className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${
+          className={`text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words overflow-hidden ${
             isLong && !expanded ? "max-h-[150px]" : "max-h-none"
           }`}
-          style={{ wordBreak: "break-all" }}
         >
           {note.content}
         </div>
@@ -62,18 +65,18 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
         )}
       </div>
 
-      {/* Read-more toggle — universal, no content-type check */}
       {isLong && (
         <button
           onClick={() => setExpanded((v) => !v)}
-          className={`mt-2 text-xs font-semibold transition-colors ${toggleColor}`}
+          className={`mt-1.5 text-xs font-semibold transition-colors ${toggleColor}`}
         >
           {expanded ? "Daha az göster" : "Devamını oku"}
         </button>
       )}
 
-      <span className={`block text-right text-[10px] mt-1.5 select-none ${isOwn ? "text-violet-300" : "text-gray-300"}`}>
-        {formatTime(note.created_at)}
+      {/* 3. Footer Timestamp */}
+      <span className="text-[11px] text-gray-400 mt-2 text-right block select-none">
+        {timestamp}
       </span>
     </div>
   );
