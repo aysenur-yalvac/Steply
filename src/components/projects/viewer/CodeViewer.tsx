@@ -114,22 +114,59 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   const layerRef = useRef<any>(null);
   const eraserCursorRef = useRef<any>(null);
   const activeDrawingRef = useRef<any>(null);
+    const stageRef = useRef<any>(null);
     const previewRectRef = useRef<any>(null);
     const previewCircleRef = useRef<any>(null);
     const previewLineRef = useRef<any>(null);
     const originRef = useRef<{x: number, y: number} | null>(null);
 
+
+  const getStagePos = (e: any) => {
+    const stage = stageRef.current;
+    if (!stage) return null;
+    // Prefer Konva's built-in relative pointer position for accuracy
+    const pos = stage.getRelativePointerPosition();
+    return pos; // { x, y } in canvas coordinate space
+  };
+
+  const pointToSegmentDist = (px: number, py: number, x1: number, y1: number, x2: number, y2: number): number => {
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+    return Math.sqrt((px - (x1 + t * dx)) ** 2 + (py - (y1 + t * dy)) ** 2);
+  };
+
+  const isShapeHit = (shape: any, ex: number, ey: number, radius: number): boolean => {
+    const pts = shape.points || [];
+    if (shape.type === 'circle') {
+      // pts = [cx, cy, r]
+      const d = Math.sqrt((ex - pts[0]) ** 2 + (ey - pts[1]) ** 2);
+      return d <= pts[2] + radius;
+    }
+    if (shape.type === 'rect') {
+      // pts = [x1, y1, x2, y2]
+      const rx = Math.min(pts[0], pts[2]), ry = Math.min(pts[1], pts[3]);
+      const rw = Math.abs(pts[2] - pts[0]), rh = Math.abs(pts[3] - pts[1]);
+      const nearX = Math.max(rx, Math.min(ex, rx + rw));
+      const nearY = Math.max(ry, Math.min(ey, ry + rh));
+      return Math.sqrt((ex - nearX) ** 2 + (ey - nearY) ** 2) <= radius;
+    }
+    if (shape.type === 'straightline' || shape.type === 'arrow') {
+      // pts = [x1, y1, x2, y2]
+      return pointToSegmentDist(ex, ey, pts[0], pts[1], pts[2], pts[3]) <= radius;
+    }
+    // Freehand line: check each segment
+    for (let i = 0; i < pts.length - 2; i += 2) {
+      if (pointToSegmentDist(ex, ey, pts[i], pts[i+1], pts[i+2], pts[i+3]) <= radius) return true;
+    }
+    return false;
+  };
   const handleMouseDown = (e: any) => {
     if (!canAnnotate || tool === 'none') return;
     isDrawing.current = true;
-    const stage = e.target.getStage();
-    const container = stage.container();
-    const rect = container.getBoundingClientRect();
-    const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
-    const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
-    const scaleX = stage.scaleX() || 1;
-    const scaleY = stage.scaleY() || 1;
-    const pos = { x: (clientX - rect.left) / scaleX, y: (clientY - rect.top) / scaleY };
+    const pos = getStagePos(e);
+    if (!pos) return;
     
     originRef.current = { x: pos.x, y: pos.y };
     let newShape: any = { type: 'line', tool, points: [pos.x, pos.y], color, strokeWidth };
@@ -162,21 +199,31 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
   };
 
   const handleMouseMove = (e: any) => {
-    const stage = e.target.getStage();
-    const container = stage.container();
-    const rect = container.getBoundingClientRect();
-    const clientX = e.evt.touches ? e.evt.touches[0].clientX : e.evt.clientX;
-    const clientY = e.evt.touches ? e.evt.touches[0].clientY : e.evt.clientY;
-    const scaleX = stage.scaleX() || 1;
-    const scaleY = stage.scaleY() || 1;
-    const pos = { x: (clientX - rect.left) / scaleX, y: (clientY - rect.top) / scaleY };
-    if (isNaN(pos.x) || isNaN(pos.y)) return;
+    const pos = getStagePos(e);
+    if (!pos) return;
 
     if (tool === 'eraser' && eraserCursorRef.current) {
       eraserCursorRef.current.position({ x: pos.x, y: pos.y });
       layerRef.current?.batchDraw();
     }
     
+    if (tool === 'eraser' && isDrawing.current && canAnnotate) {
+      // Real-time per-type hit-test erasure using correct Konva coordinates
+      const ERASER_RADIUS = strokeWidth * 2;
+      const currentLines = historyRef.current[historyStepRef.current] || [];
+      const surviving = currentLines.filter((shape: any) => !isShapeHit(shape, pos.x, pos.y, ERASER_RADIUS));
+      if (surviving.length !== currentLines.length) {
+        // Something was erased — update history and trigger re-render
+        const newHist = [...historyRef.current.slice(0, historyStepRef.current + 1), surviving];
+        historyRef.current = newHist;
+        historyStepRef.current = newHist.length - 1;
+        setHistory([...newHist]);
+        setHistoryStep(historyStepRef.current);
+        onStageAnnotation({ type: 'drawing', lines: surviving });
+      }
+      return;
+    }
+
     if (!isDrawing.current || !canAnnotate || tool === 'none' || !currentShapeRef.current) return;
     
     const shape = currentShapeRef.current;
@@ -186,34 +233,6 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
     if (tool === 'pen') {
       shape.points.push(pos.x, pos.y);
       if (activeDrawingRef.current) activeDrawingRef.current.points(shape.points);
-    } else if (tool === 'eraser') {
-      // Real-time hit-test: delete any shape the eraser touches immediately
-      shape.points.push(pos.x, pos.y);
-      const ERASER_RADIUS = strokeWidth * 2;
-      const currentLines = historyRef.current[historyStepRef.current] || [];
-      const surviving = currentLines.filter((line: any) => {
-        if (!line.points || line.points.length === 0) return false;
-        // Check all points of this line against cursor position
-        for (let j = 0; j < line.points.length; j += 2) {
-          const px = line.points[j];
-          const py = line.points[j + 1];
-          const dist = Math.sqrt(Math.pow(pos.x - px, 2) + Math.pow(pos.y - py, 2));
-          if (dist <= ERASER_RADIUS) return false;
-        }
-        return true;
-      });
-      // If something was erased, update React state immediately so rerender removes it visually
-      if (surviving.length !== currentLines.length) {
-        const newHistory = historyRef.current.slice(0, historyStepRef.current + 1);
-        newHistory.push(surviving);
-        historyRef.current = newHistory;
-        historyStepRef.current = newHistory.length - 1;
-        setHistory([...newHistory]);
-        setHistoryStep(historyStepRef.current);
-        onStageAnnotation({ type: 'drawing', lines: surviving });
-        // Update currentShapeRef so mouseup finalLines is correct
-        currentShapeRef.current.points = shape.points;
-      }
     } else if (tool === 'rect') {
       const x = Math.min(origin.x, pos.x);
       const y = Math.min(origin.y, pos.y);
@@ -313,7 +332,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
 
             {dimensions.width > 0 && (tool !== 'none' || allLines.length > 0) && (
               <div className="absolute inset-0" style={{ pointerEvents: tool === 'none' ? 'none' : 'auto' }}>
-                <Stage width={dimensions.width} height={dimensions.height} onMouseDown={handleMouseDown} onMousemove={handleMouseMove} onMouseup={handleMouseUp} onTouchStart={handleMouseDown} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}>
+                <Stage ref={stageRef} width={dimensions.width} height={dimensions.height} onMouseDown={handleMouseDown} onMousemove={handleMouseMove} onMouseup={handleMouseUp} onTouchStart={handleMouseDown} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}>
                   <Layer ref={layerRef}>
                     {allLines.map((line: any, i: number) => {
                       const isEraser = line.tool === 'eraser';
