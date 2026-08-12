@@ -132,6 +132,36 @@ function NavContent({
     setIsRemoving(false);
   }
 
+    async function handleDirectSwitch(target: LinkedAccount) {
+    if (isSwitching) return;
+    if (!target.linked_user_id) {
+      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı.");
+      return;
+    }
+    setIsSwitching(true);
+    setSwitchError(null);
+    try {
+      const res = await fetch('/api/auth/switch-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linked_user_id: target.linked_user_id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu.');
+        setIsSwitching(false);
+        return;
+      }
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      window.location.href = data.url;
+    } catch (e) {
+      console.error(e);
+      setSwitchError('Ağ hatası.');
+      setIsSwitching(false);
+    }
+  }
+
   async function confirmSwitch() {
     if (!switchTarget || isSwitching) return;
 
@@ -429,19 +459,36 @@ function NavContent({
         )}
 
         {collapsed ? (
-          /* Collapsed footer: avatar + signout only */
+          /* Collapsed footer: Vertical account switcher + signout */
           <div className="flex flex-col items-center gap-2">
+            {/* Active Account with emerald ring */}
             <Link
               href="/dashboard/profile"
               onClick={onClose}
-              title={userName || userEmail || "Profil"}
-              className="rounded-full hover:ring-2 hover:ring-violet-400 transition-all"
+              title={userName || userEmail || "Aktif Profil"}
+              className="rounded-full ring-2 ring-emerald-500 hover:ring-emerald-400 transition-all p-[2px]"
             >
-              <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={36} />
+              <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={32} />
             </Link>
+
+            {/* Other Accounts */}
+            {accounts.map(acc => (
+              <button
+                key={acc.id}
+                type="button"
+                onClick={() => { handleDirectSwitch(acc); setIsAccountMenuOpen(false); }}
+                title={acc.linked_name || acc.linked_email}
+                className="rounded-full opacity-70 hover:opacity-100 hover:ring-2 hover:ring-violet-400 transition-all p-[2px]"
+              >
+                <AccountAvatar src={acc.linked_avatar} name={acc.linked_name || acc.linked_email} size={28} />
+              </button>
+            ))}
+
+            <div className="w-6 h-px bg-slate-200 my-1" />
+            
             <button
               onClick={() => signOut()}
-              title="Sign Out"
+              title="Çıkış Yap"
               className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
             >
               <LogOut className="w-4 h-4" strokeWidth={1.5} />
