@@ -1620,25 +1620,51 @@ export async function saveFileDrawingsAction(
     const ctx = await assertProjectAccess(supabase, projectId);
     if (!ctx) return { error: 'Unauthorized' };
 
-    const { data, error } = await ctx.admin
+    // First, check if a drawing record already exists for this file_url
+    const { data: existing } = await ctx.admin
       .from('file_annotations')
-      .insert({
-        project_id: projectId,
-        file_url: fileUrl,
-        author_id: ctx.user.id,
-        annotation_data: { type: 'drawing', lines: drawingData }
-      })
-      .select('*')
-      .single();
+      .select('id')
+      .eq('file_url', fileUrl)
+      .eq('annotation_data->>type', 'drawing')
+      .maybeSingle();
+
+    let data, error;
+
+    if (existing?.id) {
+      // OVERWRITE: Update the existing drawing record completely
+      const res = await ctx.admin
+        .from('file_annotations')
+        .update({
+          annotation_data: { type: 'drawing', lines: drawingData },
+          author_id: ctx.user.id,
+        })
+        .eq('id', existing.id)
+        .select('*')
+        .single();
+      data = res.data; error = res.error;
+    } else {
+      // INSERT: First time saving for this file
+      const res = await ctx.admin
+        .from('file_annotations')
+        .insert({
+          project_id: projectId,
+          file_url: fileUrl,
+          author_id: ctx.user.id,
+          annotation_data: { type: 'drawing', lines: drawingData }
+        })
+        .select('*')
+        .single();
+      data = res.data; error = res.error;
+    }
 
     if (error) {
-        console.error("SUPABASE ERROR:", error);
-        return { error: error.message };
-      }
+      console.error("SUPABASE DRAWING SAVE ERROR:", error);
+      return { error: error.message };
+    }
 
-    // Activity log for drawing
+    // Activity log
     const fileName = fileUrl.split('/').pop() || 'Dosya';
-    await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'file_annotated', `${ctx.user.user_metadata?.full_name || 'Kullanıcı'} '${fileName}' isimli dosyaya yeni çizim/işaretleme ekledi.`);
+    await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'file_annotated', `${ctx.user.user_metadata?.full_name || 'Kullanıcı'} '${fileName}' isimli dosyaya çizim/işaretleme güncelledi.`);
 
     if (data) {
       const { data: profile } = await ctx.admin
