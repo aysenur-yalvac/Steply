@@ -662,7 +662,10 @@ export async function deleteProjectTask(
     .eq('id', taskId)
     .eq('project_id', projectId);
 
-  if (error) return { error: error.message };
+  if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
 
   const progress = await recalculateProgress(ctx.admin, projectId);
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `GÃ¶rev silindi: ${taskRow?.title ?? taskId}`);
@@ -776,7 +779,10 @@ export async function updateProjectTagsAction(
     .update({ tags: sanitized })
     .eq('id', projectId);
 
-  if (error) return { error: error.message };
+  if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
@@ -1438,7 +1444,10 @@ export async function markProjectCompletedAction(
     .update({ status: 'completed', end_date: today })
     .eq('id', projectId);
 
-  if (error) return { error: error.message };
+  if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
 
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'project_completed', 'Proje tamamlandı olarak işaretlendi.');
   recordUserActionAction('complete_project').catch(() => {});
@@ -1467,7 +1476,10 @@ export async function updateProjectStatusAction(
     .update({ status })
     .eq('id', projectId);
 
-  if (error) return { error: error.message };
+  if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
 
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'status_changed', `Proje durumu güncellendi: ${status}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
@@ -1587,7 +1599,10 @@ export async function deleteFileAnnotationAction(projectId: string, annotationId
       .delete()
       .eq('id', annotationId);
 
-    if (error) return { error: error.message };
+    if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
@@ -1616,7 +1631,10 @@ export async function saveFileDrawingsAction(
       .select('*')
       .single();
 
-    if (error) return { error: error.message };
+    if (error) {
+        console.error("SUPABASE ERROR:", error);
+        return { error: error.message };
+      }
 
     // Activity log for drawing
     const fileName = fileUrl.split('/').pop() || 'Dosya';
