@@ -45,13 +45,11 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { label: "My Projects", href: "/dashboard",            icon: LayoutDashboard },
   { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
-  { label: "Watchlist",   href: "#watchlist",             icon: Bookmark,  isWatchlist: true },
-  { label: "Calendar",    href: "/dashboard/agenda",      icon: Calendar },
-  { label: "Okulum",      href: "/dashboard/school",      icon: School,    teacherOnly: true  },
-  { label: "Okulum",      href: "/dashboard/school",      icon: School,    studentOnly: true  },
-  { label: "Favoriler",   href: "/dashboard/favorites",   icon: Heart,     teacherOnly: true  },
-  { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
-  { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
+  { label: "Watchlist",   href: "#watchlist",            icon: Bookmark,  isWatchlist: true },
+  { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
+  { label: "Okulum",      href: "/dashboard/school",     icon: School },
+  { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
+  { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
   { 
     label: "Çöp Kutusu", 
     href: "/dashboard/trash",
@@ -265,9 +263,9 @@ function NavContent({
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
               const { label, href, icon: Icon, subItems } = item as any;
-              const isWatchlist = item.isWatchlist;
-              const isTeacherOnly = item.teacherOnly;
-              const isStudentOnly = item.studentOnly;
+              const isWatchlist = (item as any).isWatchlist;
+              const isTeacherOnly = (item as any).teacherOnly;
+              const isStudentOnly = (item as any).studentOnly;
               if (isTeacherOnly && !isTeacher) return null;
               if (isStudentOnly && isTeacher) return null;
               
