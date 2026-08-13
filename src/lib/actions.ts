@@ -39,8 +39,7 @@ export async function saveFileRecordAction(
     const admin = createAdminClient();
 
     const { data: project, error: projectError } = await admin
-      .from("projects")
-      .select("student_id, files, status")
+      .from("projects").select("student_id, files, status")
       .eq("id", projectId)
       .single();
 
@@ -107,8 +106,7 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   const admin = createAdminClient();
 
   const { data: project, error: projectError } = await admin
-    .from("projects")
-    .select("student_id, files, status")
+    .from("projects").select("student_id, files, status")
     .eq("id", projectId)
     .single();
 
@@ -557,7 +555,7 @@ async function assertProjectAccess(supabase: Awaited<ReturnType<typeof createCli
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const admin = createAdminClient();
-  const { data: project } = await admin.from('projects').select('student_id').eq('id', projectId).single();
+  const { data: project } = await admin.from("projects").select('student_id').eq('id', projectId).single();
   if (!project) return null;
   if (project.student_id === user.id) return { user, admin, role: 'owner' as const };
   const { data: membership } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
@@ -582,7 +580,7 @@ export async function addProjectTask(
 
   await recalculateProgress(ctx.admin, projectId);
   await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni gÃ¶rev eklendi: ${title.trim()}`);
-  const { data: projAdd } = await ctx.admin.from('projects').select('status').eq('id', projectId).single();
+  const { data: projAdd } = await ctx.admin.from("projects").select('status').eq('id', projectId).single();
   if (projAdd?.status === 'todo') {
     await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
   }
@@ -628,8 +626,7 @@ export async function toggleTaskCompletion(
   }
   // Auto-advance: todo -> in_review on any task toggle
   const { data: proj } = await ctx.admin
-    .from('projects')
-    .select('status')
+    .from("projects").select('status')
     .eq('id', projectId)
     .single();
   if (proj?.status === 'todo') {
@@ -717,8 +714,8 @@ export async function addProjectNoteAction(
     const senderName = profile?.full_name ?? 'Bir Ã¼ye';
 
     const [projectRow, memberRows] = await Promise.all([
-      ctx.admin.from('projects').select('title, student_id').eq('id', projectId).single(),
-      ctx.admin.from('project_members').select('user_id').eq('project_id', projectId),
+      ctx.admin.from("projects").select('title, student_id').eq('id', projectId).single(),
+      ctx.admin.from('project_members').select('student_id').eq('project_id', projectId),
     ]);
 
     const projectTitle = projectRow.data?.title ?? 'proje';
@@ -822,8 +819,7 @@ export async function getTrendingTagsAction(
 ): Promise<{ tag: string; count: number }[]> {
   const admin = createAdminClient();
   const { data } = await admin
-    .from('projects')
-    .select('tags')
+    .from("projects").select('tags')
     .not('tags', 'is', null);
 
   if (!data) return [];
@@ -869,8 +865,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
 
     // project count badges
     const { count: projectCount } = await admin
-      .from('projects')
-      .select('id', { count: 'exact', head: true })
+      .from("projects").select('id', { count: 'exact', head: true })
       .eq('student_id', userId);
 
     if ((projectCount ?? 0) >= 1  && !current.has('first_project')) toAdd.push('first_project');
@@ -1395,7 +1390,7 @@ export async function toggleProjectFavoriteAction(
 
   const { data: existing } = await admin
     .from('project_favorites')
-    .select('user_id')
+    .select('student_id')
     .eq('user_id', user.id)
     .eq('project_id', projectId)
     .maybeSingle();
@@ -1714,4 +1709,124 @@ export async function saveFileDrawingsAction(
   } catch (error: any) {
     return { error: error.message };
   }
+}
+
+
+export async function softDeleteProjectAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from("projects").select('student_id').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const { error } = await admin.from('projects').update({ deleted_at: new Date().toISOString() }).eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function restoreProjectAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from("projects").select('student_id').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const { error } = await admin.from('projects').update({ deleted_at: null }).eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/trash/projects');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function permanentDeleteProjectAction(projectId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from("projects").select('student_id').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const { error } = await admin.from('projects').delete().eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/trash/projects');
+  return { success: true };
+}
+
+
+
+export async function softDeleteFileAction(projectId: string, fileUrl: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const files = (project.files as any[]) || [];
+  const updatedFiles = files.map((f: any) => 
+    f.url === fileUrl ? { ...f, deleted_at: new Date().toISOString() } : f
+  );
+
+  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
+export async function restoreFileAction(projectId: string, fileUrl: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const files = (project.files as any[]) || [];
+  const updatedFiles = files.map((f: any) => {
+    if (f.url === fileUrl) {
+      const { deleted_at, ...rest } = f;
+      return rest;
+    }
+    return f;
+  });
+
+  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/trash/files');
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
+export async function permanentDeleteFileAction(projectId: string, fileUrl: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not logged in");
+  const admin = createAdminClient();
+  
+  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
+  if (project?.student_id !== user.id) throw new Error("Unauthorized");
+
+  const files = (project.files as any[]) || [];
+  const updatedFiles = files.filter((f: any) => f.url !== fileUrl);
+
+  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/trash/files');
+  
+  // Actually remove from storage
+  const pathParts = fileUrl.split("project-files/");
+  if (pathParts.length > 1) {
+    const filePath = pathParts[1];
+    await admin.storage.from("project-files").remove([filePath]);
+  }
+
+  return { success: true };
 }

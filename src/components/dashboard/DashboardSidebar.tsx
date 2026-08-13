@@ -22,6 +22,7 @@ import {
   UserX,
   School,
   Heart,
+  Trash2,
 } from "lucide-react";
 import { removeLinkedAccountAction } from "@/lib/actions";
 import type { LinkedAccount } from "@/lib/actions";
@@ -50,6 +51,16 @@ const NAV_ITEMS = [
   { label: "Okulum",      href: "/dashboard/school",      icon: School,    studentOnly: true  },
   { label: "Favoriler",   href: "/dashboard/favorites",   icon: Heart,     teacherOnly: true  },
   { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
+  { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
+  { 
+    label: "Çöp Kutusu", 
+    href: "/dashboard/trash",
+    icon: Trash2,
+    subItems: [
+      { label: "Silinen Projeler", href: "/dashboard/trash/projects" },
+      { label: "Silinen Dosyalar", href: "/dashboard/trash/files" }
+    ]
+  },
 ];
 
 function AccountAvatar({ src, name, size = 32 }: { src?: string | null; name: string; size?: number }) {
@@ -88,6 +99,8 @@ function NavContent({
   const { signOut } = useAuth();
   const router = useRouter();
 
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
   const [removeTarget, setRemoveTarget] = useState<LinkedAccount | null>(null);
@@ -251,146 +264,79 @@ function NavContent({
         )}
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
-            const { label, href, icon: Icon } = item;
-            const isWatchlist   = (item as any).isWatchlist  as boolean | undefined;
-            const isTeacherOnly = (item as any).teacherOnly  as boolean | undefined;
-            const isStudentOnly = (item as any).studentOnly  as boolean | undefined;
-            if (isTeacherOnly && !isTeacher) return null;
-            if (isStudentOnly &&  isTeacher) return null;
-            const isActive =
-              !isWatchlist &&
-              (href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(href));
+              const { label, href, icon: Icon, subItems } = item as any;
+              const isWatchlist = item.isWatchlist;
+              const isTeacherOnly = item.teacherOnly;
+              const isStudentOnly = item.studentOnly;
+              if (isTeacherOnly && !isTeacher) return null;
+              if (isStudentOnly && isTeacher) return null;
+              
+              const isActive = !isWatchlist && (href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href));
+              const isOpen = openMenus[label];
 
-            if (isWatchlist) {
+              if (isWatchlist) {
+                return collapsed ? (
+                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150">
+                    <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                  </button>
+                ) : (
+                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all duration-150 group">
+                    <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                    {label}
+                  </button>
+                );
+              }
+
+              if (subItems) {
+                return (
+                  <div key={label} className="flex flex-col gap-0.5">
+                    {collapsed ? (
+                      <button onClick={() => toggleMenu(label)} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                        <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                      </button>
+                    ) : (
+                      <button onClick={() => toggleMenu(label)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
+                          <span>{label}</span>
+                        </div>
+                        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                      </button>
+                    )}
+                    {isOpen && !collapsed && (
+                      <div className="flex flex-col gap-0.5 pl-9 pr-2 py-1">
+                        {subItems.map((sub: any) => (
+                          <Link key={sub.href} href={sub.href} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 hover:text-violet-700 hover:bg-violet-50"}`}>
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    {isOpen && collapsed && (
+                      <div className="flex flex-col gap-1 items-center py-1">
+                        {subItems.map((sub: any) => (
+                          <Link key={sub.href} href={sub.href} onClick={onClose} title={sub.label} className={`w-2 h-2 rounded-full transition-colors ${pathname === sub.href ? "bg-violet-600" : "bg-slate-300 hover:bg-violet-400"}`} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return collapsed ? (
-                <button
-                  key={label}
-                  onClick={() => { onOpenWatchlist(); onClose(); }}
-                  title={label}
-                  className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150"
-                >
-                  <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
-                </button>
+                <Link key={label} href={href} onClick={onClose} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                  <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+                </Link>
               ) : (
-                <button
-                  key={label}
-                  onClick={() => { onOpenWatchlist(); onClose(); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150"
-                >
-                  <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+                <Link key={label} href={href} onClick={onClose} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "group-hover:scale-110 transition-transform"}`} strokeWidth={isActive ? 2 : 1.5} />
                   {label}
-                </button>
+                </Link>
               );
-            }
+            })}
+            </div>
 
-            return collapsed ? (
-              <Link
-                key={label}
-                href={href}
-                prefetch={true}
-                onClick={onClose}
-                title={label}
-                className={`flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${
-                  isActive
-                    ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                }`}
-              >
-                <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
-              </Link>
-            ) : (
-              <Link
-                key={label}
-                href={href}
-                prefetch={true}
-                onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
-                  isActive
-                    ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                {label}
-                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-60" strokeWidth={1.5} />}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Tools section */}
-        {!collapsed && (
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mt-5 mb-2">
-            Tools
-          </p>
-        )}
-        {collapsed && <div className="mt-3" />}
-        <div className="space-y-0.5">
-          {collapsed ? (
-            <Link
-              href="/dashboard/messages"
-              prefetch={true}
-              onClick={onClose}
-              title="Messages"
-              className={`relative flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${
-                pathname === "/dashboard/messages"
-                  ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-              }`}
-            >
-              <MessageSquare className="w-5 h-5 shrink-0" strokeWidth={1.5} />
-              {(unreadCount || 0) > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
-              )}
-            </Link>
-          ) : (
-            <Link
-              href="/dashboard/messages"
-              prefetch={true}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 relative ${
-                pathname === "/dashboard/messages"
-                  ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              }`}
-            >
-              <MessageSquare className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-              Messages
-              {(unreadCount || 0) > 0 && (
-                <span className="ml-auto min-w-[20px] h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1">
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
-          )}
-
-          {!isTeacher && (
-            collapsed ? (
-              <Link
-                href="/dashboard/projects/new"
-                prefetch={true}
-                onClick={onClose}
-                title="New Project"
-                className="flex items-center justify-center py-2.5 rounded-xl text-violet-500 hover:bg-violet-50 transition-all duration-150"
-              >
-                <Plus className="w-5 h-5 shrink-0" strokeWidth={1.5} />
-              </Link>
-            ) : (
-              <Link
-                href="/dashboard/projects/new"
-                prefetch={true}
-                onClick={onClose}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-all duration-150"
-              >
-                <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                New Project
-              </Link>
-            )
-          )}
-        </div>
-      </nav>
+          </nav>
 
       {/* User footer */}
       <div className={`relative border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>

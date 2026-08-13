@@ -69,6 +69,7 @@ export interface Database {
           files: Json
           team_members: Json
           created_at: string
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -79,6 +80,7 @@ export interface Database {
           files?: Json
           team_members?: Json
           created_at?: string
+          deleted_at?: string | null
         }
         Update: {
           id?: string

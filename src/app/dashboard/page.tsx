@@ -67,6 +67,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
       const { data } = await admin
         .from('projects')
         .select('*, profiles!student_id(full_name, avatar_url, is_public)')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
       let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
       all = all.filter((p: any) =>
@@ -80,6 +81,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
     const { data } = await supabase
       .from('projects')
       .select('*')
+      .is('deleted_at', null)
       .eq('student_id', user?.id)
       .order('created_at', { ascending: false });
     let all = data || [];
