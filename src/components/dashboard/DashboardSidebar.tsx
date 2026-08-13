@@ -52,7 +52,7 @@ const NAV_ITEMS = [
   { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
   { 
     label: "Çöp Kutusu", 
-    href: "/dashboard/trash",
+    href: "/dashboard/trash/projects",
     icon: Trash2,
     subItems: [
       { label: "Silinen Projeler", href: "/dashboard/trash/projects" },
@@ -289,11 +289,11 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-0.5">
                     {collapsed ? (
-                      <button onClick={() => toggleMenu(label)} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
-                      <button onClick={() => toggleMenu(label)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
                         <div className="flex items-center gap-3">
                           <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
                           <span>{label}</span>
