@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
-import { saveFileRecordAction, deleteFileAction, ProjectFile } from '@/lib/actions';
+import { saveFileRecordAction, softDeleteFileAction, ProjectFile } from '@/lib/actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 import SmartFileViewerModal from './SmartFileViewerModal';
@@ -41,8 +41,9 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   const [makePrivate, setMakePrivate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const activeFiles = files.filter(f => !(f as any).deleted_at);
   const [optimisticFiles, addOptimisticFile] = useOptimistic<PendingFile[], PendingFile>(
-    files as PendingFile[],
+    activeFiles as PendingFile[],
     (state, pending) => [...state, pending],
   );
 
@@ -129,7 +130,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
     if (!confirm('Bu dosyayı silmek istediğinize emin misiniz?')) return;
 
     try {
-      await deleteFileAction(projectId, fileUrl);
+      await softDeleteFileAction(projectId, fileUrl);
       setFiles(prev => prev.filter(f => f.url !== fileUrl));
       toast.success('Dosya silindi.');
     } catch (error: unknown) {
