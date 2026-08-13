@@ -205,27 +205,21 @@ function NavContent({
       {/* Logo + toggle */}
       <div className={`border-b border-slate-100 ${collapsed ? 'flex flex-col items-center gap-2 px-2 py-3' : 'px-5 py-5'}`}>
         {collapsed ? (
-          /* Collapsed footer content: Minimal avatars only */
-          <div className="flex flex-col items-center w-full gap-2 overflow-hidden">
-            <Link
-              href="/dashboard/profile"
-              onClick={onClose}
-              title={userName || userEmail || "Aktif Profil"}
-              className="flex justify-center items-center w-9 h-9 shrink-0 rounded-full ring-2 ring-emerald-500 hover:ring-emerald-400 transition-all p-[2px]"
-            >
-              <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={32} />
+          <>
+            <Link href="/dashboard" onClick={onClose} className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
+              <img src="/image_5.png" alt="Steply" className="w-10 h-10 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
             </Link>
-
-            <div className="w-6 h-px bg-slate-200 my-1 shrink-0" />
-            
-            <button
-              onClick={() => signOut()}
-              title="Çıkış Yap"
-              className="flex justify-center items-center w-9 h-9 shrink-0 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-            >
-              <LogOut className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-          </div>
+            {onToggleExpand && (
+              <button
+                type="button"
+                onClick={onToggleExpand}
+                title="Genişlet"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </>
         ) : (
           <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity" onClick={onClose}>
