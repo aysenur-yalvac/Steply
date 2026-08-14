@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
@@ -92,7 +93,7 @@ async function buildPeopleRows(
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-export default async function SchoolPage() {
+async function SchoolPageContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
@@ -209,5 +210,13 @@ function NoInstitutionNotice() {
         Ayarlara git →
       </Link>
     </div>
+  );
+}
+
+export default function SchoolPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 p-8 flex items-center justify-center animate-pulse"><div className="w-8 h-8 rounded-full border-4 border-violet-600 border-t-transparent animate-spin"></div></div>}>
+      <SchoolPageContent  />
+    </Suspense>
   );
 }

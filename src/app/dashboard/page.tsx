@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import DashboardLoading from './loading';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import type { Metadata } from "next";
@@ -14,7 +16,7 @@ import ProjectCard from '@/app/dashboard/ProjectCard';
 import SocialWidget from '@/components/dashboard/SocialWidget';
 import { getFollowDataAction } from '@/lib/actions';
 
-export default async function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
+async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> }) {
   const searchParams = await props.searchParams;
   const q = searchParams?.q?.toLowerCase() || '';
 
@@ -287,5 +289,13 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
         )}
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage(props: { searchParams?: Promise<{ q?: string }> }) {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent {...props} />
+    </Suspense>
   );
 }

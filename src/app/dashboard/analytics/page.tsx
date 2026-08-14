@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { getLeaderboardAction, getUserActivitiesAction } from "@/lib/actions";
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   title: "Analytics | Steply",
 };
 
-export default async function AnalyticsPage() {
+async function AnalyticsPageContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
@@ -43,5 +44,13 @@ export default async function AnalyticsPage() {
       currentUserScore={profile?.total_score ?? 0}
       activities={activities}
     />
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 p-8 flex items-center justify-center animate-pulse"><div className="w-8 h-8 rounded-full border-4 border-violet-600 border-t-transparent animate-spin"></div></div>}>
+      <AnalyticsPageContent  />
+    </Suspense>
   );
 }
