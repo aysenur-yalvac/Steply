@@ -304,7 +304,7 @@ function NavContent({
                     {isOpen && !collapsed && (
                       <div className="flex flex-col gap-0.5 pl-9 pr-2 py-1">
                         {subItems.map((sub: any) => (
-                          <Link key={sub.href} href={sub.href} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 hover:text-violet-700 hover:bg-violet-50"}`}>
+                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 hover:text-violet-700 hover:bg-violet-50"}`}>
                             {sub.label}
                           </Link>
                         ))}
@@ -313,7 +313,7 @@ function NavContent({
                     {isOpen && collapsed && (
                       <div className="flex flex-col gap-1 items-center py-1">
                         {subItems.map((sub: any) => (
-                          <Link key={sub.href} href={sub.href} onClick={onClose} title={sub.label} className={`w-2 h-2 rounded-full transition-colors ${pathname === sub.href ? "bg-violet-600" : "bg-slate-300 hover:bg-violet-400"}`} />
+                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} title={sub.label} className={`w-2 h-2 rounded-full transition-colors ${pathname === sub.href ? "bg-violet-600" : "bg-slate-300 hover:bg-violet-400"}`} />
                         ))}
                       </div>
                     )}
@@ -352,10 +352,10 @@ function NavContent({
             />
 
             {/* Popover panel */}
-            <div className={`absolute z-[100] bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden w-64 ${
+            <div className={`z-[100] bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden w-64 ${
               collapsed
-                ? 'bottom-0 left-[calc(100%+8px)]'   // collapsed: opens to the right
-                : 'bottom-[calc(100%+8px)] left-0 right-0 w-auto' // expanded: opens above
+                ? 'fixed bottom-6 left-[72px]'   // collapsed: fixed to escape sidebar clip
+                : 'absolute bottom-[calc(100%+8px)] left-0 right-0 w-auto' // expanded: opens above
             }`}>
               {/* Active account (header) */}
               <div className="flex items-center gap-2.5 px-3 py-2.5 bg-violet-50 border-b border-violet-100">
