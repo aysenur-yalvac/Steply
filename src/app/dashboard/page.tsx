@@ -21,30 +21,29 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ q?
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user?.id)
-    .single();
+  // Fetch all independent data in parallel
+  const [
+    profileRes,
+    mentoredDataRes,
+    notesDataRes,
+    followData,
+  ] = await Promise.all([
+    supabase.from('profiles').select('role').eq('id', user?.id).single(),
+    supabase.from('mentored_projects').select('project_id').eq('teacher_id', user?.id),
+    supabase.from('project_notes').select('project_id, content, profiles!teacher_id(full_name)'),
+    user?.id ? getFollowDataAction(user.id) : Promise.resolve({ followers: [], following: [] })
+  ]);
 
+  const profile = profileRes.data;
   const isTeacher = profile?.role === 'teacher';
   const isStudent = profile?.role === 'student';
 
   let projects: any[] = [];
-  let watchedIds = new Set<string>();
+  let watchedIds = new Set<string>(mentoredDataRes.data?.map((m: any) => m.project_id) || []);
   let projectNotes: Record<string, { content: string; teacherName?: string }> = {};
 
-  const { data: mentoredData } = await supabase
-    .from('mentored_projects')
-    .select('project_id')
-    .eq('teacher_id', user?.id);
-  watchedIds = new Set(mentoredData?.map((m: any) => m.project_id) || []);
-
-  const { data: notesData } = await supabase
-    .from('project_notes')
-    .select('project_id, content, profiles!teacher_id(full_name)');
-  if (notesData) {
-    notesData.forEach((n: any) => {
+  if (notesDataRes.data) {
+    notesDataRes.data.forEach((n: any) => {
       projectNotes[n.project_id] = { content: n.content, teacherName: n.profiles?.full_name };
     });
   }
