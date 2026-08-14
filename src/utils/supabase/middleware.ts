@@ -31,17 +31,17 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  // getUser() with 4.5s timeout — if Supabase is slow/unreachable, pass through
+  // getSession() with 4.5s timeout - much faster for middleware as it reads local cookie — if Supabase is slow/unreachable, pass through
   // instead of hanging until Vercel's 25s wall-clock limit is hit.
-  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null
+  let user: any = null
   try {
     const { data } = await Promise.race([
-      supabase.auth.getUser(),
-      new Promise<{ data: { user: null } }>(resolve =>
-        setTimeout(() => resolve({ data: { user: null } }), 4500)
+      supabase.auth.getSession(),
+      new Promise<{ data: { session: null } }>(resolve =>
+        setTimeout(() => resolve({ data: { session: null } }), 4500)
       ),
     ])
-    user = data.user
+    user = data.session?.user ?? null
   } catch {
     // Network error or unexpected throw — never block the request
     return supabaseResponse
