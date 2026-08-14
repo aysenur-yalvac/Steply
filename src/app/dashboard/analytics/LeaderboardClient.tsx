@@ -150,9 +150,9 @@ export default function LeaderboardClient({
     uni50;
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc]">
+    <div className="flex flex-col min-h-screen bg-transparent">
       {/* Page header */}
-      <div className="bg-white border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
+      <div className="bg-transparent border-b border-white/10 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
         <div className="mb-3">
           <BackButton href="/dashboard" variant="light" />
         </div>

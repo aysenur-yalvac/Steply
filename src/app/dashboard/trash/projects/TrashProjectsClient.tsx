@@ -8,15 +8,16 @@ import { Trash2, Loader2, CheckSquare, Square, Trash } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function TrashProjectsClient({ initialProjects, currentUserId }: { initialProjects: any[], currentUserId: string }) {
+  const [projects, setProjects] = useState(initialProjects);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [modalState, setModalState] = useState<{ isOpen: boolean; type: "restore" | "delete"; isBulk: boolean; targetId?: string } | null>(null);
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === initialProjects.length) {
+    if (selectedIds.length === projects.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(initialProjects.map(p => p.id));
+      setSelectedIds(projects.map(p => p.id));
     }
   };
 
@@ -24,9 +25,22 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
+  
   const handleAction = async () => {
     if (!modalState) return;
     setIsProcessing(true);
+    
+    // Optimistic UI update
+    let idsToRemove: string[] = [];
+    if (modalState.isBulk) {
+      idsToRemove = selectedIds;
+    } else if (modalState.targetId) {
+      idsToRemove = [modalState.targetId];
+    }
+    
+    setProjects(prev => prev.filter(p => !idsToRemove.includes(p.id)));
+    setModalState(null); // Close modal immediately
+    
     try {
       if (modalState.isBulk) {
         if (modalState.type === "restore") {
@@ -48,13 +62,14 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
       }
     } catch (err: any) {
       toast.error(err.message || "Bir hata oluştu");
+      // Revert optimistic update on error by triggering a server revalidate or just letting the user refresh
     } finally {
       setIsProcessing(false);
-      setModalState(null);
     }
   };
 
-  if (initialProjects.length === 0) {
+
+  if (projects.length === 0) {
     return (
       <EmptyState
         icon={Trash2}
@@ -69,12 +84,12 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
       {/* Toplu İşlem Barı */}
       <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
         <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
-          {selectedIds.length === initialProjects.length && initialProjects.length > 0 ? (
+          {selectedIds.length === projects.length && projects.length > 0 ? (
             <CheckSquare className="w-5 h-5 text-violet-600" />
           ) : (
             <Square className="w-5 h-5 text-slate-400" />
           )}
-          Tümünü Seç ({selectedIds.length}/{initialProjects.length})
+          Tümünü Seç ({selectedIds.length}/{projects.length})
         </button>
         <div className="flex items-center gap-3">
           <button
@@ -96,7 +111,7 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {initialProjects.map((project: any) => (
+        {projects.map((project: any) => (
           <div key={project.id} className={`relative group rounded-2xl border-2 transition-all ${selectedIds.includes(project.id) ? 'border-violet-500' : 'border-transparent'}`}>
             {/* Checkbox Overlay */}
             <div className="absolute top-3 left-3 z-20">

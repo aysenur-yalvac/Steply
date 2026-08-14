@@ -7,15 +7,16 @@ import { Trash2, FileIcon, Loader2, CheckSquare, Square, Trash } from "lucide-re
 import toast from "react-hot-toast";
 
 export default function TrashFilesClient({ initialFiles }: { initialFiles: any[] }) {
+  const [files, setFiles] = useState(initialFiles);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [modalState, setModalState] = useState<{ isOpen: boolean; type: "restore" | "delete"; isBulk: boolean; targetFile?: any } | null>(null);
 
   const toggleSelectAll = () => {
-    if (selectedKeys.length === initialFiles.length) {
+    if (selectedKeys.length === files.length) {
       setSelectedKeys([]);
     } else {
-      setSelectedKeys(initialFiles.map(f => `${f.projectId}::${f.url}`));
+      setSelectedKeys(files.map(f => `${f.projectId}::${f.url}`));
     }
   };
 
@@ -24,9 +25,22 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
     setSelectedKeys(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
+  
   const handleAction = async () => {
     if (!modalState) return;
     setIsProcessing(true);
+
+    // Optimistic UI update
+    let keysToRemove: string[] = [];
+    if (modalState.isBulk) {
+      keysToRemove = selectedKeys;
+    } else if (modalState.targetFile) {
+      keysToRemove = [`${modalState.targetFile.projectId}::${modalState.targetFile.url}`];
+    }
+
+    setFiles(prev => prev.filter(f => !keysToRemove.includes(`${f.projectId}::${f.url}`)));
+    setModalState(null); // Close modal immediately
+
     try {
       if (modalState.isBulk) {
         const payload = selectedKeys.map(k => {
@@ -54,11 +68,11 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
       toast.error(err.message || "Bir hata oluştu");
     } finally {
       setIsProcessing(false);
-      setModalState(null);
     }
   };
 
-  if (initialFiles.length === 0) {
+
+  if (files.length === 0) {
     return (
       <EmptyState
         icon={Trash2}
@@ -73,12 +87,12 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
       {/* Toplu İşlem Barı */}
       <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
         <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
-          {selectedKeys.length === initialFiles.length && initialFiles.length > 0 ? (
+          {selectedKeys.length === files.length && files.length > 0 ? (
             <CheckSquare className="w-5 h-5 text-violet-600" />
           ) : (
             <Square className="w-5 h-5 text-slate-400" />
           )}
-          Tümünü Seç ({selectedKeys.length}/{initialFiles.length})
+          Tümünü Seç ({selectedKeys.length}/{files.length})
         </button>
         <div className="flex items-center gap-3">
           <button
@@ -100,7 +114,7 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {initialFiles.map((file, i) => {
+        {files.map((file, i) => {
           const key = `${file.projectId}::${file.url}`;
           const isSelected = selectedKeys.includes(key);
           return (
