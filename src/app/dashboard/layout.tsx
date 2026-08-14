@@ -36,15 +36,17 @@ export default async function DashboardLayout({
   const role = profile?.role || 'student';
   const isTeacher = role === 'teacher';
 
-  const { count: unreadCount } = await supabase
-    .from('messages')
-    .select('id', { count: 'exact', head: true })
-    .eq('receiver_id', user.id)
-    .eq('is_read', false);
-
-  // Fetch linked accounts — graceful fallback if table not yet migrated
-  let linkedAccounts: LinkedAccount[] = [];
-  try { linkedAccounts = await getLinkedAccountsAction(); } catch { /* table not yet applied */ }
+  // Parallel fetch: messages + linked accounts
+  const [unreadResult, linkedAccountsResult] = await Promise.allSettled([
+    supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('receiver_id', user.id)
+      .eq('is_read', false),
+    getLinkedAccountsAction(),
+  ]);
+  const unreadCount = unreadResult.status === 'fulfilled' ? (unreadResult.value.count ?? 0) : 0;
+  const linkedAccounts: LinkedAccount[] = linkedAccountsResult.status === 'fulfilled' ? (linkedAccountsResult.value as LinkedAccount[]) : [];
 
   // Fetch notifications — graceful fallback if table not yet migrated
   let notifications: Notification[] = [];

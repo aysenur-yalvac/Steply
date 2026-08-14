@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -100,6 +101,10 @@ function NavContent({
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [popoverAnchor, setPopoverAnchor] = useState<DOMRect | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [switchTarget, setSwitchTarget] = useState<LinkedAccount | null>(null);
   const [removeTarget, setRemoveTarget] = useState<LinkedAccount | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -343,20 +348,23 @@ function NavContent({
             POPOVER MENU — floats above footer, works in both modes
             Triggered by clicking active-profile button (below)
             ============================================================ */}
-        {isAccountMenuOpen && (
+        {isAccountMenuOpen && mounted && createPortal(
           <>
             {/* Backdrop — click outside to close */}
             <div
-              className="fixed inset-0 z-[99]"
+              className="fixed inset-0 z-[199]"
               onClick={() => setIsAccountMenuOpen(false)}
             />
 
-            {/* Popover panel */}
-            <div className={`z-[100] bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden w-64 ${
-              collapsed
-                ? 'fixed bottom-6 left-[72px]'   // collapsed: fixed to escape sidebar clip
-                : 'absolute bottom-[calc(100%+8px)] left-0 right-0 w-auto' // expanded: opens above
-            }`}>
+            {/* Popover panel — anchored via JS position */}
+            <div
+              className="fixed z-[200] bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden w-64"
+              style={popoverAnchor ? {
+                bottom: window.innerHeight - popoverAnchor.top + 8,
+                left: collapsed ? popoverAnchor.right + 8 : popoverAnchor.left,
+                width: collapsed ? 256 : Math.max(256, popoverAnchor.width),
+              } : { bottom: 80, left: 80 }}
+            >
               {/* Active account (header) */}
               <div className="flex items-center gap-2.5 px-3 py-2.5 bg-violet-50 border-b border-violet-100">
                 <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={28} />
@@ -413,7 +421,8 @@ function NavContent({
                 Yeni Hesap Ekle
               </button>
             </div>
-          </>
+          </>,
+          document.body
         )}
 
         {/* ============================================================
@@ -424,7 +433,12 @@ function NavContent({
           <div className="flex flex-col items-center gap-2">
             <button
               type="button"
-              onClick={() => setIsAccountMenuOpen(o => !o)}
+              ref={triggerRef}
+              onClick={() => {
+                const rect = triggerRef.current?.getBoundingClientRect();
+                setPopoverAnchor(rect ?? null);
+                setIsAccountMenuOpen(o => !o);
+              }}
               title={userName || userEmail || "Hesaplar"}
               className="flex items-center justify-center w-9 h-9 rounded-full ring-2 ring-emerald-500 hover:ring-emerald-400 transition-all p-[2px]"
             >
@@ -454,8 +468,13 @@ function NavContent({
                 </div>
               </Link>
               <button
+                ref={triggerRef}
                 type="button"
-                onClick={() => setIsAccountMenuOpen(o => !o)}
+                onClick={() => {
+                  const rect = triggerRef.current?.getBoundingClientRect();
+                  setPopoverAnchor(rect ?? null);
+                  setIsAccountMenuOpen(o => !o);
+                }}
                 className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
                 title="Hesap değiştir"
               >
