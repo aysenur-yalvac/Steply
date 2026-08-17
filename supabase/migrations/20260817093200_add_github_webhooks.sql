@@ -1,7 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS project_github_repos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  project_id uuid NOT NULL UNIQUE REFERENCES projects(id) ON DELETE CASCADE,
   repo_url text NOT NULL,
   repo_owner text NOT NULL,
   repo_name text NOT NULL,
