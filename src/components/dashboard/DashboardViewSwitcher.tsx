@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Plus, SlidersHorizontal, CheckCircle, Clock, Minus, ExternalLink, X } from "lucide-react";
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
+import ProjectCard from "@/app/dashboard/ProjectCard";
+import { Users } from "lucide-react";
 import { GooeySearchBar } from "@/components/ui/animated-search-bar";
 
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -407,6 +409,7 @@ interface Props {
   watchedIds: Set<string>;
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
+  collaboratorProjects?: any[];
 }
 
 export default function DashboardViewSwitcher({

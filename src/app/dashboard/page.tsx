@@ -218,6 +218,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               watchedIds={watchedIds}
               projectNotes={projectNotes}
               currentUserId={user?.id}
+              collaboratorProjects={collaboratorProjects}
             />
             {!isTeacher && (
               <div className="flex justify-center mt-8">
@@ -247,44 +248,12 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
             watchedIds={watchedIds}
             projectNotes={projectNotes}
             currentUserId={user?.id}
+            collaboratorProjects={collaboratorProjects}
           />
         )}
 
         {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
-        {collaboratorProjects.length > 0 && (
-          <div>
-            {!isTeacher && <div className="h-px w-full bg-slate-100 mb-6" />}
-
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
-                <Users className="w-4 h-4 text-violet-600" />
               </div>
-              <div>
-                <h2 className="text-sm font-bold text-slate-800 tracking-tight">
-                  Collaborative Projects
-                </h2>
-                <p className="text-xs text-slate-400 font-medium">
-                  Projects you've been added to — you can view and edit them.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {collaboratorProjects.map((p: any) => (
-                <ProjectCard
-                  key={p.id}
-                  project={p}
-                  isTeacher={isTeacher}
-                  currentUserId={user?.id}
-                  isWatched={watchedIds.has(p.id)}
-                  isFavorited={favoritedIds.has(p.id)}
-                  isCollaborator
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

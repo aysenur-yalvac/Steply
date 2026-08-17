@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, FolderRoot } from 'lucide-react';
-import { getMessagesAction, sendMessageAction, getUserProjectsAction, Message } from '@/lib/social-actions';
+import { getMessagesAction, sendMessageAction, getUserProjectsAction, markMessagesAsReadAction, Message } from '@/lib/social-actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -29,6 +30,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
   const [mentionedProject, setMentionedProject] = useState<{ id: string; title: string } | null>(null);
 
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     // Load initial messages
