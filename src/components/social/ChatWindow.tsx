@@ -164,12 +164,12 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
   return (
     <div className="flex flex-col h-full w-full bg-slate-50/70 overflow-hidden relative border-l border-slate-200/80">
       {/* Header */}
-      <div className="p-5 border-b border-violet-100 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 shrink-0 z-10 shadow-sm">
+      <div className="p-5 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 z-10 shadow-sm">
         <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{selectedUser.full_name}</h3>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 relative z-0 bg-[#f8f9fe] dark:bg-zinc-950/60">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 relative z-0 bg-slate-50 dark:bg-zinc-950">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
@@ -223,7 +223,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t border-violet-100 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 relative z-20 shrink-0">
+      <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative z-20 shrink-0">
         {showMentionMenu && projects.length > 0 && (
           <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white/95 backdrop-blur-3xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
             <div className="px-4 py-3 text-xs font-bold text-sage-green border-b border-slate-100 bg-slate-50/50 uppercase tracking-widest">
