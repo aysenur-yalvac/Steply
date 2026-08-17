@@ -8,6 +8,35 @@ import { markNotificationAsReadAction, markAllNotificationsReadAction } from "@/
 import type { Notification } from "@/lib/actions";
 import { createClient } from "@/utils/supabase/client";
 
+// Helper to fix UTF-8 Mojibake from old database entries
+function decodeCorruptedText(text: string) {
+  if (!text) return text;
+  return text
+    .replace(/payla\xC5\xB8t\xC4\xB1/g, 'paylaştı')
+    .replace(/payla\xef\xbf\xbd\xef\xbf\xbdt\xef\xbf\xbd/g, 'paylaştı')
+    .replace(/y\xC3\xBCklendi/g, 'yüklendi')
+    .replace(/y\xef\xbf\xbdklendi/g, 'yüklendi')
+    .replace(/G\xC3\xB6rev/g, 'Görev')
+    .replace(/G\xef\xbf\xbdrev/g, 'Görev')
+    .replace(/g\xC3\xB6rev/g, 'görev')
+    .replace(/g\xef\xbf\xbdrev/g, 'görev')
+    .replace(/de\xC4\x9Ferlendirme/g, 'değerlendirme')
+    .replace(/de\xef\xbf\xbd/g, 'değ')
+    .replace(/Ã¼/g, 'ü')
+    .replace(/Ã¶/g, 'ö')
+    .replace(/Ã§/g, 'ç')
+    .replace(/ÃŸ/g, 'ş')
+    .replace(/Ä±/g, 'ı')
+    .replace(/ÄŸ/g, 'ğ')
+    .replace(/Ã\x9C/g, 'Ü')
+    .replace(/Ã\x96/g, 'Ö')
+    .replace(/Ã\x87/g, 'Ç')
+    .replace(/Å\x9E/g, 'Ş')
+    .replace(/Ä\xB0/g, 'İ')
+    .replace(/Ä\x9E/g, 'Ğ')
+    .replace(/\s+/g, ' ');
+}
+
 function typeIcon(type: Notification["type"]) {
   if (type === "message") return <MessageSquare className="w-4 h-4 text-violet-500" />;
   if (type === "project") return <FolderOpen className="w-4 h-4 text-emerald-500" />;
@@ -35,10 +64,10 @@ export default function NotificationBell({
   initialNotifications,
   currentUserId,
 }: {
-  initialNotifications: Notification[];
+  initialNotifications: any[];
   currentUserId: string;
 }) {
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<any[]>(initialNotifications);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
