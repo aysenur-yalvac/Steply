@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
-import { saveFileRecordAction, softDeleteFileAction, ProjectFile } from '@/lib/actions';
+import { saveFileRecordAction, softDeleteFileAction, ProjectFile, FileVisibility } from '@/lib/actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 import SmartFileViewerModal from './SmartFileViewerModal';
@@ -31,14 +31,14 @@ function sanitizeName(name: string): string {
     .replace(/[^a-zA-Z0-9.-]/g, '_');
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false }: FileSectionProps) {
+export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, currentUserId }: FileSectionProps & { currentUserId?: string }) {
   // Collaborators have the same file management rights as the owner
   const canManageFiles = isOwner || isCollaborator;
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [viewerFile, setViewerFile] = useState<ProjectFile | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [makePrivate, setMakePrivate] = useState(false);
+  const [fileVisibility, setFileVisibility] = useState<FileVisibility>('MEMBERS_ONLY');
   const [deleteModalTarget, setDeleteModalTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +68,9 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         type: file.type,
         url: '',
         uploaded_at: new Date().toISOString(),
-        isPrivate: makePrivate,
+        visibility: fileVisibility,
+      uploaderId: currentUserId,
+      isPrivate: fileVisibility !== 'PUBLIC',
         pending: true,
       });
     });
@@ -103,10 +105,10 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
       const result = await saveFileRecordAction(
         projectId,
         file.name,
+        filePath,
         file.size,
         file.type,
-        filePath,
-        makePrivate,
+        fileVisibility,
       );
 
       setUploadProgress(100);
@@ -162,7 +164,15 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const visibleFiles = optimisticFiles.filter(file => !file.isPrivate || canManageFiles);
+  const visibleFiles = optimisticFiles.filter(file => {
+    const isUploader = file.uploaderId === currentUserId;
+    const isMember = canManageFiles;
+
+    if (isUploader) return true;
+    if (file.visibility === 'ONLY_ME') return false;
+    if (isMember) return true;
+    return file.visibility === 'PUBLIC' || file.isPrivate === false;
+  });
 
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
@@ -172,16 +182,17 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         </h3>
         {canManageFiles && (
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={makePrivate}
-                onChange={(e) => setMakePrivate(e.target.checked)}
-                className="rounded border-slate-300 accent-[#7C3AFF] cursor-pointer"
-              />
-              <Lock className="w-3 h-3 text-slate-400" />
-              Private
-            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+              <select
+                value={fileVisibility}
+                onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
+                className="bg-white border border-slate-200 text-slate-600 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
+              >
+                <option value="PUBLIC">🌐 Herkese Açık</option>
+                <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>
+                <option value="ONLY_ME">🔒 Sadece Bana Özel</option>
+              </select>
+            </div>
 
             <input
               type="file"

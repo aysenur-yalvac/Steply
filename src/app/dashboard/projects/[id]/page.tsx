@@ -272,6 +272,7 @@ export default async function ProjectDetailPage({
                   initialFiles={(project.files as ProjectFile[]) || []}
                   isOwner={isOwner}
                   isCollaborator={isCollaborator}
+                  currentUserId={user.id}
                 />
               }
               notesContent={

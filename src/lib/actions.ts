@@ -5,6 +5,8 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { sanitizeInstitution } from "@/lib/utils";
 
+export type FileVisibility = 'PUBLIC' | 'MEMBERS_ONLY' | 'ONLY_ME';
+
 export type ProjectFile = {
   id?: string;
   name: string;
@@ -12,7 +14,9 @@ export type ProjectFile = {
   size: number;
   type: string;
   uploaded_at: string;
-  isPrivate?: boolean;
+  visibility?: FileVisibility;
+  uploaderId?: string;
+  isPrivate?: boolean; // legacy
 };
 
 const BUCKET_ID = "project-files";
@@ -24,13 +28,13 @@ const BUCKET_ID = "project-files";
 export async function saveFileRecordAction(
   projectId: string,
   fileName: string,
+  fileUrl: string,
   fileSize: number,
   fileType: string,
-  filePath: string,
-  isPrivate: boolean,
+  visibility: FileVisibility = 'MEMBERS_ONLY'
 ): Promise<{ success: true; file: ProjectFile } | { error: string }> {
   try {
-    if (!projectId || !filePath) return { error: "Kritik Hata: projectId veya filePath eksik." };
+    if (!projectId || !fileUrl) return { error: "Kritik Hata: projectId veya fileUrl eksik." };
 
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -57,7 +61,7 @@ export async function saveFileRecordAction(
       if (!membership) return { error: "Bu proje iÃ§in yetkiniz yok." };
     }
 
-    const { data: { publicUrl } } = admin.storage.from(BUCKET_ID).getPublicUrl(filePath);
+    const { data: { publicUrl } } = admin.storage.from(BUCKET_ID).getPublicUrl(fileUrl);
 
     const newFile: ProjectFile = {
       id: `${Date.now()}`,
@@ -66,7 +70,8 @@ export async function saveFileRecordAction(
       size: fileSize,
       type: fileType,
       uploaded_at: new Date().toISOString(),
-      isPrivate,
+      visibility,
+      uploaderId: user.id,
     };
 
     const existingFiles = (project.files as ProjectFile[]) || [];
