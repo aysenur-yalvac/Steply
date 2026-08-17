@@ -1,4 +1,7 @@
 ﻿import { createClient } from '@/utils/supabase/server';
+import { GitHubIntegrationCard } from '@/components/projects/GitHubIntegrationCard';
+import { getGitHubRepoAction, getProjectCommitsAction } from '@/lib/actions';
+
 import { createAdminClient } from '@/utils/supabase/admin';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
@@ -175,9 +178,11 @@ export default async function ProjectDetailPage({
 
   // ── Activity Stream + Discussion Notes (owner + collaborators only) ─────────
   const isTeamMember = isOwner || isCollaborator;
-  const [activities, projectNotes] = await Promise.all([
+  const [activities, projectNotes, repo, commits] = await Promise.all([
     isTeamMember ? getProjectActivitiesAction(projectId).catch(() => []) : Promise.resolve([]),
     isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
+    isTeamMember ? getGitHubRepoAction(projectId).catch(() => null)      : Promise.resolve(null),
+    isTeamMember ? getProjectCommitsAction(projectId).catch(() => [])    : Promise.resolve([]),
   ]);
 
   const projectStatus = (project as any).status ?? 'todo';
@@ -374,6 +379,7 @@ export default async function ProjectDetailPage({
             {isTeamMember && (
               <ActivityTimeline activities={activities} />
             )}
+            <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} />
           </div>
         </div>
       </div>

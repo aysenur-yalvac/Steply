@@ -1,5 +1,4 @@
-﻿const fs = require('fs');
-const sql = `
+
 CREATE TABLE IF NOT EXISTS project_github_repos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -25,5 +24,3 @@ CREATE TABLE IF NOT EXISTS project_commits (
 );
 
 CREATE INDEX IF NOT EXISTS idx_project_commits_project_id ON project_commits(project_id);
-`;
-fs.writeFileSync('supabase/migrations/20260817093200_add_github_webhooks.sql', sql, 'utf8');
