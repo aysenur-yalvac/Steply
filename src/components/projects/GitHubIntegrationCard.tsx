@@ -113,7 +113,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
                       placeholder="https://github.com/kullanici/repo"
                       value={repoUrl}
                       onChange={(e) => setRepoUrl(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl border text-slate-900 placeholder:text-slate-400 bg-white border-slate-300 dark:text-slate-100 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                     <button type="submit" disabled={loading} className="w-full py-2.5 bg-slate-800 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 disabled:opacity-50">

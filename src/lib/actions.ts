@@ -34,7 +34,7 @@ export async function saveFileRecordAction(
 
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return { error: "Oturum bulunamadÄ±. LÃ¼tfen tekrar giriÅŸ yapÄ±n." };
+    if (authError || !user) return { error: "Oturum bulunamadııÄ±. LÃ¼tfen tekrar giriÅŸ yapÄ±n." };
 
     const admin = createAdminClient();
 
@@ -43,8 +43,8 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .single();
 
-    if (projectError) return { error: `DB Select HatasÄ±: ${projectError.message} (Code: ${projectError.code})` };
-    if (!project) return { error: `Proje bulunamadÄ± (projectId: ${projectId})` };
+    if (projectError) return { error: `DB Select HatasıÄ±: ${projectError.message} (Code: ${projectError.code})` };
+    if (!project) return { error: `Proje bulunamadıÄ± (projectId: ${projectId})` };
 
     // Allow owner OR verified collaborator
     if (project.student_id !== user.id) {
@@ -76,13 +76,13 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .select();
 
-    if (updateError) return { error: `DB Update HatasÄ±: ${updateError.message} (Code: ${updateError.code})` };
+    if (updateError) return { error: `DB Update HatasıÄ±: ${updateError.message} (Code: ${updateError.code})` };
     if (!updatedRow || updatedRow.length === 0) return { error: "VeritabanÄ± gÃ¼ncellenmedi: Proje ID eÅŸleÅŸmedi." };
 
     revalidatePath("/dashboard/projects");
     revalidatePath(`/dashboard/projects/${projectId}`);
 
-    await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yÃ¼klendi.`);
+    await logProjectActivity(admin, projectId, user.id, 'file_upload', `${fileName} isimli yeni bir dosya yüklendi.`);
 
     if (project.status === 'todo') {
       await admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
@@ -579,7 +579,7 @@ export async function addProjectTask(
   if (error || !data) return { error: error?.message ?? 'Insert failed' };
 
   await recalculateProgress(ctx.admin, projectId);
-  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni gÃ¶rev eklendi: ${title.trim()}`);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
   const { data: projAdd } = await ctx.admin.from("projects").select('status').eq('id', projectId).single();
   if (projAdd?.status === 'todo') {
     await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
@@ -665,7 +665,7 @@ export async function deleteProjectTask(
       }
 
   const progress = await recalculateProgress(ctx.admin, projectId);
-  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `GÃ¶rev silindi: ${taskRow?.title ?? taskId}`);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_deleted', `Görev silindi: ${taskRow?.title ?? taskId}`);
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, progress };
 }
@@ -922,7 +922,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     });
 
     if (rpcErr) {
-      console.error('Puanlama HatasÄ± (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
+      console.error('Puanlama HatasıÄ± (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
       // RPC not yet deployed â€” manual fallback with weighted points
       const POINTS: Record<ActionType, number> = {
         create_project: 10,
@@ -961,7 +961,7 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     // Award badges â€” non-blocking
     awardBadgesInternal(user.id, admin).catch(() => {});
   } catch (e) {
-    console.error('Puanlama HatasÄ± (exception):', e);
+    console.error('Puanlama HatasıÄ± (exception):', e);
   }
 }
 
@@ -1062,7 +1062,7 @@ export async function addLinkedAccountAction(
   const admin = createAdminClient();
 
   const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
-  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadÄ±.' };
+  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadıÄ±.' };
 
   // Fetch both sides' enrichment data.
   const [{ data: authUser }, { data: profile }, { data: ownerAuthUser }, { data: ownerProfile }] = await Promise.all([
@@ -1150,7 +1150,7 @@ export async function removeLinkedAccountAction(
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row) return { error: 'BaÄŸlantÄ± bulunamadÄ±.' };
+  if (!row) return { error: 'BaÄŸlantÄ± bulunamadıÄ±.' };
 
   const ownerUserId  = user.id;            // A's uuid
   const ownerEmail   = user.email ?? '';   // A's email (fallback key for B's row)
@@ -1945,7 +1945,7 @@ export async function connectGitHubRepoAction(projectId: string, repoUrl: string
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Oturum bulunamadi." };
+    if (!user) return { error: "Oturum bulunamadııi." };
 
     const admin = createAdminClient();
 
@@ -1983,7 +1983,7 @@ export async function removeGitHubRepoAction(projectId: string) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Oturum bulunamadi." };
+    if (!user) return { error: "Oturum bulunamadııi." };
 
     const admin = createAdminClient();
     const { data: project } = await admin.from("projects").select("student_id").eq("id", projectId).single();
