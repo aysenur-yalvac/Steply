@@ -96,7 +96,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
       {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto flex flex-col">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
               <h3 className="font-bold text-slate-800">GitHub Ayarlari</h3>
               <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
@@ -159,19 +159,19 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
                   </div>
 
                   {/* Right Column: Setup Guide */}
-                  <div className="bg-slate-50 dark:bg-zinc-800/50 p-6 rounded-2xl border border-slate-100 h-full flex flex-col">
-                    <h5 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <div className="bg-slate-100/80 dark:bg-zinc-800/60 border border-slate-200/60 p-5 rounded-xl h-full flex flex-col">
+                    <h5 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                       <Settings className="w-4 h-4" /> Webhook Kurulum Rehberi
                     </h5>
-                    <ol className="list-decimal list-inside text-sm text-slate-600 space-y-3 mb-6 flex-1">
+                    <ol className="list-decimal list-inside text-sm text-slate-700 dark:text-zinc-300 space-y-3 mb-6 flex-1">
                       <li>GitHub deponuzda <strong>Settings &gt; Webhooks &gt; Add webhook</strong> kismina gidin.</li>
                       <li>Soldaki <strong>Payload URL</strong> ve <strong>Secret</strong> degerlerini kopyalayip ilgili alanlara yapistirin.</li>
                       <li>Content type secimini dogru yapin (Asagidaki uyariya dikkat edin).</li>
                       <li>Sadece <strong>Push events</strong> secmeli veya tumunu isaretleyebilirsiniz.</li>
                     </ol>
 
-                    <div className="mt-auto bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl">
-                      <p className="text-sm text-amber-800 font-medium flex gap-2">
+                    <div className="mt-auto bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                      <p className="text-sm text-amber-900 font-medium flex gap-2">
                         <span>⚠️</span>
                         <span>
                           <strong className="block mb-1">ÖNEMLİ</strong>
