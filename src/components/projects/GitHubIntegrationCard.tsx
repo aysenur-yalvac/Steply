@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { connectGitHubRepoAction, removeGitHubRepoAction } from '@/lib/actions';
 import { Github, Check, Copy, Trash2, GitCommit, Settings, X, AlertCircle } from 'lucide-react';
 
-export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }: { projectId: string, repo: any, commits: any[], isTeamMember: boolean }) {
+export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, githubLink }: { projectId: string, repo: any, commits: any[], isTeamMember: boolean, githubLink?: string | null }) {
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
@@ -18,6 +18,23 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (!isTeamMember) {
+    return (
+      <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100 uppercase tracking-widest flex items-center gap-2 mb-4">
+          <Github className="w-5 h-5 text-indigo-500" /> GitHub Bağlantısı
+        </h3>
+        {githubLink ? (
+          <a href={githubLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-medium bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 px-4 py-2 rounded-xl transition-colors">
+            <Github className="w-4 h-4" /> Repo'yu Görüntüle
+          </a>
+        ) : (
+          <p className="text-sm text-slate-500 dark:text-zinc-400">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
+        )}
+      </div>
+    );
+  }
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,6 +177,23 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
       </div>
     </div>
   ) : null;
+
+  if (!isTeamMember) {
+    return (
+      <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-4">
+          <Github className="w-5 h-5" /> GitHub Bağlantısı
+        </h3>
+        {githubLink ? (
+          <a href={githubLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-colors">
+            <Github className="w-4 h-4" /> Repo'yu Görüntüle
+          </a>
+        ) : (
+          <p className="text-sm text-slate-500">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative w-full col-span-full max-h-[420px] h-[420px] flex flex-col overflow-hidden" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>

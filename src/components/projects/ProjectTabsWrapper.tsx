@@ -28,11 +28,13 @@ export default function ProjectTabsWrapper({
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [hasViewedNotes, setHasViewedNotes] = useState(false);
 
-  const tabs = [
+    const tabs = [
     { id: 'overview', label: 'Genel Bakış & Takım', icon: Layers },
-    { id: 'milestones', label: 'Görevler', icon: CheckSquare },
-    { id: 'files', label: 'Dosyalar', icon: FileText },
   ];
+  if (milestonesContent) {
+    tabs.push({ id: 'milestones', label: 'Görevler', icon: CheckSquare });
+  }
+  tabs.push({ id: 'files', label: 'Dosyalar', icon: FileText });
 
   if (showNotesTab) {
     tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });

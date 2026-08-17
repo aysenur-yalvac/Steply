@@ -297,12 +297,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         )}
       </div>
 
-      {!canManageFiles && files.some(f => f.isPrivate) && (
-        <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
-          <Lock className="w-3 h-3" />
-          {files.filter(f => f.isPrivate).length} gizli dosya gizlendi.
-        </p>
-      )}
+      
       
       <SmartFileViewerModal
         isOpen={!!viewerFile}

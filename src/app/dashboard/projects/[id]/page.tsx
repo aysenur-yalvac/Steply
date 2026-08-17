@@ -261,9 +261,7 @@ export default async function ProjectDetailPage({
                     initialTasks={projectTasks}
                     canEdit={isTeamMember}
                   />
-                ) : (
-                  <div className="p-8 text-center text-slate-500 font-medium">Bu bölümü görmek için yetkiniz yok.</div>
-                )
+                ) : null
               }
               filesContent={
                 <FileSection
@@ -383,7 +381,7 @@ export default async function ProjectDetailPage({
         </div>
 
         <div className="w-full col-span-full">
-          <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} />
+          <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} githubLink={project.github_link} />
         </div>
       </div>
     </PageWrapper>
