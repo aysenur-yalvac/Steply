@@ -1,12 +1,6 @@
 ﻿const fs = require('fs');
-let content = fs.readFileSync('src/app/dashboard/projects/[id]/page.tsx', 'utf8');
+let content = fs.readFileSync('src/components/projects/ProjectEditableContent.tsx', 'utf8');
 
-if (!content.includes('GitHubIntegrationCard')) {
-  content = content.replace(
-    `import ActivityTimeline from '@/components/projects/ActivityTimeline';`,
-    `import ActivityTimeline from '@/components/projects/ActivityTimeline';\nimport { GitHubIntegrationCard } from '@/components/projects/GitHubIntegrationCard';\nimport { getGitHubRepoAction, getProjectCommitsAction } from '@/lib/actions';`
-  );
-}
+content = content.replace(', LogOut, AlertTriangle} from "lucide-react";', '} from "lucide-react";\nimport { LogOut, AlertTriangle } from "lucide-react";');
 
-fs.writeFileSync('src/app/dashboard/projects/[id]/page.tsx', content, 'utf8');
-console.log("Added import");
+fs.writeFileSync('src/components/projects/ProjectEditableContent.tsx', content, 'utf8');
