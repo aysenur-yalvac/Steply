@@ -52,7 +52,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                   <button
                     key={conv.other_user.id}
                     onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-dusty-rose/10 border border-dusty-rose/20 shadow-sm' : 'hover:bg-slate-100/50 border border-transparent'}`}
+                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}`}
                   >
                     <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
                       <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
