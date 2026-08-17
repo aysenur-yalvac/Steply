@@ -162,8 +162,8 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
   ) : null;
 
   return (
-    <div className="rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
-      <div className="flex justify-between items-center mb-6">
+    <div className="rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative w-full col-span-full max-h-[360px] h-[360px] flex flex-col overflow-hidden" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800 mb-4 shrink-0">
         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
           <Github className="w-5 h-5" /> GitHub
         </h3>
@@ -190,17 +190,17 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
             <p className="text-xs text-slate-400 mt-1">Webhook bağlandığında push edilen commitler burada görünecek.</p>
           </div>
         ) : (
-          <div className="relative border-l-2 border-indigo-100 ml-3 space-y-6">
+          <div className="relative border-l-2 border-indigo-100 ml-3 flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {commits.map((commit: any) => (
-              <div key={commit.id} className="relative pl-6">
-                <span className="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center overflow-hidden">
+              <div key={commit.id} className="relative pl-8">
+                <span className="absolute -left-[11px] top-3 w-5 h-5 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center overflow-hidden z-10">
                   {commit.author_avatar ? (
                     <img src={commit.author_avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <Github className="w-3 h-3 text-indigo-400" />
                   )}
                 </span>
-                <div className="flex flex-col">
+                <div className="flex flex-col bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 rounded-xl p-3 shadow-sm">
                   <span className="text-xs text-slate-400 font-medium">{new Date(commit.pushed_at).toLocaleString('tr-TR')}</span>
                   <p className="text-sm text-slate-700 font-medium mt-1 break-words">{commit.commit_message}</p>
                   <div className="flex items-center gap-2 mt-1">

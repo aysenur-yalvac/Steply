@@ -379,8 +379,11 @@ export default async function ProjectDetailPage({
             {isTeamMember && (
               <ActivityTimeline activities={activities} />
             )}
-            <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} />
           </div>
+        </div>
+
+        <div className="w-full col-span-full">
+          <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} />
         </div>
       </div>
     </PageWrapper>
