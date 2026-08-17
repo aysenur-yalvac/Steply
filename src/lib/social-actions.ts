@@ -209,14 +209,14 @@ export async function markMessagesAsReadAction(senderId: string): Promise<{succe
 
   const { error } = await supabase
     .from("messages")
-    .update({ is_read: true, read_at: new Date().toISOString() })
+    .update({ is_read: true })
     .eq("sender_id", senderId)
     .eq("receiver_id", user.id)
     .eq("is_read", false);
 
   if (error) {
     console.error("[markMessagesAsReadAction] Error:", error);
-    return { success: false, error: "Failed to mark as read." };
+    return { success: false, error: error.message };
   }
 
   return { success: true };

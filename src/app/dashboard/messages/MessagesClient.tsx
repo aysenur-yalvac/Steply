@@ -55,7 +55,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
         if (chatMarkedAsRead) {
           // Dispatch custom event to instantly update Sidebar badge globally
-          window.dispatchEvent(new CustomEvent('chat-update', { detail: { action: 'read_chat' } }));
+          window.dispatchEvent(new CustomEvent('unread_count_updated', { detail: { action: 'read_chat' } }));
         }
 
         return next;
@@ -97,7 +97,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
               const updatedConv = { ...prev[existingConvIdx] };
               if (!isOpen) {
                 if (updatedConv.unread_count === 0) {
-                   window.dispatchEvent(new CustomEvent('chat-update', { detail: { action: 'new_unread_chat' } }));
+                   window.dispatchEvent(new CustomEvent('unread_count_updated', { detail: { action: 'new_unread_chat' } }));
                 }
                 updatedConv.unread_count += 1;
               } else {
