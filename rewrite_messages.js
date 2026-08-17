@@ -1,4 +1,7 @@
+﻿const fs = require('fs');
+let content = fs.readFileSync('src/app/dashboard/messages/MessagesClient.tsx', 'utf8');
 
+const replacement = `
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -37,7 +40,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
   };
 
   const handleSelectUser = (user: UserSearchResult) => {
-    router.push(`/dashboard/messages?userId=${user.id}`);
+    router.push(\`/dashboard/messages?userId=\${user.id}\`);
   };
 
   useEffect(() => {
@@ -81,7 +84,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_id=eq.${currentUser.id}`,
+          filter: \`receiver_id=eq.\${currentUser.id}\`,
         },
         (payload) => {
           const newMsg = payload.new;
@@ -127,7 +130,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
       <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200/80 bg-white shadow-lg overflow-hidden text-slate-900">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-200/80 bg-slate-50 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+        <div className={\`w-full md:w-80 border-r border-slate-200/80 bg-slate-50 flex flex-col \${selectedUser ? 'hidden md:flex' : 'flex'}\`}>
           <div className="p-4 sm:p-5 border-b border-slate-200/80 space-y-3 bg-white">
              <h2 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
                <MessageSquare className="w-5 h-5 text-dusty-rose" /> Inbox
@@ -146,11 +149,11 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                 {conversations.map((conv) => (
                   <button
                     key={conv.other_user.id}
-                    onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}`}
+                    onClick={() => router.push(\`/dashboard/messages?userId=\${conv.other_user.id}\`)}
+                    className={\`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 \${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}\`}
                   >
                     <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                      <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
+                      <User className={\`w-5 h-5 \${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}\`} />
                     </div>
                     <div className="flex flex-col overflow-hidden w-full">
                       <div className="flex justify-between items-center mb-1">
@@ -179,12 +182,12 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         </div>
 
         {/* Right Area: Chat Window */}
-        <div className={`flex-1 bg-white ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
+        <div className={\`flex-1 bg-white \${selectedUser ? 'flex' : 'hidden md:flex'}\`}>
           {selectedUser ? (
             <ChatWindow currentUser={currentUser} selectedUser={selectedUser} />
           ) : (
             <EmptyState
-              icon={MessageSquare}
+              icon={<MessageSquare className="w-12 h-12 text-slate-300" />}
               title="Your Messages"
               description="Select a conversation or search for a user to start messaging."
             />
@@ -195,3 +198,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     </PageWrapper>
   );
 }
+`;
+
+fs.writeFileSync('src/app/dashboard/messages/MessagesClient.tsx', replacement, 'utf8');
+console.log("Completely updated MessagesClient.tsx for whatsapp standards!");
