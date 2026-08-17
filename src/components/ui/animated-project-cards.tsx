@@ -96,9 +96,7 @@ function AnimatedProjectCard({
         icon: "🎉",
         style: { borderRadius: "16px", background: "#1a0a2e", color: "#e2e8f0", border: "1px solid #A020F0" },
       });
-      import("canvas-confetti").then((m) =>
-        m.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#A020F0", "#FF7F50", "#7C3AFF", "#C97EFF"] })
-      );
+      
     }
     await updateProgress(formData);
   };

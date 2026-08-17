@@ -85,11 +85,7 @@ export default async function DashboardLayout({
 
         {/* Top bar */}
         <div className="relative z-20 flex items-center justify-end gap-3 px-6 py-2 border-b border-slate-100 bg-white/70 backdrop-blur-sm shrink-0">
-          {((profile as any)?.total_score ?? 0) > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/50 select-none">
-              🏆 {((profile as any).total_score as number).toLocaleString('tr-TR')} puan
-            </span>
-          )}
+
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 

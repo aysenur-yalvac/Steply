@@ -60,7 +60,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: !currentStatus } : t));
     try {
       await toggleAgendaTaskAction(taskId, !currentStatus);
-      if (!currentStatus) confettiTrigger();
+      
     } catch(e) {
       // Revert
       setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: currentStatus } : t));
@@ -83,16 +83,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     }
   };
 
-  const confettiTrigger = () => {
-    import('canvas-confetti').then((confetti) => {
-      confetti.default({
-        particleCount: 80,
-        spread: 40,
-        origin: { y: 0.8 },
-        colors: ['#10b981', '#fcd34d', '#f43f5e']
-      });
-    });
-  };
+  
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
