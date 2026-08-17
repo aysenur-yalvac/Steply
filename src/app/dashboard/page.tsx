@@ -167,7 +167,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
       </div>
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
-      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-8">
+      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-6">
 
         {/* ── Upcoming Tasks Banner ─────────────────────────────────────────── */}
         {isStudent && upcomingTasks && upcomingTasks.length > 0 && (
@@ -219,27 +219,25 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               projectNotes={projectNotes}
               currentUserId={user?.id}
             />
-            <div className="flex justify-center mt-8">
-              <EmptyState
-                icon={isTeacher ? Search : FolderOpen}
-                title={isTeacher ? 'Search Projects' : 'No active projects yet.'}
-                description={
-                  isTeacher
-                    ? 'Use the search bar above to look up projects by student name or title.'
-                    : "Every great project starts with a single step. Let's build something amazing."
-                }
-                action={
-                  isStudent ? (
-                    <Link
-                      href="/dashboard/projects/new"
-                      className="btn-aura inline-flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl"
-                    >
-                      <Plus className="w-4 h-4" /> Start Your First Project
-                    </Link>
-                  ) : null
-                }
-              />
-            </div>
+            {!isTeacher && (
+              <div className="flex justify-center mt-8">
+                <EmptyState
+                  icon={FolderOpen}
+                  title="No active projects yet."
+                  description="Every great project starts with a single step. Let's build something amazing."
+                  action={
+                    isStudent ? (
+                      <Link
+                        href="/dashboard/projects/new"
+                        className="btn-aura inline-flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl"
+                      >
+                        <Plus className="w-4 h-4" /> Start Your First Project
+                      </Link>
+                    ) : null
+                  }
+                />
+              </div>
+            )}
           </>
         ) : (
           <DashboardViewSwitcher
@@ -255,8 +253,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
         {collaboratorProjects.length > 0 && (
           <div>
-            {/* Section divider */}
-            <div className="h-px w-full bg-slate-100 mb-6" />
+            {!isTeacher && <div className="h-px w-full bg-slate-100 mb-6" />}
 
             <div className="flex items-center gap-2.5 mb-5">
               <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
