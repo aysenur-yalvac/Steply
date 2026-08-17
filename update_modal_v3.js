@@ -1,4 +1,7 @@
+﻿const fs = require('fs');
+let content = fs.readFileSync('src/components/projects/GitHubIntegrationCard.tsx', 'utf8');
 
+const newContent = `
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +45,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const payloadUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost'}/api/webhooks/github?projectId=${projectId}`;
+  const payloadUrl = \`https://\${typeof window !== 'undefined' ? window.location.host : 'localhost'}/api/webhooks/github?projectId=\${projectId}\`;
 
   const modalContent = showSettings ? (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
@@ -201,3 +204,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember }
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/projects/GitHubIntegrationCard.tsx', newContent, 'utf8');
+console.log("Updated GitHubIntegrationCard with Portal and new design rules");
