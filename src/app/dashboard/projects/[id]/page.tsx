@@ -64,21 +64,24 @@ export default async function ProjectDetailPage({
   // ── Owner identity ────────────────────────────────────────────────────────────
   let ownerName: string | null = null;
   let ownerAvatarUrl: string | null = null;
+  let ownerGithubUrl: string | null = null;
 
   if (isOwner) {
     // Viewer IS the owner — always allow access, skip all gates.
     ownerName      = profile?.full_name  ?? (user.user_metadata?.full_name as string | undefined) ?? null;
     ownerAvatarUrl = profile?.avatar_url ?? null;
+    ownerGithubUrl = profile?.github_url ?? null;
   } else {
     // Viewer is NOT the owner — fetch owner profile for display.
     const { data: ownerProfile, error: ownerErr } = await admin
       .from('profiles')
-      .select('full_name, avatar_url')
+      .select('full_name, avatar_url, github_url')
       .eq('id', ownerUserId)
       .single();
     if (ownerErr) console.error('owner fetch error:', ownerErr);
     ownerName      = ownerProfile?.full_name  ?? null;
     ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
+    ownerGithubUrl = ownerProfile?.github_url ?? null;
 
     // ── Privacy gate — project-level only ────────────────────────────────────
     // If the project is marked private, only team members can access it.
@@ -381,7 +384,7 @@ export default async function ProjectDetailPage({
         </div>
 
         <div className="w-full col-span-full">
-          <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} githubLink={project.github_link} />
+          <GitHubIntegrationCard projectId={projectId} repo={repo} commits={commits} isTeamMember={isTeamMember} githubLink={project.github_link || ownerGithubUrl} />
         </div>
       </div>
     </PageWrapper>
