@@ -379,7 +379,12 @@ export async function removeProjectMemberAction(
     .single();
 
   if (!project) return { error: "Project not found." };
-  if (project.student_id !== user.id) return { error: "Only the project owner can remove members." };
+  const isOwner = project.student_id === user.id;
+  const isSelfLeaving = userId === user.id;
+
+  if (!isOwner && !isSelfLeaving) {
+    return { error: "Only the project owner can remove members." };
+  }
 
   const { error } = await admin
     .from("project_members")
