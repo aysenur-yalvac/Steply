@@ -40,12 +40,12 @@ export default async function DashboardLayout({
   const [unreadResult, linkedAccountsResult] = await Promise.allSettled([
     supabase
       .from('messages')
-      .select('id', { count: 'exact', head: true })
+      .select('sender_id')
       .eq('receiver_id', user.id)
       .eq('is_read', false),
     getLinkedAccountsAction(),
   ]);
-  const unreadCount = unreadResult.status === 'fulfilled' ? (unreadResult.value.count ?? 0) : 0;
+  const unreadCount = unreadResult.status === 'fulfilled' && unreadResult.value.data ? new Set(unreadResult.value.data.map(m => m.sender_id)).size : 0;
   const linkedAccounts: LinkedAccount[] = linkedAccountsResult.status === 'fulfilled' ? (linkedAccountsResult.value as LinkedAccount[]) : [];
 
   // Fetch notifications — graceful fallback if table not yet migrated

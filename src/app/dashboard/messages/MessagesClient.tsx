@@ -29,7 +29,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper>
-      <div className="flex-1 flex flex-col md:flex-row h-[80vh] min-h-[700px] w-[95vw] md:max-w-6xl mx-auto border border-slate-200/80 rounded-3xl overflow-hidden bg-white shadow-xl text-slate-900">
+      <div className="h-[calc(100vh-120px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden text-slate-900 dark:text-zinc-100">
         
         {/* Left Sidebar: Contact List */}
         <div className={`w-full md:w-80 border-r border-slate-200/80 bg-slate-50 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
