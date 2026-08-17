@@ -146,6 +146,7 @@ export type Conversation = {
     email: string;
   };
   last_message: Message;
+  unread_count: number;
 };
 
 /**
@@ -184,7 +185,14 @@ export async function getRecentConversationsAction(): Promise<Conversation[]> {
       convMap.set(otherId, {
         other_user: otherUser,
         last_message: msg as Message,
+        unread_count: 0,
       });
+    }
+
+    // If it's a received message and not read, increment count
+    if (!isSender && !msg.is_read) {
+      const conv = convMap.get(otherId)!;
+      conv.unread_count += 1;
     }
   }
 

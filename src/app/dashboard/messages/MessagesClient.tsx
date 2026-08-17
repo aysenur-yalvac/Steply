@@ -22,6 +22,11 @@ interface MessagesClientProps {
 
 export default function MessagesClient({ currentUser, selectedUser, recentConversations }: MessagesClientProps) {
   const router = useRouter();
+  const formatUnreadBadge = (count: number) => {
+    if (count > 10) return '+10';
+    return count.toString();
+  };
+
 
   const handleSelectUser = (user: UserSearchResult) => {
     router.push(`/dashboard/messages?userId=${user.id}`);
