@@ -367,23 +367,69 @@ body {
 }
 
 
+
+/* Karanlık Modda Sayfa ve Metin Kontrast Garantisi */
 .dark body,
 .dark main,
-.dark #__next {
-  background-color: #020617 !important; /* Slate 950 */
-  color: #f8fafc !important;
+.dark #__next,
+.dark .dashboard-container {
+  background-color: #0b0f17 !important; /* Derin Gece Mavis/Siyah Arka Plan */
+  color: #f8fafc !important; /* Parlak Beyaz Ana Metin */
 }
 
-/* Sert kodlanmış bg-white sınıflarını dark modda otomatik koyulaştır */
-.dark .bg-white {
+/* Sidebar ve Header Arka Plan Bütünlüğü */
+.dark aside,
+.dark header,
+.dark .sidebar-bg {
   background-color: #0f172a !important; /* Slate 900 */
-  border-color: #1e293b !important; /* Slate 800 */
-  color: #f8fafc !important;
+  border-color: #1e293b !important;
 }
 
-.dark .bg-slate-50,
-.dark .bg-gray-50,
-.dark .bg-purple-50,
-.dark .bg-purple-50\/50 {
-  background-color: #020617 !important; /* Slate 950 */
+/* Kartlar ve Paneller */
+.dark .bg-white,
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-gray-50"],
+.dark [class*="bg-purple-50"] {
+  background-color: #161e2e !important; /* Yükseltilmiş Koyu Kart Yüzeyi */
+  border-color: #273549 !important;
+}
+
+/* OKUNABİLİRLİK: Tüm Metin Renklerini Aç */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark p, .dark span, .dark label, .dark td, .dark th, .dark div {
+  color: #f1f5f9; /* Metinleri görünür açık gri/beyaz yap */
+}
+
+/* İkincil / Muted Metinler */
+.dark .text-slate-500,
+.dark .text-gray-500,
+.dark .text-muted-foreground {
+  color: #94a3b8 !important; /* Yumuşak Açık Gri */
+}
+
+/* INPUT VE FORM ALANLARI */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Primary / Mor Butonların Karanlık Modda Parlaması */
+.dark button[class*="bg-purple"],
+.dark button[class*="bg-violet"],
+.dark .bg-purple-600,
+.dark .bg-primary {
+  background-color: #8b5cf6 !important; /* Canlı Mor */
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3); /* Şık Mor Işıma */
+}
+
+.dark button[class*="bg-purple"]:hover {
+  background-color: #7c3aed !important;
 }
