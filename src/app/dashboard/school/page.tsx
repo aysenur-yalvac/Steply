@@ -27,8 +27,8 @@ type PersonRow = {
 
 function EmptyState({ icon, message, sub }: { icon: React.ReactNode; message: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 min-h-[160px] flex flex-col items-center justify-center gap-2 p-8">
-      <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+    <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 dark:border-slate-800 bg-white dark:bg-slate-900 dark:bg-slate-900/60 min-h-[160px] flex flex-col items-center justify-center gap-2 p-8">
+      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:border-slate-800 flex items-center justify-center shadow-sm">
         {icon}
       </div>
       <p className="text-sm text-slate-500 font-medium">{message}</p>
@@ -168,8 +168,8 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
       }}
     >
       {/* Decorative blobs */}
-      <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full opacity-10 bg-white" />
-      <div className="absolute bottom-0 left-1/3 w-72 h-32 rounded-full opacity-5 bg-white" />
+      <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full opacity-10 bg-white dark:bg-slate-900 dark:bg-slate-900" />
+      <div className="absolute bottom-0 left-1/3 w-72 h-32 rounded-full opacity-5 bg-white dark:bg-slate-900 dark:bg-slate-900" />
 
       <div className="relative z-10">
         <div className="mb-4">
@@ -177,7 +177,7 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
         </div>
 
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm">
+          <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 dark:bg-slate-900/10 border border-white/20 backdrop-blur-sm">
             <School className="w-5 h-5 text-white" />
           </div>
           <p className="text-xs font-semibold text-indigo-300 uppercase tracking-widest">Okulum</p>
@@ -200,7 +200,7 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
 
 function NoInstitutionNotice() {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
+    <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 dark:border-slate-800 bg-white dark:bg-slate-900 dark:bg-slate-900/60 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
       <School className="w-8 h-8 text-slate-300" />
       <p className="text-sm text-slate-500 font-medium">Henüz bir okul seçilmedi.</p>
       <p className="text-xs text-slate-400 text-center max-w-xs">

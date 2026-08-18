@@ -131,12 +131,12 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
-      <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200/80 bg-white shadow-lg overflow-hidden text-slate-900">
+      <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100 dark:text-slate-100">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-200/80 bg-slate-50 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 sm:p-5 border-b border-slate-200/80 space-y-3 bg-white">
-             <h2 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
+        <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 dark:bg-slate-950 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 dark:border-slate-800/80 space-y-3 bg-white dark:bg-slate-900 dark:bg-slate-900">
+             <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 dark:text-slate-100 flex items-center gap-2">
                <MessageSquare className="w-5 h-5 text-dusty-rose" /> Inbox
              </h2>
              <UserSearch onSelectUser={handleSelectUser} placeholder="Search network..." />
@@ -154,9 +154,9 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                   <button
                     key={conv.other_user.id}
                     onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}`}
+                    className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:bg-slate-950 dark:bg-slate-950 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}`}
                   >
-                    <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:border-slate-800 flex items-center justify-center shrink-0 shadow-sm">
                       <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
                     </div>
                     <div className="flex flex-col overflow-hidden w-full">
@@ -186,7 +186,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         </div>
 
         {/* Right Area: Chat Window */}
-        <div className={`flex-1 bg-white ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
+        <div className={`flex-1 bg-white dark:bg-slate-900 dark:bg-slate-900 ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
           {selectedUser ? (
             <ChatWindow currentUser={currentUser} selectedUser={selectedUser} />
           ) : (

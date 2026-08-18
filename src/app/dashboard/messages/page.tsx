@@ -41,7 +41,7 @@ export default async function MessagesLayoutPage({
       <div className="mb-4">
         <BackButton href="/dashboard" variant="light" />
       </div>
-      <div className="flex-1 bg-white border border-slate-200/60 rounded-[2rem] shadow-xl shadow-rose-500/5 overflow-hidden">
+      <div className="flex-1 bg-white dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:border-slate-800/60 rounded-[2rem] shadow-xl shadow-rose-500/5 overflow-hidden">
         <MessagesClient 
           currentUser={currentUserProfile} 
           selectedUser={selectedUserProfile} 

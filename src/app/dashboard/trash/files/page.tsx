@@ -39,7 +39,7 @@ export default async function TrashFilesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-slate-200 dark:border-slate-800">
         <a href="/dashboard/trash/projects" className="px-4 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium">Projeler</a>
         <a href="/dashboard/trash/files" className="px-4 py-2 border-b-2 border-violet-600 text-violet-600 font-medium">Dosyalar</a>
       </div>

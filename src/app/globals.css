@@ -365,3 +365,25 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
+
+
+.dark body,
+.dark main,
+.dark #__next {
+  background-color: #020617 !important; /* Slate 950 */
+  color: #f8fafc !important;
+}
+
+/* Sert kodlanmış bg-white sınıflarını dark modda otomatik koyulaştır */
+.dark .bg-white {
+  background-color: #0f172a !important; /* Slate 900 */
+  border-color: #1e293b !important; /* Slate 800 */
+  color: #f8fafc !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-gray-50,
+.dark .bg-purple-50,
+.dark .bg-purple-50\/50 {
+  background-color: #020617 !important; /* Slate 950 */
+}

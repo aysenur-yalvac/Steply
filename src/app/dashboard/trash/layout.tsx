@@ -13,7 +13,7 @@ export default function TrashLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-4">
             <BackButton href="/dashboard" variant="light" />
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Çöp Kutusu</h1>
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Çöp Kutusu</h1>
               <p className="text-sm text-slate-500 mt-1">
                 Silinmiş projeleriniz ve dosyalarınız burada yer alır.
               </p>

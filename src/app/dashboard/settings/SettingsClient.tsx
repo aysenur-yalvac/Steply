@@ -145,10 +145,10 @@ const fadeIn: Variants = {
 };
 
 const inputCls =
-  "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
+  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
 const selectCls =
-  "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
 
 const primaryBtn =
   "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
@@ -177,12 +177,12 @@ function NotifRow({
     <div
       className={`flex items-center justify-between gap-4 px-5 py-4 transition-opacity ${
         disabled ? "opacity-40 pointer-events-none" : ""
-      } ${isMaster ? "bg-slate-50" : "bg-white"}`}
+      } ${isMaster ? "bg-slate-50 dark:bg-slate-950" : "bg-white dark:bg-slate-900"}`}
     >
       <div className="flex items-start gap-3">
         <span className={`mt-0.5 shrink-0 ${iconColor}`}>{icon}</span>
         <div>
-          <p className={`text-sm font-medium ${isMaster ? "text-slate-800" : "text-slate-700"}`}>{title}</p>
+          <p className={`text-sm font-medium ${isMaster ? "text-slate-800 dark:text-slate-100" : "text-slate-700"}`}>{title}</p>
           <p className="text-xs text-slate-400 mt-0.5 leading-snug">{description}</p>
         </div>
       </div>
@@ -195,7 +195,7 @@ function NotifRow({
         style={{ background: checked ? (isMaster ? "#ef4444" : "#7C3AFF") : "rgb(203,213,225)" }}
       >
         <span
-          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-slate-900 rounded-full shadow-sm transition-transform duration-200"
           style={{ transform: checked ? "translateX(20px)" : "translateX(0)" }}
         />
       </button>
@@ -431,13 +431,13 @@ export default function SettingsClient({
           <SettingsIcon className="w-6 h-6" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
           <p className="text-slate-500 text-sm">Manage your account and preferences.</p>
         </div>
       </motion.div>
 
       {/* Shell: sidebar + content */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="flex flex-col md:flex-row min-h-[520px]">
 
           {/* ── Sidebar (desktop) / Tab bar (mobile) ── */}
@@ -451,7 +451,7 @@ export default function SettingsClient({
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                     activeTab === item.id
                       ? "bg-violet-50 text-violet-600"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >
                   {item.icon}
@@ -469,7 +469,7 @@ export default function SettingsClient({
                   className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors ${
                     activeTab === item.id
                       ? "bg-violet-50 text-violet-600"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >
                   <span className="mt-0.5 shrink-0">{item.icon}</span>
@@ -492,7 +492,7 @@ export default function SettingsClient({
             <div className="mb-6 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2 text-[#7C3AFF] mb-1">
                 {activeItem.icon}
-                <h2 className="text-base font-semibold text-slate-900">{activeItem.label}</h2>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{activeItem.label}</h2>
               </div>
               <p className="text-sm text-slate-500">{activeItem.description}</p>
             </div>
@@ -514,13 +514,13 @@ export default function SettingsClient({
                       <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
                         <Camera className="w-4 h-4 text-violet-500" /> Profil Fotoğrafı
                       </label>
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
                         {/* Photo preview + click-to-upload */}
                         <div className="flex items-center gap-5">
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 group border-2 border-slate-200 hover:border-violet-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                            className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 group border-2 border-slate-200 dark:border-slate-800 hover:border-violet-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
                           >
                             <img
                               src={previewUrl ?? selectedAvatar}
@@ -554,11 +554,10 @@ export default function SettingsClient({
                           </div>
                         </div>
 
-                        <input
-                          ref={fileInputRef}
+                        <input ref={fileInputRef}
                           type="file"
                           accept="image/*"
-                          className="hidden"
+                          className="hidden dark:bg-slate-800 dark:text-white dark:border-slate-700"
                           onChange={handleFileChange}
                         />
 
@@ -574,7 +573,7 @@ export default function SettingsClient({
                                 className="relative w-9 h-9 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
                                 style={selectedAvatar === av && !pendingFile ? { boxShadow: "0 0 0 2.5px #7C3AFF" } : {}}
                               >
-                                <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                                <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white dark:bg-slate-900" />
                                 {selectedAvatar === av && !pendingFile && (
                                   <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
                                     <Check className="w-3 h-3 text-white drop-shadow" strokeWidth={3} />
@@ -585,7 +584,7 @@ export default function SettingsClient({
                             <button
                               type="button"
                               onClick={() => setAvatarExpanded((v) => !v)}
-                              className="w-9 h-9 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
+                              className="w-9 h-9 rounded-full border-2 border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
                             >
                               <motion.span animate={{ rotate: avatarExpanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -611,7 +610,7 @@ export default function SettingsClient({
                                       className="relative w-9 h-9 rounded-full shrink-0 hover:scale-110 transition-transform focus-visible:outline-none"
                                       style={selectedAvatar === av && !pendingFile ? { boxShadow: "0 0 0 2.5px #7C3AFF" } : {}}
                                     >
-                                      <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                                      <img src={av} alt="avatar" className="w-full h-full rounded-full object-cover bg-white dark:bg-slate-900" />
                                       {selectedAvatar === av && !pendingFile && (
                                         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
                                           <Check className="w-3 h-3 text-white drop-shadow" strokeWidth={3} />
@@ -648,11 +647,10 @@ export default function SettingsClient({
                       <label className="text-sm font-medium text-slate-500">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                        <input
-                          type="email"
+                        <input type="email"
                           readOnly
                           value={email}
-                          className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 cursor-not-allowed text-sm select-none"
+                          className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed text-sm select-none dark:bg-slate-800 dark:text-white dark:border-slate-700"
                         />
                       </div>
                     </div>
@@ -972,12 +970,12 @@ export default function SettingsClient({
                   <div className="max-w-lg space-y-6">
                     {/* Section intro */}
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">Notification Preferences</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Notification Preferences</p>
                       <p className="text-xs text-slate-400 mt-0.5">Manage how you receive alerts and updates.</p>
                     </div>
 
                     {/* Notification rows */}
-                    <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                    <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100">
 
                       {/* Master mute */}
                       <NotifRow
@@ -1028,7 +1026,7 @@ export default function SettingsClient({
                 {activeTab === "preferences" && (
                   <div className="space-y-6 max-w-md">
                     {/* Privacy toggle */}
-                    <div className="flex items-center justify-between gap-6 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between gap-6 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl">
                       <div className="flex items-start gap-3">
                         <ShieldCheck className="w-5 h-5 text-[#7C3AFF] mt-0.5 shrink-0" strokeWidth={1.5} />
                         <div>
@@ -1050,7 +1048,7 @@ export default function SettingsClient({
                         style={{ background: isPublic ? "#7C3AFF" : "rgb(203,213,225)" }}
                       >
                         <span
-                          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"
+                          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-slate-900 rounded-full shadow-sm transition-transform duration-200"
                           style={{ transform: isPublic ? "translateX(20px)" : "translateX(0)" }}
                         />
                       </button>
@@ -1070,9 +1068,9 @@ export default function SettingsClient({
                     </div>
 
                     {blockedUsers.length > 0 && (
-                      <div className="rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100">
                         {blockedUsers.map((u) => (
-                          <div key={u.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+                          <div key={u.id} className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 transition-colors">
                             <Avatar
                               src={u.avatar_url}
                               name={u.full_name ?? "?"}

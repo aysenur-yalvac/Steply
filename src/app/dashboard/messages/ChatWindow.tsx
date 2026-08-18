@@ -129,10 +129,9 @@ export default function ChatWindow({
       {/* Message Input Bar */}
       <div className="p-4 bg-slate-900/80 border-t border-slate-800 backdrop-blur-sm shrink-0">
          <form id="chat-form" action={handleSubmit} className="flex gap-2 items-end relative">
-            <textarea
-              name="content"
+            <textarea name="content"
               placeholder="Type your message..."
-              className="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors resize-none placeholder-slate-500 min-h-[50px] max-h-[120px]"
+              className="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors resize-none placeholder-slate-500 min-h-[50px] max-h-[120px] dark:bg-slate-800 dark:text-white dark:border-slate-700"
               rows={1}
               required
               onKeyDown={(e) => {
