@@ -55,7 +55,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
         if (chatMarkedAsRead) {
           // Dispatch custom event to instantly update Sidebar badge globally
-          window.dispatchEvent(new CustomEvent('unread_count_updated', { detail: { action: 'read_chat' } }));
+          window.dispatchEvent(new CustomEvent('unread_chat_count_changed', { detail: { action: 'read_chat' } }));
         }
 
         return next;
@@ -66,6 +66,9 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
       markMessagesAsReadAction(selectedUser.id).then((res) => {
         if (res.success) {
            router.refresh();
+           if (typeof window !== "undefined") {
+             window.dispatchEvent(new Event("unread_chat_count_changed"));
+           }
         }
       });
     }
@@ -97,11 +100,15 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
               const updatedConv = { ...prev[existingConvIdx] };
               if (!isOpen) {
                 if (updatedConv.unread_count === 0) {
-                   window.dispatchEvent(new CustomEvent('unread_count_updated', { detail: { action: 'new_unread_chat' } }));
+                   window.dispatchEvent(new CustomEvent('unread_chat_count_changed', { detail: { action: 'new_unread_chat' } }));
                 }
                 updatedConv.unread_count += 1;
               } else {
-                 markMessagesAsReadAction(senderId);
+                 markMessagesAsReadAction(senderId).then(() => {
+                   if (typeof window !== "undefined") {
+                     window.dispatchEvent(new Event("unread_chat_count_changed"));
+                   }
+                 });
               }
               const newConvs = [...prev];
               newConvs[existingConvIdx] = updatedConv;
