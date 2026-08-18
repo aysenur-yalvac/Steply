@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
 import { createClient } from "@/utils/supabase/client";
 import WatchlistDrawer from "@/components/dashboard/WatchlistDrawer";
+import UnreadMessagesBadge from "@/components/dashboard/UnreadMessagesBadge";
 
 interface SidebarProps {
   userName?: string;
@@ -99,19 +100,7 @@ function NavContent({
   const router = useRouter();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const [unreadCount, setUnreadCount] = useState(unreadChatCount || 0);
-
-  useEffect(() => {
-    setUnreadCount(unreadChatCount || 0);
-  }, [unreadChatCount]);
-
-  useEffect(() => {
-    const handleUpdate = () => {
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    };
-    window.addEventListener('unread-chats-updated', handleUpdate);
-    return () => window.removeEventListener('unread-chats-updated', handleUpdate);
-  }, []);
+  
   const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
