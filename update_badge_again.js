@@ -1,4 +1,6 @@
-"use client";
+﻿const fs = require('fs');
+
+const content = `"use client";
 
 import { useEffect, useState } from "react";
 import { getUnreadChatCountAction } from "@/lib/social-actions";
@@ -39,3 +41,7 @@ export default function UnreadMessagesBadge({ collapsed = false }: { collapsed?:
     </span>
   );
 }
+`;
+
+fs.writeFileSync('src/components/dashboard/UnreadMessagesBadge.tsx', content, 'utf8');
+console.log("Updated UnreadMessagesBadge.tsx with console logs");

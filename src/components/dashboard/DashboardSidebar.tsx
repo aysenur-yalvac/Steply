@@ -327,14 +327,20 @@ function NavContent({
                 );
               }
 
+              const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
+              
               return collapsed ? (
                 <Link key={label} href={href} onClick={onClose} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
-                  <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+                  <div className="relative flex items-center justify-center">
+                    <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+                    {isMessages && <UnreadMessagesBadge collapsed={true} />}
+                  </div>
                 </Link>
               ) : (
                 <Link key={label} href={href} onClick={onClose} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
                   <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "group-hover:scale-110 transition-transform"}`} strokeWidth={isActive ? 2 : 1.5} />
-                  {label}
+                  <span>{label}</span>
+                  {isMessages && <UnreadMessagesBadge collapsed={false} />}
                 </Link>
               );
             })}
