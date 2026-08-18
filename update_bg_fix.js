@@ -1,4 +1,6 @@
-﻿"use client";
+﻿const fs = require('fs');
+
+const content = "use client";
 
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -29,15 +31,19 @@ export default function DashboardBackground() {
   return (
     <>
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 w-[580px] h-[580px] rounded-full opacity-[0.18] blur-3xl blob-spin-slow dark:opacity-[0.10]"
+        aria-hidden={"true"}
+        className={"pointer-events-none absolute -top-40 -right-40 w-[580px] h-[580px] rounded-full opacity-[0.18] blur-3xl blob-spin-slow dark:opacity-[0.10]"}
         style={{ background: 'radial-gradient(circle at 40% 40%, ' + color1 + ' 0%, ' + color2 + ' 45%, transparent 70%)' }}
       />
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 -left-32 w-[440px] h-[440px] rounded-full opacity-[0.12] blur-3xl blob-spin-slower dark:opacity-[0.08]"
+        aria-hidden={"true"}
+        className={"pointer-events-none absolute bottom-0 -left-32 w-[440px] h-[440px] rounded-full opacity-[0.12] blur-3xl blob-spin-slower dark:opacity-[0.08]"}
         style={{ background: 'radial-gradient(circle at 60% 60%, ' + color3 + ' 0%, ' + color4 + ' 50%, transparent 70%)' }}
       />
     </>
   );
 }
+";
+
+fs.writeFileSync('src/components/dashboard/DashboardBackground.tsx', content, 'utf8');
+console.log("Updated DashboardBackground.tsx");
