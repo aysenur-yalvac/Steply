@@ -440,3 +440,19 @@ body {
 .dark button[class*="bg-purple"]:hover {
   background-color: #7c3aed !important;
 }
+
+
+/* Dış Animasyonlu Arka Plan Kapsayıcı Sıfırlaması */
+.dark body > div,
+.dark #__next > div,
+.dark [class*="min-h-screen"] {
+  background-color: #0b0f17 !important;
+}
+
+/* Animasyonlu Canvas / SVG Maske Parlamalarını Koyu Moda Çek */
+.dark canvas,
+.dark [class*="animate-bg"],
+.dark [class*="mesh-gradient"] {
+  opacity: 0.25 !important;
+  filter: brightness(0.2) contrast(1.2) !important;
+}
