@@ -370,45 +370,41 @@ body {
 
 /* Karanlık Modda Sayfa ve Metin Kontrast Garantisi */
 
-/* Tüm Sayfa Wrapper ve Layout Gradient'lerini Ez */
+
+/* 1. En Alt Sayfa Zemi */
 .dark body,
-.dark main,
-.dark #__next,
-.dark [class*="bg-gradient"],
-.dark [class*="from-purple"],
-.dark [class*="via-white"] {
-  background-image: none !important;
-  background-color: #0b0f17 !important; /* Derin Koyu Zemin */
-  color: #f8fafc !important;
+.dark .dashboard-container {
+  background-color: #0b0f17 !important;
+  color: #f8fafc;
 }
 
-/* Sidebar ve Header Koyu Zemin Bütünlüğü */
+/* 2. Sol Sidebar ve Üst Header */
 .dark aside,
 .dark header {
   background-color: #0f172a !important;
   border-color: #1e293b !important;
 }
 
-/* Genel Metin Renk Zorlaması */
-.dark p, 
-.dark span, 
-.dark label, 
-.dark small, 
-.dark time,
-.dark .text-gray-500,
-.dark .text-slate-500,
-.dark .text-gray-600,
-.dark .text-slate-600 {
-  color: #cbd5e1 !important; /* Açık Gri / Görünür Metin */
+/* 3. Yükseltilmiş Kart Yüzeyleri (Açıkça Görünür Olmalı) */
+.dark .card,
+.dark [class*="bg-white"],
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-gray-50"],
+.dark [class*="bg-gray-100"] {
+  background-color: #161e2e !important;
+  border: 1px solid #273549 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Başlıklar ve Vurgulu Metinler */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
-.dark th, .dark .text-gray-900, .dark .text-slate-900, .dark .text-slate-800, .dark .text-slate-700 {
+/* 4. Kart İçi Metinler */
+.dark .card p, .dark .card span, .dark .card label {
+  color: #cbd5e1 !important;
+}
+.dark .card h1, .dark .card h2, .dark .card h3, .dark .card h4 {
   color: #ffffff !important;
 }
 
-/* Input Placeholder ve Form Metinleri */
+/* 5. Input ve Form Alanları */
 .dark input, .dark textarea, .dark select {
   background-color: #1e293b !important;
   color: #ffffff !important;
@@ -418,38 +414,21 @@ body {
   color: #94a3b8 !important;
 }
 
-/* Kartlar ve Paneller */
-.dark .bg-white,
-.dark [class*="bg-slate-50"],
-.dark [class*="bg-gray-50"],
-.dark [class*="bg-purple-50"] {
-  background-color: #161e2e !important;
-  border-color: #273549 !important;
-}
-
-/* Primary / Mor Butonların Karanlık Modda Parlaması */
+/* 6. Primary / Mor Butonların Karanlık Modda Parlaması */
 .dark button[class*="bg-purple"],
 .dark button[class*="bg-violet"],
 .dark .bg-purple-600,
 .dark .bg-primary {
   background-color: #8b5cf6 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3) !important;
 }
 
 .dark button[class*="bg-purple"]:hover {
   background-color: #7c3aed !important;
 }
 
-
-/* Dış Animasyonlu Arka Plan Kapsayıcı Sıfırlaması */
-.dark body > div,
-.dark #__next > div,
-.dark [class*="min-h-screen"] {
-  background-color: #0b0f17 !important;
-}
-
-/* Animasyonlu Canvas / SVG Maske Parlamalarını Koyu Moda Çek */
+/* 7. Animasyonlu Canvas / SVG Maske Parlamalarını Koyu Moda Çek */
 .dark canvas,
 .dark [class*="animate-bg"],
 .dark [class*="mesh-gradient"] {
