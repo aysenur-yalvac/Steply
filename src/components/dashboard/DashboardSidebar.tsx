@@ -99,22 +99,18 @@ function NavContent({
   const router = useRouter();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const [localUnreadChatCount, setLocalUnreadChatCount] = useState(unreadChatCount || 0);
+  const [unreadCount, setUnreadCount] = useState(unreadChatCount || 0);
 
   useEffect(() => {
-    setLocalUnreadChatCount(unreadChatCount || 0);
+    setUnreadCount(unreadChatCount || 0);
   }, [unreadChatCount]);
 
   useEffect(() => {
-    const handler = (e: any) => {
-      if (e.detail?.action === 'read_chat') {
-        setLocalUnreadChatCount((prev) => Math.max(0, prev - 1));
-      } else if (e.detail?.action === 'new_unread_chat') {
-        setLocalUnreadChatCount((prev) => prev + 1);
-      }
+    const handleUpdate = () => {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     };
-    window.addEventListener('unread-chats-updated', handler);
-    return () => window.removeEventListener('unread-chats-updated', handler);
+    window.addEventListener('unread-chats-updated', handleUpdate);
+    return () => window.removeEventListener('unread-chats-updated', handleUpdate);
   }, []);
   const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
