@@ -7,7 +7,7 @@ export default function DashboardBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-[-10] overflow-hidden">
-      <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#0d111a] transition-colors duration-300">
+      <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#0f172a] transition-colors duration-300">
         
         {/* LIGHT MODE BLOBS */}
         <div className="absolute inset-0 opacity-100 dark:hidden pointer-events-none">
@@ -23,19 +23,7 @@ export default function DashboardBackground() {
           />
         </div>
 
-        {/* DARK MODE BLOBS */}
-        <div className="absolute inset-0 hidden dark:block opacity-60 mix-blend-screen pointer-events-none">
-          <div
-            aria-hidden="true"
-            className="absolute -top-40 -right-40 w-[580px] h-[580px] rounded-full blur-3xl blob-spin-slow"
-            style={{ background: 'radial-gradient(circle at 40% 40%, rgba(30,27,75,0.4) 0%, #0f172a 45%, transparent 70%)' }}
-          />
-          <div
-            aria-hidden="true"
-            className="absolute bottom-0 -left-32 w-[440px] h-[440px] rounded-full blur-3xl blob-spin-slower"
-            style={{ background: 'radial-gradient(circle at 60% 60%, #0f172a 0%, #0d111a 50%, transparent 70%)' }}
-          />
-        </div>
+        {/* DARK MODE BLOBS (REMOVED to ensure exact solid #0f172a match with sidebar) */}
 
       </div>
     </div>

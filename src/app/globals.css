@@ -374,7 +374,7 @@ body {
 /* 1. En Alt Sayfa Zemi */
 .dark body,
 .dark .dashboard-container {
-  background-color: #0d111a !important;
+  background-color: #0f172a !important;
   color: #f8fafc;
 }
 
@@ -441,7 +441,7 @@ body {
 
 /* 1. En Alt Sayfa Zemin Doygunlugu */
 .dark body, .dark main, .dark .dashboard-container {
-  background-color: #0d111a !important;
+  background-color: #0f172a !important;
 }
 
 /* 2. Kartlar & Paneller (Tüm Alt Sayfalar) */
