@@ -437,15 +437,3 @@ body {
 }
 
 
-/* Arka Plan Animasyon Değişkenlerini Koyu Moda Zorla */
-.dark .aurora,
-.dark [class*="aurora"],
-.dark [class*="blob-spin"],
-.dark [class*="bg-gradient"],
-.dark [data-bg="animated"] {
-  background-color: #0b0f17 !important;
-  --white-gradient: repeating-linear-gradient(100deg, #0b0f17 0%, #0f172a 7%, transparent 10%, transparent 12%, #0b0f17 16%) !important;
-  --dark-gradient: repeating-linear-gradient(100deg, #0b0f17 0%, #0f172a 7%, transparent 10%, transparent 12%, #0b0f17 16%) !important;
-  --aurora: repeating-linear-gradient(100deg, #1e1b4b 10%, #0f172a 15%, #020617 20%, #1e1b4b 25%, #0b0f17 30%) !important;
-  filter: blur(10px) invert(0.9) hue-rotate(180deg) !important;
-}

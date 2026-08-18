@@ -1,4 +1,7 @@
-"use client";
+﻿const fs = require('fs');
+
+// 1. Rewrite DashboardBackground.tsx
+const dashboardBg = `"use client";
 
 import { usePathname } from "next/navigation";
 
@@ -18,3 +21,16 @@ export default function DashboardBackground() {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/components/dashboard/DashboardBackground.tsx', dashboardBg, 'utf8');
+
+// 2. Clean globals.css of the hard override I added previously
+let css = fs.readFileSync('src/app/globals.css', 'utf8');
+const searchString = '/* Arka Plan Animasyon Değişkenlerini Koyu Moda Zorla */';
+const index = css.indexOf(searchString);
+if (index !== -1) {
+    css = css.slice(0, index);
+    fs.writeFileSync('src/app/globals.css', css, 'utf8');
+}
+
+console.log("Replaced DashboardBackground.tsx and cleaned globals.css");
