@@ -36,7 +36,7 @@ interface SidebarProps {
   userName?: string;
   userEmail?: string;
   role?: string;
-  unreadCount?: number;
+  unreadChatCount?: number;
   isTeacher?: boolean;
   avatarUrl?: string | null;
   linkedAccounts?: LinkedAccount[];
@@ -79,7 +79,7 @@ function NavContent({
   userName,
   userEmail,
   role,
-  unreadCount,
+  unreadChatCount,
   isTeacher,
   avatarUrl,
   linkedAccounts = [],
@@ -99,22 +99,22 @@ function NavContent({
   const router = useRouter();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const [localUnreadCount, setLocalUnreadCount] = useState(unreadCount || 0);
+  const [localUnreadChatCount, setLocalUnreadChatCount] = useState(unreadChatCount || 0);
 
   useEffect(() => {
-    setLocalUnreadCount(unreadCount || 0);
-  }, [unreadCount]);
+    setLocalUnreadChatCount(unreadChatCount || 0);
+  }, [unreadChatCount]);
 
   useEffect(() => {
     const handler = (e: any) => {
       if (e.detail?.action === 'read_chat') {
-        setLocalUnreadCount((prev) => Math.max(0, prev - 1));
+        setLocalUnreadChatCount((prev) => Math.max(0, prev - 1));
       } else if (e.detail?.action === 'new_unread_chat') {
-        setLocalUnreadCount((prev) => prev + 1);
+        setLocalUnreadChatCount((prev) => prev + 1);
       }
     };
-    window.addEventListener('chat-update', handler);
-    return () => window.removeEventListener('chat-update', handler);
+    window.addEventListener('unread-chats-updated', handler);
+    return () => window.removeEventListener('unread-chats-updated', handler);
   }, []);
   const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -291,8 +291,7 @@ function NavContent({
               
               const isActive = !isWatchlist && (href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href));
               const isOpen = openMenus[label];
-const hasBadge = label === "Messages" && (localUnreadCount ?? unreadCount ?? 0) > 0;
-const badgeCount = label === "Messages" ? ((localUnreadCount ?? unreadCount ?? 0) > 9 ? "9+" : (localUnreadCount ?? unreadCount ?? 0)) : null;
+
 
               if (isWatchlist) {
                 return collapsed ? (

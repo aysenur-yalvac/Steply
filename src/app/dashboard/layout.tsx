@@ -45,7 +45,7 @@ export default async function DashboardLayout({
       .eq('is_read', false),
     getLinkedAccountsAction(),
   ]);
-  const unreadCount = unreadResult.status === 'fulfilled' && unreadResult.value.data ? new Set(unreadResult.value.data.map(m => m.sender_id)).size : 0;
+  const unreadChatCount = unreadResult.status === 'fulfilled' && unreadResult.value.data ? new Set(unreadResult.value.data.map(m => m.sender_id)).size : 0;
   const linkedAccounts: LinkedAccount[] = linkedAccountsResult.status === 'fulfilled' ? (linkedAccountsResult.value as LinkedAccount[]) : [];
 
   // Fetch notifications — graceful fallback if table not yet migrated
@@ -71,7 +71,7 @@ export default async function DashboardLayout({
         userName={profile?.full_name}
         userEmail={user.email}
         role={role}
-        unreadCount={unreadCount || 0}
+        unreadChatCount={unreadChatCount || 0}
         isTeacher={isTeacher}
         avatarUrl={profile?.avatar_url}
         linkedAccounts={linkedAccounts}
