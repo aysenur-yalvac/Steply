@@ -6,6 +6,7 @@ import DashboardBackground from '@/components/dashboard/DashboardBackground';
 import NotificationBell from '@/components/dashboard/NotificationBell';
 import type { Notification, LinkedAccount } from '@/lib/actions';
 import { getLinkedAccountsAction } from '@/lib/actions';
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function DashboardLayout({
   children,
@@ -77,6 +78,7 @@ export default async function DashboardLayout({
         {/* Top bar */}
         <div className="relative z-20 flex items-center justify-end gap-3 px-6 py-2 border-b border-slate-100 bg-white/70 backdrop-blur-sm shrink-0">
 
+          <ThemeToggle />
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 
