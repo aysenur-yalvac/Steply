@@ -3,9 +3,9 @@ const content = fs.readFileSync('src/components/dashboard/DashboardSidebar.tsx',
 const lines = content.split('\n');
 
 for (let i = 0; i < lines.length; i++) {
-  if (lines[i].includes('unreadCount > 0') || lines[i].includes('unreadCount >')) {
+  if (lines[i].includes('Messages')) {
     console.log("------- MATCH AT LINE " + i);
-    for (let j = Math.max(0, i - 5); j <= Math.min(lines.length - 1, i + 5); j++) {
+    for (let j = Math.max(0, i - 15); j <= Math.min(lines.length - 1, i + 15); j++) {
       console.log(j + ": " + lines[j]);
     }
   }

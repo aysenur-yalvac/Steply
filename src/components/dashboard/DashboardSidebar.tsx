@@ -99,6 +99,23 @@ function NavContent({
   const router = useRouter();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [localUnreadCount, setLocalUnreadCount] = useState(unreadCount || 0);
+
+  useEffect(() => {
+    setLocalUnreadCount(unreadCount || 0);
+  }, [unreadCount]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.action === 'read_chat') {
+        setLocalUnreadCount((prev) => Math.max(0, prev - 1));
+      } else if (e.detail?.action === 'new_unread_chat') {
+        setLocalUnreadCount((prev) => prev + 1);
+      }
+    };
+    window.addEventListener('chat-update', handler);
+    return () => window.removeEventListener('chat-update', handler);
+  }, []);
   const toggleMenu = (label: string) => setOpenMenus(p => ({...p, [label]: !p[label]}));
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -274,6 +291,8 @@ function NavContent({
               
               const isActive = !isWatchlist && (href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href));
               const isOpen = openMenus[label];
+const hasBadge = label === "Messages" && (localUnreadCount ?? unreadCount ?? 0) > 0;
+const badgeCount = label === "Messages" ? ((localUnreadCount ?? unreadCount ?? 0) > 9 ? "9+" : (localUnreadCount ?? unreadCount ?? 0)) : null;
 
               if (isWatchlist) {
                 return collapsed ? (
