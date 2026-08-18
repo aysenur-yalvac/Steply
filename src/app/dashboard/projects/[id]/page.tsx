@@ -232,6 +232,10 @@ export default async function ProjectDetailPage({
             <ProjectTabsWrapper
               showNotesTab={isTeamMember || isTeacher}
               hasNotes={projectNotes.length > 0 || reviews.length > 0}
+              projectId={project.id}
+              currentUserId={user.id}
+              projectNotes={projectNotes}
+              reviews={reviews}
               overviewContent={
                 <div className="flex flex-col gap-8">
                   <ProjectEditableContent

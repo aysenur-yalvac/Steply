@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Users, CheckSquare, FileText, MessageSquare } from 'lucide-react';
 
@@ -14,6 +14,10 @@ interface ProjectTabsWrapperProps {
   notesContent?: ReactNode;
   showNotesTab: boolean;
   hasNotes?: boolean;
+  projectId?: string;
+  currentUserId?: string;
+  projectNotes?: any[];
+  reviews?: any[];
 }
 
 export default function ProjectTabsWrapper({
@@ -24,9 +28,51 @@ export default function ProjectTabsWrapper({
   notesContent,
   showNotesTab,
   hasNotes,
+  projectId,
+  currentUserId,
+  projectNotes = [],
+  reviews = [],
 }: ProjectTabsWrapperProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [hasViewedNotes, setHasViewedNotes] = useState(false);
+  const [hasUnreadNotes, setHasUnreadNotes] = useState(false);
+
+  useEffect(() => {
+    if (!projectId || typeof window === 'undefined') return;
+
+    // Check if there are notes/reviews from OTHERS
+    const othersNotes = projectNotes.filter((n: any) => n.user_id !== currentUserId);
+    const othersReviews = reviews.filter((r: any) => r.reviewer_id !== currentUserId);
+    
+    if (othersNotes.length === 0 && othersReviews.length === 0) {
+      setHasUnreadNotes(false);
+      return;
+    }
+
+    const latestNoteTime = Math.max(
+      ...othersNotes.map((n: any) => new Date(n.created_at).getTime()),
+      ...othersReviews.map((r: any) => new Date(r.created_at).getTime()),
+      0
+    );
+
+    const lastReadStr = localStorage.getItem(`project_read_${projectId}`);
+    const lastReadTime = lastReadStr ? new Date(lastReadStr).getTime() : 0;
+
+    if (latestNoteTime > lastReadTime) {
+      setHasUnreadNotes(true);
+    }
+  }, [projectId, currentUserId, projectNotes, reviews]);
+
+  const handleTabClick = (id: TabType) => {
+    setActiveTab(id);
+    if (id === 'notes') {
+      setHasViewedNotes(true);
+      setHasUnreadNotes(false);
+      if (projectId && typeof window !== 'undefined') {
+        localStorage.setItem(`project_read_${projectId}`, new Date().toISOString());
+      }
+    }
+  };
 
     const tabs = [
     { id: 'overview', label: 'Genel Bakış & Takım', icon: Layers },
@@ -49,15 +95,12 @@ export default function ProjectTabsWrapper({
           return (
             <button
               key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id as TabType);
-                if (tab.id === 'notes') setHasViewedNotes(true);
-              }}
+              onClick={() => handleTabClick(tab.id as TabType)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative ${isActive ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border border-slate-100 hover:border-violet-200'}`}
             >
               <Icon className="w-5 h-5" />
               {tab.label}
-              {tab.id === 'notes' && hasNotes && !hasViewedNotes && activeTab !== 'notes' && (
+              {tab.id === 'notes' && hasUnreadNotes && activeTab !== 'notes' && (
                 <span className="absolute top-3 right-4 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               )}
             </button>
