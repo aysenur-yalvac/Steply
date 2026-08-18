@@ -156,7 +156,7 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
     <Card className={cn("w-full bg-white border border-slate-200 shadow-sm", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-bold text-slate-900">{title}</CardTitle>
+          <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100">{title}</CardTitle>
           <div className="relative">
             <button
               type="button"
@@ -191,9 +191,9 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
         </div>
 
         <div className="flex flex-col mt-2">
-          <p className="text-4xl font-bold tracking-tight text-slate-900">
+          <p className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {displayTotal.toLocaleString("tr-TR")}{" "}
-            <span className="text-sm text-slate-500 font-normal">Puan</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400 font-normal">Puan</span>
           </p>
           <div className="flex items-center gap-1 text-emerald-600 font-bold mt-1 text-xs">
             <TrendingUp className="h-3 w-3" />
@@ -233,7 +233,7 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
                       </span>
                     )}
                   </div>
-                  <span className="text-[9px] text-slate-600 font-semibold uppercase truncate w-full text-center leading-none">
+                  <span className="text-[9px] text-slate-600 dark:text-slate-300 font-semibold uppercase truncate w-full text-center leading-none">
                     {item.label}
                   </span>
                 </div>

@@ -242,7 +242,7 @@ function NavContent({
               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                 <img src="/image_5.png" alt="Steply" className="w-9 h-9 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
               </div>
-              <span className="font-extrabold text-xl tracking-tight text-slate-800">Steply</span>
+              <span className="font-extrabold text-xl tracking-tight text-slate-800 dark:text-slate-200">Steply</span>
             </Link>
             {onToggleExpand && (
               <button
@@ -280,11 +280,11 @@ function NavContent({
 
               if (isWatchlist) {
                 return collapsed ? (
-                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 transition-all duration-150">
+                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200 transition-all duration-150">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                   </button>
                 ) : (
-                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-300 hover:text-slate-800 hover:bg-slate-50 dark:bg-slate-950 transition-all duration-150 group">
+                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-950 transition-all duration-150 group">
                     <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                     {label}
                   </button>
@@ -295,11 +295,11 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-0.5">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200"}`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200"}`}>
                         <div className="flex items-center gap-3">
                           <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
                           <span>{label}</span>
@@ -310,7 +310,7 @@ function NavContent({
                     {isOpen && !collapsed && (
                       <div className="flex flex-col gap-0.5 pl-9 pr-2 py-1">
                         {subItems.map((sub: any) => (
-                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 dark:text-slate-300 hover:text-violet-700 hover:bg-violet-50"}`}>
+                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-violet-700 hover:bg-violet-50"}`}>
                             {sub.label}
                           </Link>
                         ))}
@@ -330,16 +330,16 @@ function NavContent({
               const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
               
               return collapsed ? (
-                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
+                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                     {isMessages && <UnreadMessagesBadge collapsed={true} />}
                   </div>
                 </Link>
               ) : (
-                <Link key={label} href={href} onClick={onClose} className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
+                <Link key={label} href={href} onClick={onClose} className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"}`} strokeWidth={isActive ? 2 : 1.5} />
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`} strokeWidth={isActive ? 2 : 1.5} />
                     <span>{label}</span>
                   </div>
                   {isMessages && <UnreadMessagesBadge collapsed={false} />}
@@ -421,7 +421,7 @@ function NavContent({
                   document.cookie = `_steply_link_owner=${userId}; path=/; max-age=600; SameSite=Lax`;
                   window.location.replace(`/auth/login?link_account=true&owner_id=${userId}`);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-violet-600 transition-colors border-t border-slate-100 disabled:opacity-40"
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-violet-600 transition-colors border-t border-slate-100 disabled:opacity-40"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Yeni Hesap Ekle
@@ -463,8 +463,8 @@ function NavContent({
               >
                 <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-800 truncate">{userName || userEmail}</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-300 capitalize font-medium">{role || "student"}</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{userName || userEmail}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-300 capitalize font-medium">{role || "student"}</p>
                 </div>
               </Link>
               <button
@@ -479,7 +479,7 @@ function NavContent({
 
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
             >
               <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               Sign Out
@@ -493,8 +493,8 @@ function NavContent({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800">Hesap BaÄŸlantÄ±sÄ±nÄ± KaldÄ±r</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-300">
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap BaÄŸlantÄ±sÄ±nÄ± KaldÄ±r</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-300">
                 <span className="font-semibold text-slate-700">{removeTarget.linked_name || removeTarget.linked_email}</span>{" "}
                 hesabÄ±nÄ±n baÄŸlantÄ±sÄ±nÄ± kaldÄ±rmak istediÄŸinize emin misiniz? Bu iÅŸlem her iki hesaptaki hÄ±zlÄ± geÃ§iÅŸ menÃ¼sÃ¼nden de bu hesabÄ± kaldÄ±racaktÄ±r.
               </p>
@@ -504,7 +504,7 @@ function NavContent({
                 type="button"
                 onClick={() => { if (!isRemoving) setRemoveTarget(null); }}
                 disabled={isRemoving}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
                 VazgeÃ§
               </button>
@@ -526,8 +526,8 @@ function NavContent({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={(e) => { if(e.target === e.currentTarget && !isSwitching) { setSwitchTarget(null); setSwitchError(null); }}}>
           <div className="bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800">Hesap Değiştir</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-300">
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap Değiştir</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-300">
                 <span className="font-semibold text-slate-700">{switchTarget.linked_name || switchTarget.linked_email}</span>{" "}
                 hesabına geçmek üzeresiniz. Mevcut oturumunuz kapatılacak.
               </p>
@@ -542,7 +542,7 @@ function NavContent({
                 type="button"
                 onClick={() => { if (!isSwitching) { setSwitchTarget(null); setSwitchError(null); } }}
                 disabled={isSwitching}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
                 İptal
               </button>

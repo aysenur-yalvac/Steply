@@ -167,7 +167,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
     <div className="flex flex-col h-full w-full bg-slate-50/70 overflow-hidden relative border-l border-slate-200/80">
       {/* Header */}
       <div className="p-5 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 z-10 shadow-sm">
-        <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{selectedUser.full_name}</h3>
+        <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 dark:text-white">{selectedUser.full_name}</h3>
       </div>
 
       {/* Messages */}
@@ -177,11 +177,11 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 space-y-3">
+          <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 dark:text-slate-400 space-y-3">
              <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200/60 flex flex-col items-center justify-center shadow-inner">
                <Send className="w-8 h-8 text-slate-400" />
              </div>
-             <p className="max-w-xs text-sm font-medium !text-slate-900">No messages yet. Say hi to start the conversation!</p>
+             <p className="max-w-xs text-sm font-medium !text-slate-900 dark:text-slate-100">No messages yet. Say hi to start the conversation!</p>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -213,7 +213,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
                     </a>
                   )}
                   
-                  <div className={`text-[10px] mt-2 font-medium ${isMine ? 'text-indigo-200' : 'text-slate-500'} text-right tracking-wide`}>
+                  <div className={`text-[10px] mt-2 font-medium ${isMine ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'} text-right tracking-wide`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
               {projects.map(p => (
                 <li 
                   key={p.id} 
-                  className="px-4 py-3 hover:bg-sage-green/5 rounded-xl cursor-pointer text-sm font-medium text-slate-600 transition-all hover:pl-5 border border-transparent hover:border-sage-green/10 m-1 flex items-center"
+                  className="px-4 py-3 hover:bg-sage-green/5 rounded-xl cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-300 transition-all hover:pl-5 border border-transparent hover:border-sage-green/10 m-1 flex items-center"
                   onClick={() => selectMention(p)}
                 >
                   <FolderRoot className="w-4 h-4 mr-2 text-sage-green shrink-0" />
@@ -252,7 +252,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             value={newMessage}
             onChange={handleInputChange}
             placeholder="Type your message... (Use @ to tag a project)"
-            className="flex-1 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
+            className="flex-1 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:text-slate-200 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             autoComplete="off"
           />
           <button

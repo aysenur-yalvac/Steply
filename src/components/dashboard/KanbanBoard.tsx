@@ -215,7 +215,7 @@ function KanbanCard({
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug line-clamp-2">
+        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base mb-2 leading-snug line-clamp-2">
           {project.title}
         </h3>
 
@@ -235,7 +235,7 @@ function KanbanCard({
               </span>
             ))}
             {project.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 dark:text-slate-400 border border-slate-200">
                 +{project.tags.length - 3}
               </span>
             )}
@@ -345,7 +345,7 @@ function KanbanCard({
                     >
                       {studentName.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-xs text-slate-600 font-medium">{studentName}</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{studentName}</span>
                   </div>
                 </div>
               )}
@@ -369,7 +369,7 @@ function KanbanCard({
                             {initialTeacherNote && (
                               <button
                                 onClick={() => setIsEditingNote(false)}
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                                className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
                               >
                                 Cancel
                               </button>

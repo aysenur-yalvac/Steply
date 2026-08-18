@@ -40,7 +40,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
       <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white overflow-auto">
         <File className="w-24 h-24 text-slate-300 mb-4" />
         <h3 className="text-xl font-bold text-slate-700">{file.name}</h3>
-        <p className="text-sm text-slate-500 mt-2">Bu dosya türü için tarayıcı önizlemesi desteklenmiyor.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Bu dosya türü için tarayıcı önizlemesi desteklenmiyor.</p>
         <a 
           href={file.url} 
           target="_blank" 
@@ -53,7 +53,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
       </div>
       <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col">
         <div className="p-4 border-b border-slate-200 bg-slate-50">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" />
             Notlar
           </h3>
@@ -65,7 +65,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
                 <img src={a.author?.avatar_url || '/image_5.png'} alt="avatar" className="w-6 h-6 rounded-full" />
                 <span className="text-xs font-bold text-slate-700">{a.author?.full_name || 'Öğretmen'}</span>
               </div>
-              <p className="text-sm text-slate-800 whitespace-pre-wrap">{a.annotation_data.text}</p>
+              <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{a.annotation_data.text}</p>
             </div>
           ))}
           {annotations.length === 0 && <p className="text-sm text-slate-400 italic text-center mt-10">Henüz not eklenmedi.</p>}
@@ -78,7 +78,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
               onChange={e => setNoteText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Dosya hakkında not yazın..."
-              className="w-full text-sm p-3 text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              className="w-full text-sm p-3 text-slate-900 dark:text-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
               rows={3}
             />
             <button

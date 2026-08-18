@@ -76,10 +76,10 @@ function MutualConfirmModal({
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
                 Karşılıklı takip
               </p>
-              <p className="text-base font-extrabold text-slate-800">{confirm.userName}</p>
+              <p className="text-base font-extrabold text-slate-800 dark:text-slate-200">{confirm.userName}</p>
             </div>
           </div>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
             <span className="font-semibold text-slate-700">{confirm.userName}</span> ile karşılıklı
             takipleşiyorsunuz. Ne yapmak istersiniz?
           </p>
@@ -93,9 +93,9 @@ function MutualConfirmModal({
             disabled={loading}
             className="w-full flex items-start gap-3 px-4 py-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all text-left disabled:opacity-50"
           >
-            <UserMinus className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+            <UserMinus className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-bold text-slate-800">{singleLabel}</p>
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{singleLabel}</p>
               <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{singleDesc}</p>
             </div>
           </button>
@@ -122,7 +122,7 @@ function MutualConfirmModal({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             Vazgeç
           </button>
@@ -173,7 +173,7 @@ function FollowModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-base font-extrabold text-slate-800">{title}</h2>
+          <h2 className="text-base font-extrabold text-slate-800 dark:text-slate-200">{title}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400"
@@ -227,7 +227,7 @@ function FollowModal({
                       <Link
                         href={`/user/${u.id}`}
                         onClick={onClose}
-                        className="text-sm font-semibold text-slate-800 hover:text-violet-700 transition-colors truncate block"
+                        className="text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-700 transition-colors truncate block"
                       >
                         {u.full_name ?? "Steply Member"}
                       </Link>
@@ -355,7 +355,7 @@ export default function SocialWidget({
             : <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center"><Users className="w-3.5 h-3.5 text-slate-400" /></div>
           }
           <div className="text-left">
-            <p className="text-sm font-extrabold text-slate-800 leading-tight">{followers.length}</p>
+            <p className="text-sm font-extrabold text-slate-800 dark:text-slate-200 leading-tight">{followers.length}</p>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">Takipçi</p>
           </div>
         </button>
@@ -370,7 +370,7 @@ export default function SocialWidget({
             : <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center"><Users className="w-3.5 h-3.5 text-slate-400" /></div>
           }
           <div className="text-left">
-            <p className="text-sm font-extrabold text-slate-800 leading-tight">{following.length}</p>
+            <p className="text-sm font-extrabold text-slate-800 dark:text-slate-200 leading-tight">{following.length}</p>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">Takip Edilen</p>
           </div>
         </button>

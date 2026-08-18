@@ -19,7 +19,7 @@ type TabId = typeof TABS[number]["id"];
 
 const RANK_STYLE: Record<number, { bg: string; text: string; ring: string; icon: string }> = {
   1: { bg: "bg-amber-50",   text: "text-amber-700",   ring: "ring-amber-400",   icon: "🥇" },
-  2: { bg: "bg-slate-100",  text: "text-slate-600",   ring: "ring-slate-400",   icon: "🥈" },
+  2: { bg: "bg-slate-100",  text: "text-slate-600 dark:text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
   3: { bg: "bg-orange-50",  text: "text-orange-700",  ring: "ring-orange-400",  icon: "🥉" },
 };
 
@@ -33,7 +33,7 @@ function RankBadge({ rank }: { rank: number }) {
     );
   }
   return (
-    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm text-slate-500 bg-slate-50 ring-1 ring-slate-200">
+    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm text-slate-500 dark:text-slate-400 bg-slate-50 ring-1 ring-slate-200">
       {rank}
     </span>
   );
@@ -84,7 +84,7 @@ function LeaderboardTable({
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <Avatar src={entry.avatar_url} name={entry.full_name ?? "?"} size="sm" />
               <div className="min-w-0">
-                <p className={`text-sm font-bold truncate ${isMe ? "text-violet-700" : "text-slate-800"}`}>
+                <p className={`text-sm font-bold truncate ${isMe ? "text-violet-700" : "text-slate-800 dark:text-slate-200"}`}>
                   {entry.full_name ?? "Anonymous"}
                   {isMe && <span className="ml-1.5 text-[10px] font-bold bg-violet-200 text-violet-700 px-1.5 py-0.5 rounded-full">Sen</span>}
                 </p>
@@ -158,12 +158,12 @@ export default function LeaderboardClient({
         </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Analytics <span className="text-slate-300 mx-1">›</span>
-          <span className="text-slate-600">Leaderboard</span>
+          <span className="text-slate-600 dark:text-slate-300">Leaderboard</span>
         </p>
-        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
+        <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
           Analytics
         </h1>
-        <p className="text-sm text-slate-500 mt-1.5 mb-5">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-5">
           Aktivite sıralaması ve rozet sistemi.
         </p>
       </div>
@@ -180,7 +180,7 @@ export default function LeaderboardClient({
               <Medal className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-widest">Global Sıran</span>
             </div>
-            <p className="text-3xl font-black text-slate-800">
+            <p className="text-3xl font-black text-slate-800 dark:text-slate-200">
               {currentUserRank > 0 ? `#${currentUserRank}` : "—"}
             </p>
           </div>
@@ -190,7 +190,7 @@ export default function LeaderboardClient({
               <Trophy className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-widest">Toplam Puan</span>
             </div>
-            <p className="text-3xl font-black text-slate-800">
+            <p className="text-3xl font-black text-slate-800 dark:text-slate-200">
               {currentUserScore.toLocaleString()}
             </p>
           </div>
@@ -218,7 +218,7 @@ export default function LeaderboardClient({
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors shrink-0 border-b-2 ${
                   activeTab === tab.id
                     ? "border-violet-600 text-violet-700 bg-violet-50/50"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 {tab.label}

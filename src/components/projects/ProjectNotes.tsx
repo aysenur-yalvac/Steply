@@ -152,7 +152,7 @@ export default function ProjectNotes({
       {/* Header */}
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white/90 backdrop-blur-sm border-b border-gray-100 shrink-0">
         <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100">
-          <MessageSquare className="w-4 h-4 text-gray-500" />
+          <MessageSquare className="w-4 h-4 text-gray-500 dark:text-slate-400" />
         </div>
         <div>
           <p className="text-sm font-bold text-gray-800 leading-none">Proje Notları</p>
@@ -212,7 +212,7 @@ export default function ProjectNotes({
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
-              bg-gray-50 border border-gray-200
+              bg-gray-50 dark:bg-slate-900 border border-gray-200
               text-sm text-gray-800 placeholder-gray-400
               outline-none transition-all leading-snug
               focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200

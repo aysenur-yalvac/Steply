@@ -141,7 +141,7 @@ export default function NotificationBell({
       {/* Bell button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative p-2 rounded-xl text-slate-500 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+        className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" strokeWidth={1.75} />
@@ -165,7 +165,7 @@ export default function NotificationBell({
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-800">Notifications</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Notifications</span>
               <div className="flex items-center gap-1">
                 {unread > 0 && (
                   <button
@@ -177,7 +177,7 @@ export default function NotificationBell({
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -206,7 +206,7 @@ export default function NotificationBell({
                         {typeIcon(n.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm leading-snug ${n.is_read ? "text-slate-500" : "text-slate-800 font-medium"}`}>
+                        <p className={`text-sm leading-snug ${n.is_read ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-200 font-medium"}`}>
                           {n.title}
                         </p>
                         {n.body && (

@@ -18,7 +18,7 @@ export function BackButton({ href = "/", label = "Geri", variant = "dark" }: Bac
       className={`group inline-flex items-center rounded-xl text-sm font-semibold transition-all duration-300 focus-visible:outline-none ${
         isDark
           ? "text-white/60 hover:text-white/90 focus-visible:ring-2 focus-visible:ring-purple-500"
-          : "text-slate-500 hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-indigo-500/30"
+          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-500/30"
       }`}
       style={
         isDark

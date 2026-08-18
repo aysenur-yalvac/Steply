@@ -64,7 +64,7 @@ export default function SocialAuthRow() {
       {/* Divider */}
       <div className="flex items-center gap-3 my-6">
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
-        <span className="text-[11px] font-medium text-slate-600 whitespace-nowrap">
+        <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
           Veya şununla devam et
         </span>
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />

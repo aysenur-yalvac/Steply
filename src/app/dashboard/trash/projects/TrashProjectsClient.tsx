@@ -83,7 +83,7 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
     <div className="space-y-4">
       {/* Toplu İşlem Barı */}
       <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-100 transition-colors">
+        <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-100 dark:text-slate-100 transition-colors">
           {selectedIds.length === projects.length && projects.length > 0 ? (
             <CheckSquare className="w-5 h-5 text-violet-600" />
           ) : (
@@ -131,7 +131,7 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
             <div className="absolute inset-0 bg-slate-900/5 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl z-10">
               <button
                 onClick={() => setModalState({ isOpen: true, type: "restore", isBulk: false, targetId: project.id })}
-                className="px-4 py-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl font-medium shadow-sm hover:shadow-md transition-all text-sm w-36"
+                className="px-4 py-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 dark:text-slate-100 rounded-xl font-medium shadow-sm hover:shadow-md transition-all text-sm w-36"
               >
                 Geri Yükle
               </button>
@@ -150,10 +150,10 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
       {modalState?.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 mb-2">
               {modalState.type === "restore" ? "Geri Yükle" : "Kalıcı Olarak Sil"}
             </h3>
-            <p className="text-slate-500 text-sm mb-6">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
               {modalState.isBulk 
                 ? `Seçilen ${selectedIds.length} öğeyi ${modalState.type === "restore" ? "geri yüklemek" : "kalıcı olarak silmek"} istediğinize emin misiniz?`
                 : `Bu projeyi ${modalState.type === "restore" ? "geri yüklemek" : "kalıcı olarak silmek"} istediğinize emin misiniz?`}
@@ -163,7 +163,7 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
               <button
                 onClick={() => setModalState(null)}
                 disabled={isProcessing}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-100 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-100 dark:text-slate-100 transition-colors"
               >
                 İptal
               </button>

@@ -151,7 +151,7 @@ export default function ProjectCard({
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug line-clamp-2">
+        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base mb-2 leading-snug line-clamp-2">
           {project.title}
         </h3>
 
@@ -159,7 +159,7 @@ export default function ProjectCard({
         {(isTeacher || isCollaborator) && project.profiles?.full_name && (
           <p className="text-sm text-slate-400 font-medium mb-2">
             {isCollaborator ? 'Owner' : 'Student'}:{' '}
-            <span className="text-slate-600 font-semibold">{project.profiles.full_name}</span>
+            <span className="text-slate-600 dark:text-slate-300 font-semibold">{project.profiles.full_name}</span>
           </p>
         )}
 
@@ -197,7 +197,7 @@ export default function ProjectCard({
               </span>
             ))}
             {project.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 dark:text-slate-400 border border-slate-200">
                 +{project.tags.length - 3}
               </span>
             )}
@@ -276,7 +276,7 @@ export default function ProjectCard({
                       {initialTeacherNote && (
                         <button
                           onClick={() => setIsEditingNote(false)}
-                          className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                          className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
                         >
                           Cancel
                         </button>

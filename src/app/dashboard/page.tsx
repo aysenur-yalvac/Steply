@@ -149,14 +149,14 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         <p className="text-xs font-semibold text-slate-400 mb-1">
           My Projects{' '}
           <span className="text-slate-300 mx-1">›</span>
-          <span className="text-slate-600">
+          <span className="text-slate-600 dark:text-slate-300">
             {isTeacher ? 'Portfolio Overview' : 'All Projects'}
           </span>
         </p>
-        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
+        <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
           {isTeacher ? 'Portfolio Overview' : 'My Projects'}
         </h1>
-        <p className="text-sm text-slate-500 mt-1.5 mb-4">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-4">
           {isTeacher
             ? 'Monitor the latest milestones of all watched student projects.'
             : 'Manage your active projects and keep your portfolio up to date.'}

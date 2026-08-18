@@ -101,7 +101,7 @@ export default function ProfileForm({
             <button
               type="button"
               onClick={() => setExpanded(v => !v)}
-              className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 hover:border-[#7C3AFF] hover:text-[#7C3AFF] transition-all duration-200 shrink-0"
+              className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:border-[#7C3AFF] hover:text-[#7C3AFF] transition-all duration-200 shrink-0"
               aria-label={expanded ? "Show less" : "Show more"}
             >
               <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
@@ -144,7 +144,7 @@ export default function ProfileForm({
             placeholder="Your Name and Surname"
             required
             minLength={2}
-            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
 
@@ -156,7 +156,7 @@ export default function ProfileForm({
             type="email" 
             value={email}
             disabled
-            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed shadow-inner"
+            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-inner"
           />
         </div>
       </div>
@@ -170,7 +170,7 @@ export default function ProfileForm({
           name="phone_number"
           defaultValue={profile?.phone_number || ''}
           placeholder="+1 234 567 8900"
-          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
         />
       </div>
 
@@ -183,7 +183,7 @@ export default function ProfileForm({
           defaultValue={profile?.bio || ''}
           placeholder="Tell us a little bit about yourself..."
           rows={4}
-          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm resize-none"
+          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm resize-none"
         />
       </div>
 
@@ -196,7 +196,7 @@ export default function ProfileForm({
           name="institution"
           defaultValue={profile?.institution || ''}
           placeholder="Enter your school or institution..."
-          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
         />
       </div>
 
@@ -210,7 +210,7 @@ export default function ProfileForm({
             name="github_url"
             defaultValue={profile?.github_url || ''}
             placeholder="https://github.com/username"
-            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
 
@@ -223,7 +223,7 @@ export default function ProfileForm({
             name="linkedin_url"
             defaultValue={profile?.linkedin_url || ''}
             placeholder="https://linkedin.com/in/username"
-            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function ProfileForm({
             name="twitter_url"
             defaultValue={profile?.twitter_url || ''}
             placeholder="https://x.com/username"
-            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
 
@@ -251,7 +251,7 @@ export default function ProfileForm({
             name="website_url"
             defaultValue={profile?.website_url || ''}
             placeholder="https://yourwebsite.com"
-            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
       </div>

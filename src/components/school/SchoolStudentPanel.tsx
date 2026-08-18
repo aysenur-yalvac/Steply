@@ -79,7 +79,7 @@ function PersonCard({
       <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <p className="text-base font-bold text-slate-900 leading-tight truncate group-hover:text-violet-700 transition-colors">
+            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight truncate group-hover:text-violet-700 transition-colors">
               {s.full_name ?? 'Steply Üyesi'}
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
@@ -123,7 +123,7 @@ function PersonCard({
 
         <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
           <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs font-medium text-slate-500">{s.projectCount} proje</span>
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{s.projectCount} proje</span>
         </div>
       </div>
     </Link>
@@ -187,7 +187,7 @@ export default function SchoolStudentPanel({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                   activeFilter === g
                     ? 'bg-violet-600 text-white border-violet-600 shadow-sm shadow-violet-200'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600'
+                    : 'bg-white text-slate-600 dark:text-slate-300 border-slate-200 hover:border-violet-300 hover:text-violet-600'
                 }`}
               >
                 {g}
@@ -202,7 +202,7 @@ export default function SchoolStudentPanel({
           <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
             <GraduationCap className="w-6 h-6 text-slate-300" />
           </div>
-          <p className="text-sm text-slate-500 font-medium">{emptyMessage}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{emptyMessage}</p>
           <p className="text-xs text-slate-400 text-center max-w-xs">Arkadaşlarını Steply&apos;ye davet et!</p>
         </div>
       ) : (
@@ -214,7 +214,7 @@ export default function SchoolStudentPanel({
               <div key={grade}>
                 <div className="flex items-center gap-2 mb-3">
                   <Users className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{grade}</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{grade}</span>
                   <span className="text-[10px] text-slate-400 font-medium">({items.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

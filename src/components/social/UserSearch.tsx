@@ -87,7 +87,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
             </div>
           ) : results.length > 0 ? (
             <div className="py-2 max-h-72 overflow-y-auto custom-scrollbar">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-4 mb-2 mt-1">People</h3>
+              <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-4 mb-2 mt-1">People</h3>
               <ul>
                 {results.map((user) => (
                   <li
@@ -100,7 +100,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                     </div>
                     <div className="overflow-hidden flex-1">
                       <div className="font-semibold text-slate-200 text-sm truncate group-hover:text-white transition-colors">{user.full_name}</div>
-                      <div className="text-xs text-slate-500 truncate mt-0.5">{user.email}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.email}</div>
                       {sanitizeInstitution(user.institution) && (
                         <div className="text-xs text-slate-400 truncate mt-0.5">{sanitizeInstitution(user.institution)}</div>
                       )}
@@ -116,7 +116,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
             </div>
           ) : (
             <div className="p-6 text-center text-sm text-slate-400 flex flex-col items-center">
-              <UserIcon className="w-8 h-8 text-slate-600 mb-2" />
+              <UserIcon className="w-8 h-8 text-slate-600 dark:text-slate-300 mb-2" />
               <p>No users found matching "{query}"</p>
             </div>
           )}

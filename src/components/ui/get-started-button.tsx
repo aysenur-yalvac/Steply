@@ -11,7 +11,7 @@ export function GetStartedButton({ href = "/auth/register" }: { href?: string })
       style={{ height: "52px", paddingLeft: "36px", paddingRight: "8px" }}
     >
       {/* Shimmer sweep on hover */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 dark:bg-none" />
 
       {/* Label — fades out on hover */}
       <span className="relative z-10 mr-8 transition-opacity duration-500 group-hover:opacity-0 whitespace-nowrap">

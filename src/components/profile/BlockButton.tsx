@@ -42,7 +42,7 @@ export default function BlockButton({
       <button
         onClick={() => setOpen((v) => !v)}
         disabled={loading}
-        className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+        className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors disabled:opacity-50"
         title="Daha fazla"
       >
         {loading ? (

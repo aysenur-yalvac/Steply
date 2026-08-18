@@ -37,7 +37,7 @@ export function ColorPicker({ color, onChange, strokeWidth, onStrokeWidthChange 
       
       {/* Stroke Width Slider */}
       <div className="flex items-center gap-3 min-w-[120px]">
-        <span className="text-xs font-semibold text-slate-500 w-8">{strokeWidth}px</span>
+        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 w-8">{strokeWidth}px</span>
         <Slider.Root
           className="relative flex items-center select-none touch-none w-full h-5"
           value={[strokeWidth]}

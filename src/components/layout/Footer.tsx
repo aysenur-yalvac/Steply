@@ -9,7 +9,7 @@ export default function Footer() {
         borderTop: "1px solid rgba(160,32,240,0.12)",
       }}
     >
-      <p className="text-sm text-slate-500 font-medium">
+      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
         Powered by{" "}
         <a
           href="https://must-b.com"

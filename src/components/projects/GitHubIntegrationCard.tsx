@@ -26,7 +26,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   if (!isTeamMember) {
     return (
       <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100 uppercase tracking-widest flex items-center gap-2 mb-4">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-zinc-100 uppercase tracking-widest flex items-center gap-2 mb-4">
           <Github className="w-5 h-5 text-indigo-500" /> GitHub Bağlantısı
         </h3>
         {formattedGithubLink ? (
@@ -34,7 +34,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
             <Github className="w-4 h-4" /> Repo'yu Görüntüle
           </a>
         ) : (
-          <p className="text-sm text-slate-500 dark:text-zinc-400">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-zinc-400">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
         )}
       </div>
     );
@@ -69,28 +69,28 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-6">
         <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-zinc-800 pb-4">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2">
             <Settings className="w-5 h-5" /> GitHub Ayarları
           </h3>
-          <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-colors p-2 bg-slate-50 dark:bg-zinc-800 rounded-full">
+          <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-zinc-200 transition-colors p-2 bg-slate-50 dark:bg-zinc-800 rounded-full">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {!repo ? (
           <div className="max-w-md mx-auto py-8">
-            <p className="text-sm text-slate-600 dark:text-zinc-400 mb-6 text-center">
+            <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-zinc-400 mb-6 text-center">
               Projenize GitHub deposunu bağlayarak commit'lerin otomatik senkronize olmasını sağlayın.
             </p>
             <form onSubmit={handleConnect} className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Repository URL</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Repository URL</label>
                 <input
                   type="url"
                   placeholder="https://github.com/kullanici/repo"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 bg-white dark:bg-zinc-950 border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-slate-100 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 bg-white dark:bg-zinc-950 border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -104,26 +104,26 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {/* Left Column: Data & Actions */}
             <div className="flex flex-col h-full bg-white dark:bg-zinc-900">
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+              <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2 mb-6">
                 <Github className="w-5 h-5" /> {repo.repo_owner}/{repo.repo_name}
               </h4>
 
               <div className="space-y-5 flex-1">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Payload URL</label>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Payload URL</label>
                   <div className="flex gap-2 items-center">
-                    <input type="text" readOnly value={payloadUrl} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-zinc-100 font-mono focus:outline-none" />
+                    <input type="text" readOnly value={payloadUrl} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
                     <button onClick={() => copyToClipboard(payloadUrl, setCopiedUrl)} className="p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-                      {copiedUrl ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-zinc-400" />}
+                      {copiedUrl ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400 dark:text-zinc-400" />}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Secret Key</label>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Secret Key</label>
                   <div className="flex gap-2 items-center">
-                    <input type="text" readOnly value={repo.webhook_secret} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-zinc-100 font-mono focus:outline-none" />
+                    <input type="text" readOnly value={repo.webhook_secret} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
                     <button onClick={() => copyToClipboard(repo.webhook_secret, setCopiedSecret)} className="p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-                      {copiedSecret ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-zinc-400" />}
+                      {copiedSecret ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400 dark:text-zinc-400" />}
                     </button>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
 
             {/* Right Column: Setup Guide */}
             <div className="bg-slate-100 dark:bg-zinc-800/70 border border-slate-200 dark:border-zinc-700/60 p-5 rounded-xl h-full flex flex-col">
-              <h5 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <h5 className="text-sm font-bold text-slate-900 dark:text-slate-100 dark:text-white mb-4 flex items-center gap-2">
                 <Settings className="w-4 h-4" /> Webhook Kurulum Rehberi
               </h5>
               <ol className="list-decimal list-inside text-sm text-slate-700 dark:text-zinc-200 space-y-3 mb-6 flex-1">
@@ -160,10 +160,10 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
                 <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 flex items-center gap-2 mb-2 text-sm">
                   <span>👥 Ekip Arkadaşları Nasıl Dahil Edilir?</span>
                 </h4>
-                <p className="text-slate-600 dark:text-zinc-300 mb-2 leading-relaxed text-xs">
+                <p className="text-slate-600 dark:text-slate-300 dark:text-zinc-300 mb-2 leading-relaxed text-xs">
                   Projeye ortak olan diğer üyelerin de attığı commit'lerin Steply akışına düşmesi için:
                 </p>
-                <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-zinc-300 text-xs">
+                <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300 dark:text-zinc-300 text-xs">
                   <li>
                     GitHub deponuzdan <strong>Settings &gt; Collaborators</strong> sekmesine gidip arkadaşlarınızı ekleyin.
                   </li>
@@ -185,7 +185,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   if (!isTeamMember) {
     return (
       <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-4">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2 mb-4">
           <Github className="w-5 h-5" /> GitHub Bağlantısı
         </h3>
         {githubLink ? (
@@ -193,7 +193,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
             <Github className="w-4 h-4" /> Repo'yu Görüntüle
           </a>
         ) : (
-          <p className="text-sm text-slate-500">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Bu proje sahibi henüz bir GitHub profili bağlamadı.</p>
         )}
       </div>
     );
@@ -202,7 +202,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   return (
     <div className="rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative w-full col-span-full max-h-[420px] h-[420px] flex flex-col overflow-hidden" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
       <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800 mb-4 shrink-0">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
           <Github className="w-5 h-5" /> GitHub
         </h3>
         {isTeamMember && (
@@ -214,7 +214,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
 
       {!repo ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-500 mb-2">Henüz GitHub bağlanmadı.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Henüz GitHub bağlanmadı.</p>
           {isTeamMember && (
             <button onClick={() => setShowSettings(true)} className="text-xs font-bold text-indigo-600 hover:underline">
               Depo Bağla
@@ -224,7 +224,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
       ) : (
         commits.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-sm text-slate-500">Henüz commit bulunmuyor.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Henüz commit bulunmuyor.</p>
             <p className="text-xs text-slate-400 mt-1">Webhook bağlandığında push edilen commitler burada görünecek.</p>
           </div>
         ) : (
@@ -243,7 +243,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
                   <span className="text-xs text-slate-400 font-medium">{new Date(commit.pushed_at).toLocaleString('tr-TR')}</span>
                   <p className="text-sm text-slate-700 font-medium mt-1 break-words">{commit.commit_message}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-semibold text-slate-500">{commit.author_name}</span>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{commit.author_name}</span>
                     <a href={commit.commit_url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-500 hover:underline font-mono">
                       {commit.commit_hash.substring(0, 7)}
                     </a>

@@ -98,7 +98,7 @@ export default function UniversityCombobox({
   }
 
   const inputCls =
-    "w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
+    "w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -121,7 +121,7 @@ export default function UniversityCombobox({
             <button
               type="button"
               onClick={handleClear}
-              className="text-slate-300 hover:text-slate-500 transition-colors"
+              className="text-slate-300 hover:text-slate-500 dark:text-slate-400 transition-colors"
               tabIndex={-1}
             >
               <X className="w-3.5 h-3.5" />
@@ -147,7 +147,7 @@ export default function UniversityCombobox({
             >
               <GraduationCap className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className={`text-sm font-medium truncate ${highlighted === i ? "text-violet-700" : "text-slate-800"}`}>
+                <p className={`text-sm font-medium truncate ${highlighted === i ? "text-violet-700" : "text-slate-800 dark:text-slate-200"}`}>
                   {uni.name}
                 </p>
                 <p className="text-[11px] text-slate-400">{uni.country}</p>

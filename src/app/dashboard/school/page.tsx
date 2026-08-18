@@ -31,7 +31,7 @@ function EmptyState({ icon, message, sub }: { icon: React.ReactNode; message: st
       <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:border-slate-800 flex items-center justify-center shadow-sm">
         {icon}
       </div>
-      <p className="text-sm text-slate-500 font-medium">{message}</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{message}</p>
       {sub && <p className="text-xs text-slate-400 text-center max-w-xs">{sub}</p>}
     </div>
   );
@@ -202,7 +202,7 @@ function NoInstitutionNotice() {
   return (
     <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 dark:border-slate-800 bg-white dark:bg-slate-900 dark:bg-slate-900/60 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
       <School className="w-8 h-8 text-slate-300" />
-      <p className="text-sm text-slate-500 font-medium">Henüz bir okul seçilmedi.</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Henüz bir okul seçilmedi.</p>
       <p className="text-xs text-slate-400 text-center max-w-xs">
         Profil ayarlarından okul/kurum bilgini ekleyerek aynı okuldaki herkesi görebilirsin.
       </p>

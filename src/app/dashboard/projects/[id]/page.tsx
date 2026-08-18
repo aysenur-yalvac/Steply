@@ -205,10 +205,10 @@ export default async function ProjectDetailPage({
           <div className="flex items-center gap-3">
             <Avatar src={ownerAvatarUrl} name={ownerName ?? "S"} size="md" />
             <div>
-              <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-200 leading-tight">
                 {project.title}
               </h2>
-              <p className="text-slate-500 text-sm">
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Developed by{" "}
                 <span className="font-bold" style={{ color: "#7C3AFF" }}>
                   {ownerName ?? "Steply Member"}
@@ -292,7 +292,7 @@ export default async function ProjectDetailPage({
                   )}
                   {reviews.length > 0 && (
                     <div className="flex flex-col gap-4">
-                      <h3 className="text-xl font-bold text-slate-800 mb-2">Öğretmen Değerlendirmeleri</h3>
+                      <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Öğretmen Değerlendirmeleri</h3>
                       {reviews.map((review) => (
                         <div key={review.id} className="rounded-2xl p-6 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
                           <div className="flex justify-between items-start mb-4">
@@ -327,21 +327,21 @@ export default async function ProjectDetailPage({
                               )}
                             </div>
                           </div>
-                          <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap pl-[52px]">{review.comment}</p>
+                          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap pl-[52px]">{review.comment}</p>
                         </div>
                       ))}
                     </div>
                   )}
                   {isTeacher && (
                     <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
-                      <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
                         <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
                       </h3>
                       <form action={createReview} className="flex flex-col gap-5">
                         <input type="hidden" name="project_id" value={project.id} />
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
-                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
+                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
@@ -364,12 +364,12 @@ export default async function ProjectDetailPage({
                 {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed</span>}
                 {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> In Review</span>}
                 {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200"><span className="w-2 h-2 rounded-full bg-violet-500 inline-block" /> In Progress</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"><span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do</span>}
+                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:text-slate-300 border border-slate-200"><span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do</span>}
               </div>
               
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Milestone Progress</h4>
               <div className="flex justify-between items-end mb-2">
-                <span className="text-2xl font-black text-slate-800">% {project.progress_percentage}</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-slate-200">% {project.progress_percentage}</span>
               </div>
               <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
 

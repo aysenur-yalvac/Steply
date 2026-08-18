@@ -304,13 +304,13 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
         {/* Drawing Toolbar */}
         {canAnnotate && (
           <div className="flex flex-wrap items-center gap-2 p-2 bg-white border-b border-slate-200 shrink-0">
-            <button onClick={() => setTool('none')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'none' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}>Seç/Oku</button>
-            <button onClick={() => setTool('pen')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><PenTool className="w-4 h-4" /> Çiz</button>
-            <button onClick={() => setTool('rect')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'rect' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Square className="w-4 h-4" /></button>
-            <button onClick={() => setTool('circle')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'circle' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><CircleIcon className="w-4 h-4" /></button>
-            <button onClick={() => setTool('line')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'line' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Minus className="w-4 h-4" /></button>
-            <button onClick={() => setTool('arrow')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'arrow' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><MoveRight className="w-4 h-4" /></button>
-            <button onClick={() => setTool('eraser')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}><Eraser className="w-4 h-4" /> Sil</button>
+            <button onClick={() => setTool('none')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'none' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}>Seç/Oku</button>
+            <button onClick={() => setTool('pen')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><PenTool className="w-4 h-4" /> Çiz</button>
+            <button onClick={() => setTool('rect')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'rect' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><Square className="w-4 h-4" /></button>
+            <button onClick={() => setTool('circle')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'circle' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><CircleIcon className="w-4 h-4" /></button>
+            <button onClick={() => setTool('line')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'line' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><Minus className="w-4 h-4" /></button>
+            <button onClick={() => setTool('arrow')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'arrow' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><MoveRight className="w-4 h-4" /></button>
+            <button onClick={() => setTool('eraser')} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}><Eraser className="w-4 h-4" /> Sil</button>
             
             <div className="w-px h-6 bg-slate-200 mx-2" />
             
@@ -318,8 +318,8 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
             
             <div className="w-px h-6 bg-slate-200 mx-2" />
             
-            <button onClick={handleUndo} disabled={historyStep === 0} className="p-1.5 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><Undo className="w-5 h-5" /></button>
-            <button onClick={handleRedo} disabled={historyStep === history.length - 1} className="p-1.5 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><Redo className="w-5 h-5" /></button>
+            <button onClick={handleUndo} disabled={historyStep === 0} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 disabled:opacity-30"><Undo className="w-5 h-5" /></button>
+            <button onClick={handleRedo} disabled={historyStep === history.length - 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 disabled:opacity-30"><Redo className="w-5 h-5" /></button>
           </div>
         )}
 
@@ -374,7 +374,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
       {/* Notes Sidebar */}
       <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col shrink-0">
         <div className="p-4 border-b border-slate-200 bg-white">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-indigo-500" /> Notlar</h3>
+          <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-indigo-500" /> Notlar</h3>
         </div>
         <div ref={notesContainerRef} className="flex-1 p-4 overflow-auto space-y-4">
           {annotations.map((a: any, i: number) => (
@@ -384,9 +384,9 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
                 <span className="text-xs font-bold text-slate-700">{a.author?.full_name || 'Öğretmen'}</span>
               </div>
               {a.annotation_data.type === 'sticky_note' ? (
-                <p className="text-sm text-slate-900 whitespace-pre-wrap">{a.annotation_data.text}</p>
+                <p className="text-sm text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{a.annotation_data.text}</p>
               ) : (
-                <p className="text-xs text-slate-500 italic">✏️ Ekran üzerine çizim yapıldı.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">✏️ Ekran üzerine çizim yapıldı.</p>
               )}
             </div>
           ))}
@@ -401,7 +401,7 @@ export default function CodeViewer({ file, annotations, onStageAnnotation, onImm
               onChange={e => setNoteText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Dosya hakkında not yazın..."
-              className="w-full text-sm p-3 text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              className="w-full text-sm p-3 text-slate-900 dark:text-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
               rows={3}
             />
             <button

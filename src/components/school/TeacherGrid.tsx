@@ -69,7 +69,7 @@ function TeacherCard({
       <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <p className="text-base font-bold text-slate-900 leading-tight truncate group-hover:text-blue-700 transition-colors">
+            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight truncate group-hover:text-blue-700 transition-colors">
               {t.full_name ?? "Steply Üyesi"}
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
@@ -90,7 +90,7 @@ function TeacherCard({
 
         <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
           <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs font-medium text-slate-500">{t.projectCount} proje</span>
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{t.projectCount} proje</span>
         </div>
       </div>
     </Link>

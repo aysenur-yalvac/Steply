@@ -177,7 +177,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
         </h3>
         {canManageFiles && (
@@ -186,7 +186,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
               <select
                 value={fileVisibility}
                 onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
-                className="bg-white border border-slate-200 text-slate-600 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
+                className="bg-white border border-slate-200 text-slate-600 dark:text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
               >
                 <option value="PUBLIC">🌐 Herkese Açık</option>
                 <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>
@@ -230,7 +230,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         {visibleFiles.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed border-indigo-300 rounded-xl bg-indigo-50">
             <File className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">Henüz dosya yüklenmedi.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Henüz dosya yüklenmedi.</p>
           </div>
         ) : (
           visibleFiles.map((file, idx) => (
@@ -322,15 +322,15 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
       {deleteModalTarget && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Dosya Çöp Kutusuna Taşınsın mı?</h3>
-            <p className="text-slate-500 text-sm mb-6">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Dosya Çöp Kutusuna Taşınsın mı?</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
               Bu dosya çöp kutusuna gönderilecek. Dilediğiniz zaman geri yükleyebilirsiniz.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteModalTarget(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-100 transition-colors"
               >
                 İptal
               </button>

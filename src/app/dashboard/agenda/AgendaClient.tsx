@@ -93,8 +93,8 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
           <Calendar className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Personal Agenda</h1>
-          <p className="text-slate-500">Track your project goals and deadlines.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100">Personal Agenda</h1>
+          <p className="text-slate-500 dark:text-slate-400">Track your project goals and deadlines.</p>
         </div>
       </div>
 
@@ -106,14 +106,14 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             placeholder="What do you need to complete? (e.g. Design Database)" 
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="flex-[2] px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
+            className="flex-[2] px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
             required
           />
           <input 
             type="date" 
             value={newTaskDate}
             onChange={(e) => setNewTaskDate(e.target.value)}
-            className="flex-1 px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
+            className="flex-1 px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
             required
           />
           <button 
@@ -158,12 +158,12 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                         {task.is_completed ? <CheckCircle2 className="w-7 h-7" /> : <Circle className="w-7 h-7" />}
                       </button>
                       <div className="flex flex-col truncate pr-4">
-                        <span className={`font-bold truncate text-lg ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
+                        <span className={`font-bold truncate text-lg ${task.is_completed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200 dark:text-slate-100'}`}>
                           {task.title}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${
-                            task.is_completed ? 'bg-slate-200 text-slate-600' : isPastDue ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'
+                            task.is_completed ? 'bg-slate-200 text-slate-600 dark:text-slate-300' : isPastDue ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'
                           }`}>
                             {isPastDue && !task.is_completed ? <Flag className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                             {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

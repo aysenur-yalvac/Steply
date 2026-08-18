@@ -81,7 +81,7 @@ export default function ProjectTypeCombobox({
             if (e.key === "Enter" && showAddNew) { e.preventDefault(); addCustom(); }
           }}
           placeholder={placeholder}
-          className="w-full px-5 py-4 pr-12 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm"
+          className="w-full px-5 py-4 pr-12 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm"
         />
         <ChevronDown
           className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 transition-transform duration-200 pointer-events-none ${isOpen ? "rotate-180" : ""}`}

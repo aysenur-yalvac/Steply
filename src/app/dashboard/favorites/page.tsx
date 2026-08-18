@@ -53,15 +53,15 @@ export default async function FavoritesPage() {
         </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Dashboard <span className="text-slate-300 mx-1">›</span>
-          <span className="text-slate-600">Favoriler</span>
+          <span className="text-slate-600 dark:text-slate-300">Favoriler</span>
         </p>
         <div className="flex items-center gap-3 mt-1">
           <div className="p-2 rounded-xl bg-rose-50 border border-rose-200">
             <Heart className="w-5 h-5 text-rose-500" fill="currentColor" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Favoriler</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Kalplediğin öğrenci projeleri.</p>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight">Favoriler</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Kalplediğin öğrenci projeleri.</p>
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default async function FavoritesPage() {
             <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
               <Heart className="w-7 h-7 text-slate-300" />
             </div>
-            <p className="text-sm text-slate-500 font-medium">Henüz favori projen yok.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Henüz favori projen yok.</p>
             <p className="text-xs text-slate-400 text-center max-w-xs">
               Öğrenci profillerindeki ❤️ ikonuna tıklayarak projeleri buraya ekleyebilirsin.
             </p>
@@ -106,7 +106,7 @@ export default async function FavoritesPage() {
                             <Clock className="w-3 h-3" /> Devam Ediyor
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-500 border-slate-200">
+                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-500 dark:text-slate-400 border-slate-200">
                             <Minus className="w-3 h-3" /> Başlamadı
                           </span>
                         )}
@@ -115,7 +115,7 @@ export default async function FavoritesPage() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">
+                      <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm leading-snug line-clamp-2">
                         {p.title}
                       </h3>
 
@@ -143,7 +143,7 @@ export default async function FavoritesPage() {
                         className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity"
                       >
                         <Avatar src={studentAvatar} name={studentName} size="sm" className="w-6 h-6 text-[10px] shrink-0" />
-                        <span className="text-xs font-semibold text-slate-600 truncate">{studentName}</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">{studentName}</span>
                       </Link>
                       <Link
                         href={`/dashboard/projects/${p.id}`}

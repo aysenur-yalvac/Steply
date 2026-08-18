@@ -145,10 +145,10 @@ const fadeIn: Variants = {
 };
 
 const inputCls =
-  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
+  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
 const selectCls =
-  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
 
 const primaryBtn =
   "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
@@ -182,7 +182,7 @@ function NotifRow({
       <div className="flex items-start gap-3">
         <span className={`mt-0.5 shrink-0 ${iconColor}`}>{icon}</span>
         <div>
-          <p className={`text-sm font-medium ${isMaster ? "text-slate-800 dark:text-slate-100" : "text-slate-700"}`}>{title}</p>
+          <p className={`text-sm font-medium ${isMaster ? "text-slate-800 dark:text-slate-200 dark:text-slate-100" : "text-slate-700"}`}>{title}</p>
           <p className="text-xs text-slate-400 mt-0.5 leading-snug">{description}</p>
         </div>
       </div>
@@ -431,8 +431,8 @@ export default function SettingsClient({
           <SettingsIcon className="w-6 h-6" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
-          <p className="text-slate-500 text-sm">Manage your account and preferences.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100">Settings</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your account and preferences.</p>
         </div>
       </motion.div>
 
@@ -451,7 +451,7 @@ export default function SettingsClient({
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                     activeTab === item.id
                       ? "bg-violet-50 text-violet-600"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >
                   {item.icon}
@@ -469,7 +469,7 @@ export default function SettingsClient({
                   className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors ${
                     activeTab === item.id
                       ? "bg-violet-50 text-violet-600"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >
                   <span className="mt-0.5 shrink-0">{item.icon}</span>
@@ -492,9 +492,9 @@ export default function SettingsClient({
             <div className="mb-6 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2 text-[#7C3AFF] mb-1">
                 {activeItem.icon}
-                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{activeItem.label}</h2>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100">{activeItem.label}</h2>
               </div>
-              <p className="text-sm text-slate-500">{activeItem.description}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{activeItem.description}</p>
             </div>
 
             <AnimatePresence mode="wait">
@@ -511,7 +511,7 @@ export default function SettingsClient({
 
                     {/* Profile photo upload */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                      <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
                         <Camera className="w-4 h-4 text-violet-500" /> Profil Fotoğrafı
                       </label>
                       <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
@@ -584,7 +584,7 @@ export default function SettingsClient({
                             <button
                               type="button"
                               onClick={() => setAvatarExpanded((v) => !v)}
-                              className="w-9 h-9 rounded-full border-2 border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
+                              className="w-9 h-9 rounded-full border-2 border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-500 transition-all shrink-0"
                             >
                               <motion.span animate={{ rotate: avatarExpanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -628,7 +628,7 @@ export default function SettingsClient({
 
                     {/* Full Name */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-fullname" className="text-sm font-medium text-slate-600">Full Name</label>
+                      <label htmlFor="s-fullname" className="text-sm font-medium text-slate-600 dark:text-slate-300">Full Name</label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -644,7 +644,7 @@ export default function SettingsClient({
 
                     {/* Email — read-only */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-slate-500">Email Address</label>
+                      <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input type="email"
@@ -657,7 +657,7 @@ export default function SettingsClient({
 
                     {/* Bio */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-bio" className="text-sm font-medium text-slate-600">Bio</label>
+                      <label htmlFor="s-bio" className="text-sm font-medium text-slate-600 dark:text-slate-300">Bio</label>
                       <textarea
                         id="s-bio"
                         rows={3}
@@ -670,7 +670,7 @@ export default function SettingsClient({
 
                     {/* Company */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-company" className="text-sm font-medium text-slate-600">Company</label>
+                      <label htmlFor="s-company" className="text-sm font-medium text-slate-600 dark:text-slate-300">Company</label>
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -686,7 +686,7 @@ export default function SettingsClient({
 
                     {/* Role */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-role" className="text-sm font-medium text-slate-600">Rolünüz</label>
+                      <label htmlFor="s-role" className="text-sm font-medium text-slate-600 dark:text-slate-300">Rolünüz</label>
                       <div className="relative">
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                         <select
@@ -704,7 +704,7 @@ export default function SettingsClient({
                     {/* Grade — shown only for students */}
                     {role === 'student' && (
                       <div className="space-y-1.5">
-                        <label htmlFor="s-grade" className="text-sm font-medium text-slate-600">
+                        <label htmlFor="s-grade" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                           Sınıfınız <span className="text-rose-500">*</span>
                         </label>
                         <div className="relative">
@@ -737,7 +737,7 @@ export default function SettingsClient({
 
                       {/* Okul / Üniversite — universities tablosundan aranarak seçilir */}
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-600">Okul / Üniversite</label>
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Okul / Üniversite</label>
                         <UniversityCombobox
                           value={university}
                           onChange={setUniversity}
@@ -751,7 +751,7 @@ export default function SettingsClient({
                         {/* Okul Numarası — sadece öğrenciler için */}
                         {role === 'student' && (
                           <div className="space-y-1.5">
-                            <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600">
+                            <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                               Okul Numarası <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative">
@@ -770,7 +770,7 @@ export default function SettingsClient({
 
                         {/* Okul E-postası — öğrenci için zorunlu, öğretmen için opsiyonel */}
                         <div className="space-y-1.5">
-                          <label htmlFor="s-school-email" className="text-sm font-medium text-slate-600">
+                          <label htmlFor="s-school-email" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                             Okul E-postası{' '}
                             {role === 'student'
                               ? <span className="text-rose-500">*</span>
@@ -794,7 +794,7 @@ export default function SettingsClient({
 
                     {/* Phone — optional */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-phone" className="text-sm font-medium text-slate-600">
+                      <label htmlFor="s-phone" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         Telefon Numarası <span className="text-slate-400 font-normal text-xs">(isteğe bağlı)</span>
                       </label>
                       <div className="relative">
@@ -813,7 +813,7 @@ export default function SettingsClient({
                     {/* Location — Country + City dropdowns */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label htmlFor="s-country" className="text-sm font-medium text-slate-600">Country</label>
+                        <label htmlFor="s-country" className="text-sm font-medium text-slate-600 dark:text-slate-300">Country</label>
                         <div className="relative">
                           <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                           <select
@@ -830,7 +830,7 @@ export default function SettingsClient({
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="s-city" className="text-sm font-medium text-slate-600">City / Province</label>
+                        <label htmlFor="s-city" className="text-sm font-medium text-slate-600 dark:text-slate-300">City / Province</label>
                         <select
                           id="s-city"
                           value={selectedCity}
@@ -856,7 +856,7 @@ export default function SettingsClient({
                         { icon: <Globe className="w-4 h-4" />, label: "Website", placeholder: "https://yourwebsite.com", value: websiteUrl, set: setWebsiteUrl },
                       ]).map(({ icon, label, placeholder, value, set }) => (
                         <div key={label} className="space-y-1.5">
-                          <label className="text-sm font-medium text-slate-600">{label}</label>
+                          <label className="text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
                             <input
@@ -896,7 +896,7 @@ export default function SettingsClient({
                 {activeTab === "security" && (
                   <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
                     <div className="space-y-1.5">
-                      <label htmlFor="newPassword" className="text-sm font-medium text-slate-600">
+                      <label htmlFor="newPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         New Password
                       </label>
                       <div className="relative">
@@ -922,7 +922,7 @@ export default function SettingsClient({
                     </div>
 
                     <div className="space-y-1.5">
-                      <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600">
+                      <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         Confirm New Password
                       </label>
                       <div className="relative">
@@ -970,7 +970,7 @@ export default function SettingsClient({
                   <div className="max-w-lg space-y-6">
                     {/* Section intro */}
                     <div>
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Notification Preferences</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-100">Notification Preferences</p>
                       <p className="text-xs text-slate-400 mt-0.5">Manage how you receive alerts and updates.</p>
                     </div>
 
@@ -1031,7 +1031,7 @@ export default function SettingsClient({
                         <ShieldCheck className="w-5 h-5 text-[#7C3AFF] mt-0.5 shrink-0" strokeWidth={1.5} />
                         <div>
                           <p className="text-sm font-medium text-slate-700">Public Profile</p>
-                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                             {isPublic
                               ? "Anyone with your link can view your profile and active projects."
                               : "Only you can see your profile. Others will see a private profile message."}
@@ -1060,7 +1060,7 @@ export default function SettingsClient({
                   <div className="max-w-md space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                       <ShieldOff className="w-4 h-4 text-slate-400" />
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         {blockedUsers.length === 0
                           ? "Engellenmiş kullanıcı yok."
                           : `${blockedUsers.length} kullanıcı engellendi.`}

@@ -271,7 +271,7 @@ function AnimatedProjectCard({
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
                   >
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     <span className="font-medium text-slate-400">
                       {new Date(project.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
@@ -296,7 +296,7 @@ function AnimatedProjectCard({
               {/* Progress bar + slider */}
               <motion.div variants={childVariants} className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-slate-500 tracking-widest uppercase">Progress</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">Progress</span>
                   <span className="text-xs font-extrabold" style={{ color: "#C97EFF" }}>{localProgress}%</span>
                 </div>
 
@@ -380,11 +380,11 @@ function AnimatedProjectCard({
                             onChange={(e) => setNoteContent(e.target.value)}
                             placeholder="Quick private note..."
                             rows={1}
-                            className="w-full bg-transparent border-none p-1.5 focus:ring-0 resize-y text-xs text-slate-300 font-medium placeholder:text-slate-600 min-h-[36px] outline-none"
+                            className="w-full bg-transparent border-none p-1.5 focus:ring-0 resize-y text-xs text-slate-300 font-medium placeholder:text-slate-600 dark:text-slate-300 min-h-[36px] outline-none"
                           />
                           <div className="flex justify-end gap-2 items-center">
                             {initialTeacherNote && (
-                              <button onClick={() => setIsEditingNote(false)} className="text-xs font-semibold text-slate-500 hover:text-slate-300 transition-colors">
+                              <button onClick={() => setIsEditingNote(false)} className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-300 transition-colors">
                                 Cancel
                               </button>
                             )}
@@ -402,13 +402,13 @@ function AnimatedProjectCard({
                         <div className="flex justify-between items-start gap-4 p-1">
                           <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap">{noteContent}</p>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <button onClick={() => setIsEditingNote(true)} className="p-1.5 rounded-lg text-slate-500 hover:text-white transition-colors" title="Edit Note">
+                            <button onClick={() => setIsEditingNote(true)} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-white transition-colors" title="Edit Note">
                               <Edit3 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => { if (window.confirm("Delete this note?")) deleteNote(); }}
                               disabled={isNoteSaving}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 transition-colors" title="Delete Note"
+                              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-400 transition-colors" title="Delete Note"
                             >
                               {isNoteSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                             </button>

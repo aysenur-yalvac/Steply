@@ -172,9 +172,9 @@ export default function LiveDemo() {
           className="px-5 py-2 grid shrink-0"
           style={{ gridTemplateColumns: "1fr auto auto", gap: "1rem", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
         >
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600">Project / Student</span>
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 hidden sm:block">Status · Grade</span>
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 hidden md:block">Last Action</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300">Project / Student</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden sm:block">Status · Grade</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden md:block">Last Action</span>
         </div>
 
         {/* Project rows — first 5 only */}
@@ -219,7 +219,7 @@ export default function LiveDemo() {
                       />
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-500 block leading-tight mb-1">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight mb-1">
                     Student: {proj.studentName}
                   </span>
                   <ApprovalProgress stage={stage} color={color} />
@@ -234,7 +234,7 @@ export default function LiveDemo() {
                   >
                     {proj.grade}
                   </span>
-                  <span className="text-[9px] text-slate-600 hidden md:block">{LAST_ACTIONS[idx]}</span>
+                  <span className="text-[9px] text-slate-600 dark:text-slate-300 hidden md:block">{LAST_ACTIONS[idx]}</span>
                 </div>
               </motion.div>
             );
@@ -268,12 +268,12 @@ export default function LiveDemo() {
           className="px-5 py-2.5 flex items-center gap-4 flex-wrap shrink-0"
           style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
         >
-          <span className="text-[9px] text-slate-600 font-medium uppercase tracking-widest">STAGES:</span>
+          <span className="text-[9px] text-slate-600 dark:text-slate-300 font-medium uppercase tracking-widest">STAGES:</span>
           {STAGES.map((s, i) => (
             <div key={i} className="flex items-center gap-1.5">
               <div className="w-4 h-1 rounded-full"
                 style={{ background: i < 2 ? "rgba(160,32,240,0.55)" : "rgba(255,255,255,0.10)" }} />
-              <span className="text-[9px] text-slate-500">{s}</span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400">{s}</span>
             </div>
           ))}
         </div>
@@ -404,13 +404,13 @@ export default function LiveDemo() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <span className="text-[10px] font-bold text-white truncate">{req.student}</span>
-                        <span className="text-[9px] text-slate-600 shrink-0">{req.time}</span>
+                        <span className="text-[9px] text-slate-600 dark:text-slate-300 shrink-0">{req.time}</span>
                       </div>
                       <p className="text-[10px] text-slate-400 leading-snug">
                         Requests review for{" "}
                         <span className="font-bold" style={{ color: req.color.label }}>{req.milestone}</span>
                       </p>
-                      <p className="text-[9px] text-slate-600 mt-0.5">{req.project}</p>
+                      <p className="text-[9px] text-slate-600 dark:text-slate-300 mt-0.5">{req.project}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -434,7 +434,7 @@ export default function LiveDemo() {
           <input
             type="text"
             placeholder="Leave teacher note..."
-            className="flex-1 bg-transparent text-xs text-slate-300 placeholder:text-slate-600 outline-none"
+            className="flex-1 bg-transparent text-xs text-slate-300 placeholder:text-slate-600 dark:text-slate-300 outline-none"
           />
           <button
             className="flex items-center justify-center w-8 h-7 rounded-lg text-white transition-all hover:opacity-90 shrink-0"

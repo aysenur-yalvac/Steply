@@ -110,7 +110,7 @@ function ProfileProjectCard({
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug line-clamp-2">
+        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base mb-2 leading-snug line-clamp-2">
           {project.title}
         </h3>
 
@@ -231,7 +231,7 @@ export default function ProfileProjectsPanel({
               className={`px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
                 filter === key
                   ? "bg-violet-600 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50"
               }`}
             >
               {label}

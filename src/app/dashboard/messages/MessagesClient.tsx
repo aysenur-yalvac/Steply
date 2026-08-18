@@ -131,12 +131,12 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
-      <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100 dark:text-slate-100">
+      <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
         
         {/* Left Sidebar: Contact List */}
         <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 dark:bg-slate-950 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 dark:border-slate-800/80 space-y-3 bg-white dark:bg-slate-900 dark:bg-slate-900">
-             <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 dark:text-slate-100 flex items-center gap-2">
+             <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-200 dark:text-slate-100 dark:text-slate-100 flex items-center gap-2">
                <MessageSquare className="w-5 h-5 text-dusty-rose" /> Inbox
              </h2>
              <UserSearch onSelectUser={handleSelectUser} placeholder="Search network..." />
@@ -144,7 +144,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
             {conversations.length === 0 ? (
-              <div className="p-4 text-center text-slate-500 text-sm mt-4">
+              <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-sm mt-4">
                 No active conversations.
               </div>
             ) : (
@@ -168,7 +168,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 truncate">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                         {conv.last_message?.content || "Click to start chatting"}
                       </p>
                     </div>

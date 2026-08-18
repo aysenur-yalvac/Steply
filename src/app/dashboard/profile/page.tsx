@@ -54,7 +54,7 @@ export default async function ProfilePage() {
         <div className="bg-white border border-slate-200/60 rounded-[2rem] shadow-xl shadow-rose-500/5 overflow-hidden">
 
           {/* Header banner */}
-          <div className="h-24 bg-gradient-to-r from-violet-100 via-purple-50 to-slate-100" />
+          <div className="h-24 bg-gradient-to-r from-violet-100 via-purple-50 to-slate-100 dark:bg-none" />
 
           {/* Avatar + name */}
           <div className="px-8 pb-6">
@@ -70,21 +70,21 @@ export default async function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-2xl font-bold text-slate-900">{profile.full_name || 'Unnamed User'}</h1>
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{profile.full_name || 'Unnamed User'}</h1>
                   {badges.length > 0 && <BadgeDisplay badges={badges} size="sm" />}
                 </div>
                 <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide">
                   {profile.role === 'teacher' ? 'Teacher' : 'Student'}
                 </span>
                 {(profile as any).total_score > 0 && (
-                  <span className="ml-2 inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/60">
+                  <span className="ml-2 inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/60 dark:bg-none">
                     🏆 {((profile as any).total_score as number).toLocaleString()} puan
                   </span>
                 )}
               </div>
 
               {/* Location / Company / University badges */}
-              <div className="flex flex-wrap gap-2 text-sm text-slate-500">
+              <div className="flex flex-wrap gap-2 text-sm text-slate-500 dark:text-slate-400">
                 {profile.company && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100">
                     <Building2 className="w-3.5 h-3.5" />
@@ -108,7 +108,7 @@ export default async function ProfilePage() {
 
             {/* Bio */}
             {profile.bio && (
-              <p className="mt-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-5">
+              <p className="mt-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 pt-5">
                 {profile.bio}
               </p>
             )}
@@ -116,7 +116,7 @@ export default async function ProfilePage() {
             {/* Score stat card */}
             {(profile as any).total_score > 0 && (
               <div className="mt-5 border-t border-slate-100 pt-5 grid grid-cols-3 gap-3">
-                <div className="col-span-3 sm:col-span-1 flex flex-col gap-1 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 py-4 shadow-sm">
+                <div className="col-span-3 sm:col-span-1 flex flex-col gap-1 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 py-4 shadow-sm dark:bg-none">
                   <span className="text-2xl">🏆</span>
                   <span className="text-2xl font-black text-amber-700 tabular-nums leading-none">
                     {((profile as any).total_score as number).toLocaleString()}
@@ -143,7 +143,7 @@ export default async function ProfilePage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-sm font-medium hover:border-violet-300 hover:text-violet-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-violet-300 hover:text-violet-600 transition-colors"
                   >
                     {icon}
                     {label}

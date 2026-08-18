@@ -87,7 +87,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit }: Pr
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <ListChecks className="w-4 h-4 text-indigo-500" />
           Project Milestones
         </h3>
@@ -179,7 +179,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit }: Pr
             onChange={(e) => setNewTitle(e.target.value)}
             placeholder="Add a new milestone..."
             maxLength={200}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:text-slate-200 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
           />
           <button
             type="submit"

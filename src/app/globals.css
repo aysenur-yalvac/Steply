@@ -369,20 +369,53 @@ body {
 
 
 /* Karanlık Modda Sayfa ve Metin Kontrast Garantisi */
+
+/* Tüm Sayfa Wrapper ve Layout Gradient'lerini Ez */
 .dark body,
 .dark main,
 .dark #__next,
-.dark .dashboard-container {
-  background-color: #0b0f17 !important; /* Derin Gece Mavis/Siyah Arka Plan */
-  color: #f8fafc !important; /* Parlak Beyaz Ana Metin */
+.dark [class*="bg-gradient"],
+.dark [class*="from-purple"],
+.dark [class*="via-white"] {
+  background-image: none !important;
+  background-color: #0b0f17 !important; /* Derin Koyu Zemin */
+  color: #f8fafc !important;
 }
 
-/* Sidebar ve Header Arka Plan Bütünlüğü */
+/* Sidebar ve Header Koyu Zemin Bütünlüğü */
 .dark aside,
-.dark header,
-.dark .sidebar-bg {
-  background-color: #0f172a !important; /* Slate 900 */
+.dark header {
+  background-color: #0f172a !important;
   border-color: #1e293b !important;
+}
+
+/* Genel Metin Renk Zorlaması */
+.dark p, 
+.dark span, 
+.dark label, 
+.dark small, 
+.dark time,
+.dark .text-gray-500,
+.dark .text-slate-500,
+.dark .text-gray-600,
+.dark .text-slate-600 {
+  color: #cbd5e1 !important; /* Açık Gri / Görünür Metin */
+}
+
+/* Başlıklar ve Vurgulu Metinler */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark th, .dark .text-gray-900, .dark .text-slate-900, .dark .text-slate-800, .dark .text-slate-700 {
+  color: #ffffff !important;
+}
+
+/* Input Placeholder ve Form Metinleri */
+.dark input, .dark textarea, .dark select {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #94a3b8 !important;
 }
 
 /* Kartlar ve Paneller */
@@ -390,34 +423,8 @@ body {
 .dark [class*="bg-slate-50"],
 .dark [class*="bg-gray-50"],
 .dark [class*="bg-purple-50"] {
-  background-color: #161e2e !important; /* Yükseltilmiş Koyu Kart Yüzeyi */
+  background-color: #161e2e !important;
   border-color: #273549 !important;
-}
-
-/* OKUNABİLİRLİK: Tüm Metin Renklerini Aç */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
-.dark p, .dark span, .dark label, .dark td, .dark th, .dark div {
-  color: #f1f5f9; /* Metinleri görünür açık gri/beyaz yap */
-}
-
-/* İkincil / Muted Metinler */
-.dark .text-slate-500,
-.dark .text-gray-500,
-.dark .text-muted-foreground {
-  color: #94a3b8 !important; /* Yumuşak Açık Gri */
-}
-
-/* INPUT VE FORM ALANLARI */
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
-  border-color: #334155 !important;
-}
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #64748b !important;
 }
 
 /* Primary / Mor Butonların Karanlık Modda Parlaması */
@@ -425,9 +432,9 @@ body {
 .dark button[class*="bg-violet"],
 .dark .bg-purple-600,
 .dark .bg-primary {
-  background-color: #8b5cf6 !important; /* Canlı Mor */
+  background-color: #8b5cf6 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3); /* Şık Mor Işıma */
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
 }
 
 .dark button[class*="bg-purple"]:hover {

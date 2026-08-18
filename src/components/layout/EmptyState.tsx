@@ -166,7 +166,7 @@ export default function EmptyState({ icon: Icon, title, description, action }: E
       <p className="relative z-10 text-slate-200 font-semibold text-center text-sm mb-2">
         {title}
       </p>
-      <p className="relative z-10 text-slate-500 text-center max-w-sm mb-8 leading-relaxed text-sm">
+      <p className="relative z-10 text-slate-500 dark:text-slate-400 text-center max-w-sm mb-8 leading-relaxed text-sm">
         {description}
       </p>
 

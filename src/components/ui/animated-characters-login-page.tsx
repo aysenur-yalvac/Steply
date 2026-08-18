@@ -667,7 +667,7 @@ export default function AnimatedCharactersLoginPage({
                   placeholder="Ali Yılmaz"
                   required
                   autoComplete="name"
-                  className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
                   onFocus={(e) => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE })}
                   onBlur={(e)  => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE })}
@@ -688,7 +688,7 @@ export default function AnimatedCharactersLoginPage({
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={(e) => { setIsTyping(true); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE }); }}
                 onBlur={(e)  => { setIsTyping(false); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE }); }}
-                className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                 style={INPUT_BASE}
               />
             </div>
@@ -703,7 +703,7 @@ export default function AnimatedCharactersLoginPage({
                   name="institution"
                   placeholder="İstanbul Teknik Üniversitesi"
                   autoComplete="organization"
-                  className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
                   onFocus={(e) => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE })}
                   onBlur={(e)  => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE })}
@@ -726,7 +726,7 @@ export default function AnimatedCharactersLoginPage({
                   autoComplete={isLogin ? "current-password" : "new-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
                   onFocus={(e) => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE })}
                   onBlur={(e)  => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE })}
@@ -775,7 +775,7 @@ export default function AnimatedCharactersLoginPage({
               type="submit"
               className="btn-aura group relative w-full flex items-center justify-center gap-2 text-white font-bold py-3 rounded-xl text-sm overflow-hidden mt-1"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 dark:bg-none" />
               <span className="relative z-10">{isLogin ? "Giriş Yap" : "Hesap Oluştur"}</span>
             </button>
           </form>
