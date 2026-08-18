@@ -1,4 +1,7 @@
-"use client";
+﻿const fs = require('fs');
+
+// 1. Rewrite DashboardBackground.tsx
+const dashboardBg = `"use client";
 
 import { usePathname } from "next/navigation";
 
@@ -41,3 +44,16 @@ export default function DashboardBackground() {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/components/dashboard/DashboardBackground.tsx', dashboardBg, 'utf8');
+
+// 2. Clean dashboard/page.tsx
+let pageContent = fs.readFileSync('src/app/dashboard/page.tsx', 'utf8');
+pageContent = pageContent.replace(/bg-white([^A-Za-z0-9_-])/g, 'bg-transparent$1');
+pageContent = pageContent.replace(/bg-purple-50([^A-Za-z0-9_-])/g, 'bg-transparent$1');
+pageContent = pageContent.replace(/bg-slate-50([^A-Za-z0-9_-])/g, 'bg-transparent$1');
+pageContent = pageContent.replace(/dark:bg-[#0b0f17]/g, 'dark:bg-transparent');
+pageContent = pageContent.replace(/dark:bg-slate-900/g, 'dark:bg-transparent');
+fs.writeFileSync('src/app/dashboard/page.tsx', pageContent, 'utf8');
+
+console.log("Restored animation blobs and cleaned dashboard page");

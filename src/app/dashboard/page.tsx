@@ -145,7 +145,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
   return (
     <div className="flex flex-col min-h-full">
       {/* ── Page header ───────────────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
+      <div className="bg-transparent dark:bg-transparent border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
         <p className="text-xs font-semibold text-slate-400 mb-1">
           My Projects{' '}
           <span className="text-slate-300 mx-1">›</span>
@@ -187,7 +187,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium ${
                       isToday
                         ? 'bg-red-50 border-red-200 text-red-800'
-                        : 'bg-white dark:bg-slate-900 border-amber-200 text-amber-800'
+                        : 'bg-transparent dark:bg-transparent border-amber-200 text-amber-800'
                     }`}
                   >
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
