@@ -100,7 +100,7 @@ function StatusBadge({ progress }: { progress: number }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 dark:text-slate-400 border border-slate-200">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border border-slate-200">
       <Minus className="w-3 h-3" /> To Do
     </span>
   );
@@ -458,7 +458,7 @@ export default function DashboardViewSwitcher({
       {/* â”€â”€ Controls row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {/* View tabs */}
-        <div className="flex items-center gap-1 p-1.5 bg-slate-100 rounded-xl">
+        <div className="flex items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
           <button
             onClick={() => setViewMode("kanban")}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
@@ -638,7 +638,7 @@ export default function DashboardViewSwitcher({
       {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
       {collaboratorProjects && collaboratorProjects.length > 0 && (
         <div className="mt-8">
-          {!isTeacher && <div className="h-px w-full bg-slate-100 mb-6" />}
+          {!isTeacher && <div className="h-px w-full bg-slate-100 dark:bg-slate-800/50 mb-6" />}
 
           <div className="flex items-center gap-2.5 mb-5">
             <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
