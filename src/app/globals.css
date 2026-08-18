@@ -374,7 +374,7 @@ body {
 /* 1. En Alt Sayfa Zemi */
 .dark body,
 .dark .dashboard-container {
-  background-color: #0b0f17 !important;
+  background-color: #0d111a !important;
   color: #f8fafc;
 }
 
@@ -441,17 +441,17 @@ body {
 
 /* 1. En Alt Sayfa Zemin Doygunlugu */
 .dark body, .dark main, .dark .dashboard-container {
-  background-color: #0b0f17 !important;
+  background-color: #0d111a !important;
 }
 
 /* 2. Kartlar & Paneller (Tüm Alt Sayfalar) */
 .dark [class*="bg-white"],
 .dark [class*="bg-slate-50"],
 .dark .card {
-  background-color: rgba(15, 23, 42, 0.4) !important; /* slate-900/40 */
+  background-color: rgba(19, 25, 39, 0.6) !important; /* #131927/60 */
   backdrop-filter: blur(12px) !important;
   border-color: rgba(30, 41, 59, 0.8) !important; /* slate-800/80 */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6) !important;
   transition: all 0.3s ease !important;
 }
 
@@ -464,5 +464,5 @@ body {
 
 .dark [class*="bg-white"]:hover,
 .dark .card:hover {
-  border-color: rgba(168, 85, 247, 0.3) !important; /* purple-500/30 */
+  border-color: rgba(168, 85, 247, 0.4) !important; /* purple-500/40 */
 }
