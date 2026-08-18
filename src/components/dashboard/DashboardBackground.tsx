@@ -24,11 +24,11 @@ export default function DashboardBackground() {
         </div>
 
         {/* DARK MODE BLOBS */}
-        <div className="absolute inset-0 hidden dark:block opacity-40 mix-blend-screen pointer-events-none">
+        <div className="absolute inset-0 hidden dark:block opacity-100 pointer-events-none">
           <div
             aria-hidden="true"
             className="absolute -top-40 -right-40 w-[580px] h-[580px] rounded-full blur-3xl blob-spin-slow"
-            style={{ background: 'radial-gradient(circle at 40% 40%, #1e1b4b 0%, #2e1065 45%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(circle at 40% 40%, #1e1b4b 0%, #0f172a 45%, transparent 70%)' }}
           />
           <div
             aria-hidden="true"
