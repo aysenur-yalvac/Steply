@@ -76,7 +76,7 @@ export default async function DashboardLayout({
         <DashboardBackground />
 
         {/* Top bar */}
-        <div className="relative z-20 flex items-center justify-end gap-3 px-6 py-2 border-b border-slate-100 bg-white/70 backdrop-blur-sm shrink-0">
+        <div className="relative z-20 flex items-center justify-end gap-3 px-6 py-2 border-b border-slate-100 bg-white dark:bg-slate-900/70 backdrop-blur-sm shrink-0">
 
           <ThemeToggle />
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
@@ -86,7 +86,7 @@ export default async function DashboardLayout({
           <div className="flex-1">
             {children}
           </div>
-          <footer className="shrink-0 py-3 text-center text-xs text-slate-400 border-t border-slate-100/80 bg-white/40 backdrop-blur-sm">
+          <footer className="shrink-0 py-3 text-center text-xs text-slate-400 border-t border-slate-100/80 bg-white dark:bg-slate-900/40 backdrop-blur-sm">
             Powered by{' '}
             <a
               href="https://must-b.com"

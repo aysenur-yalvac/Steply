@@ -341,11 +341,11 @@ export default async function ProjectDetailPage({
                         <input type="hidden" name="project_id" value={project.id} />
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
-                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
+                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-800 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
-                          <textarea name="comment" rows={4} placeholder="Write your thoughts about the project..." className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
+                          <textarea name="comment" rows={4} placeholder="Write your thoughts about the project..." className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
                         </div>
                         <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">Submit Review</button>
                       </form>

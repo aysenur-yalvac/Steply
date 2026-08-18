@@ -190,7 +190,7 @@ function KanbanCard({
   return (
     <motion.div
       layout
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[160px] flex flex-col"
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[160px] flex flex-col"
       whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)" }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       onClick={() => setIsExpanded((v) => !v)}
@@ -352,7 +352,7 @@ function KanbanCard({
 
               {/* Quick private note (student only) */}
               {canAddNote && (
-                <div className="rounded-xl p-3 bg-slate-50 border border-slate-200">
+                <div className="rounded-xl p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200">
                   <div className="flex items-start gap-2">
                     <MessageSquarePlus className="w-4 h-4 shrink-0 mt-0.5 text-violet-500" />
                     <div className="flex-1">
@@ -513,8 +513,8 @@ function KanbanColumn({
         ))}
 
         {projects.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 min-h-[160px] flex flex-col items-center justify-center gap-3 p-6">
-            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 dark:bg-slate-950/60 min-h-[160px] flex flex-col items-center justify-center gap-3 p-6">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 flex items-center justify-center shadow-sm">
               <FolderOpen className="w-6 h-6 text-slate-300" />
             </div>
             <p className="text-sm text-slate-400 font-medium">No projects here</p>

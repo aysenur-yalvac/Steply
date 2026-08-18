@@ -148,9 +148,9 @@ function FilterDropdown({
   };
 
   return (
-    <div className="w-64 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+    <div className="w-64 bg-white dark:bg-slate-900 border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950/60">
         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Filters</span>
         {total > 0 && (
           <button
@@ -171,7 +171,7 @@ function FilterDropdown({
             value={filters.studentSearch}
             onChange={e => onStudentSearch(e.target.value)}
             placeholder="Ä°sme gÃ¶re araâ€¦"
-            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white transition-colors"
+            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-950 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white dark:bg-slate-900 transition-colors"
           />
         </div>
       )}
@@ -186,14 +186,14 @@ function FilterDropdown({
             return (
               <label
                 key={opt}
-                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950 transition-colors group"
               >
                 <div
                   onClick={() => onToggle("status", opt)}
                   className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                     checked
                       ? "bg-violet-600 border-violet-600"
-                      : "border-slate-300 bg-white group-hover:border-violet-400"
+                      : "border-slate-300 bg-white dark:bg-slate-900 group-hover:border-violet-400"
                   }`}
                 >
                   {checked && (
@@ -224,14 +224,14 @@ function FilterDropdown({
             return (
               <label
                 key={opt}
-                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950 transition-colors group"
               >
                 <div
                   onClick={() => onToggle("priority", opt)}
                   className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                     checked
                       ? "bg-violet-600 border-violet-600"
-                      : "border-slate-300 bg-white group-hover:border-violet-400"
+                      : "border-slate-300 bg-white dark:bg-slate-900 group-hover:border-violet-400"
                   }`}
                 >
                   {checked && (
@@ -295,8 +295,8 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
     : "grid-cols-[1fr_140px_100px_120px_40px]";
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50`}>
+    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project Name</span>
         {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ã–ÄŸrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
@@ -315,7 +315,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
               exit={{ opacity: 0, x: 8, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
               layout
               transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 28 }}
-              className={`grid ${gridCols} gap-4 px-5 py-3.5 items-center hover:bg-slate-50/80 transition-colors group`}
+              className={`grid ${gridCols} gap-4 px-5 py-3.5 items-center hover:bg-slate-50 dark:bg-slate-950/80 transition-colors group`}
             >
               <div className="min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate leading-tight">{project.title}</p>
@@ -380,7 +380,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
         </div>
       </AnimatePresence>
 
-      <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+      <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 dark:bg-slate-950/50 flex items-center justify-between">
         <span className="text-xs text-slate-400 font-medium">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
         <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
@@ -462,7 +462,7 @@ export default function DashboardViewSwitcher({
           <button
             onClick={() => setViewMode("kanban")}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              viewMode === "kanban" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              viewMode === "kanban" ? "bg-white dark:bg-slate-900 text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
@@ -476,7 +476,7 @@ export default function DashboardViewSwitcher({
           <button
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              viewMode === "list" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              viewMode === "list" ? "bg-white dark:bg-slate-900 text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -499,13 +499,13 @@ export default function DashboardViewSwitcher({
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
                 activeCount > 0
                   ? "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200"
-                  : "text-slate-600 border-slate-200 bg-white hover:bg-slate-50"
+                  : "text-slate-600 border-slate-200 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950"
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
               Filter
               {activeCount > 0 && (
-                <span className="ml-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-white text-violet-700 text-[10px] font-black leading-none">
+                <span className="ml-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-white dark:bg-slate-900 text-violet-700 text-[10px] font-black leading-none">
                   {activeCount}
                 </span>
               )}
