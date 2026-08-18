@@ -7,7 +7,7 @@ export default function DashboardBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-[-10] overflow-hidden">
-      <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#0f172a] transition-colors duration-300">
+      <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#131927] transition-colors duration-300">
         
         {/* LIGHT MODE BLOBS */}
         <div className="absolute inset-0 opacity-100 dark:hidden pointer-events-none">
