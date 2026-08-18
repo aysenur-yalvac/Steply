@@ -1,4 +1,27 @@
-"use client";
+﻿const fs = require('fs');
+
+// 1. Modify globals.css
+let css = fs.readFileSync('src/app/globals.css', 'utf8');
+const appendCss = `
+/* Arka Plan Animasyon Değişkenlerini Koyu Moda Zorla */
+.dark .aurora,
+.dark [class*="aurora"],
+.dark [class*="blob-spin"],
+.dark [class*="bg-gradient"],
+.dark [data-bg="animated"] {
+  background-color: #0b0f17 !important;
+  --white-gradient: repeating-linear-gradient(100deg, #0b0f17 0%, #0f172a 7%, transparent 10%, transparent 12%, #0b0f17 16%) !important;
+  --dark-gradient: repeating-linear-gradient(100deg, #0b0f17 0%, #0f172a 7%, transparent 10%, transparent 12%, #0b0f17 16%) !important;
+  --aurora: repeating-linear-gradient(100deg, #1e1b4b 10%, #0f172a 15%, #020617 20%, #1e1b4b 25%, #0b0f17 30%) !important;
+  filter: blur(10px) invert(0.9) hue-rotate(180deg) !important;
+}
+`;
+if (!css.includes('/* Arka Plan Animasyon Değişkenlerini Koyu Moda Zorla */')) {
+    fs.writeFileSync('src/app/globals.css', css + '\n' + appendCss, 'utf8');
+}
+
+// 2. Modify DashboardBackground.tsx
+const dashboardBg = `"use client";
 
 import { usePathname } from "next/navigation";
 
@@ -27,3 +50,7 @@ export default function DashboardBackground() {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/components/dashboard/DashboardBackground.tsx', dashboardBg, 'utf8');
+console.log("Updated both files");
+
