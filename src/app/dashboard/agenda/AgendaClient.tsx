@@ -113,7 +113,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             type="date" 
             value={newTaskDate}
             onChange={(e) => setNewTaskDate(e.target.value)}
-            className="flex-1 px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
+            className="flex-1 px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 focus:outline-none focus:ring-4 focus:ring-sage-green/10 focus:border-sage-green/30 transition-all shadow-inner"
             required
           />
           <button 
@@ -163,7 +163,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                         </span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${
-                            task.is_completed ? 'bg-slate-200 text-slate-600 dark:text-slate-300' : isPastDue ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'
+                            task.is_completed ? 'bg-slate-200 text-slate-600 dark:text-slate-300' : isPastDue ? 'bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : 'bg-indigo-50 text-indigo-600'
                           }`}>
                             {isPastDue && !task.is_completed ? <Flag className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                             {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

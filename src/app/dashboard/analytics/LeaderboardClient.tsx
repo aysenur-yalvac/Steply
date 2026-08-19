@@ -18,8 +18,8 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 const RANK_STYLE: Record<number, { bg: string; text: string; ring: string; icon: string }> = {
-  1: { bg: "bg-amber-50",   text: "text-amber-700",   ring: "ring-amber-400",   icon: "🥇" },
-  2: { bg: "bg-slate-100",  text: "text-slate-600 dark:text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
+  1: { bg: "bg-amber-50",   text: "text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200",   ring: "ring-amber-400",   icon: "🥇" },
+  2: { bg: "bg-slate-100",  text: "text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
   3: { bg: "bg-orange-50",  text: "text-orange-700",  ring: "ring-orange-400",  icon: "🥉" },
 };
 

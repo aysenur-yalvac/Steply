@@ -76,7 +76,7 @@ function ProfileProjectCard({
                 <CheckCircle className="w-3.5 h-3.5" /> Completed
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
+              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-blue-200">
                 <Clock className="w-3.5 h-3.5" /> In Progress
               </span>
             )}

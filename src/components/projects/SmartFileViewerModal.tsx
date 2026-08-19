@@ -141,7 +141,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                   {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:text-slate-300 rounded-full transition-colors"
+                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -206,7 +206,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
                       className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
                         isMine 
                           ? 'bg-white/20 hover:bg-white/30 text-white border-white/20' 
-                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/60'
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60'
                       }`}
                     >
                       <FolderRoot className="w-3.5 h-3.5" /> View Project
@@ -252,7 +252,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             value={newMessage}
             onChange={handleInputChange}
             placeholder="Type your message... (Use @ to tag a project)"
-            className="flex-1 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:text-slate-200 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             autoComplete="off"
           />
           <button

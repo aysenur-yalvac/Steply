@@ -280,7 +280,7 @@ function NavContent({
 
               if (isWatchlist) {
                 return collapsed ? (
-                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200 transition-all duration-150">
+                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 transition-all duration-150">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                   </button>
                 ) : (
@@ -295,11 +295,11 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-0.5">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200"}`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 hover:text-slate-800 dark:text-slate-200"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200"}`}>
                         <div className="flex items-center gap-3">
                           <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
                           <span>{label}</span>
@@ -330,16 +330,16 @@ function NavContent({
               const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
               
               return collapsed ? (
-                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
+                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                     {isMessages && <UnreadMessagesBadge collapsed={true} />}
                   </div>
                 </Link>
               ) : (
-                <Link key={label} href={href} onClick={onClose} className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
+                <Link key={label} href={href} onClick={onClose} className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`} strokeWidth={isActive ? 2 : 1.5} />
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`} strokeWidth={isActive ? 2 : 1.5} />
                     <span>{label}</span>
                   </div>
                   {isMessages && <UnreadMessagesBadge collapsed={false} />}
@@ -470,7 +470,7 @@ function NavContent({
               <button
                 type="button"
                 onClick={() => setIsAccountMenuOpen(o => !o)}
-                className="shrink-0 p-2 rounded-xl bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 transition-colors"
                 title="Hesap değiştir"
               >
                 <ChevronsUpDown className="w-4 h-4" />

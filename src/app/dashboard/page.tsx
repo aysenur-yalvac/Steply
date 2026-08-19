@@ -186,13 +186,13 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
                     key={task.id}
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium ${
                       isToday
-                        ? 'bg-red-50 border-red-200 text-red-800'
+                        ? 'bg-red-50 border-red-200 text-red-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200'
                         : 'bg-transparent dark:bg-transparent border-amber-200 text-amber-800'
                     }`}
                   >
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
                     <span className="flex-1 truncate">{task.title}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : 'bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200'}`}>
                       {isToday ? 'Due Today!' : 'Due Tomorrow'}
                     </span>
                   </div>

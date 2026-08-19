@@ -16,8 +16,8 @@ import toast from 'react-hot-toast';
 const TAG_COLORS = [
   "bg-violet-100 text-violet-700 border-violet-200",
   "bg-sky-100 text-sky-700 border-sky-200",
-  "bg-emerald-100 text-emerald-700 border-emerald-200",
-  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
+  "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
   "bg-rose-100 text-rose-700 border-rose-200",
   "bg-indigo-100 text-indigo-700 border-indigo-200",
   "bg-teal-100 text-teal-700 border-teal-200",
@@ -144,7 +144,7 @@ export default function ProjectCard({
               <CheckCircle className="w-3.5 h-3.5" /> Completed
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
+            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-blue-200">
               <Clock className="w-3.5 h-3.5" /> In Progress
             </span>
           )}

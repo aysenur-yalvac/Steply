@@ -26,8 +26,8 @@ import toast from "react-hot-toast";
 const TAG_COLORS = [
   "bg-violet-100 text-violet-700 border-violet-200",
   "bg-sky-100 text-sky-700 border-sky-200",
-  "bg-emerald-100 text-emerald-700 border-emerald-200",
-  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
+  "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
   "bg-rose-100 text-rose-700 border-rose-200",
   "bg-indigo-100 text-indigo-700 border-indigo-200",
   "bg-teal-100 text-teal-700 border-teal-200",
@@ -58,7 +58,7 @@ type Project = {
 // â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
   Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200",     dot: "bg-teal-500"   },
-  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-500"  },
+  Medium: { badge: "bg-amber-50 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",  dot: "bg-amber-500"  },
   High:   { badge: "bg-rose-50  text-rose-700  border-rose-200",   dot: "bg-rose-500"   },
 };
 

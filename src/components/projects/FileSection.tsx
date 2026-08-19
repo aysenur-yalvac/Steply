@@ -186,7 +186,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
               <select
                 value={fileVisibility}
                 onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
-                className="bg-white border border-slate-200 text-slate-600 dark:text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
+                className="bg-white border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
               >
                 <option value="PUBLIC">🌐 Herkese Açık</option>
                 <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>

@@ -98,7 +98,7 @@ export default function UniversityCombobox({
   }
 
   const inputCls =
-    "w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
+    "w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm";
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>

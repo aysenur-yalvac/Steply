@@ -143,7 +143,7 @@ export default async function ProfilePage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-violet-300 hover:text-violet-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 text-sm font-medium hover:border-violet-300 hover:text-violet-600 transition-colors"
                   >
                     {icon}
                     {label}

@@ -179,7 +179,7 @@ export default function ActivityChartCard({ activities, totalScore, title = "Akt
                     }}
                     className={cn(
                       "text-left px-3 py-2 text-xs transition-colors hover:bg-slate-100",
-                      range === opt.value ? "text-violet-700 font-bold bg-violet-50" : "text-slate-700 font-medium"
+                      range === opt.value ? "text-violet-700 font-bold bg-violet-50" : "text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 font-medium"
                     )}
                   >
                     {opt.label}

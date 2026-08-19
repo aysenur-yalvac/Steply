@@ -341,11 +341,11 @@ export default async function ProjectDetailPage({
                         <input type="hidden" name="project_id" value={project.id} />
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
-                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
+                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
-                          <textarea name="comment" rows={4} placeholder="Write your thoughts about the project..." className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 text-slate-700 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
+                          <textarea name="comment" rows={4} placeholder="Write your thoughts about the project..." className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
                         </div>
                         <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">Submit Review</button>
                       </form>
@@ -361,10 +361,10 @@ export default async function ProjectDetailPage({
             <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Project Status</h3>
               <div className="mb-4">
-                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed</span>}
-                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> In Review</span>}
+                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-emerald-200"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed</span>}
+                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-200"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> In Review</span>}
                 {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200"><span className="w-2 h-2 rounded-full bg-violet-500 inline-block" /> In Progress</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:text-slate-300 border border-slate-200"><span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do</span>}
+                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 border border-slate-200"><span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do</span>}
               </div>
               
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Milestone Progress</h4>

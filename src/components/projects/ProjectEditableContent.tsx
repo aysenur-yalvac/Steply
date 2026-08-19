@@ -294,11 +294,11 @@ export default function ProjectEditableContent({
         <div className="flex justify-between items-center mb-5 gap-4">
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">About Project</h3>
           {isCompleted ? (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-sm font-medium border border-emerald-500/20 shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium border border-emerald-500/20 shrink-0">
               <CheckCircle className="w-4 h-4" /> Completed
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-medium border border-amber-500/20 shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium border border-amber-500/20 shrink-0">
               <Clock className="w-4 h-4" /> In Progress
             </div>
           )}
@@ -358,7 +358,7 @@ export default function ProjectEditableContent({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={5}
                 autoFocus
-                className="w-full px-4 py-3 bg-slate-50 border border-indigo-300 rounded-xl text-slate-600 dark:text-slate-300 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-indigo-300 rounded-xl text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
               />
               <div className="flex justify-end gap-2">
                 <button
@@ -369,7 +369,7 @@ export default function ProjectEditableContent({
                 </button>
                 <button
                   onClick={() => setEditingDesc(false)}
-                  className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 rounded-lg hover:bg-slate-200 transition-colors"
                 >
                   <Check className="w-3.5 h-3.5" /> Apply
                 </button>
@@ -661,7 +661,7 @@ export default function ProjectEditableContent({
               <button
                 onClick={() => setShowLeaveModal(false)}
                 disabled={isLeaving}
-                className="px-4 py-2 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 rounded-xl transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 rounded-xl transition-colors disabled:opacity-50"
               >
                 İptal
               </button>

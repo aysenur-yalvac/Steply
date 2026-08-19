@@ -42,9 +42,9 @@ const STATUS_OPTIONS  = ["To Do", "In Review", "Completed"] as const;
 const PRIORITY_OPTIONS = ["Low", "Medium", "High"]          as const;
 
 const PRIORITY_CLASSES: Record<string, string> = {
-  Low:    "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Low:    "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
   Medium: "bg-orange-100  text-orange-700  border-orange-200",
-  High:   "bg-red-100     text-red-700     border-red-200",
+  High:   "bg-red-100     text-red-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200     border-red-200",
 };
 const PRIORITY_DOT: Record<string, string> = {
   Low:    "bg-emerald-500",
@@ -87,14 +87,14 @@ function cleanDescription(raw: string): string {
 function StatusBadge({ progress }: { progress: number }) {
   if (progress === 100) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-emerald-200">
         <CheckCircle className="w-3 h-3" /> Completed
       </span>
     );
   }
   if (progress > 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-200">
         <Clock className="w-3 h-3" /> In Review
       </span>
     );
@@ -110,8 +110,8 @@ function StatusBadge({ progress }: { progress: number }) {
 const TAG_COLORS: Record<number, string> = {
   0: "bg-violet-100 text-violet-700 border-violet-200",
   1: "bg-sky-100 text-sky-700 border-sky-200",
-  2: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  3: "bg-amber-100 text-amber-700 border-amber-200",
+  2: "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
+  3: "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
   4: "bg-rose-100 text-rose-700 border-rose-200",
   5: "bg-indigo-100 text-indigo-700 border-indigo-200",
   6: "bg-teal-100 text-teal-700 border-teal-200",
@@ -171,7 +171,7 @@ function FilterDropdown({
             value={filters.studentSearch}
             onChange={e => onStudentSearch(e.target.value)}
             placeholder="Ä°sme gÃ¶re araâ€¦"
-            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-950 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white dark:bg-slate-900 transition-colors"
+            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white dark:bg-slate-900 transition-colors"
           />
         </div>
       )}
@@ -337,7 +337,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                 </div>
               )}
               <div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}`}>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : 'bg-violet-100 text-violet-700'}`}>
                   {projectStatus(project)}
                 </span>
               </div>
@@ -462,7 +462,7 @@ export default function DashboardViewSwitcher({
           <button
             onClick={() => setViewMode("kanban")}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              viewMode === "kanban" ? "bg-white dark:bg-slate-900 text-violet-700 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
+              viewMode === "kanban" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
@@ -476,7 +476,7 @@ export default function DashboardViewSwitcher({
           <button
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              viewMode === "list" ? "bg-white dark:bg-slate-900 text-violet-700 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
+              viewMode === "list" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">

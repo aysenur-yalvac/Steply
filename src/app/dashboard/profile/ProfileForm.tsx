@@ -156,7 +156,7 @@ export default function ProfileForm({
             type="email" 
             value={email}
             disabled
-            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-inner"
+            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-400 cursor-not-allowed shadow-inner"
           />
         </div>
       </div>

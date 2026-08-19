@@ -95,14 +95,14 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
           <button
             disabled={selectedIds.length === 0}
             onClick={() => setModalState({ isOpen: true, type: "restore", isBulk: true })}
-            className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-4 py-2 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Seçilenleri Geri Yükle
           </button>
           <button
             disabled={selectedIds.length === 0}
             onClick={() => setModalState({ isOpen: true, type: "delete", isBulk: true })}
-            className="px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-red-50 text-red-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             <Trash className="w-4 h-4" />
             Seçilenleri Kalıcı Sil

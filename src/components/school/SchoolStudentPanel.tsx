@@ -90,7 +90,7 @@ function PersonCard({
             </span>
           )}
           {s.role === 'teacher' && (
-            <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+            <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-100">
               Öğretmen
             </span>
           )}
@@ -187,7 +187,7 @@ export default function SchoolStudentPanel({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                   activeFilter === g
                     ? 'bg-violet-600 text-white border-violet-600 shadow-sm shadow-violet-200'
-                    : 'bg-white text-slate-600 dark:text-slate-300 border-slate-200 hover:border-violet-300 hover:text-violet-600'
+                    : 'bg-white text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 border-slate-200 hover:border-violet-300 hover:text-violet-600'
                 }`}
               >
                 {g}

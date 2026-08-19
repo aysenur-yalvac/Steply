@@ -179,7 +179,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit }: Pr
             onChange={(e) => setNewTitle(e.target.value)}
             placeholder="Add a new milestone..."
             maxLength={200}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:text-slate-200 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
           />
           <button
             type="submit"
