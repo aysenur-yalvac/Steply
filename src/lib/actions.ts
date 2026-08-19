@@ -2033,3 +2033,56 @@ export async function getProjectCommitsAction(projectId: string) {
   const { data } = await admin.from("project_commits").select("*").eq("project_id", projectId).order("pushed_at", { ascending: false }).limit(20);
   return data || [];
 }
+
+/**
+ * Join a project using a 6-digit invite code or UUID invite token
+ */
+export async function joinProjectWithCode(codeOrToken: string): Promise<{ success: boolean; error?: string; projectId?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'Oturum bulunamadı. Lütfen giriş yapın.' };
+    }
+
+    // Determine if it's a UUID (token) or 6-digit code
+    const isToken = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(codeOrToken);
+    
+    // We can't insert into project_members directly using normal client if RLS restricts it to owner.
+    // We will call the RPC function we created in the migration.
+    let rpcFunction = 'join_project_by_code';
+    let codeParam = isToken ? '' : codeOrToken.toUpperCase();
+    
+    if (isToken) {
+      // For token, we might need a separate RPC, or just fetch the code using admin client and then join.
+      const admin = createAdminClient();
+      const { data: proj, error: projErr } = await admin
+        .from('projects')
+        .select('invite_code')
+        .eq('invite_token', codeOrToken)
+        .single();
+        
+      if (projErr || !proj || !proj.invite_code) {
+        return { success: false, error: 'Geçersiz veya süresi dolmuş davet bağlantısı.' };
+      }
+      codeParam = proj.invite_code;
+    }
+
+    const { data, error } = await supabase.rpc(rpcFunction, { p_code: codeParam });
+
+    if (error) {
+      if (error.message.includes('Invalid invite code')) {
+        return { success: false, error: 'Geçersiz davet kodu.' };
+      }
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/dashboard/projects/${data}`);
+    
+    return { success: true, projectId: data };
+
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Bilinmeyen bir hata oluştu.' };
+  }
+}

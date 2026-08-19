@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "My Projects | Steply",
 };
 import Link from 'next/link';
+import JoinByCodeInput from '@/components/dashboard/JoinByCodeInput';
 import { Plus, FolderOpen, Search, Users, AlertTriangle, Clock } from 'lucide-react';
 import EmptyState from '@/components/layout/EmptyState';
 import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';

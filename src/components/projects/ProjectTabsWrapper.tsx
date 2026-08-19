@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, Users, CheckSquare, FileText, MessageSquare } from 'lucide-react';
+import { Layers, Users, CheckSquare, FileText, MessageSquare, LineChart } from 'lucide-react';
+import ProjectAnalytics from '@/components/projects/ProjectAnalytics';
 
-type TabType = 'overview' | 'team' | 'milestones' | 'files' | 'notes';
+type TabType = 'overview' | 'team' | 'milestones' | 'files' | 'notes' | 'analytics';
 
 interface ProjectTabsWrapperProps {
   overviewContent: ReactNode;
@@ -83,8 +84,9 @@ export default function ProjectTabsWrapper({
   tabs.push({ id: 'files', label: 'Dosyalar', icon: FileText });
 
   if (showNotesTab) {
-    tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });
-  }
+      tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });
+    }
+    tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
 
   return (
     <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start w-full">
@@ -124,8 +126,26 @@ export default function ProjectTabsWrapper({
             </motion.div>
           )}
           {activeTab === 'notes' && showNotesTab && (
-            <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div
+              key="notes"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
               {notesContent}
+            </motion.div>
+          )}
+          
+          {activeTab === 'analytics' && (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {projectId ? <ProjectAnalytics projectId={projectId} /> : <div className="text-slate-500">Proje bilgisi bulunamadı.</div>}
             </motion.div>
           )}
         </AnimatePresence>

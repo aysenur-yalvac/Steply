@@ -1,6 +1,11 @@
 ﻿const fs = require('fs');
-let file = 'src/components/projects/ProjectTaskList.tsx';
-let content = fs.readFileSync(file, 'utf8');
-content = content.replace(/><span className="w-2 h-2 rounded-full bg-emerald-500"><\/span>>/g, '><span className="w-2 h-2 rounded-full bg-emerald-500"></span>');
-fs.writeFileSync(file, content, 'utf8');
-console.log("Fixed syntax error");
+let path = 'src/components/projects/ProjectEditableContent.tsx';
+let content = fs.readFileSync(path, 'utf8');
+
+content = content.replace(
+  /Globe,\n, Link as LinkIcon/,
+  `Globe,\n  Link as LinkIcon`
+);
+
+fs.writeFileSync(path, content, 'utf8');
+console.log('Fixed syntax error');

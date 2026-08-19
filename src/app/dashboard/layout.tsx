@@ -7,6 +7,7 @@ import NotificationBell from '@/components/dashboard/NotificationBell';
 import type { Notification, LinkedAccount } from '@/lib/actions';
 import { getLinkedAccountsAction } from '@/lib/actions';
 import { ThemeToggle } from "@/components/ThemeToggle";
+import RealtimeNotifications from '@/components/dashboard/RealtimeNotifications';
 
 export default async function DashboardLayout({
   children,
