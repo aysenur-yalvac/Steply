@@ -107,11 +107,11 @@ export default function NewProjectPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Start New Project</h1>
-            <p className="text-slate-500 dark:text-slate-300 dark:text-slate-400">Take the first step towards your goals now.</p>
+            <p className="text-slate-500 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400">Take the first step towards your goals now.</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
+        <div className="bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
           <form action={handleSubmit} className="space-y-6">
             {/* Project Title */}
             <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function NewProjectPage() {
                 type="text"
                 placeholder="e.g.: Mobile App Development"
                 required
-                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
             </div>
 
@@ -136,7 +136,7 @@ export default function NewProjectPage() {
                 name="description"
                 placeholder="Describe the purpose and goals of the project briefly..."
                 rows={4}
-                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm resize-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm resize-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
             </div>
 
@@ -154,7 +154,7 @@ export default function NewProjectPage() {
                     className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
                       priority === value
                         ? activeClass
-                        : 'bg-white border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:text-slate-300'
+                        : 'bg-white border-slate-200 text-slate-500 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     {value}
@@ -172,7 +172,7 @@ export default function NewProjectPage() {
                 name="platform"
                 type="text"
                 placeholder="e.g.: React Native, Next.js, REST API..."
-                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
             </div>
 
@@ -182,7 +182,7 @@ export default function NewProjectPage() {
                 <Tag className="w-4 h-4 text-indigo-500" /> Etiketler <span className="text-slate-400 font-normal">(isteğe bağlı)</span>
               </label>
               <div
-                className="w-full  min-h-[52px] px-3 py-2.5 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-300 transition-all flex flex-wrap gap-1.5 items-center shadow-sm cursor-text dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full  min-h-[52px] px-3 py-2.5 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-300 transition-all flex flex-wrap gap-1.5 items-center shadow-sm cursor-text dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
                 onClick={() => document.getElementById('tag-input')?.focus()}
               >
                 {tags.map(tag => (
@@ -222,7 +222,7 @@ export default function NewProjectPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full  flex items-center justify-center gap-3 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 dark:text-slate-300 dark:text-slate-400 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full  flex items-center justify-center gap-3 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 text-white font-bold rounded-2xl transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] active:scale-95 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               >
                 {isPending ? (
                   <>
