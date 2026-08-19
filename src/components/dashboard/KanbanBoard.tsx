@@ -363,7 +363,7 @@ function KanbanCard({
                             onChange={(e) => setNoteContent(e.target.value)}
                             placeholder="Quick private note..."
                             rows={2}
-                            className="w-full bg-transparent text-xs text-slate-700 placeholder:text-slate-400 border-none outline-none resize-none"
+                            className="w-full bg-transparent text-xs text-slate-700 dark:text-slate-100 placeholder:text-slate-400 border-none outline-none resize-none"
                           />
                           <div className="flex justify-end gap-2 mt-1">
                             {initialTeacherNote && (
@@ -386,11 +386,11 @@ function KanbanCard({
                         </>
                       ) : (
                         <div className="flex justify-between items-start gap-3">
-                          <p className="text-xs text-slate-700 leading-relaxed">{noteContent}</p>
+                          <p className="text-xs text-slate-700 dark:text-slate-100 leading-relaxed">{noteContent}</p>
                           <div className="flex gap-1 shrink-0">
                             <button
                               onClick={() => setIsEditingNote(true)}
-                              className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
+                              className="p-1 text-slate-400 hover:text-slate-700 dark:text-slate-100 transition-colors"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
@@ -467,7 +467,7 @@ function KanbanColumn({
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ background: cfg.accentColor }}
         />
-        <h3 className="text-base font-bold text-slate-700">{cfg.label}</h3>
+        <h3 className="text-base font-bold text-slate-700 dark:text-slate-100">{cfg.label}</h3>
         <span
           className="text-xs font-extrabold w-7 h-7 rounded-full flex items-center justify-center shrink-0 ml-0.5"
           style={{ background: cfg.countBg, color: cfg.countColor }}

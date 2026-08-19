@@ -456,6 +456,15 @@ body {
 .dark main,
 .dark #__next,
 .dark .dashboard-container,
+.dark body,
+.dark main,
+.dark #__next,
+.dark .dashboard-container {
+  background-color: #131927 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+
 .dark [class*="bg-white"],
 .dark [class*="bg-slate-50"],
 .dark .card,
@@ -468,9 +477,11 @@ body {
 .dark [class*="bg-[#0f172a]"],
 .dark [class*="bg-[#0b0f17]"],
 .dark [class*="bg-[#0d111a]"] {
-  background-color: #131927 !important;
+  background-color: #1a2234 !important;
   background-image: none !important;
   backdrop-filter: none !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.7) !important;
+  transition: all 0.2s ease !important;
 }
 
 /* Silik, yumuşak karanlık sınırlar */
@@ -481,7 +492,7 @@ body {
 .dark [role="dialog"],
 .dark [class*="bg-slate-900"],
 .dark [class*="bg-[#0f172a]"] {
-  border: 1px solid rgba(30, 41, 59, 0.6) !important; /* border-slate-800/60 */
+  border: 1px solid rgba(51, 65, 85, 0.6) !important; /* border-slate-700/60 */
 }
 
 /* inputs / textareas */
