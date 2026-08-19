@@ -295,11 +295,11 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-0.5">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700 " : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 "} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700 " : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 "} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                         <div className="flex items-center gap-3">
                           <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
                           <span>{label}</span>
@@ -310,7 +310,7 @@ function NavContent({
                     {isOpen && !collapsed && (
                       <div className="flex flex-col gap-0.5 pl-9 pr-2 py-1">
                         {subItems.map((sub: any) => (
-                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-violet-700 hover:bg-violet-50"}`}>
+                          <Link key={sub.href} href={sub.href} prefetch={true} onClick={onClose} className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${pathname === sub.href ? "bg-violet-100 text-violet-800" : "text-slate-500 hover:text-violet-700 hover:bg-violet-50 "} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                             {sub.label}
                           </Link>
                         ))}

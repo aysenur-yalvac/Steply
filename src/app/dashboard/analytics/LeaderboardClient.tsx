@@ -18,9 +18,9 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 const RANK_STYLE: Record<number, { bg: string; text: string; ring: string; icon: string }> = {
-  1: { bg: "bg-amber-50 dark:!bg-[#1a2234] dark:border dark:border-amber-500/40",   text: "text-amber-700 dark:!text-amber-400",   ring: "ring-amber-400",   icon: "🥇" },
-  2: { bg: "bg-slate-100 dark:!bg-[#1a2234] dark:border dark:border-slate-400/40",  text: "text-slate-600 dark:!text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
-  3: { bg: "bg-orange-50 dark:!bg-[#1a2234] dark:border dark:border-amber-700/40",  text: "text-orange-700 dark:!text-orange-400",  ring: "ring-orange-400",  icon: "🥉" },
+  1: { bg: "bg-amber-50 [#1a2234] ", text: "text-amber-700 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   ring: "ring-amber-400",   icon: "🥇" },
+  2: { bg: "bg-slate-100 [#1a2234] ", text: "text-slate-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   ring: "ring-slate-400",   icon: "🥈" },
+  3: { bg: "bg-orange-50 [#1a2234] ", text: "text-orange-700 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  ring: "ring-orange-400",  icon: "🥉" },
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -241,7 +241,7 @@ export default function LeaderboardClient({
           </AnimatePresence>
 
           {activeTab === "university" && !userUniversity && (
-            <div className="px-5 py-4 border-t border-slate-100 bg-violet-50/40 text-sm text-violet-700 font-medium flex items-center gap-2">
+            <div className="px-5 py-4 border-t border-slate-100 bg-violet-50/40 text-sm text-violet-700 font-medium flex items-center gap-2 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               <GraduationCap className="w-4 h-4 shrink-0" />
               <span>
                 Üniversite sıralamasını görmek için{" "}

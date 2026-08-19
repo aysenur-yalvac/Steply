@@ -6,14 +6,14 @@ import { updateProjectTagsAction } from "@/lib/actions";
 import toast from "react-hot-toast";
 
 const TAG_COLORS = [
-  "bg-violet-100 text-violet-700 border-violet-200",
-  "bg-sky-100 text-sky-700 border-sky-200",
-  "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
-  "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
-  "bg-rose-100 text-rose-700 border-rose-200",
-  "bg-indigo-100 text-indigo-700 border-indigo-200",
-  "bg-teal-100 text-teal-700 border-teal-200",
-  "bg-orange-100 text-orange-700 border-orange-200",
+  "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-amber-100 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
 ];
 
 function tagColor(tag: string): string {
@@ -118,7 +118,7 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
           onBlur={commitInput}
           placeholder="etiket…"
           maxLength={32}
-          className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border border-violet-400 bg-violet-50 text-violet-700 outline-none w-28 placeholder-violet-300"
+          className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border border-violet-400 bg-violet-50 text-violet-700 outline-none w-28 placeholder-violet-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
         />
       )}
     </div>

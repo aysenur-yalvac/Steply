@@ -136,7 +136,7 @@ async function SchoolPageContent() {
             <section>
               <SectionHeader
                 icon={<UserCheck className="w-4 h-4" />} label="Öğretmenler" count={schoolTeachers.length}
-                iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600 dark:text-slate-200"
+                iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 countBg="#DBEAFE" countColor="#2563EB"
               />
               {schoolTeachers.length === 0

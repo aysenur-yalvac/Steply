@@ -96,13 +96,11 @@ export default function ProjectTabsWrapper({
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id as TabType)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative ${isActive ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 hover:bg-violet-50 hover:text-violet-700 border border-slate-100 hover:border-violet-200'}`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative ${isActive ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border border-slate-100 hover:border-violet-200'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}
             >
               <Icon className="w-5 h-5" />
               {tab.label}
-              {tab.id === 'notes' && hasUnreadNotes && activeTab !== 'notes' && (
-                <span className="absolute top-3 right-4 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              )}
+              
             </button>
           );
         })}

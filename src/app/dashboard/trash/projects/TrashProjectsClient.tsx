@@ -102,7 +102,7 @@ export default function TrashProjectsClient({ initialProjects, currentUserId }: 
           <button
             disabled={selectedIds.length === 0}
             onClick={() => setModalState({ isOpen: true, type: "delete", isBulk: true })}
-            className="px-4 py-2 bg-red-50 text-red-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
           >
             <Trash className="w-4 h-4" />
             Seçilenleri Kalıcı Sil

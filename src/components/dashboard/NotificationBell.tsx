@@ -219,9 +219,7 @@ export default function NotificationBell({
                           )}
                         </div>
                       </div>
-                      {!n.is_read && (
-                        <span className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shrink-0" />
-                      )}
+                      
                     </button>
                   );
                 })

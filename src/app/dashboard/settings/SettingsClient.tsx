@@ -450,7 +450,7 @@ export default function SettingsClient({
                   onClick={() => setActiveTab(item.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                     activeTab === item.id
-                      ? "bg-violet-50 text-violet-600"
+                      ? "bg-violet-50 text-violet-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >
@@ -468,7 +468,7 @@ export default function SettingsClient({
                   onClick={() => setActiveTab(item.id)}
                   className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors ${
                     activeTab === item.id
-                      ? "bg-violet-50 text-violet-600"
+                      ? "bg-violet-50 text-violet-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
                   }`}
                 >

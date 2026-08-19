@@ -94,13 +94,13 @@ export default function PdfViewer({ file, annotations, onStageAnnotation, canAnn
           <>
             <button 
               onClick={() => setTool('pen')} 
-              className={`p-2 rounded-lg flex items-center gap-2 ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}
+              className={`p-2 rounded-lg flex items-center gap-2 ${tool === 'pen' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}
             >
               <PenTool className="w-4 h-4" /> Çiz
             </button>
             <button 
               onClick={() => setTool('eraser')} 
-              className={`p-2 rounded-lg flex items-center gap-2 ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}
+              className={`p-2 rounded-lg flex items-center gap-2 ${tool === 'eraser' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}
             >
               <Eraser className="w-4 h-4" /> Silgi
             </button>

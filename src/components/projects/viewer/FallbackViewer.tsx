@@ -46,7 +46,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
           target="_blank" 
           rel="noreferrer" 
           download 
-          className="mt-6 px-6 py-2 bg-indigo-100 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-200 transition-colors"
+          className="mt-6 px-6 py-2 bg-indigo-100 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-200 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
         >
           Dosyayı İndir
         </a>

@@ -8,14 +8,14 @@ export const BADGE_CONFIG: Record<string, {
   desc: string;
   color: string;
 }> = {
-  first_project:     { emoji: "🚀", label: "First Project",    desc: "Created your first project",          color: "bg-violet-100 text-violet-700 border-violet-300" },
-  prolific:          { emoji: "📚", label: "Prolific",          desc: "10+ projects created",                color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
-  streak_7:          { emoji: "🔥", label: "7-Day Streak",      desc: "Active 7 consecutive days",           color: "bg-orange-100 text-orange-700 border-orange-300" },
-  streak_30:         { emoji: "⚡", label: "30-Day Streak",     desc: "Active 30 consecutive days",          color: "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-300"   },
-  active_week:       { emoji: "💪", label: "Active Week",       desc: "Completed tasks every day this week", color: "bg-teal-100 text-teal-700 border-teal-300"      },
-  top_50_global:     { emoji: "🌍", label: "Global Top 50",    desc: "Ranked in the Global Top 50",         color: "bg-sky-100 text-sky-700 border-sky-300"         },
-  top_10_university: { emoji: "🎓", label: "Top 10 Uni",       desc: "Top 10 in your university",           color: "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-300" },
-  turkey_champion:   { emoji: "🏆", label: "TR Champion",      desc: "#1 in Türkiye",                       color: "bg-red-100 text-red-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-red-300"         },
+  first_project:     { emoji: "🚀", label: "First Project", desc: "Created your first project", color: "bg-violet-100 text-violet-700 border-violet-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80" },
+  prolific:          { emoji: "📚", label: "Prolific", desc: "10+ projects created", color: "bg-indigo-100 text-indigo-700 border-indigo-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80" },
+  streak_7:          { emoji: "🔥", label: "7-Day Streak", desc: "Active 7 consecutive days", color: "bg-orange-100 text-orange-700 border-orange-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80" },
+  streak_30:         { emoji: "⚡", label: "30-Day Streak", desc: "Active 30 consecutive days", color: "bg-amber-100 text-amber-700 border-amber-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"   },
+  active_week:       { emoji: "💪", label: "Active Week", desc: "Completed tasks every day this week", color: "bg-teal-100 text-teal-700 border-teal-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"      },
+  top_50_global:     { emoji: "🌍", label: "Global Top 50", desc: "Ranked in the Global Top 50", color: "bg-sky-100 text-sky-700 border-sky-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"         },
+  top_10_university: { emoji: "🎓", label: "Top 10 Uni", desc: "Top 10 in your university", color: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80" },
+  turkey_champion:   { emoji: "🏆", label: "TR Champion", desc: "#1 in Türkiye", color: "bg-red-100 text-red-700 border-red-300 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"         },
 };
 
 export function BadgeIcon({ badge, size = "md" }: { badge: string; size?: "sm" | "md" }) {

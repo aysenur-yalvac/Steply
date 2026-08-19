@@ -1,41 +1,24 @@
 ﻿const fs = require('fs');
 
-function fixMultipleClassName(filePath) {
-    let content = fs.readFileSync(filePath, 'utf8');
-    // Find multiple className attributes on the same tag.
-    // e.g. className="dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
-    //             className="w-full pl-10 pr-10 py-3 text-sm text-slate-300 placeholder:text-slate-600 rounded-xl outline-none transition-all"
-    
-    // We just remove the second className=" and merge it to the first.
-    let changed = false;
-    content = content.replace(/className="([^"]+)"\s+className="([^"]+)"/g, (match, p1, p2) => {
-        changed = true;
-        return `className="${p1} ${p2}"`;
-    });
-    
-    // Sometimes it spans newlines
-    content = content.replace(/className="([^"]+)"\s*\n\s*className="([^"]+)"/g, (match, p1, p2) => {
-        changed = true;
-        return `className="${p1} ${p2}"`;
-    });
+let path1 = 'src/components/dashboard/NotificationBell.tsx';
+let content1 = fs.readFileSync(path1, 'utf8');
+content1 = content1.replace(/\{!n\.is_read && \(\s*\)\}/g, '');
+fs.writeFileSync(path1, content1, 'utf8');
 
-    if (changed) {
-        fs.writeFileSync(filePath, content, 'utf8');
-        console.log("Fixed multiple classNames in", filePath);
-    }
-}
+let path2 = 'src/components/projects/ProjectTabsWrapper.tsx';
+let content2 = fs.readFileSync(path2, 'utf8');
+content2 = content2.replace(/\{tab\.id === 'notes' && hasUnreadNotes && activeTab !== 'notes' && \(\s*\)\}/g, '');
+fs.writeFileSync(path2, content2, 'utf8');
 
-const path = require('path');
-function walkDirAndProcess(dir) {
-    fs.readdirSync(dir).forEach(f => {
-        let dirPath = path.join(dir, f);
-        let isDirectory = fs.statSync(dirPath).isDirectory();
-        if (isDirectory) {
-            walkDirAndProcess(dirPath);
-        } else if (dirPath.endsWith('.tsx')) {
-            fixMultipleClassName(dirPath);
-        }
-    });
-}
+// There might be another one in KanbanBoard or ProjectTaskList
+let path3 = 'src/components/dashboard/KanbanBoard.tsx';
+let content3 = fs.readFileSync(path3, 'utf8');
+content3 = content3.replace(/<span className=\{`flex items-center gap-1\.5 text-xs font-bold px-3 py-1 rounded-full border \$\{priorityClasses\.badge\}`\}>\s*\{priorityLabel\}\s*<\/span>/g, '<span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${priorityClasses.badge}`}>{priorityLabel}</span>');
+fs.writeFileSync(path3, content3, 'utf8');
 
-walkDirAndProcess('src');
+let path4 = 'src/components/projects/ProjectTaskList.tsx';
+let content4 = fs.readFileSync(path4, 'utf8');
+content4 = content4.replace(/<span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border-slate-700\/80 px-2\.5 py-1 rounded-full flex items-center gap-1\.5">\s*\{completed\}\/\{total\} done · \{progress\}%\s*<\/span>/g, '<span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 px-2.5 py-1 rounded-full flex items-center gap-1.5">{completed}/{total} done · {progress}%</span>');
+fs.writeFileSync(path4, content4, 'utf8');
+
+console.log("Fixed JSX syntax errors");

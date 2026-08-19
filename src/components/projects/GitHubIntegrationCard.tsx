@@ -130,7 +130,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
               </div>
 
               <div className="mt-8">
-                <button onClick={handleRemove} disabled={loading} className="w-full py-3 bg-red-50 text-red-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-red-400 border border-red-100 dark:border-red-900/50 rounded-xl text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/60 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                <button onClick={handleRemove} disabled={loading} className="w-full py-3 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-bold hover:bg-red-100 :bg-red-900/60 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                   <Trash2 className="w-4 h-4" /> Bağlantıyı Kes
                 </button>
               </div>

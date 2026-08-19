@@ -252,7 +252,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
                     {file.isPrivate && (
-                      <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 uppercase tracking-wide">
+                      <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 uppercase tracking-wide">
                         <Lock className="w-2.5 h-2.5" /> Private
                       </span>
                     )}

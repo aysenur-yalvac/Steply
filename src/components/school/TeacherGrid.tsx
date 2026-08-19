@@ -74,7 +74,7 @@ function TeacherCard({
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
           </div>
-          <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-100">
+          <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
             Öğretmen
           </span>
         </div>

@@ -302,7 +302,7 @@ export default async function ProjectDetailPage({
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-bold text-slate-700">{review.reviewer_name}</span>
                                   {review.reviewer_role === 'teacher' && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 tracking-wide uppercase">Teacher</span>
+                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 tracking-wide uppercase">Teacher</span>
                                   )}
                                 </div>
                                 <p className="text-xs text-slate-400 mt-0.5 font-medium">
@@ -361,10 +361,10 @@ export default async function ProjectDetailPage({
             <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Project Status</h3>
               <div className="mb-4">
-                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-emerald-300 dark:!border-emerald-900/40"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed</span>}
-                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border-slate-700"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> In Review</span>}
-                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-amber-300 dark:!border-amber-900/40"><span className="w-2 h-2 rounded-full bg-violet-500 inline-block" /> In Progress</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border-slate-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border-slate-700/80"><span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> To Do</span>}
+                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> Completed</span>}
+                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> In Review</span>}
+                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> In Progress</span>}
+                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> To Do</span>}
               </div>
               
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Milestone Progress</h4>

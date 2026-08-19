@@ -42,9 +42,9 @@ const STATUS_OPTIONS  = ["To Do", "In Review", "Completed"] as const;
 const PRIORITY_OPTIONS = ["Low", "Medium", "High"]          as const;
 
 const PRIORITY_CLASSES: Record<string, string> = {
-  Low:    "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
-  Medium: "bg-orange-100  text-orange-700  border-orange-200",
-  High:   "bg-red-100     text-red-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200     border-red-200",
+  Low:    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  Medium: "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  High:   "bg-red-100 text-red-700 border-red-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
 };
 const PRIORITY_DOT: Record<string, string> = {
   Low:    "bg-emerald-500",
@@ -87,20 +87,20 @@ function cleanDescription(raw: string): string {
 function StatusBadge({ progress }: { progress: number }) {
   if (progress === 100) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-emerald-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
         <CheckCircle className="w-3 h-3" /> Completed
       </span>
     );
   }
   if (progress > 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
         <Clock className="w-3 h-3" /> In Review
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border border-slate-200">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
       <Minus className="w-3 h-3" /> To Do
     </span>
   );
@@ -108,14 +108,14 @@ function StatusBadge({ progress }: { progress: number }) {
 
 // â”€â”€ Filter Dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_COLORS: Record<number, string> = {
-  0: "bg-violet-100 text-violet-700 border-violet-200",
-  1: "bg-sky-100 text-sky-700 border-sky-200",
-  2: "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
-  3: "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
-  4: "bg-rose-100 text-rose-700 border-rose-200",
-  5: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  6: "bg-teal-100 text-teal-700 border-teal-200",
-  7: "bg-orange-100 text-orange-700 border-orange-200",
+  0: "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  1: "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  2: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  3: "bg-amber-100 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  4: "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  5: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  6: "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  7: "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
 };
 function tagColor(tag: string): string {
   let h = 0;
@@ -241,7 +241,7 @@ function FilterDropdown({
                   )}
                 </div>
                 <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
-                  <span className={`w-2 h-2 rounded-full inline-block ${dot}`} />
+                  
                   {opt}
                 </span>
               </label>
@@ -280,7 +280,7 @@ function FilterDropdown({
 
       {/* Footer: active count */}
       {total > 0 && (
-        <div className="px-4 py-2.5 bg-violet-50 border-t border-violet-100 text-[11px] text-violet-600 font-semibold text-center">
+        <div className="px-4 py-2.5 bg-violet-50 border-t border-violet-100 text-[11px] text-violet-600 font-semibold text-center dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
           {total} filter{total !== 1 ? "s" : ""} active
         </div>
       )}
@@ -337,7 +337,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                 </div>
               )}
               <div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200' : 'bg-violet-100 text-violet-700'}`}>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 ' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 ' : 'bg-violet-100 text-violet-700'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                   {projectStatus(project)}
                 </span>
               </div>
@@ -348,7 +348,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                   const dot = PRIORITY_DOT[p]    ?? PRIORITY_DOT["Medium"];
                   return (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cls}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full inline-block ${dot}`} /> {p}
+                       {p}
                     </span>
                   );
                 })()}
@@ -362,7 +362,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                     </span>
                   ) : <span className="text-xs text-slate-300">-</span>;
                 })() : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest bg-violet-50 text-violet-600 border border-violet-100">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest bg-violet-50 text-violet-600 border border-violet-100 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                     Devam Ediyor
                   </span>
                 )}
@@ -384,15 +384,15 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
         <span className="text-xs text-slate-400 font-medium">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
         <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            
             {projects.filter((p) => p.progress_percentage === 100).length} completed
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+            
             {projects.filter((p) => p.progress_percentage > 0 && p.progress_percentage < 100).length} in review
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
+            
             {projects.filter((p) => p.progress_percentage === 0).length} to do
           </span>
         </div>
@@ -566,7 +566,7 @@ export default function DashboardViewSwitcher({
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 border border-violet-200"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 border border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
               >
                 {label}
                 <button

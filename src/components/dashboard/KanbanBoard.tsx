@@ -24,14 +24,14 @@ import toast from "react-hot-toast";
 
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_COLORS = [
-  "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
-  "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
-  "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
-  "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
-  "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
-  "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
-  "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
-  "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-amber-100 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
 ];
 function tagColor(tag: string): string {
   let h = 0;
@@ -57,9 +57,9 @@ type Project = {
 
 // â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
-  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: "bg-teal-500"   },
-  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: "bg-amber-500"  },
-  High:   { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: "bg-rose-500"   },
+  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: ""   },
+  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: ""  },
+  High:   { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: ""   },
 };
 
 function getPriorityClasses(priority?: string | null) {
@@ -198,17 +198,14 @@ function KanbanCard({
       <div className="p-5 flex flex-col flex-1">
         {/* Tags row */}
         <div className="flex items-center gap-2 mb-3.5 flex-wrap">
-          <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${priorityClasses.badge}`}>
-            <span className={`w-2 h-2 rounded-full inline-block ${priorityClasses.dot}`} />
-            {priorityLabel}
-          </span>
+          <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${priorityClasses.badge}`}>{priorityLabel}</span>
           {getPlatform(project) && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
+            <span className="text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               {getPlatform(project)}
             </span>
           )}
           {isTeacher && project.profiles?.full_name && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[120px]">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[120px] dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               {project.profiles.full_name}
             </span>
           )}
@@ -235,7 +232,7 @@ function KanbanCard({
               </span>
             ))}
             {project.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                 +{project.tags.length - 3}
               </span>
             )}
@@ -308,14 +305,14 @@ function KanbanCard({
                     href={project.github_link}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                   >
                     <Github className="w-3.5 h-3.5" /> Repository
                   </a>
                 )}
                 <Link
                   href={`/dashboard/projects/${project.id}`}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 >
                   View Details
                 </Link>

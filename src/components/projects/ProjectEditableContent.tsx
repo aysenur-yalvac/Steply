@@ -294,11 +294,11 @@ export default function ProjectEditableContent({
         <div className="flex justify-between items-center mb-5 gap-4">
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">About Project</h3>
           {isCompleted ? (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium border border-emerald-500/20 shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-sm font-medium border border-emerald-500/20 shrink-0 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               <CheckCircle className="w-4 h-4" /> Completed
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium border border-amber-500/20 shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-medium border border-amber-500/20 shrink-0 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               <Clock className="w-4 h-4" /> In Progress
             </div>
           )}
@@ -506,7 +506,7 @@ export default function ProjectEditableContent({
             <button
               type="button"
               onClick={() => setShowMemberPanel((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
             >
               <UserPlus className="w-3.5 h-3.5" /> Add Member
             </button>

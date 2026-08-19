@@ -72,11 +72,11 @@ function ProfileProjectCard({
         <div className="flex items-center justify-between gap-2 mb-3.5">
           <div className="flex items-center gap-2">
             {isCompleted ? (
-              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
+              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                 <CheckCircle className="w-3.5 h-3.5" /> Completed
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-blue-200">
+              <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                 <Clock className="w-3.5 h-3.5" /> In Progress
               </span>
             )}
@@ -141,7 +141,7 @@ function ProfileProjectCard({
         </div>
         <Link
           href={`/dashboard/projects/${project.id}`}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors w-fit"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors w-fit dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
         >
           <ExternalLink className="w-3 h-3" /> View Details
         </Link>
@@ -242,11 +242,11 @@ export default function ProfileProjectsPanel({
         {/* Summary counts */}
         <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-teal-400 inline-block" />
+            
             {completed.length} completed
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+            
             {inProgress.length} in progress
           </span>
         </div>

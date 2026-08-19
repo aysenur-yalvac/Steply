@@ -105,7 +105,7 @@ export default function ProjectTypeCombobox({
                   key={type}
                   type="button"
                   onClick={() => select(type)}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors text-left dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 >
                   <Tag className="w-3.5 h-3.5 text-slate-300 shrink-0" />
                   {type}

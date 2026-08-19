@@ -98,15 +98,15 @@ export default async function FavoritesPage() {
                       {/* Status + heart */}
                       <div className="flex items-center justify-between gap-2">
                         {status === 'completed' ? (
-                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200">
+                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                             <CheckCircle className="w-3 h-3" /> Tamamlandı
                           </span>
                         ) : status === 'inreview' ? (
-                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-blue-200">
+                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                             <Clock className="w-3 h-3" /> Devam Ediyor
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-500 dark:text-slate-400 border-slate-200">
+                          <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-500 border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                             <Minus className="w-3 h-3" /> Başlamadı
                           </span>
                         )}
@@ -128,7 +128,7 @@ export default async function FavoritesPage() {
                       {p.tags && p.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {(p.tags as string[]).slice(0, 3).map((t) => (
-                            <span key={t} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-200">
+                            <span key={t} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                               #{t}
                             </span>
                           ))}

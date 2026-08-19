@@ -73,7 +73,7 @@ export default async function ProfilePage() {
                   <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{profile.full_name || 'Unnamed User'}</h1>
                   {badges.length > 0 && <BadgeDisplay badges={badges} size="sm" />}
                 </div>
-                <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide">
+                <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                   {profile.role === 'teacher' ? 'Teacher' : 'Student'}
                 </span>
                 {(profile as any).total_score > 0 && (
