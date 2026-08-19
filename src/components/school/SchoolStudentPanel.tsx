@@ -162,8 +162,8 @@ export default function SchoolStudentPanel({
     <section>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg border bg-violet-50 border-violet-200">
-            <GraduationCap className="w-4 h-4 text-violet-600" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center bg-violet-50 border-violet-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 shrink-0">
+            <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600 dark:text-slate-200" />
           </div>
           <h2 className="text-base font-bold text-slate-700">{label}</h2>
           <span className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center bg-[#EDE9FE] text-[#7C3AED] dark:!bg-slate-800 dark:!text-slate-100 dark:!border dark:!border-slate-700/80">

@@ -46,7 +46,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-2.5 mb-5">
-      <div className={`p-1.5 rounded-lg border ${iconBg} ${iconBorder}`}>
+      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center dark:bg-slate-800 dark:border dark:border-slate-700/80 shrink-0 ${iconBg} ${iconBorder}`}>
         <span className={iconColor}>{icon}</span>
       </div>
       <h2 className="text-base font-bold text-slate-700">{label}</h2>
@@ -136,11 +136,11 @@ async function SchoolPageContent() {
             <section>
               <SectionHeader
                 icon={<UserCheck className="w-4 h-4" />} label="Öğretmenler" count={schoolTeachers.length}
-                iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200"
+                iconBg="bg-blue-50" iconBorder="border-blue-200" iconColor="text-blue-600 dark:text-slate-200"
                 countBg="#DBEAFE" countColor="#2563EB"
               />
               {schoolTeachers.length === 0
-                ? <EmptyState icon={<UserCheck className="w-6 h-6 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
+                ? <EmptyState icon={<UserCheck className="w-5 h-5 text-slate-300" />} message="Okulundan kayıtlı öğretmen bulunamadı." />
                 : <TeacherGrid teachers={schoolTeachers as TeacherRow[]} />}
             </section>
 
