@@ -50,10 +50,7 @@ function SectionHeader({
         <span className={iconColor}>{icon}</span>
       </div>
       <h2 className="text-base font-bold text-slate-700">{label}</h2>
-      <span
-        className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center"
-        style={{ background: countBg, color: countColor }}
-      >
+      <span className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center dark:!bg-slate-800 dark:!text-slate-100 dark:!border dark:!border-slate-700/80" style={{ background: countBg, color: countColor }}>
         {count}
       </span>
     </div>

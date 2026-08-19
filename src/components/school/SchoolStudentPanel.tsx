@@ -84,11 +84,7 @@ function PersonCard({
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
           </div>
-          {s.role !== 'teacher' && s.grade && (
-            <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
-              {s.grade}
-            </span>
-          )}
+          
           {s.role === 'teacher' && (
             <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-blue-100">
               Öğretmen
@@ -170,10 +166,7 @@ export default function SchoolStudentPanel({
             <GraduationCap className="w-4 h-4 text-violet-600" />
           </div>
           <h2 className="text-base font-bold text-slate-700">{label}</h2>
-          <span
-            className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ background: '#EDE9FE', color: '#7C3AED' }}
-          >
+          <span className="text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center bg-[#EDE9FE] text-[#7C3AED] dark:!bg-slate-800 dark:!text-slate-100 dark:!border dark:!border-slate-700/80">
             {students.length}
           </span>
         </div>
