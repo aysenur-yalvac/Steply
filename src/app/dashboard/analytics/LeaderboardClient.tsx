@@ -18,9 +18,9 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 const RANK_STYLE: Record<number, { bg: string; text: string; ring: string; icon: string }> = {
-  1: { bg: "bg-amber-50",   text: "text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200",   ring: "ring-amber-400",   icon: "🥇" },
-  2: { bg: "bg-slate-100",  text: "text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
-  3: { bg: "bg-orange-50",  text: "text-orange-700",  ring: "ring-orange-400",  icon: "🥉" },
+  1: { bg: "bg-amber-50 dark:!bg-[#1a2234] dark:border dark:border-amber-500/40",   text: "text-amber-700 dark:!text-amber-400",   ring: "ring-amber-400",   icon: "🥇" },
+  2: { bg: "bg-slate-100 dark:!bg-[#1a2234] dark:border dark:border-slate-400/40",  text: "text-slate-600 dark:!text-slate-300",   ring: "ring-slate-400",   icon: "🥈" },
+  3: { bg: "bg-orange-50 dark:!bg-[#1a2234] dark:border dark:border-amber-700/40",  text: "text-orange-700 dark:!text-orange-400",  ring: "ring-orange-400",  icon: "🥉" },
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -67,13 +67,7 @@ function LeaderboardTable({
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.02, type: "spring", stiffness: 300, damping: 28 }}
-            className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${
-              isMe
-                ? "bg-violet-50 border-l-2 border-violet-500"
-                : rowStyle
-                ? `${rowStyle.bg} hover:opacity-90`
-                : "hover:bg-slate-50/70"
-            }`}
+            className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${isMe ? "bg-violet-50 border-l-2 border-violet-500 dark:!bg-[#1a2234] dark:border-l-2 dark:border-violet-500" : rowStyle ? `${rowStyle.bg} hover:opacity-90` : "hover:bg-slate-50/70 dark:!bg-[#1a2234] dark:border dark:border-slate-800"}`}
           >
             {/* Rank */}
             <div className="shrink-0 w-10 flex justify-center">
@@ -84,12 +78,12 @@ function LeaderboardTable({
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <Avatar src={entry.avatar_url} name={entry.full_name ?? "?"} size="sm" />
               <div className="min-w-0">
-                <p className={`text-sm font-bold truncate ${isMe ? "text-violet-700" : "text-slate-800 dark:text-slate-200"}`}>
+                <p className={`text-sm truncate ${isMe ? "font-bold text-violet-700 dark:text-violet-400" : "text-slate-800 dark:!text-slate-100 font-semibold"}`}>
                   {entry.full_name ?? "Anonymous"}
                   {isMe && <span className="ml-1.5 text-[10px] font-bold bg-violet-200 text-violet-700 px-1.5 py-0.5 rounded-full">Sen</span>}
                 </p>
                 {entry.university && (
-                  <p className="text-[11px] text-slate-400 truncate">{entry.university}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-400 truncate">{entry.university}</p>
                 )}
               </div>
             </div>
@@ -103,13 +97,7 @@ function LeaderboardTable({
 
             {/* Score */}
             <div className="shrink-0 text-right min-w-[72px]">
-              <p className={`text-sm font-extrabold tabular-nums ${
-                isMe
-                  ? "text-violet-600"
-                  : entry.rank <= 3
-                  ? "text-amber-600"
-                  : "text-slate-700"
-              }`}>
+              <p className={`text-sm tabular-nums ${isMe ? "font-extrabold text-violet-600 dark:text-violet-400" : entry.rank <= 3 ? "font-extrabold text-amber-600 dark:text-amber-500" : "text-slate-700 dark:!text-slate-100 font-semibold"}`}>
                 🏆 {entry.total_score.toLocaleString()}
               </p>
               <p className="text-[10px] text-slate-400 font-medium">puan</p>
