@@ -25,7 +25,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
 
   if (!isTeamMember) {
     return (
-      <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
+      <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)]">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-zinc-100 uppercase tracking-widest flex items-center gap-2 mb-4">
           <Github className="w-5 h-5 text-indigo-500" /> GitHub Bağlantısı
         </h3>
@@ -67,7 +67,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
 
   const modalContent = showSettings ? (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-6">
+      <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] rounded-2xl shadow-2xl p-6">
         <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-zinc-800 pb-4">
           <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2">
             <Settings className="w-5 h-5" /> GitHub Ayarları
