@@ -24,14 +24,14 @@ import toast from "react-hot-toast";
 
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TAG_COLORS = [
-  "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
-  "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
+  "bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-sky-100 text-sky-700 border-sky-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
   "bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-emerald-200",
   "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-amber-200",
-  "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
-  "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
-  "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
-  "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",
+  "bg-rose-100 text-rose-700 border-rose-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-indigo-100 text-indigo-700 border-indigo-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-teal-100 text-teal-700 border-teal-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
+  "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
 ];
 function tagColor(tag: string): string {
   let h = 0;
@@ -57,9 +57,9 @@ type Project = {
 
 // â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
-  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",     dot: "bg-teal-500"   },
-  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",  dot: "bg-amber-500"  },
-  High:   { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200",   dot: "bg-rose-500"   },
+  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: "bg-teal-500"   },
+  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: "bg-amber-500"  },
+  High:   { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: "bg-rose-500"   },
 };
 
 function getPriorityClasses(priority?: string | null) {
@@ -203,7 +203,7 @@ function KanbanCard({
             {priorityLabel}
           </span>
           {getPlatform(project) && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200">
+            <span className="text-xs font-bold px-3 py-1 rounded-full border bg-violet-50 text-violet-700 border-violet-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               {getPlatform(project)}
             </span>
           )}
@@ -235,7 +235,7 @@ function KanbanCard({
               </span>
             ))}
             {project.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800 dark:!border-slate-700/80 dark:!text-slate-200">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                 +{project.tags.length - 3}
               </span>
             )}

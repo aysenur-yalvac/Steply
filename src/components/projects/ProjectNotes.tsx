@@ -32,12 +32,12 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
 
   // 1. Bubble Container styling
   const bubbleBase = isOwn
-    ? "bg-violet-50 border border-violet-100 rounded-2xl rounded-tr-none shadow-sm"
-    : "bg-gray-100 border border-gray-200/60 rounded-2xl rounded-tl-none shadow-sm";
+    ? "bg-violet-50 border border-violet-100 rounded-2xl rounded-tr-none shadow-sm dark:bg-purple-600/90 dark:text-white dark:border-purple-500/50"
+    : "bg-gray-100 border border-gray-200/60 rounded-2xl rounded-tl-none shadow-sm dark:bg-slate-800 dark:text-slate-100 dark:border dark:border-slate-700/70";
 
   const toggleColor = isOwn
     ? "text-violet-600 hover:text-violet-800"
-    : "text-gray-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 hover:text-gray-800";
+    : "text-gray-600 dark:text-slate-300 hover:text-gray-800";
 
   const fromColor = isOwn ? "from-violet-50" : "from-gray-100";
 
@@ -50,7 +50,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
     <div className={`max-w-[85%] w-fit px-4 py-3 ${bubbleBase}`}>
       <div className="relative">
         <div
-          className={`text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words overflow-hidden ${
+          className={`text-sm text-gray-800 dark:text-inherit leading-relaxed whitespace-pre-wrap break-words overflow-hidden ${
             isLong && !expanded ? "max-h-[150px]" : "max-h-none"
           }`}
         >
@@ -75,7 +75,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
       )}
 
       {/* 3. Footer Timestamp */}
-      <span className="text-[11px] text-gray-400 mt-2 text-right block select-none">
+      <span className="text-[11px] text-gray-400 dark:text-slate-400 mt-2 text-right block select-none">
         {timestamp}
       </span>
     </div>
@@ -199,7 +199,7 @@ export default function ProjectNotes({
       </div>
 
       {/* Input bar */}
-      <div className="bg-white/90 backdrop-blur-sm border-t border-gray-100 px-3 py-3 shrink-0">
+      <div className="bg-white/90 dark:bg-[#1a2234] backdrop-blur-sm border-t border-gray-100 dark:border-slate-700/60 px-3 py-3 shrink-0">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -212,8 +212,7 @@ export default function ProjectNotes({
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
-              bg-gray-50 border border-gray-200
-              text-sm text-gray-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 placeholder-gray-400
+              bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500
               outline-none transition-all leading-snug
               focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200
               disabled:opacity-50

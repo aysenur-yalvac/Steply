@@ -92,7 +92,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit }: Pr
           Project Milestones
         </h3>
         {total > 0 && (
-          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 dark:!bg-slate-800 dark:!text-emerald-300 dark:!border-emerald-900/40 px-2.5 py-1 rounded-full flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             {completed}/{total} done · {progress}%
           </span>
         )}
