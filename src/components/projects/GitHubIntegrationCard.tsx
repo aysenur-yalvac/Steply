@@ -239,9 +239,9 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
                     <Github className="w-3 h-3 text-indigo-400" />
                   )}
                 </span>
-                <div className="flex flex-col bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 rounded-xl p-3 shadow-sm">
+                <div className="flex flex-col bg-slate-50 border border-slate-200/60 dark:bg-[#0f172a] dark:border dark:border-slate-700/80 dark:shadow-sm hover:dark:border-slate-500/80 transition-colors rounded-xl p-3 shadow-sm">
                   <span className="text-xs text-slate-400 font-medium">{new Date(commit.pushed_at).toLocaleString('tr-TR')}</span>
-                  <p className="text-sm text-slate-700 font-medium mt-1 break-words">{commit.commit_message}</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-100 font-medium mt-1 break-words">{commit.commit_message}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{commit.author_name}</span>
                     <a href={commit.commit_url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-500 hover:underline font-mono">
