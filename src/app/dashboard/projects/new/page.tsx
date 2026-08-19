@@ -97,7 +97,7 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fafc] p-6 sm:p-10 flex flex-col items-center justify-center">
+    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0b0f17] p-6 sm:p-10 flex flex-col items-center justify-center">
       <div className="w-full  max-w-xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -111,7 +111,7 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
+        <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
           <form action={handleSubmit} className="space-y-6">
             {/* Project Title */}
             <div className="space-y-2">
@@ -210,9 +210,9 @@ export default function NewProjectPage() {
             </div>
 
             {/* Progress — auto-calculated */}
-            <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-indigo-50 border border-indigo-100">
+            <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-indigo-50 border border-indigo-100 dark:bg-slate-800/80 dark:text-slate-300 dark:border dark:border-slate-700/70">
               <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-indigo-600 leading-snug">
+              <p className="text-sm text-indigo-600 dark:text-slate-300 leading-snug">
                 <span className="font-semibold">Progress is calculated automatically</span> based on completed milestones. You can add milestones after creating the project.
               </p>
             </div>
