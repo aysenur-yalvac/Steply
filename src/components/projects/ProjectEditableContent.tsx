@@ -288,7 +288,7 @@ export default function ProjectEditableContent({
   return (
     <>
       {/* ── About Project card ───────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] _12px_30px_rgba(0,0,0,0.7)]/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
 
         {/* Header: label + status badge */}
         <div className="flex justify-between items-center mb-5 gap-4">

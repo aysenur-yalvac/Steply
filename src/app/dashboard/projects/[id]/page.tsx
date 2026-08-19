@@ -333,7 +333,7 @@ export default async function ProjectDetailPage({
                     </div>
                   )}
                   {isTeacher && (
-                    <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+                    <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
                       <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
                         <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
                       </h3>
@@ -358,7 +358,7 @@ export default async function ProjectDetailPage({
 
           {/* Right Sidebar (Status & Actions) */}
           <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
-            <div className="rounded-3xl p-6 md:p-8 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+            <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Project Status</h3>
               <div className="mb-4">
                 {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border border-emerald-200"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed</span>}
