@@ -103,7 +103,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <ListChecks className="w-4 h-4 text-indigo-500" />
-          Project Milestones
+          Proje Görevleri
         </h3>
         {total > 0 && (
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 px-2.5 py-1 rounded-full flex items-center gap-1.5">{completed}/{total} done · {progress}%</span>
@@ -131,7 +131,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
       <div className="flex flex-col gap-1.5 mb-4">
         {tasks.length === 0 && (
           <p className="text-sm text-slate-400 text-center py-4">
-            No milestones yet.{canEdit ? " Add one below." : ""}
+            Henüz görev yok.{canEdit ? " Add one below." : ""}
           </p>
         )}
         {tasks.map((task) => (
@@ -191,7 +191,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Add a new milestone..."
+            placeholder="Yeni görev ekle..."
             maxLength={200}
             className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
           />
