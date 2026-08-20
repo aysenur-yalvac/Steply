@@ -570,8 +570,8 @@ export default function ProjectEditableContent({
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Bu bağlantıyı paylaşarak ekibinizin projeye tek tıkla katılmasını sağlayabilirsiniz.</p>
                   
                   <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <input type="text" readOnly value={`${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/projects?join=${(project as any).invite_token}`} className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
-                    <button type="button" onClick={() => handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/projects?join=${(project as any).invite_token}`)} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
+                    <input type="text" readOnly value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${(project as any).invite_token}`} className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
+                    <button type="button" onClick={() => handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${(project as any).invite_token}`)} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
@@ -587,8 +587,8 @@ export default function ProjectEditableContent({
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Ekip üyeleri Dashboard üzerinden bu 6 haneli kodu girerek projeye katılabilir.</p>
                   
                   <div className="flex items-center gap-3">
-                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-[0.2em] bg-white dark:bg-slate-900 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                      {(project as any).invite_code || '------'}
+                    <div className="font-mono font-bold text-xl tracking-wider dark:text-slate-100 text-slate-800 bg-slate-100 dark:bg-slate-800/50 p-3 px-6 rounded-lg border border-slate-200 dark:border-slate-700">
+                      {(project as any).invite_code || 'TÜRETİLİYOR...'}
                     </div>
                     <button type="button" onClick={() => handleCopy((project as any).invite_code || '')} className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-5 h-5" /> : <Copy className="w-5 h-5" />}

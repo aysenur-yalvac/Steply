@@ -42,7 +42,7 @@ export default async function ProjectDetailPage({
   // Current viewer's profile (uses anon client — viewer reads their own row: always works)
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+      .select('*')
     .eq('id', user.id)
     .single();
 
@@ -51,7 +51,7 @@ export default async function ProjectDetailPage({
   // Project row
   const { data: project } = await admin
     .from('projects')
-    .select('*')
+    .select('*, invite_code, invite_token')
     .eq('id', projectId)
     .single();
 
@@ -174,7 +174,7 @@ export default async function ProjectDetailPage({
   // ── Project Tasks ─────────────────────────────────────────────────────────────
   const { data: projectTasksRaw } = await admin
     .from('project_tasks')
-    .select('*')
+      .select('*')
     .eq('project_id', projectId)
     .order('created_at', { ascending: true });
   const projectTasks: ProjectTask[] = (projectTasksRaw ?? []) as ProjectTask[];
