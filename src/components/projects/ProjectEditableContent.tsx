@@ -154,18 +154,38 @@ export default function ProjectEditableContent({
   }, [isOwner, project.id, project.invite_code, inviteData.code, isLoadingInvite]);
   
     
-    const handleCopy = (text: string) => {
-      navigator.clipboard.writeText(text);
+    const handleCopy = async (textToCopy: string, type: 'code' | 'link') => {
+    if (!textToCopy) {
+      toast.error("Kopyalanacak veri bulunamadı.", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        // Fallback for insecure environments
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+
       setCopied(true);
-      toast.success(text.includes('join') ? "✅ Bağlantı Kopyalandı!" : "✅ Davet Kodu Kopyalandı!", {
-          style: {
-            background: '#0f172a',
-            color: '#f1f5f9',
-            border: '1px solid #334155',
-          },
-        });
       setTimeout(() => setCopied(false), 2000);
-    };
+
+      if (type === 'code') {
+        toast.success("✅ Davet kodu panoya kopyalandı!", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
+      } else {
+        toast.success("✅ Bağlantı panoya kopyalandı!", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
+      }
+    } catch (err) {
+      console.error("Kopyalama hatası:", err);
+      toast.error("Kopyalama başarısız oldu, lütfen manuel seçip kopyalayın.", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
+    }
+  };
   
 
   const [isPending, startTransition] = useTransition();
@@ -598,9 +618,9 @@ export default function ProjectEditableContent({
                   <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                     <input type="text" readOnly value={inviteData.token ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
                     <button type="button" onClick={() => {
-                        if (!inviteData.token) return;
-                        handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`);
-                      }} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
+                          if (!inviteData.token) return;
+                          handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`, 'link');
+                        }} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
@@ -620,9 +640,9 @@ export default function ProjectEditableContent({
                         {inviteData.code || "STP-A2C4"}
                       </div>
                     <button type="button" onClick={() => {
-                        if (!inviteData.code) return;
-                        handleCopy(inviteData.code);
-                      }} className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0">
+                          if (!inviteData.code) return;
+                          handleCopy(inviteData.code, 'code');
+                        }} className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                     </button>
                   </div>
