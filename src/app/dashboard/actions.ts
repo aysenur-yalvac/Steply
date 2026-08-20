@@ -55,7 +55,7 @@ async function trackProjectType(platform: string): Promise<void> {
   }
 }
 
-export async function createProject(formData: FormData): Promise<{ success: true } | { success: false; error: string }> {
+export async function createProject(formData: FormData): Promise<{ success: true; project?: any } | { success: false; error: string }> {
   // Helper: safe serializable error message (defined first â€” used in all branches)
   function safeMsg(err: unknown): string {
     if (!err) return "Unknown error";
@@ -102,7 +102,7 @@ export async function createProject(formData: FormData): Promise<{ success: true
 
   // Attempt 1: insert with priority + platform + tags columns
   // (these columns may not exist in older DB schemas â€” the fallback handles that)
-  const { error } = await supabase.from("projects").insert({
+  const { error, data: newProject1 } = await supabase.from("projects").insert({
     student_id: user.id,
     title,
     description,
@@ -135,7 +135,7 @@ export async function createProject(formData: FormData): Promise<{ success: true
         .filter(Boolean)
         .join("\n");
 
-      const { error: error2 } = await supabase.from("projects").insert({
+      const { error: error2, data: newProject2 } = await supabase.from("projects").insert({
         student_id: user.id,
         title,
         description: augmentedDesc,
@@ -602,5 +602,53 @@ export async function generateProjectInviteAction(projectId: string): Promise<{ 
   } catch (e: any) {
     console.error("[generateProjectInviteAction] Exception:", e);
     return { error: "Beklenmedik bir hata oluştu." };
+  }
+}
+
+export async function joinProjectWithCodeAction(code: string): Promise<{ success: boolean; error?: string; projectId?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Oturum bulunamadı." };
+
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) return { success: false, error: "Geçersiz kod." };
+
+    // 1. Projeyi bul
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('invite_code', cleanCode)
+      .single();
+
+    if (pErr || !project) {
+      return { success: false, error: "Geçersiz veya bulunamayan katılım kodu!" };
+    }
+
+    // 2. Üyelik kontrolü
+    const { data: existingMember } = await supabase
+      .from('project_members')
+      .select('id')
+      .eq('project_id', project.id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existingMember) {
+      return { success: false, error: "Zaten bu projenin üyesisiniz." };
+    }
+
+    // 3. Üyeyi ekle
+    const { error: insertErr } = await supabase
+      .from('project_members')
+      .insert({ project_id: project.id, user_id: user.id });
+
+    if (insertErr) {
+      return { success: false, error: "Projeye katılırken bir hata oluştu." };
+    }
+
+    return { success: true, projectId: project.id };
+  } catch (e: any) {
+    console.error("[joinProjectWithCodeAction] Exception:", e);
+    return { success: false, error: "Beklenmedik bir hata oluştu." };
   }
 }

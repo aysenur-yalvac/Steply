@@ -639,13 +639,32 @@ export default function ProjectEditableContent({
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Davet Bağlantısı</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Bu bağlantıyı paylaşarak ekibinizin projeye tek tıkla katılmasını sağlayabilirsiniz.</p>
                   
-                  <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <input type="text" readOnly value={(project?.invite_token || inviteData?.token) ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${project?.invite_token || inviteData?.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
-                    <button type="button" onClick={(e) => handleSimpleCopy(e, `${typeof window !== "undefined" ? window.location.origin : ""}/join/${project?.invite_token || inviteData?.token}`, true)}
-                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0 cursor-pointer">
-                        {copiedLink ? <CheckIcon className="w-4 h-4 text-green-400 pointer-events-none" /> : <Copy className="w-4 h-4 pointer-events-none" />}
-                    </button>
-                  </div>
+                  {(() => {
+                        const rawToken = project?.invite_token || inviteData?.token || '';
+                        const isValidToken = rawToken && rawToken !== "null" && rawToken !== "undefined";
+                        const shareUrl = isValidToken 
+                          ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${rawToken}`
+                          : "";
+
+                        return (
+                          <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                            <input 
+                              type="text" 
+                              readOnly 
+                              value={shareUrl} 
+                              placeholder="https://steply-app.vercel.app/join/..." 
+                              className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate cursor-text" 
+                            />
+                            <button 
+                              type="button" 
+                              onClick={(e) => handleSimpleCopy(e, shareUrl, true)}
+                              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                            >
+                              {copiedLink ? <CheckIcon className="w-4 h-4 text-green-400 pointer-events-none" /> : <Copy className="w-4 h-4 pointer-events-none" />}
+                            </button>
+                          </div>
+                        );
+                      })()}
                 </div>
               )}
 
