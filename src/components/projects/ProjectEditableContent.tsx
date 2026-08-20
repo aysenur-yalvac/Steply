@@ -156,33 +156,37 @@ export default function ProjectEditableContent({
   
     
     const handleSimpleCopy = (e: React.MouseEvent, text: string, isLink: boolean) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!text || text === "KOD BULUNAMADI" || text.includes("undefined")) return;
-
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text);
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-    }
-
-    if (isLink) {
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    } else {
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
-  };
+      e.preventDefault();
+      e.stopPropagation();
+  
+      const cleanText = text?.trim();
+      if (!cleanText || cleanText === "KOD BULUNAMADI" || cleanText.includes("undefined")) {
+        console.warn("Kopyalanacak geçerli kod bulunamadı:", text);
+        return;
+      }
+  
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(cleanText);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = cleanText;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+  
+      if (isLink) {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } else {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
+    };
   
 
   const [isPending, startTransition] = useTransition();
@@ -613,8 +617,8 @@ export default function ProjectEditableContent({
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Bu bağlantıyı paylaşarak ekibinizin projeye tek tıkla katılmasını sağlayabilirsiniz.</p>
                   
                   <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <input type="text" readOnly value={inviteData.token ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
-                    <button type="button" onClick={(e) => handleSimpleCopy(e, `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`, true)}
+                    <input type="text" readOnly value={(project?.invite_token || inviteData?.token) ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${project?.invite_token || inviteData?.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
+                    <button type="button" onClick={(e) => handleSimpleCopy(e, `${typeof window !== "undefined" ? window.location.origin : ""}/join/${project?.invite_token || inviteData?.token}`, true)}
                         className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0 cursor-pointer">
                         {copiedLink ? <CheckIcon className="w-4 h-4 text-green-400 pointer-events-none" /> : <Copy className="w-4 h-4 pointer-events-none" />}
                     </button>
@@ -632,9 +636,9 @@ export default function ProjectEditableContent({
                   
                   <div className="flex items-center gap-3">
                     <div className="font-mono font-bold text-xl tracking-wider text-slate-100 bg-slate-800/80 p-3 rounded-lg border border-slate-700">
-                        {inviteData.code || "STP-A2C4"}
+                        {project?.invite_code || inviteData?.code || "STP-A2C4"}
                       </div>
-                    <button type="button" onClick={(e) => handleSimpleCopy(e, inviteData.code || '', false)}
+                    <button type="button" onClick={(e) => handleSimpleCopy(e, project?.invite_code || inviteData?.code || '', false)}
                         className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer">
                         {copiedCode ? <CheckIcon className="w-5 h-5 text-green-400 pointer-events-none" /> : <Copy className="w-5 h-5 pointer-events-none" />}
                     </button>
