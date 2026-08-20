@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Plus, SlidersHorizontal, CheckCircle, Clock, Minus, ExternalLink, X, UserPlus } from "lucide-react";
-import JoinProjectModal from './JoinProjectModal';
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
 import ProjectCard from "@/app/dashboard/ProjectCard";
 import { Users } from "lucide-react";
