@@ -134,7 +134,8 @@ export default function ProjectEditableContent({
   const [showLeaveModal,  setShowLeaveModal]  = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
     const [inviteTab, setInviteTab] = useState<'search' | 'link' | 'code'>('search');
-    const [copied, setCopied] = useState(false);
+    const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [inviteData, setInviteData] = useState({ code: project.invite_code || null, token: project.invite_token || null });
   const [isLoadingInvite, setIsLoadingInvite] = useState(false);
 
@@ -154,36 +155,32 @@ export default function ProjectEditableContent({
   }, [isOwner, project.id, project.invite_code, inviteData.code, isLoadingInvite]);
   
     
-    const handleCopy = async (textToCopy: string, type: 'code' | 'link') => {
-    if (!textToCopy) {
-      toast.error("Kopyalanacak veri bulunamadı.", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
-      return;
+    const handleSimpleCopy = (e: React.MouseEvent, text: string, isLink: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!text || text === "KOD BULUNAMADI" || text.includes("undefined")) return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
     }
 
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(textToCopy);
-      } else {
-        // Fallback for insecure environments
-        const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-      }
-
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-
-      if (type === 'code') {
-        toast.success("✅ Davet kodu panoya kopyalandı!", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
-      } else {
-        toast.success("✅ Bağlantı panoya kopyalandı!", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
-      }
-    } catch (err) {
-      console.error("Kopyalama hatası:", err);
-      toast.error("Kopyalama başarısız oldu, lütfen manuel seçip kopyalayın.", { style: { background: '#0f172a', color: '#f1f5f9', border: '1px solid #334155' } });
+    if (isLink) {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } else {
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     }
   };
   
@@ -617,11 +614,9 @@ export default function ProjectEditableContent({
                   
                   <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                     <input type="text" readOnly value={inviteData.token ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
-                    <button type="button" onClick={() => {
-                          if (!inviteData.token) return;
-                          handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`, 'link');
-                        }} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
-                      {copied ? <CheckIcon className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <button type="button" onClick={(e) => handleSimpleCopy(e, `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`, true)}
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0 cursor-pointer">
+                        {copiedLink ? <CheckIcon className="w-4 h-4 text-green-400 pointer-events-none" /> : <Copy className="w-4 h-4 pointer-events-none" />}
                     </button>
                   </div>
                 </div>
@@ -639,11 +634,9 @@ export default function ProjectEditableContent({
                     <div className="font-mono font-bold text-xl tracking-wider text-slate-100 bg-slate-800/80 p-3 rounded-lg border border-slate-700">
                         {inviteData.code || "STP-A2C4"}
                       </div>
-                    <button type="button" onClick={() => {
-                          if (!inviteData.code) return;
-                          handleCopy(inviteData.code, 'code');
-                        }} className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0">
-                      {copied ? <CheckIcon className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    <button type="button" onClick={(e) => handleSimpleCopy(e, inviteData.code || '', false)}
+                        className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer">
+                        {copiedCode ? <CheckIcon className="w-5 h-5 text-green-400 pointer-events-none" /> : <Copy className="w-5 h-5 pointer-events-none" />}
                     </button>
                   </div>
                 </div>
