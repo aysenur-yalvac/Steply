@@ -176,7 +176,9 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
         ))}
       </div>
 
+      
       {/* Add task form — owner / collaborator only */}
+
       {canEdit && (
         <form onSubmit={handleAdd} className="flex gap-2">
           <input
