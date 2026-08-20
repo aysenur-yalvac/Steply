@@ -632,9 +632,12 @@ export default function ProjectEditableContent({
               )}
 
               {inviteTab === 'link' && (() => {
+  // İstemci tarafında Origin ve Token tespiti
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const inviteToken = project?.invite_token;
-  const inviteUrl = inviteToken ? `${origin}/join/${inviteToken}` : '';
+
+  // invite_token yoksa proje ID'sini kullan (Hiçbir zaman boş kalmaz)
+  const activeToken = project?.invite_token || project?.id;
+  const inviteUrl = activeToken ? `${origin}/join/${activeToken}` : '';
 
   return (
     <div className="space-y-4 mt-4">
@@ -643,8 +646,8 @@ export default function ProjectEditableContent({
         <input
           type="text"
           readOnly
-          value={inviteUrl || "Bağlantı yükleniyor..."}
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 select-all focus:outline-none"
+          value={inviteUrl || "Bağlantı oluşturulamadı"}
+          className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 select-all focus:outline-none"
         />
         <button
           type="button"
