@@ -10,6 +10,18 @@ import {
   Users 
 } from 'lucide-react';
 import { ProjectTask } from '@/lib/actions';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid
+} from 'recharts';
 
 export type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null };
 
@@ -29,6 +41,15 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
   const overdueTasks = 0;
 
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const pieData = [
+    { name: 'Tamamlandı', value: completedTasks, color: '#10b981' },
+    { name: 'Bekliyor', value: totalTasks - completedTasks, color: '#334155' }
+  ];
+
+  const barData = [
+    { name: 'Görevler', Toplam: totalTasks, Tamamlanan: completedTasks }
+  ];
 
   return (
     <div className="space-y-6 p-6">
@@ -71,6 +92,44 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
           </div>
           <div className="p-3 bg-rose-600/10 text-rose-400 rounded-xl">
             <AlertTriangle className="w-6 h-6"/>
+          </div>
+        </div>
+      </div>
+
+      
+      {/* GRAFİKLER GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
+        {/* PASTA GRAFİK */}
+        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+          <h4 className="text-sm font-bold text-white mb-4">Görev Tamamlanma Dağılımı</h4>
+          <div className="h-64 w-full">
+            <ResponsiveContainer height="100%" width="100%">
+              <PieChart>
+                <Pie cx="50%" cy="50%" data={pieData} dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={5}>
+                  {pieData.map((entry, index) => (
+                    <Cell fill={entry.color} key={`cell-${index}`}/>
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ÇUBUK GRAFİK */}
+        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+          <h4 className="text-sm font-bold text-white mb-4">Görev Durumu Kıyaslaması</h4>
+          <div className="h-64 w-full">
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart data={barData}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3"/>
+                <XAxis dataKey="name" stroke="#64748b"/>
+                <YAxis stroke="#64748b" allowDecimals={false}/>
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} cursor={{fill: 'rgba(255,255,255,0.05)'}}/>
+                <Bar dataKey="Toplam" fill="#6366f1" radius={[8, 8, 0, 0]}/>
+                <Bar dataKey="Tamamlanan" fill="#10b981" radius={[8, 8, 0, 0]}/>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
