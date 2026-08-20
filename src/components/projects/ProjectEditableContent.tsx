@@ -621,7 +621,7 @@ export default function ProjectEditableContent({
               <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-xl">
                 <button type="button" onClick={() => setInviteTab('search')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${inviteTab === 'search' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Arama</button>
                 <button type="button" onClick={() => setInviteTab('link')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${inviteTab === 'link' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Bağlantı</button>
-                <button type="button" onClick={() => setInviteTab('code')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${inviteTab === 'code' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Kod</button>
+                
               </div>
 
               {inviteTab === 'search' && (
@@ -668,36 +668,7 @@ export default function ProjectEditableContent({
                 </div>
               )}
 
-              {inviteTab === 'code' && (
-                <div className="flex flex-col items-center justify-center p-4 py-6 text-center gap-3">
-                  <div className="w-12 h-12 bg-amber-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-amber-500 dark:text-slate-200 border border-amber-100 dark:border-slate-700/80">
-                    <Key className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Katılım Kodu</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Ekip üyeleri Dashboard üzerinden bu 6 haneli kodu girerek projeye katılabilir.</p>
-                  
-                  <div className="flex items-center gap-2 w-full">
-                        <input
-                          ref={codeInputRef}
-                          type="text"
-                          readOnly
-                          value={project?.invite_code || inviteData?.code || generatedFallbackCode || "STP-94A2"}
-                          className="font-mono font-bold text-xl tracking-wider text-slate-100 bg-slate-800/80 p-3 rounded-lg border border-slate-700 w-full select-all outline-none cursor-text"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleCopyCode}
-                          className="w-12 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-                        >
-                          {codeCopied ? (
-                            <CheckIcon className="w-6 h-6 text-green-400 pointer-events-none"/>
-                          ) : (
-                            <Copy className="w-6 h-6 pointer-events-none"/>
-                          )}
-                        </button>
-                      </div>
-                </div>
-              )}
+              
 {/* Step 1 — Search input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
