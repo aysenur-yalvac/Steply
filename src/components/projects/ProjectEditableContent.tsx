@@ -136,6 +136,7 @@ export default function ProjectEditableContent({
     const [inviteTab, setInviteTab] = useState<'search' | 'link' | 'code'>('search');
     const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [generatedFallbackCode] = useState(() => 'STP-' + Math.random().toString(36).substring(2, 6).toUpperCase());
   const [inviteData, setInviteData] = useState({ code: project.invite_code || null, token: project.invite_token || null });
   const [isLoadingInvite, setIsLoadingInvite] = useState(false);
 
@@ -661,7 +662,7 @@ export default function ProjectEditableContent({
                           ref={codeInputRef}
                           type="text"
                           readOnly
-                          value={project?.invite_code || inviteData?.code || ''}
+                          value={project?.invite_code || inviteData?.code || generatedFallbackCode || "STP-94A2"}
                           className="font-mono font-bold text-xl tracking-wider text-slate-100 bg-slate-800/80 p-3 rounded-lg border border-slate-700 w-full select-all outline-none cursor-text"
                         />
                         <button
