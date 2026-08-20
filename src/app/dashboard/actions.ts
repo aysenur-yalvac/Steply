@@ -89,6 +89,9 @@ export async function createProject(formData: FormData): Promise<{ success: true
   const priority = (formData.get("priority") as string) || "Medium";
   const platform = (formData.get("platform") as string) || "General";
 
+  const invite_code = 'STP-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  const invite_token = crypto.randomUUID();
+
   const tagsRaw = formData.get("tags") as string | null;
   let tags: string[] = [];
   try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
@@ -106,6 +109,8 @@ export async function createProject(formData: FormData): Promise<{ success: true
     progress_percentage,
     priority,
     platform,
+    invite_code,
+    invite_token,
     ...(tags.length > 0 ? { tags } : {}),
   });
 
