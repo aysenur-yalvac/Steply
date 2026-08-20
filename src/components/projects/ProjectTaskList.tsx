@@ -25,6 +25,11 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
   const [selectedTask, setSelectedTask] = useState<ProjectTask | null>(null);
   const router = useRouter();
 
+  const handleTaskClick = (task: ProjectTask) => {
+    console.log("👉 Görev kartına tıklandı, seçilen görev:", task);
+    setSelectedTask(task);
+  };
+
   const completed = tasks.filter((t) => t.is_completed).length;
   const total = tasks.length;
   const progress = total === 0 ? 0 : Math.round((completed / total) * 100);

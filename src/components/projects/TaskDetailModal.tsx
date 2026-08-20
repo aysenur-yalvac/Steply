@@ -24,7 +24,7 @@ export default function TaskDetailModal({ task, projectId, teamMembers, isOpen, 
   const [newSubtask, setNewSubtask] = useState("");
   const router = useRouter();
 
-  if (!isOpen) return null;
+  if (!isOpen || !task) return null;
 
   const handleUpdate = async (updates: Partial<ProjectTask>) => {
     setIsUpdating(true);
@@ -73,8 +73,14 @@ export default function TaskDetailModal({ task, projectId, teamMembers, isOpen, 
   const completedCount = subtasks.filter(s => s.is_completed).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+    <div 
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg">{task.title}</h3>
           <button onClick={onClose} className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-600 dark:text-slate-400">
