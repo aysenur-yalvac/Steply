@@ -13,6 +13,7 @@ interface ProjectTabsWrapperProps {
   milestonesContent?: ReactNode;
   filesContent?: ReactNode;
   notesContent?: ReactNode;
+  analyticsContent?: ReactNode;
   showNotesTab: boolean;
   hasNotes?: boolean;
   projectId?: string;

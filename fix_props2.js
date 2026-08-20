@@ -3,9 +3,9 @@ let path = 'src/components/projects/ProjectTabsWrapper.tsx';
 let content = fs.readFileSync(path, 'utf8');
 
 content = content.replace(
-  /notesContent\?: ReactNode;\n  showNotesTab: boolean;/g,
-  `notesContent?: ReactNode;\n  analyticsContent?: ReactNode;\n  showNotesTab: boolean;`
+  /notesContent\?: ReactNode;/g,
+  `notesContent?: ReactNode;\n  analyticsContent?: ReactNode;`
 );
 
 fs.writeFileSync(path, content, 'utf8');
-console.log('Fixed props in ProjectTabsWrapper');
+console.log('Fixed props in ProjectTabsWrapper exactly');

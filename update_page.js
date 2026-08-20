@@ -1,21 +1,18 @@
 ﻿const fs = require('fs');
+let path = 'src/app/dashboard/projects/[id]/page.tsx';
+let content = fs.readFileSync(path, 'utf8');
 
-let content = fs.readFileSync('src/app/dashboard/projects/[id]/page.tsx', 'utf8');
+// Replace import
+content = content.replace(
+  /import ProjectTabsWrapper from '@\/components\/projects\/ProjectTabsWrapper';/,
+  `import ProjectTabsWrapper from '@/components/projects/ProjectTabsWrapper';\nimport ProjectAnalyticsView from '@/components/projects/ProjectAnalyticsView';`
+);
 
-const regex = /milestonesContent=\{\s*isTeamMember \? \([\s\S]*?\) : \([\s\S]*?\)\s*\}/;
+// Add analyticsContent prop
+content = content.replace(
+  /overviewContent=\{/,
+  `analyticsContent={<ProjectAnalyticsView tasks={projectTasks} members={teamMembers} />}\n                overviewContent={`
+);
 
-const newContent = `milestonesContent={
-                isTeamMember ? (
-                  <ProjectTaskList
-                    projectId={project.id}
-                    initialTasks={projectTasks}
-                    canEdit={isTeamMember}
-                    isCollaborator={isCollaborator}
-                  />
-                ) : null
-              }`;
-
-content = content.replace(regex, newContent);
-fs.writeFileSync('src/app/dashboard/projects/[id]/page.tsx', content, 'utf8');
-
-console.log("Updated milestonesContent in page.tsx");
+fs.writeFileSync(path, content, 'utf8');
+console.log('Updated page.tsx');
