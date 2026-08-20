@@ -631,42 +631,43 @@ export default function ProjectEditableContent({
                 </>
               )}
 
-              {inviteTab === 'link' && (
-                <div className="flex flex-col items-center justify-center p-4 py-6 text-center gap-3">
-                  <div className="w-12 h-12 bg-indigo-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-indigo-500 dark:text-slate-200 border border-indigo-100 dark:border-slate-700/80">
-                    <LinkIcon className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Davet Bağlantısı</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Bu bağlantıyı paylaşarak ekibinizin projeye tek tıkla katılmasını sağlayabilirsiniz.</p>
-                  
-                  {(() => {
-                        const rawToken = project?.invite_token || inviteData?.token || '';
-                        const isValidToken = rawToken && rawToken !== "null" && rawToken !== "undefined";
-                        const shareUrl = isValidToken 
-                          ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${rawToken}`
-                          : "";
+              {inviteTab === 'link' && (() => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const inviteToken = project?.invite_token;
+  const inviteUrl = inviteToken ? `${origin}/join/${inviteToken}` : '';
 
-                        return (
-                          <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                            <input 
-                              type="text" 
-                              readOnly 
-                              value={shareUrl} 
-                              placeholder="https://steply-app.vercel.app/join/..." 
-                              className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate cursor-text" 
-                            />
-                            <button 
-                              type="button" 
-                              onClick={(e) => handleSimpleCopy(e, shareUrl, true)}
-                              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-                            >
-                              {copiedLink ? <CheckIcon className="w-4 h-4 text-green-400 pointer-events-none" /> : <Copy className="w-4 h-4 pointer-events-none" />}
-                            </button>
-                          </div>
-                        );
-                      })()}
-                </div>
-              )}
+  return (
+    <div className="space-y-4 mt-4">
+      <label className="text-xs font-medium text-slate-400">Proje Davet Bağlantısı</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          readOnly
+          value={inviteUrl || "Bağlantı yükleniyor..."}
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 select-all focus:outline-none"
+        />
+        <button
+          type="button"
+          disabled={!inviteUrl}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (inviteUrl) {
+              navigator.clipboard.writeText(inviteUrl);
+              toast.success("Bağlantı panoya kopyalandı!");
+            }
+          }}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+        >
+          Kopyala
+        </button>
+      </div>
+      <p className="text-xs text-slate-500">
+        Bu bağlantıya sahip olan herkes projeye doğrudan katılabilir.
+      </p>
+    </div>
+  );
+})()}
 
               
 {/* Step 1 — Search input */}
