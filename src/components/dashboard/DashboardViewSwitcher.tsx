@@ -426,6 +426,33 @@ export default function DashboardViewSwitcher({
   const [filters,     setFilters]     = useState<Filters>({ status: [], priority: [], tags: [], studentSearch: "" });
   const [filterOpen,  setFilterOpen]  = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  
+  const handleJoinProjectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCodeInput.trim()) return;
+    setIsJoining(true);
+    try {
+      const { joinProjectWithCodeAction } = await import('@/app/dashboard/actions');
+      const { toast } = await import('react-hot-toast');
+      const result = await joinProjectWithCodeAction(joinCodeInput.trim().toUpperCase());
+      if (!result.success) {
+        toast.error(result.error || 'Katılım başarısız oldu.');
+      } else {
+        toast.success('Projeye başarıyla katıldınız!');
+        setIsJoinModalOpen(false);
+        if (result.projectId) {
+          window.location.href = `/dashboard/projects/${result.projectId}`;
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Katılım başarısız oldu.');
+    } finally {
+      setIsJoining(false);
+    }
+  };
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
