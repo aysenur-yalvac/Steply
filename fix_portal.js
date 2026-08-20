@@ -1,4 +1,8 @@
-'use client';
+﻿const fs = require('fs');
+const path = require('path');
+
+const modalPath = 'src/components/dashboard/JoinProjectModal.tsx';
+const modalContent = `'use client';
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -39,7 +43,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
         toast.success('Projeye başarıyla katıldınız!');
         onClose();
         if (result.projectId) {
-          router.push(`/dashboard/projects/${result.projectId}`);
+          router.push(\`/dashboard/projects/\${result.projectId}\`);
         }
       }
     } catch (err: any) {
@@ -100,3 +104,15 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
     document.body
   );
 }
+`;
+fs.writeFileSync(modalPath, modalContent, 'utf8');
+
+const switcherPath = 'src/components/dashboard/DashboardViewSwitcher.tsx';
+let switcherContent = fs.readFileSync(switcherPath, 'utf8');
+switcherContent = switcherContent.replace(
+  /\{isJoinModalOpen && <JoinProjectModal onClose=\{\(\) => setIsJoinModalOpen\(false\)\} \/>\}/g,
+  `<JoinProjectModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />`
+);
+fs.writeFileSync(switcherPath, switcherContent, 'utf8');
+
+console.log('Fixed JoinProjectModal with createPortal and updated DashboardViewSwitcher');
