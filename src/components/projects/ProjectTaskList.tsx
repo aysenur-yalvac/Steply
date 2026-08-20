@@ -6,24 +6,33 @@ import { Plus, Trash2, Loader2, CheckSquare, Square, ListChecks } from "lucide-r
 import { addProjectTask, toggleTaskCompletion, deleteProjectTask } from "@/lib/actions";
 import type { ProjectTask } from "@/lib/actions";
 import toast from "react-hot-toast";
+import TaskDetailModal from "./TaskDetailModal";
+import { TeamMember } from "./ProjectAnalyticsView";
 
 interface Props {
   projectId: string;
   initialTasks: ProjectTask[];
   canEdit: boolean;
+  teamMembers: TeamMember[];
 }
 
-export default function ProjectTaskList({ projectId, initialTasks, canEdit }: Props) {
+export default function ProjectTaskList({ projectId, initialTasks, canEdit, teamMembers }: Props) {
   const [tasks, setTasks] = useState<ProjectTask[]>(initialTasks);
   const [newTitle, setNewTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedTask, setSelectedTask] = useState<ProjectTask | null>(null);
   const router = useRouter();
 
   const completed = tasks.filter((t) => t.is_completed).length;
   const total = tasks.length;
   const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  
+  const handleUpdateTask = (updatedTask: ProjectTask) => {
+    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+  };
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();

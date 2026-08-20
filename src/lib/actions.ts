@@ -551,11 +551,21 @@ export async function getProjectActivitiesAction(projectId: string): Promise<Pro
 
 // â”€â”€ Project Tasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+export interface SubTask {
+  id: string;
+  title: string;
+  is_completed: boolean;
+}
+
 export type ProjectTask = {
   id: string;
   project_id: string;
   title: string;
+  description?: string;
   is_completed: boolean;
+  due_date?: string | null;
+  assigned_to?: string | null;
+  subtasks?: SubTask[];
   created_at: string;
 };
 
@@ -2085,4 +2095,37 @@ export async function joinProjectWithCode(codeOrToken: string): Promise<{ succes
   } catch (err: any) {
     return { success: false, error: err.message || 'Bilinmeyen bir hata oluştu.' };
   }
+}
+
+
+export async function updateTaskAction(
+  taskId: string,
+  projectId: string,
+  updates: Partial<ProjectTask>
+): Promise<{ success: true; task: ProjectTask } | { error: string }> {
+  const supabase = await createClient();
+  const ctx = await assertProjectAccess(supabase, projectId);
+  if (!ctx) return { error: 'Unauthorized' };
+
+  // Only allow updating safe fields
+  const safeUpdates: any = {};
+  if (updates.title !== undefined) safeUpdates.title = updates.title;
+  if (updates.description !== undefined) safeUpdates.description = updates.description;
+  if (updates.is_completed !== undefined) safeUpdates.is_completed = updates.is_completed;
+  if (updates.due_date !== undefined) safeUpdates.due_date = updates.due_date;
+  if (updates.assigned_to !== undefined) safeUpdates.assigned_to = updates.assigned_to;
+  if (updates.subtasks !== undefined) safeUpdates.subtasks = updates.subtasks;
+
+  const { data, error } = await ctx.admin
+    .from('project_tasks')
+    .update(safeUpdates)
+    .eq('id', taskId)
+    .eq('project_id', projectId)
+    .select()
+    .single();
+
+  if (error || !data) return { error: error?.message ?? 'Update failed' };
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true, task: data as ProjectTask };
 }

@@ -266,10 +266,11 @@ export default async function ProjectDetailPage({
               milestonesContent={
                 isTeamMember ? (
                   <ProjectTaskList
-                    projectId={project.id}
-                    initialTasks={projectTasks}
-                    canEdit={isTeamMember}
-                  />
+                      projectId={project.id}
+                      initialTasks={projectTasks}
+                      canEdit={isTeamMember}
+                      teamMembers={teamMembers}
+                    />
                 ) : null
               }
               filesContent={
