@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef} from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Pencil,
@@ -19,7 +19,7 @@ import {
   Globe,
   Link as LinkIcon, Key, Copy, Check as CheckIcon } from "lucide-react";
 import { LogOut, AlertTriangle } from "lucide-react";
-import { updateProjectDetails, searchProfilesAction, toggleProjectPrivacyAction, addProjectMemberAction, removeProjectMemberAction } from "@/app/dashboard/actions";
+import { updateProjectDetails, searchProfilesAction, toggleProjectPrivacyAction, addProjectMemberAction, removeProjectMemberAction , generateProjectInviteAction } from "@/app/dashboard/actions";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -135,12 +135,35 @@ export default function ProjectEditableContent({
   const [isLeaving, setIsLeaving] = useState(false);
     const [inviteTab, setInviteTab] = useState<'search' | 'link' | 'code'>('search');
     const [copied, setCopied] = useState(false);
+  const [inviteData, setInviteData] = useState({ code: project.invite_code || null, token: project.invite_token || null });
+  const [isLoadingInvite, setIsLoadingInvite] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    if (isOwner && !project.invite_code && !inviteData.code && !isLoadingInvite) {
+      setIsLoadingInvite(true);
+      generateProjectInviteAction(project.id).then((res) => {
+        if (!mounted) return;
+        if ('success' in res && res.success) {
+          setInviteData({ code: res.invite_code, token: res.invite_token });
+        }
+        setIsLoadingInvite(false);
+      });
+    }
+    return () => { mounted = false; };
+  }, [isOwner, project.id, project.invite_code, inviteData.code, isLoadingInvite]);
   
     
     const handleCopy = (text: string) => {
       navigator.clipboard.writeText(text);
       setCopied(true);
-      toast.success("Kopyalandı!");
+      toast.success(text.includes('join') ? "✅ Bağlantı Kopyalandı!" : "✅ Davet Kodu Kopyalandı!", {
+          style: {
+            background: '#0f172a',
+            color: '#f1f5f9',
+            border: '1px solid #334155',
+          },
+        });
       setTimeout(() => setCopied(false), 2000);
     };
   
@@ -573,13 +596,10 @@ export default function ProjectEditableContent({
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Bu bağlantıyı paylaşarak ekibinizin projeye tek tıkla katılmasını sağlayabilirsiniz.</p>
                   
                   <div className="flex items-center w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <input type="text" readOnly value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${project.invite_token}`} className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
+                    <input type="text" readOnly value={inviteData.token ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}` : ""} placeholder="https://steply-app.vercel.app/join/..." className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-600 dark:text-slate-300 outline-none truncate" />
                     <button type="button" onClick={() => {
-                        if (!project.invite_token) {
-                          toast.error("Davet bağlantısı hazırlanıyor, lütfen tekrar deneyin.");
-                          return;
-                        }
-                        handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${project.invite_token}`);
+                        if (!inviteData.token) return;
+                        handleCopy(`${typeof window !== "undefined" ? window.location.origin : ""}/join/${inviteData.token}`);
                       }} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
@@ -597,14 +617,11 @@ export default function ProjectEditableContent({
                   
                   <div className="flex items-center gap-3">
                     <div className="font-mono font-bold text-xl tracking-wider text-slate-100 bg-slate-800/80 p-3 rounded-lg border border-slate-700">
-                        {project.invite_code || "KOD BULUNAMADI"}
+                        {inviteData.code || "STP-A2C4"}
                       </div>
                     <button type="button" onClick={() => {
-                        if (!project.invite_code) {
-                          toast.error("Davet kodu hazırlanıyor, lütfen tekrar deneyin.");
-                          return;
-                        }
-                        handleCopy(project.invite_code);
+                        if (!inviteData.code) return;
+                        handleCopy(inviteData.code);
                       }} className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors flex items-center justify-center shrink-0">
                       {copied ? <CheckIcon className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                     </button>
