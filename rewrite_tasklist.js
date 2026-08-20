@@ -1,4 +1,6 @@
-"use client";
+﻿const fs = require('fs');
+
+const content = `"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -115,7 +117,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
-                width: `${progress}%`,
+                width: \`\${progress}%\`,
                 background: progress === 100
                   ? "linear-gradient(90deg, #10b981, #059669)"
                   : "linear-gradient(90deg, #6366f1, #7C3AFF)",
@@ -157,7 +159,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
                 )}
               </button>
               
-              <span className={`text-sm truncate ${task.is_completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200 font-medium'}`}>
+              <span className={\`text-sm truncate \${task.is_completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200 font-medium'}\`}>
                 {task.title}
               </span>
             </div>
@@ -223,3 +225,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/projects/ProjectTaskList.tsx', content, 'utf8');
+console.log('Completely rewrote ProjectTaskList.tsx to ensure correctness');
