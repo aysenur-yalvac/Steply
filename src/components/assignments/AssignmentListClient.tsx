@@ -172,15 +172,27 @@ export default function AssignmentListClient({
                       {isExpired ? "Suresi Doldu" : "Devam Ediyor"}
                     </span>
                     
-                    {isTeacher && (
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={(e) => handleDelete(e, assignment.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-500/10 transition-colors"
-                        title="Sil"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingAssignment(assignment);
+                        }}
+                        className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:text-slate-400 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/50 rounded-lg transition-all"
+                        title="Odevi Duzenle"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Pencil className="w-5 h-5" />
                       </button>
-                    )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, assignment.id)}
+                        className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/50 rounded-lg transition-all"
+                        title="Cop Kutusuna Tasi"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
 
                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-600 flex items-center justify-center transition-colors text-slate-400 group-hover:text-white shrink-0">
                       <ChevronRight className="w-4 h-4" />
@@ -199,3 +211,4 @@ export default function AssignmentListClient({
     </div>
   );
 }
+
