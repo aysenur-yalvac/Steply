@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FolderPlus, Clock, ChevronRight, FileText, Trash2 } from "lucide-react";
+import { FolderPlus, Clock, ChevronRight, FileText, Trash2, Pencil } from "lucide-react";
+import EditAssignmentModal from "./EditAssignmentModal";
 import CreateAssignmentModal from "./CreateAssignmentModal";
 import { softDeleteAssignmentAction } from "@/lib/actions";
 import type { Assignment } from "@/lib/actions";
@@ -17,6 +18,7 @@ export default function AssignmentListClient({
 }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const isTeacher = userRole?.toLowerCase() === "teacher" || userRole?.toLowerCase() === "ogretmen";
   const [selectedCourse, setSelectedCourse] = useState<string>("Tumu");
   const [selectedGrade, setSelectedGrade] = useState<string>("Tumu");
@@ -193,6 +195,7 @@ export default function AssignmentListClient({
 
       {/* Modal */}
       {isModalOpen && <CreateAssignmentModal onClose={() => setIsModalOpen(false)} />}
+      {editingAssignment && <EditAssignmentModal assignment={editingAssignment} onClose={() => { setEditingAssignment(null); router.refresh(); }} />}
     </div>
   );
 }

@@ -2240,26 +2240,35 @@ export async function createAssignmentAction(formData: {
   }
 }
 
-export async function updateAssignmentAction(
-  id: string,
-  title: string,
-  description: string,
-  due_date: string,
-  course_name: string
-): Promise<{ success: true; assignment: Assignment } | { error: string }> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
-    .from('assignments')
-    .update({ title, description, due_date, course_name })
-    .eq('id', id)
-    .select()
-    .single();
+export async function updateAssignmentAction(id: string, payload: {
+  title: string;
+  description?: string;
+  course_name: string;
+  grade: string;
+  due_date: string;
+}) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('assignments')
+      .update({
+        title: payload.title,
+        description: payload.description,
+        course_name: payload.course_name,
+        grade: payload.grade,
+        due_date: payload.due_date,
+      })
+      .eq('id', id)
+      .select();
 
-  if (error) return { error: error.message };
-  revalidatePath(`/dashboard/assignments/${id}`);
-  revalidatePath('/dashboard/assignments');
-  return { success: true, assignment: data };
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) return { success: false, error: 'Guncelleme yetkisi reddedildi.' };
+
+    revalidatePath('/dashboard/assignments');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Guncelleme hatasi.' };
+  }
 }
 
 export async function deleteAssignmentAction(id: string): Promise<{ success: boolean; error?: string }> {
@@ -2475,3 +2484,4 @@ export async function bulkPermanentDeleteAssignmentsAction(ids: string[]) {
     return { success: false, error: err.message };
   }
 }
+

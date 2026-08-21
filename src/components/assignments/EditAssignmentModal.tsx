@@ -3,14 +3,32 @@
 import { useState } from "react";
 import { X, Calendar, Type, AlignLeft, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createAssignmentAction } from "@/lib/actions";
+import { updateAssignmentAction } from "@/lib/actions";
+import type { Assignment } from "@/lib/actions";
 
-export default function CreateAssignmentModal({ onClose }: { onClose: () => void }) {
-  const [title, setTitle] = useState("");
-  const [courseName, setCourseName] = useState("Genel");
-  const [grade, setGrade] = useState("Tumu");
-  const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
+export default function EditAssignmentModal({ 
+  assignment, 
+  onClose 
+}: { 
+  assignment: Assignment;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(assignment.title);
+  const [courseName, setCourseName] = useState(assignment.course_name || "Genel");
+  const [grade, setGrade] = useState(assignment.grade || "Tumu");
+  const [description, setDescription] = useState(assignment.description || "");
+  
+  // Convert ISO string to format accepted by datetime-local (YYYY-MM-DDThh:mm)
+  const formatDatetimeLocal = (isoString: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    // Adjust for local timezone offset
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+    return localISOTime;
+  };
+
+  const [dueDate, setDueDate] = useState(formatDatetimeLocal(assignment.due_date));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -27,34 +45,34 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
     
     const isoDate = new Date(dueDate).toISOString();
 
-    const res = await createAssignmentAction({
+    const res = await updateAssignmentAction(assignment.id, {
       title,
       description,
       course_name: courseName,
-      due_date: isoDate,
       grade: grade,
+      due_date: isoDate,
     });
 
     setLoading(false);
 
     if (!res.success) {
-      alert(`VERITABANI HATASI: ${res.error}`);
+      alert(`GUNCELLEME HATASI: ${res.error}`);
       return;
     }
 
     onClose();
-    window.location.reload();
+    router.refresh(); // Or window.location.reload()
   };
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Yeni Odev Olustur</h2>
+        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Odevi Duzenle</h2>
           <button
             onClick={onClose}
-            className="p-2 bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white rounded-xl transition-colors"
+            className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -63,12 +81,12 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5 overflow-y-auto max-h-[80vh]">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+            <div className="p-3 rounded-xl bg-rose-100 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">
               {error}
             </div>
           )}
 
-                              <div className="flex gap-4">
+          <div className="flex gap-4">
             <div className="space-y-2 flex-1">
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
@@ -79,7 +97,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
                 placeholder="Orn: Yazilim Mimarisi"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 required
               />
             </div>
@@ -91,7 +109,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
               <select
                 value={grade}
                 onChange={(e) => setGrade(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               >
                 <option value="Tumu">Tumu</option>
                 <option value="1. Sinif">1. Sinif</option>
@@ -113,7 +131,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Orn: Algoritma Projesi"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               required
             />
           </div>
@@ -127,7 +145,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Odevin detaylari ve gereksinimleri..."
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all min-h-[100px] resize-none"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all min-h-[100px] resize-none"
             />
           </div>
 
@@ -140,7 +158,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
               type="datetime-local"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl p-3 scheme-light dark:scheme-dark focus:ring-2 focus:ring-indigo-500 transition-all"
               required
             />
             <p className="text-xs text-slate-500">
@@ -152,9 +170,9 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
             >
-              {loading ? "Olusturuluyor..." : "Odevi Olustur"}
+              {loading ? "Kaydediliyor..." : "Degisiklikleri Kaydet"}
             </button>
           </div>
         </form>
