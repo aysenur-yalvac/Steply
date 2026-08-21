@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard,
+  LayoutDashboard, FileText,
   BarChart2,
   Bookmark,
   Calendar,
@@ -49,6 +49,7 @@ const NAV_ITEMS = [
   { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
   { label: "Watchlist",   href: "#watchlist",            icon: Bookmark,  isWatchlist: true },
   { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
+  { label: "Odevler",     href: "/dashboard/assignments",icon: FileText },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
   { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
   { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
