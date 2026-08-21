@@ -3,6 +3,9 @@ import { createClient } from "@/utils/supabase/server";
 import { getAssignmentsAction } from "@/lib/actions";
 import AssignmentListClient from "@/components/assignments/AssignmentListClient";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Odevler - Steply",
   description: "Odev klasorleri",
