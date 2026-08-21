@@ -2346,12 +2346,23 @@ export async function getAssignmentSubmissionsAction(assignment_id: string): Pro
 export async function softDeleteAssignmentAction(id: string) {
   try {
     const supabase = await createClient();
-    const { error } = await supabase.from('assignments').update({ is_deleted: true }).eq('id', id);
-    if (error) return { success: false, error: error.message };
+    const { error } = await supabase
+      .from('assignments')
+      .update({ is_deleted: true })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Soft Delete DB Error:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/assignments');
     revalidatePath('/dashboard/assignments', 'page');
+    revalidatePath('/dashboard/trash/assignments');
+    revalidatePath('/dashboard/trash/assignments', 'page');
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return { success: false, error: err?.message || 'Silme islemi basarisiz.' };
   }
 }
 

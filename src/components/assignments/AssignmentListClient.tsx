@@ -38,16 +38,15 @@ export default function AssignmentListClient({
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
-    if (!confirm("Bu odevi silmek istediginize emin misiniz? (Cop kutusuna tasinacaktir)")) return;
-    
-    // Optimistic Update
-    setAssignmentsList(prev => prev.filter(item => item.id !== id));
+    if (!confirm('Bu odev cop kutusuna tasinsin mi?')) return;
 
     const res = await softDeleteAssignmentAction(id);
+    
     if (!res.success) {
-      alert("Silme basarisiz: " + res.error);
+      alert(`SILME BASARISIZ (DB HATASI): ${res.error}`);
       router.refresh();
     } else {
+      setAssignmentsList(prev => prev.filter(item => item.id !== id));
       router.refresh();
     }
   };
