@@ -24,7 +24,12 @@ export default async function AssignmentsPage() {
     .single();
 
   const userRole = profile?.role || "student";
-  const assignments = await getAssignmentsAction();
+  let assignments: any[] = [];
+  try {
+    assignments = await getAssignmentsAction();
+  } catch (error) {
+    console.error("Page level error fetching assignments:", error);
+  }
 
   return (
     <main className="min-h-screen p-6 lg:p-12 max-w-7xl mx-auto">

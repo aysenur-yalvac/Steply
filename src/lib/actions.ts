@@ -2253,18 +2253,23 @@ export async function deleteAssignmentAction(id: string): Promise<{ success: boo
 }
 
 export async function getAssignmentsAction(): Promise<Assignment[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('assignments')
-    .select('*, teacher:profiles!assignments_teacher_id_fkey(full_name)')
-    .order('created_at', { ascending: false });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('assignments')
+      .select('*, teacher:profiles!assignments_teacher_id_fkey(full_name)')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('[getAssignmentsAction] Supabase Database Error fetching assignments:', error.message, error.details, error.hint);
-    // Don't just swallow the error, throw it so page.tsx can render an error boundary or we at least see it in server logs
-    throw new Error('Odevler veritabanindan cekilemedi: ' + error.message);
+    if (error) {
+      console.error('Assignments Fetch Error:', error.message, error.details);
+      return []; // Sayfanin cokmesini engellemek icin guvenli fallback
+    }
+
+    return data || [];
+  } catch (err) {
+    console.error('Unexpected error fetching assignments:', err);
+    return [];
   }
-  return data || [];
 }
 
 export async function getAssignmentByIdAction(id: string): Promise<Assignment | null> {
