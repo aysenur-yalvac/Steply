@@ -2178,6 +2178,7 @@ export interface Assignment {
   title: string;
   description: string;
   teacher_id: string;
+  course_name: string;
   due_date: string;
   created_at: string;
   teacher?: { full_name: string | null };
@@ -2196,7 +2197,8 @@ export interface AssignmentSubmission {
 export async function createAssignmentAction(
   title: string,
   description: string,
-  due_date: string
+  due_date: string,
+  course_name: string
 ): Promise<{ success: true; assignment: Assignment } | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -2208,6 +2210,7 @@ export async function createAssignmentAction(
       title,
       description,
       due_date,
+      course_name,
       teacher_id: user.id
     })
     .select()
@@ -2222,13 +2225,14 @@ export async function updateAssignmentAction(
   id: string,
   title: string,
   description: string,
-  due_date: string
+  due_date: string,
+  course_name: string
 ): Promise<{ success: true; assignment: Assignment } | { error: string }> {
   const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('assignments')
-    .update({ title, description, due_date })
+    .update({ title, description, due_date, course_name })
     .eq('id', id)
     .select()
     .single();

@@ -1,11 +1,12 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { X, Calendar, Type, AlignLeft } from "lucide-react";
+import { X, Calendar, Type, AlignLeft, BookOpen } from "lucide-react";
 import { createAssignmentAction } from "@/lib/actions";
 
 export default function CreateAssignmentModal({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState("");
+  const [courseName, setCourseName] = useState("Genel");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
     // datetime-local returns YYYY-MM-DDTHH:mm, we need to convert to ISO string
     const isoDate = new Date(dueDate).toISOString();
     
-    const res = await createAssignmentAction(title, description, isoDate);
+    const res = await createAssignmentAction(title, description, isoDate, courseName);
     setLoading(false);
     
     if ("error" in res) {
@@ -55,6 +56,21 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
               {error}
             </div>
           )}
+
+                    <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-indigo-400" />
+              Ders Adi
+            </label>
+            <input
+              type="text"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+              placeholder="Orn: Yazilim Mimarisi"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              required
+            />
+          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
