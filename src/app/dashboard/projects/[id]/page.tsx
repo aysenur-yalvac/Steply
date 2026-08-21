@@ -272,6 +272,7 @@ export default async function ProjectDetailPage({
                         teamMembers={teamMembers}
                         currentUserId={user.id}
                         projectOwnerId={ownerUserId}
+                        projectOwnerName={ownerName}
                       />
                 ) : null
               }

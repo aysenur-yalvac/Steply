@@ -16,9 +16,10 @@ interface Props {
   teamMembers: TeamMember[];
   currentUserId?: string;
   projectOwnerId?: string;
+  projectOwnerName?: string | null;
 }
 
-export default function ProjectTaskList({ projectId, initialTasks, canEdit, teamMembers, currentUserId, projectOwnerId }: Props) {
+export default function ProjectTaskList({ projectId, initialTasks, canEdit, teamMembers, currentUserId, projectOwnerId, projectOwnerName }: Props) {
   const [tasks, setTasks] = useState<ProjectTask[]>(initialTasks);
   const [newTitle, setNewTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -293,6 +294,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
           teamMembers={teamMembers}
           currentUserId={currentUserId}
           projectOwnerId={projectOwnerId}
+          projectOwnerName={projectOwnerName}
           onUpdate={(updatedTask) => {
             handleUpdateTask(updatedTask);
             setSelectedTask(null);

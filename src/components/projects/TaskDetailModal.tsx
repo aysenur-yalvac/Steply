@@ -16,6 +16,7 @@ interface TaskDetailModalProps {
   onUpdate: (task: ProjectTask) => void;
   currentUserId?: string;
   projectOwnerId?: string;
+  projectOwnerName?: string | null;
 }
 
 export default function TaskDetailModal({
@@ -27,6 +28,7 @@ export default function TaskDetailModal({
   onUpdate,
   currentUserId,
   projectOwnerId,
+  projectOwnerName,
 }: TaskDetailModalProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [dueDate, setDueDate] = useState<string>(task.due_date || "");
@@ -103,7 +105,7 @@ export default function TaskDetailModal({
       const existingOwner = teamMembers.find((m) => m.id === projectOwnerId);
       const ownerMember: TeamMember = existingOwner ?? {
         id: projectOwnerId,
-        full_name: "Proje Sahibi",
+        full_name: projectOwnerName || (existingOwner as any)?.full_name || "Proje Sahibi",
         avatar_url: null,
         role: "owner",
       };
