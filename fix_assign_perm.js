@@ -1,4 +1,6 @@
-"use client";
+﻿const fs = require("fs");
+
+const content = `"use client";
 
 import React, { useState } from "react";
 import { X, Calendar, User, ListTodo, Plus, Trash2, CheckSquare, Square, Loader2 } from "lucide-react";
@@ -208,7 +210,7 @@ export default function TaskDetailModal({
                       : <Square className="w-4 h-4" />
                     }
                   </button>
-                  <span className={`flex-1 text-sm ${sub.is_completed ? "line-through text-slate-400" : "text-slate-700 dark:text-slate-200"}`}>
+                  <span className={\`flex-1 text-sm \${sub.is_completed ? "line-through text-slate-400" : "text-slate-700 dark:text-slate-200"}\`}>
                     {sub.title}
                   </span>
                   <button
@@ -230,3 +232,7 @@ export default function TaskDetailModal({
     </div>
   );
 }
+`;
+
+fs.writeFileSync("src/components/projects/TaskDetailModal.tsx", content, "utf8");
+console.log("Updated TaskDetailModal with canAssignTask permission logic");

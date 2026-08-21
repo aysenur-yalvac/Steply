@@ -271,6 +271,7 @@ export default async function ProjectDetailPage({
                         canEdit={isTeamMember}
                         teamMembers={teamMembers}
                         currentUserId={user.id}
+                        projectOwnerId={ownerUserId}
                       />
                 ) : null
               }
