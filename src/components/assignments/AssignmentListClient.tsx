@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FolderPlus, Clock, ChevronRight, FileText, Trash2 } from "lucide-react";
 import CreateAssignmentModal from "./CreateAssignmentModal";
@@ -20,11 +20,17 @@ export default function AssignmentListClient({
   const isTeacher = userRole?.toLowerCase() === "teacher" || userRole?.toLowerCase() === "ogretmen";
   const [selectedCourse, setSelectedCourse] = useState<string>("Tumu");
   const [selectedGrade, setSelectedGrade] = useState<string>("Tumu");
+  
+  const [assignmentsList, setAssignmentsList] = useState<Assignment[]>(assignments);
+  
+  useEffect(() => {
+    setAssignmentsList(assignments);
+  }, [assignments]);
 
-  const courses = ["Tumu", ...Array.from(new Set(assignments.map(a => a.course_name || "Genel")))];
-  const grades = ["Tumu", ...Array.from(new Set(assignments.map(a => a.grade || "Tumu"))).filter(g => g !== "Tumu")];
+  const courses = ["Tumu", ...Array.from(new Set(assignmentsList.map(a => a.course_name).filter(Boolean)))];
+  const grades = ["Tumu", ...Array.from(new Set(assignmentsList.map(a => a.grade).filter(Boolean))).filter(g => g !== "Tumu")];
 
-  const filteredAssignments = assignments.filter(a => {
+  const filteredAssignments = assignmentsList.filter(a => {
     const courseMatch = selectedCourse === "Tumu" || (a.course_name || "Genel") === selectedCourse;
     const gradeMatch = selectedGrade === "Tumu" || (a.grade || "Tumu") === selectedGrade;
     return courseMatch && gradeMatch;
@@ -33,11 +39,16 @@ export default function AssignmentListClient({
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     if (!confirm("Bu odevi silmek istediginize emin misiniz? (Cop kutusuna tasinacaktir)")) return;
+    
+    // Optimistic Update
+    setAssignmentsList(prev => prev.filter(item => item.id !== id));
+
     const res = await softDeleteAssignmentAction(id);
-    if (res.success) {
+    if (!res.success) {
+      alert("Silme basarisiz: " + res.error);
       router.refresh();
     } else {
-      alert("Silme basarisiz: " + res.error);
+      router.refresh();
     }
   };
 
@@ -62,7 +73,7 @@ export default function AssignmentListClient({
       </div>
 
       {/* Filters */}
-      {assignments.length > 0 && (
+      {assignmentsList.length > 0 && (
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-3">
             <label className="text-sm text-slate-600 dark:text-slate-400 font-medium">Ders:</label>
@@ -72,7 +83,7 @@ export default function AssignmentListClient({
               className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none shadow-sm"
             >
               {courses.map(c => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{c === "Tumu" ? "Tum Dersler" : c}</option>
               ))}
             </select>
           </div>
@@ -85,7 +96,7 @@ export default function AssignmentListClient({
               className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none shadow-sm"
             >
               {grades.map(g => (
-                <option key={g} value={g}>{g}</option>
+                <option key={g} value={g}>{g === "Tumu" ? "Tum Siniflar" : g}</option>
               ))}
             </select>
           </div>
@@ -93,7 +104,7 @@ export default function AssignmentListClient({
       )}
 
       {/* List */}
-      {assignments.length === 0 ? (
+      {assignmentsList.length === 0 ? (
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
           <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
             <FileText className="w-10 h-10 text-slate-500" />

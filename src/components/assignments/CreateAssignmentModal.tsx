@@ -94,10 +94,11 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               >
                 <option value="Tumu">Tumu</option>
-                <option value="9. Sinif">9. Sinif</option>
-                <option value="10. Sinif">10. Sinif</option>
-                <option value="11. Sinif">11. Sinif</option>
-                <option value="12. Sinif">12. Sinif</option>
+                <option value="1. Sinif">1. Sinif</option>
+                <option value="2. Sinif">2. Sinif</option>
+                <option value="3. Sinif">3. Sinif</option>
+                <option value="4. Sinif">4. Sinif</option>
+                <option value="Yuksek Lisans / Doktora">Yuksek Lisans / Doktora</option>
               </select>
             </div>
           </div>
