@@ -2194,32 +2194,45 @@ export interface AssignmentSubmission {
   student?: { full_name: string | null };
 }
 
-export async function createAssignmentAction(
-  title: string,
-  description: string,
-  due_date: string,
-  course_name: string
-): Promise<{ success: true; assignment: Assignment } | { error: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Unauthorized' };
+export async function createAssignmentAction(formData: {
+  title: string;
+  description?: string;
+  course_name?: string;
+  due_date: string;
+}) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
-    .from('assignments')
-    .insert({
-      title,
-      description,
-      due_date,
-      course_name,
-      teacher_id: user.id
-    })
-    .select()
-    .single();
+    if (userError || !user) {
+      return { success: false, error: 'Oturum acmis bir kullanici bulunamadi.' };
+    }
 
-  if (error) return { error: error.message };
-  revalidatePath('/dashboard/assignments');
-  revalidatePath('/dashboard/assignments', 'page');
-  return { success: true, assignment: data };
+    const { data, error } = await supabase
+      .from('assignments')
+      .insert([
+        {
+          title: formData.title,
+          description: formData.description || '',
+          course_name: formData.course_name || 'Genel',
+          teacher_id: user.id,
+          due_date: formData.due_date,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error('Assignment Insert Error:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/assignments');
+    revalidatePath('/dashboard/assignments', 'page');
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('Unexpected createAssignmentAction Error:', err);
+    return { success: false, error: err?.message || 'Beklenmeyen bir hata olustu.' };
+  }
 }
 
 export async function updateAssignmentAction(

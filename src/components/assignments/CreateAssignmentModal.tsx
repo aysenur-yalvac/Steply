@@ -14,29 +14,34 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !dueDate) {
       setError("Baslik ve Son Teslim Tarihi zorunludur.");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
     
-    // datetime-local returns YYYY-MM-DDTHH:mm, we need to convert to ISO string
     const isoDate = new Date(dueDate).toISOString();
-    
-    const res = await createAssignmentAction(title, description, isoDate, courseName);
+
+    const res = await createAssignmentAction({
+      title,
+      description,
+      course_name: courseName,
+      due_date: isoDate,
+    });
+
     setLoading(false);
-    
-    if ("error" in res) {
-      setError(res.error);
-    } else {
+
+    if (res.success) {
       onClose();
       router.refresh();
+    } else {
+      setError(res.error || 'Odev olusturulamadi.');
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
