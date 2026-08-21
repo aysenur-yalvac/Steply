@@ -8,6 +8,7 @@ import { createAssignmentAction } from "@/lib/actions";
 export default function CreateAssignmentModal({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [courseName, setCourseName] = useState("Genel");
+  const [grade, setGrade] = useState("Tumu");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
       description,
       course_name: courseName,
       due_date: isoDate,
+      grade: grade,
     });
 
     setLoading(false);
@@ -66,19 +68,38 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
             </div>
           )}
 
-                    <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-400" />
-              Ders Adi
-            </label>
-            <input
-              type="text"
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-              placeholder="Orn: Yazilim Mimarisi"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-              required
-            />
+                              <div className="flex gap-4">
+            <div className="space-y-2 flex-1">
+              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                Ders Adi
+              </label>
+              <input
+                type="text"
+                value={courseName}
+                onChange={(e) => setCourseName(e.target.value)}
+                placeholder="Orn: Yazilim Mimarisi"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2 flex-1">
+              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                Sinif / Duzey
+              </label>
+              <select
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              >
+                <option value="Tumu">Tumu</option>
+                <option value="9. Sinif">9. Sinif</option>
+                <option value="10. Sinif">10. Sinif</option>
+                <option value="11. Sinif">11. Sinif</option>
+                <option value="12. Sinif">12. Sinif</option>
+              </select>
+            </div>
           </div>
 
           <div className="space-y-2">

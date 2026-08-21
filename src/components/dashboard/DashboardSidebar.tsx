@@ -59,7 +59,8 @@ const NAV_ITEMS = [
     icon: Trash2,
     subItems: [
       { label: "Silinen Projeler", href: "/dashboard/trash/projects" },
-      { label: "Silinen Dosyalar", href: "/dashboard/trash/files" }
+      { label: "Silinen Dosyalar", href: "/dashboard/trash/files" },
+      { label: "Silinen Odevler", href: "/dashboard/trash/assignments" }
     ]
   },
 ];

@@ -87,14 +87,14 @@ export default function AssignmentDetailClient({
     const studentName = sub.student?.full_name || "Bilinmeyen Ogrenci";
     
     return (
-      <div key={sub.id} className="flex items-center justify-between p-4 bg-slate-900/50 border border-slate-800 rounded-xl hover:bg-slate-800/50 transition-colors">
+      <div key={sub.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-800/50 transition-colors">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-slate-200 break-all">
-              {sub.file_name} <span className="text-slate-500 font-normal mx-1">-</span> {studentName} <span className="text-slate-500 font-normal mx-1">-</span> <span className="text-slate-400">{time}</span> <span className="text-slate-500 font-normal mx-1">-</span> <span className="text-slate-400">{date}</span>
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 break-all">
+              {sub.file_name} <span className="text-slate-500 font-normal mx-1">-</span> {studentName} <span className="text-slate-500 font-normal mx-1">-</span> <span className="text-slate-600 dark:text-slate-400">{time}</span> <span className="text-slate-500 font-normal mx-1">-</span> <span className="text-slate-600 dark:text-slate-400">{date}</span>
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function AssignmentDetailClient({
             href={sub.file_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors shrink-0"
+            className="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors shrink-0"
             title="Dosyayi Indir/Goruntule"
           >
             <Download className="w-5 h-5" />
@@ -119,21 +119,21 @@ export default function AssignmentDetailClient({
       {/* Header Back Button */}
       <Link 
         href="/dashboard/assignments"
-        className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-400 transition-colors font-medium mb-2"
+        className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-400 transition-colors font-medium mb-2"
       >
         <ArrowLeft className="w-4 h-4" />
         Odevlere Don
       </Link>
 
       {/* Assignment Info */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
           <FileText className="w-64 h-64" />
         </div>
         
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold text-white mb-4">{assignment.title}</h1>
-          <p className="text-slate-300 text-lg leading-relaxed max-w-3xl mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">{assignment.title}</h1>
+          <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed max-w-3xl mb-8">
             {assignment.description || "Bu odev icin aciklama girilmemis."}
           </p>
           
@@ -144,8 +144,8 @@ export default function AssignmentDetailClient({
             </div>
             
             {assignment.teacher?.full_name && (
-              <div className="text-sm text-slate-400">
-                Olusturan: <span className="text-slate-300">{assignment.teacher.full_name}</span>
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                Olusturan: <span className="text-slate-700 dark:text-slate-300">{assignment.teacher.full_name}</span>
               </div>
             )}
           </div>
@@ -155,7 +155,7 @@ export default function AssignmentDetailClient({
       {/* Upload Zone (For Students) */}
       {!isTeacher && (
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white">Odev Yukle</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Odev Yukle</h2>
           
           {isExpired ? (
             <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
@@ -166,7 +166,7 @@ export default function AssignmentDetailClient({
               </p>
             </div>
           ) : (
-            <div className="bg-slate-900/50 border border-slate-800 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-colors relative">
+            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-colors relative">
               <input 
                 type="file" 
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
@@ -185,8 +185,8 @@ export default function AssignmentDetailClient({
                   <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
                     <UploadCloud className="w-8 h-8 text-indigo-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Dosyanizi buraya surukleyin veya secin</h3>
-                  <p className="text-slate-400">Yuklemek istediginiz dosyaya tiklayarak secebilirsiniz.</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Dosyanizi buraya surukleyin veya secin</h3>
+                  <p className="text-slate-600 dark:text-slate-400">Yuklemek istediginiz dosyaya tiklayarak secebilirsiniz.</p>
                 </>
               )}
             </div>
@@ -202,12 +202,12 @@ export default function AssignmentDetailClient({
 
       {/* Submissions List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
           {isTeacher ? "Tum Yuklemeler" : "Yukledigim Dosyalar"}
         </h2>
         
         {submissions.length === 0 ? (
-          <div className="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-8 text-center text-slate-500">
+          <div className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/50 rounded-2xl p-8 text-center text-slate-500">
             {isTeacher ? "Henuz hicbir ogrenci dosya yuklemedi." : "Henuz bir dosya yuklemediniz."}
           </div>
         ) : (
