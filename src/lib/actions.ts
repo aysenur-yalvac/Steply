@@ -2205,7 +2205,8 @@ export async function createAssignmentAction(formData: {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return { success: false, error: 'Oturum acmis bir kullanici bulunamadi.' };
+      console.error('Auth Error:', userError);
+      return { success: false, error: 'Oturum kapali veya Auth User bulunamadi.' };
     }
 
     const { data, error } = await supabase

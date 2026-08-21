@@ -35,12 +35,13 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
 
     setLoading(false);
 
-    if (res.success) {
-      onClose();
-      router.refresh();
-    } else {
-      setError(res.error || 'Odev olusturulamadi.');
+    if (!res.success) {
+      alert(`VERITABANI HATASI: ${res.error}`);
+      return;
     }
+
+    onClose();
+    window.location.reload();
   };
 
   return (
