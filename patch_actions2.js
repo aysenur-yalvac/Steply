@@ -1,19 +1,33 @@
 ﻿const fs = require("fs");
 let actions = fs.readFileSync("src/lib/actions.ts", "utf8");
 
-// Fetch existing task to compare
-const fetchExistingStr = `  const { data: existingTask } = await ctx.admin.from('project_tasks').select('*').eq('id', taskId).single();
+const oldStr = `  const { data, error } = await ctx.admin
+    .from('project_tasks')
+    .update(safeUpdates)
+    .eq('id', taskId)
+    .eq('project_id', projectId)
+    .select()
+    .single();
 
-  const { data, error } = await ctx.admin`;
-actions = actions.replace("  const { data, error } = await ctx.admin", fetchExistingStr);
+  if (error || !data) return { error: error?.message ?? 'Update failed' };
 
-// Add notification logic after update success
-const notificationLogic = `  if (error) {
-    console.error('Update task error:', error);
-    return { error: 'Gorev guncellenemedi.' };
-  }
+  revalidatePath(\`/dashboard/projects/\${projectId}\`);
+  return { success: true, task: data as ProjectTask };
+}`;
 
-  // --- Notifications ---
+const newStr = `  const { data: existingTask } = await ctx.admin.from('project_tasks').select('*').eq('id', taskId).single();
+
+  const { data, error } = await ctx.admin
+    .from('project_tasks')
+    .update(safeUpdates)
+    .eq('id', taskId)
+    .eq('project_id', projectId)
+    .select()
+    .single();
+
+  if (error || !data) return { error: error?.message ?? 'Update failed' };
+
+  // --- Notifications Logic ---
   if (existingTask) {
     const title = data.title || 'Bir gorev';
     // Notification: Task assigned
@@ -31,8 +45,6 @@ const notificationLogic = `  if (error) {
     }
     // Notification: Task completed
     if (data.is_completed === true && existingTask.is_completed === false) {
-      // Notify owner if the completer is not the owner
-      // We need project owner...
       const { data: proj } = await ctx.admin.from('projects').select('student_id').eq('id', projectId).single();
       const ownerId = proj?.student_id;
       const { data: completer } = await ctx.admin.from('profiles').select('full_name').eq('id', ctx.user.id).single();
@@ -49,10 +61,12 @@ const notificationLogic = `  if (error) {
       }
     }
   }
-  // -------------------
+  // ---------------------------
 
-  return { success: true, task: data as ProjectTask };`;
+  revalidatePath(\`/dashboard/projects/\${projectId}\`);
+  return { success: true, task: data as ProjectTask };
+}`;
 
-actions = actions.replace(/  if \(error\) \{\s*console.error\('Update task error:', error\);\s*return \{ error: 'G\u00f6rev g\u00fcncellenemedi\.' \};\s*\}\s*return \{ success: true, task: data as ProjectTask \};/g, notificationLogic);
-
-// We need to use exact matching for the replace, so let's do it with a safer regex or exact string.
+actions = actions.replace(oldStr, newStr);
+fs.writeFileSync("src/lib/actions.ts", actions, "utf8");
+console.log("Patched actions.ts");

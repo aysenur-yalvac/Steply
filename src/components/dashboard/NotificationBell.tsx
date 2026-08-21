@@ -46,15 +46,15 @@ function typeIcon(type: Notification["type"]) {
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return "şimdi";
+  if (m < 60) return `${m}dk önce`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}sa önce`;
+  return `${Math.floor(h / 24)}g önce`;
 }
 
 function notificationHref(n: Notification): string | null {
-  if (n.related_id && (n.type === "message" || n.type === "project")) {
+  if (n.related_id && (n.type === "message" || n.type === "project" || n.type === "task")) {
     return `/dashboard/projects/${n.related_id}`;
   }
   return null;
@@ -73,6 +73,7 @@ export default function NotificationBell({
   const router = useRouter();
 
   const unread = notifications.filter((n) => !n.is_read).length;
+  const topNotifications = notifications.slice(0, 10);
 
   // ── Supabase Realtime: push new notifications without page reload ────────────
   useEffect(() => {
@@ -165,14 +166,14 @@ export default function NotificationBell({
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Notifications</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Bildirimler</span>
               <div className="flex items-center gap-1">
                 {unread > 0 && (
                   <button
                     onClick={handleMarkAllRead}
                     className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 font-medium px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors"
                   >
-                    <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+                    <CheckCheck className="w-3.5 h-3.5" /> Tümünü Okundu İşaretle
                   </button>
                 )}
                 <button
@@ -186,13 +187,13 @@ export default function NotificationBell({
 
             {/* List */}
             <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 [scrollbar-width:thin]">
-              {notifications.length === 0 ? (
+              {topNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                   <Bell className="w-8 h-8 mb-2 opacity-40" strokeWidth={1.5} />
-                  <p className="text-sm">No notifications yet</p>
+                  <p className="text-sm">Henüz bildirim yok</p>
                 </div>
               ) : (
-                notifications.map((n) => {
+                topNotifications.map((n) => {
                   const href = notificationHref(n);
                   return (
                     <button
