@@ -91,6 +91,11 @@ export default function TaskDetailModal({
 
   const completedCount = subtasks.filter(s => s.is_completed).length;
 
+  // Exclude teachers from assignable list — only students and project owner can be assigned
+  const assignableMembers = teamMembers.filter(
+    (m) => m.role !== "teacher" && m.role !== "ogretmen"
+  );
+
   return (
     <div
       className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
@@ -140,8 +145,10 @@ export default function TaskDetailModal({
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">Atanmamis</option>
-                {teamMembers.map(member => (
-                  <option key={member.id} value={member.id}>{member.full_name}</option>
+                {assignableMembers.map(member => (
+                  <option key={member.id} value={member.id}>
+                    {member.full_name}{member.id === projectOwnerId ? " 👑 (Proje Sahibi)" : ""}
+                  </option>
                 ))}
               </select>
               {!canAssignTask && (
