@@ -2218,6 +2218,7 @@ export async function createAssignmentAction(
 
   if (error) return { error: error.message };
   revalidatePath('/dashboard/assignments');
+  revalidatePath('/dashboard/assignments', 'page');
   return { success: true, assignment: data };
 }
 
@@ -2259,8 +2260,9 @@ export async function getAssignmentsAction(): Promise<Assignment[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching assignments:', error);
-    return [];
+    console.error('[getAssignmentsAction] Supabase Database Error fetching assignments:', error.message, error.details, error.hint);
+    // Don't just swallow the error, throw it so page.tsx can render an error boundary or we at least see it in server logs
+    throw new Error('Odevler veritabanindan cekilemedi: ' + error.message);
   }
   return data || [];
 }

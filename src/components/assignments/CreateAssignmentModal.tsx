@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Calendar, Type, AlignLeft, BookOpen } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { createAssignmentAction } from "@/lib/actions";
 
 export default function CreateAssignmentModal({ onClose }: { onClose: () => void }) {
@@ -11,6 +12,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,6 +34,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
       setError(res.error);
     } else {
       onClose();
+      router.refresh();
     }
   }
 
