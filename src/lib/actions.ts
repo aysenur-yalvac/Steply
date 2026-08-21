@@ -2346,20 +2346,28 @@ export async function getAssignmentSubmissionsAction(assignment_id: string): Pro
 export async function softDeleteAssignmentAction(id: string) {
   try {
     const supabase = await createClient();
-    const { error } = await supabase
+    
+    // .select() ekleyerek gercekten etkilenen satiri cekiyoruz!
+    const { data, error } = await supabase
       .from('assignments')
       .update({ is_deleted: true })
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
     if (error) {
-      console.error('Soft Delete DB Error:', error);
       return { success: false, error: error.message };
     }
 
+    // EGER DATA BOSSA RLS ENGELLEMIS DEMEKTIR, KESINLIKLE BASARILI DONME!
+    if (!data || data.length === 0) {
+      return { 
+        success: false, 
+        error: 'Veritabaninda 0 satir guncellendi! RLS kurali guncellemeye izin vermiyor.' 
+      };
+    }
+
     revalidatePath('/dashboard/assignments');
-    revalidatePath('/dashboard/assignments', 'page');
     revalidatePath('/dashboard/trash/assignments');
-    revalidatePath('/dashboard/trash/assignments', 'page');
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Silme islemi basarisiz.' };
@@ -2369,8 +2377,9 @@ export async function softDeleteAssignmentAction(id: string) {
 export async function restoreAssignmentAction(id: string) {
   try {
     const supabase = await createClient();
-    const { error } = await supabase.from('assignments').update({ is_deleted: false }).eq('id', id);
+    const { data, error } = await supabase.from('assignments').update({ is_deleted: false }).eq('id', id).select();
     if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) return { success: false, error: 'Veritabaninda 0 satir guncellendi! RLS kurali izin vermiyor.' };
     revalidatePath('/dashboard/trash/assignments', 'page');
     revalidatePath('/dashboard/assignments', 'page');
     return { success: true };
@@ -2382,8 +2391,9 @@ export async function restoreAssignmentAction(id: string) {
 export async function permanentlyDeleteAssignmentAction(id: string) {
   try {
     const supabase = await createClient();
-    const { error } = await supabase.from('assignments').delete().eq('id', id);
+    const { data, error } = await supabase.from('assignments').delete().eq('id', id).select();
     if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) return { success: false, error: 'Veritabaninda 0 satir silindi! RLS kurali izin vermiyor.' };
     revalidatePath('/dashboard/trash/assignments', 'page');
     return { success: true };
   } catch (err: any) {
