@@ -164,7 +164,7 @@ export default function TaskDetailModal({
                 <option value="">Atanmamis</option>
                 {assignableMembers.map(member => (
                   <option key={member.id} value={member.id}>
-                    {member.full_name}{member.id === projectOwnerId ? " 👑 (Proje Sahibi)" : ""}
+                    {member.full_name || (member as any).email}
                   </option>
                 ))}
               </select>
