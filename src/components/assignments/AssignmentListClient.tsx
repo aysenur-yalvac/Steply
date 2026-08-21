@@ -17,7 +17,6 @@ export default function AssignmentListClient({
   const isTeacher = userRole?.toLowerCase() === "teacher" || userRole?.toLowerCase() === "ogretmen";
   const [selectedCourse, setSelectedCourse] = useState<string>("Tumu");
 
-  
   const courses = ["Tumu", ...Array.from(new Set(assignments.map(a => a.course_name || "Genel")))];
   const filteredAssignments = selectedCourse === "Tumu" 
     ? assignments 
@@ -43,7 +42,6 @@ export default function AssignmentListClient({
         )}
       </div>
 
-      
       {/* Filters */}
       {assignments.length > 0 && (
         <div className="flex items-center gap-3">
@@ -61,7 +59,6 @@ export default function AssignmentListClient({
       )}
 
       {/* List */}
-
       {assignments.length === 0 ? (
         <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 flex flex-col items-center justify-center text-center">
           <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6">
@@ -75,7 +72,7 @@ export default function AssignmentListClient({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="flex flex-col gap-3">
           {filteredAssignments.map((assignment) => {
             const isExpired = new Date() > new Date(assignment.due_date);
             const formattedDate = new Date(assignment.due_date).toLocaleString('tr-TR', {
@@ -86,47 +83,46 @@ export default function AssignmentListClient({
               <Link 
                 href={`/dashboard/assignments/${assignment.id}`}
                 key={assignment.id}
-                className="group relative bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 p-6 rounded-2xl transition-all shadow-xl shadow-black/20 flex flex-col h-full"
+                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-900/50 border border-slate-800 rounded-xl hover:bg-slate-800/80 hover:border-slate-700 transition-all gap-4 shadow-sm"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-                    <FileText className="w-6 h-6" />
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                    <FileText className="w-5 h-5" />
                   </div>
-                  {isExpired ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-semibold border border-rose-500/20">
-                      <Clock className="w-3.5 h-3.5" />
-                      Suresi Doldu
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-                      <Clock className="w-3.5 h-3.5" />
-                      Devam Ediyor
-                    </span>
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h3 className="font-semibold text-white truncate group-hover:text-indigo-400 transition-colors">
+                        {assignment.title}
+                      </h3>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium border border-slate-700 uppercase tracking-wider shrink-0">
+                        {assignment.course_name || "Genel"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-400 line-clamp-1">
+                      {assignment.description || "Aciklama bulunmuyor."}
+                    </p>
+                  </div>
                 </div>
 
-                
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors line-clamp-1">
-                  {assignment.title}
-                </h3>
-                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 mb-3 w-fit">
-                  {assignment.course_name || "Genel"}
-                </span>
-                
-                <p className="text-sm text-slate-400 line-clamp-2 mb-6 flex-grow">
-
-                  {assignment.description || "Aciklama bulunmuyor."}
-                </p>
-
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-sm">
-                  <div className="text-slate-400">
-                    <span className="block text-xs text-slate-500 mb-0.5">Son Teslim</span>
-                    <span className={`font-medium ${isExpired ? "text-rose-400/80" : "text-slate-300"}`}>
+                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-800 shrink-0">
+                  <div className="text-left sm:text-right">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-0.5">Son Teslim</span>
+                    <span className={`text-xs font-medium ${isExpired ? "text-rose-400/80" : "text-slate-300"}`}>
                       {formattedDate}
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-800 group-hover:bg-indigo-500 flex items-center justify-center transition-colors text-slate-400 group-hover:text-white">
-                    <ChevronRight className="w-4 h-4" />
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs px-2.5 py-1 rounded-lg font-medium border flex items-center gap-1.5 ${
+                      isExpired 
+                        ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                        : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    }`}>
+                      <Clock className="w-3.5 h-3.5" />
+                      {isExpired ? "Suresi Doldu" : "Devam Ediyor"}
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-slate-800 group-hover:bg-indigo-500 flex items-center justify-center transition-colors text-slate-400 group-hover:text-white shrink-0">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
               </Link>
