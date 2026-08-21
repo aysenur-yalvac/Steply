@@ -1,4 +1,6 @@
-"use client";
+﻿const fs = require("fs");
+
+const content = `"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -114,7 +116,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
-                width: `${progress}%`,
+                width: \`\${progress}%\`,
                 background: progress === 100
                   ? "linear-gradient(90deg, #10b981, #059669)"
                   : "linear-gradient(90deg, #6366f1, #7C3AFF)",
@@ -290,3 +292,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
     </div>
   );
 }
+`;
+
+fs.writeFileSync("src/components/projects/ProjectTaskList.tsx", content, "utf8");
+console.log("Rewrote ProjectTaskList.tsx with rich task cards");
