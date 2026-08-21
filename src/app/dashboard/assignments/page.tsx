@@ -31,6 +31,7 @@ export default async function AssignmentsPage() {
   const { data: assignments, error } = await supabase
     .from('assignments')
     .select('*, teacher:profiles!assignments_teacher_id_fkey(full_name)')
+    .or('is_deleted.eq.false,is_deleted.is.null')
     .order('created_at', { ascending: false });
 
   // Eger veritabani okuma hatasi varsa KESINLIKLE GIZLEME, ekrana kirmizi kutuda bas!
