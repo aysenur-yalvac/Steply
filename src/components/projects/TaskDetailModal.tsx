@@ -92,9 +92,24 @@ export default function TaskDetailModal({
   const completedCount = subtasks.filter(s => s.is_completed).length;
 
   // Exclude teachers from assignable list — only students and project owner can be assigned
-  const assignableMembers = teamMembers.filter(
+  let assignableMembers = teamMembers.filter(
     (m) => m.role !== "teacher" && m.role !== "ogretmen"
   );
+
+  // Guarantee the project owner is always in the list even if not in teamMembers
+  if (projectOwnerId) {
+    const isOwnerInList = assignableMembers.some((m) => m.id === projectOwnerId);
+    if (!isOwnerInList) {
+      const existingOwner = teamMembers.find((m) => m.id === projectOwnerId);
+      const ownerMember: TeamMember = existingOwner ?? {
+        id: projectOwnerId,
+        full_name: "Proje Sahibi",
+        avatar_url: null,
+        role: "owner",
+      };
+      assignableMembers = [ownerMember, ...assignableMembers];
+    }
+  }
 
   return (
     <div
