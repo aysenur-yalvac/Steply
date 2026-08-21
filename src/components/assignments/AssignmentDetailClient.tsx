@@ -46,14 +46,15 @@ export default function AssignmentDetailClient({
     
     try {
       const supabase = createClient();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}_${Date.now()}.${fileExt}`;
-      const filePath = `${assignment.id}/${fileName}`;
+      const filePath = `${assignment.id}/${file.name}`;
 
       // Upload to storage
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('assignments')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
       if (uploadError) throw uploadError;
 
@@ -219,3 +220,4 @@ export default function AssignmentDetailClient({
     </div>
   );
 }
+
