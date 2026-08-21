@@ -18,23 +18,38 @@ export default function TrashAssignmentListClient({
 }) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleRestore = async (id: string) => {
-    const res = await restoreAssignmentAction(id);
-    if (res.success) {
-      router.refresh();
-    } else {
-      alert("Geri yukleme basarisiz: " + res.error);
+    setIsProcessing(true);
+    try {
+      const res = await restoreAssignmentAction(id);
+      if (res.success) {
+        router.refresh();
+      } else {
+        alert("Geri yukleme basarisiz: " + res.error);
+      }
+    } catch (err: any) {
+      alert("Beklenmeyen Hata: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handlePermDelete = async (id: string) => {
     if (!confirm("Bu odevi kalici olarak silmek istediginize emin misiniz? Bu islem geri alinamaz!")) return;
-    const res = await permanentlyDeleteAssignmentAction(id);
-    if (res.success) {
-      router.refresh();
-    } else {
-      alert("Silme basarisiz: " + res.error);
+    setIsProcessing(true);
+    try {
+      const res = await permanentlyDeleteAssignmentAction(id);
+      if (res.success) {
+        router.refresh();
+      } else {
+        alert("Silme basarisiz: " + res.error);
+      }
+    } catch (err: any) {
+      alert("Beklenmeyen Hata: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -56,25 +71,39 @@ export default function TrashAssignmentListClient({
     if (selectedIds.length === 0) return;
     if (!confirm(`${selectedIds.length} adet odevi geri yuklemek istediginize emin misiniz?`)) return;
     
-    const res = await bulkRestoreAssignmentsAction(selectedIds);
-    if (res.success) {
-      setSelectedIds([]);
-      router.refresh();
-    } else {
-      alert("Geri yukleme basarisiz: " + res.error);
+    setIsProcessing(true);
+    try {
+      const res = await bulkRestoreAssignmentsAction(selectedIds);
+      if (res.success) {
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        alert("Geri yukleme basarisiz: " + res.error);
+      }
+    } catch (err: any) {
+      alert("Beklenmeyen Hata: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`${selectedIds.length} adet odevi kalici olarak silmek istediginize emin misiniz? Bu islem geri alinamaz!`)) return;
+    if (!confirm(`Secilen ${selectedIds.length} adet odev kalici olarak silinecek! Bu islem geri alinamaz.`)) return;
     
-    const res = await bulkPermanentDeleteAssignmentsAction(selectedIds);
-    if (res.success) {
-      setSelectedIds([]);
-      router.refresh();
-    } else {
-      alert("Silme basarisiz: " + res.error);
+    setIsProcessing(true);
+    try {
+      const res = await bulkPermanentDeleteAssignmentsAction(selectedIds);
+      if (res.success) {
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        alert("KALICI SILME HATASI: " + res.error);
+      }
+    } catch (err: any) {
+      alert("Beklenmeyen Hata: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -101,16 +130,14 @@ export default function TrashAssignmentListClient({
 
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2">
-              <button 
-                onClick={handleBulkRestore}
-                className="px-3 py-2 text-xs font-semibold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+              <button onClick={handleBulkRestore} disabled={isProcessing}
+                className="px-3 py-2 text-xs font-semibold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 <FolderUp className="w-3.5 h-3.5" />
                 Secilenleri Geri Yukle
               </button>
-              <button 
-                onClick={handleBulkDelete}
-                className="px-3 py-2 text-xs font-semibold bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 rounded-lg hover:bg-rose-200 dark:hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+              <button onClick={handleBulkDelete} disabled={isProcessing}
+                className="px-3 py-2 text-xs font-semibold bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 rounded-lg hover:bg-rose-200 dark:hover:bg-rose-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Secilenleri Kalici Sil
@@ -137,7 +164,7 @@ export default function TrashAssignmentListClient({
             return (
               <div 
                 key={assignment.id}
-                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all gap-4 shadow-sm"
+                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed gap-4 shadow-sm"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <input 
@@ -160,15 +187,13 @@ export default function TrashAssignmentListClient({
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200 dark:border-slate-800 shrink-0">
-                  <button
-                    onClick={() => handleRestore(assignment.id)}
+                  <button onClick={() => handleRestore(assignment.id)} disabled={isProcessing}
                     className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium px-4 py-2 rounded-lg transition-colors text-sm"
                   >
                     <FolderUp className="w-4 h-4" />
                     Geri Yukle
                   </button>
-                  <button
-                    onClick={() => handlePermDelete(assignment.id)}
+                  <button onClick={() => handlePermDelete(assignment.id)} disabled={isProcessing}
                     className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 font-medium px-4 py-2 rounded-lg transition-colors text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
