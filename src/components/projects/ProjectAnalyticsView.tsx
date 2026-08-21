@@ -35,10 +35,9 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
   // Map ProjectTask's is_completed to DONE
   const completedTasks = tasks.filter(t => t.is_completed).length;
   
-  // Since ProjectTask doesn't have status, assigned_to, or due_date in the schema,
-  // we default these to 0 for now to match the UI requested by the user.
-  const inProgressTasks = 0; 
-  const overdueTasks = 0;
+  const inProgressTasks = tasks.filter(t => !t.is_completed).length; // For now, anything not done is in progress
+  const todayStr = new Date().toISOString().split("T")[0];
+  const overdueTasks = tasks.filter(t => !t.is_completed && !!t.due_date && t.due_date < todayStr).length;
 
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
@@ -167,10 +166,9 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {members.map(member => {
-                // Since tasks don't have assigned_to, we just show 0 for now to prevent errors
-                const memberTasks: ProjectTask[] = [];
-                const memberCompleted = 0;
-                const memberRate = 0;
+                const memberTasks = tasks.filter(t => t.assigned_to === member.id);
+                const memberCompleted = memberTasks.filter(t => t.is_completed).length;
+                const memberRate = memberTasks.length > 0 ? Math.round((memberCompleted / memberTasks.length) * 100) : 0;
 
                 return (
                   <tr key={member.id} className="hover:bg-slate-800/30 transition-colors">
