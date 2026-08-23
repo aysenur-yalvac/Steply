@@ -25,6 +25,9 @@ export interface Database {
           twitter_url: string | null
           website_url: string | null
           email: string | null
+          teacher_status: 'unverified' | 'pending' | 'verified' | null
+          institution_code: string | null
+          verification_doc_url: string | null
         }
         Insert: {
           id: string
@@ -41,6 +44,9 @@ export interface Database {
           twitter_url?: string | null
           website_url?: string | null
           email?: string | null
+          teacher_status?: 'unverified' | 'pending' | 'verified' | null
+          institution_code?: string | null
+          verification_doc_url?: string | null
         }
         Update: {
           id?: string
@@ -57,6 +63,9 @@ export interface Database {
           twitter_url?: string | null
           website_url?: string | null
           email?: string | null
+          teacher_status?: 'unverified' | 'pending' | 'verified' | null
+          institution_code?: string | null
+          verification_doc_url?: string | null
         }
       }
       projects: {

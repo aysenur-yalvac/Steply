@@ -6,6 +6,7 @@ import { GetStartedButton } from "@/components/ui/get-started-button";
 import { motion } from "framer-motion";
 import CanvasParticles from "@/components/ui/CanvasParticles";
 import LiveDemo from "@/components/demo/LiveDemo";
+import Tilt3DCard from "@/components/ui/Tilt3DCard";
 
 // ── Aura palette ──────────────────────────────────────────────────────────────
 const AURA = [

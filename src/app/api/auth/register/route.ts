@@ -1,16 +1,18 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+﻿import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const requestUrl = new URL(request.url)
-  const formData = await request.formData()
-  const email = String(formData.get('email'))
-  const password = String(formData.get('password'))
-  const fullName = String(formData.get('fullName'))
-  const role = String(formData.get('role'))
-  const institution = formData.get('institution') ? String(formData.get('institution')) : null
-  const cookieStore = await cookies()
+  const requestUrl = new URL(request.url);
+  const formData = await request.formData();
+  const email = String(formData.get("email"));
+  const password = String(formData.get("password"));
+  const fullName = String(formData.get("fullName"));
+  const role = String(formData.get("role"));
+  const institution = formData.get("institution")
+    ? String(formData.get("institution"))
+    : null;
+  const cookieStore = await cookies();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,14 +24,12 @@ export async function POST(request: Request) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
-            )
-          } catch {
-            // This can be ignored if middleware is refreshing sessions
-          }
+            );
+          } catch {}
         },
       },
     }
-  )
+  );
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -42,49 +42,32 @@ export async function POST(request: Request) {
         institution: institution,
       },
     },
-  })
+  });
 
   if (error) {
     return NextResponse.redirect(
       `${requestUrl.origin}/auth/register?message=${encodeURIComponent(error.message)}`,
       { status: 303 }
-    )
+    );
   }
 
-  // Manually set cookies if session exists to ensure persistence
+  // If Supabase returned a session directly (email confirm disabled in settings)
   if (data.session) {
-    cookieStore.set('sb-access-token', data.session.access_token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: data.session.expires_in,
-    })
-    cookieStore.set('sb-refresh-token', data.session.refresh_token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    })
     // Persist institution to profile if provided
     if (institution && data.user) {
       await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ institution })
-        .eq('id', data.user.id)
+        .eq("id", data.user.id);
     }
     return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
       status: 303,
-    })
+    });
   }
 
-  // If no session, it means email confirmation is likely required
+  // Email confirmation required — redirect to OTP verification page
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/login?message=${encodeURIComponent('Registration successful! Please check your inbox to verify your email address.')}`,
+    `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
     { status: 303 }
-  )
+  );
 }
-
-
-
