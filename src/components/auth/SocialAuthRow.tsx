@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -60,19 +60,25 @@ const SOCIAL = [
 export default function SocialAuthRow() {
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const handleOAuthLogin = async (providerId: string) => {
-    // LinkedIn doesn't map directly in supabase without proper setup, but we'll pass providerId
-    // as it is. Supabase accepts "google", "github", etc.
+  const handleOAuthLogin = async (e: React.MouseEvent, providerId: string) => {
+    e.preventDefault();
+
+    const provider = providerId.toLowerCase();
+    if (provider !== 'google' && provider !== 'github') {
+      alert(`${providerId} ile giris henuz aktif degil.`);
+      return;
+    }
+
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: providerId as any,
+      provider: provider as any,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
     if (error) {
-      alert(`${providerId} giris hatasi: ${error.message}`);
+      alert(`Giris hatasi: ${error.message}`);
     }
   };
 
@@ -82,7 +88,7 @@ export default function SocialAuthRow() {
       <div className="flex items-center gap-3 my-6">
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
         <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
-          Veya şununla devam et
+          Veya ÅŸununla devam et
         </span>
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
       </div>
@@ -98,7 +104,7 @@ export default function SocialAuthRow() {
               title={s.name}
               onMouseEnter={() => setHovered(s.id)}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => handleOAuthLogin(s.id)}
+              onClick={(e) => handleOAuthLogin(e, s.id)}
               className="flex items-center justify-center py-3 rounded-xl transition-all duration-200"
               style={{
                 background:  isHov ? s.hoverBg     : "rgba(255,255,255,0.04)",
@@ -114,3 +120,4 @@ export default function SocialAuthRow() {
     </>
   );
 }
+
