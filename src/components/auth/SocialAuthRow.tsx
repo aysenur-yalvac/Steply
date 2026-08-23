@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 const SOCIAL = [
   {
@@ -59,6 +60,22 @@ const SOCIAL = [
 export default function SocialAuthRow() {
   const [hovered, setHovered] = useState<string | null>(null);
 
+  const handleOAuthLogin = async (providerId: string) => {
+    // LinkedIn doesn't map directly in supabase without proper setup, but we'll pass providerId
+    // as it is. Supabase accepts "google", "github", etc.
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: providerId as any,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      alert(`${providerId} giris hatasi: ${error.message}`);
+    }
+  };
+
   return (
     <>
       {/* Divider */}
@@ -81,6 +98,7 @@ export default function SocialAuthRow() {
               title={s.name}
               onMouseEnter={() => setHovered(s.id)}
               onMouseLeave={() => setHovered(null)}
+              onClick={() => handleOAuthLogin(s.id)}
               className="flex items-center justify-center py-3 rounded-xl transition-all duration-200"
               style={{
                 background:  isHov ? s.hoverBg     : "rgba(255,255,255,0.04)",
