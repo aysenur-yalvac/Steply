@@ -195,6 +195,40 @@ export default function AnimatedCharactersLoginPage({
   const isLogin = mode === "login";
   const router  = useRouter();
 
+  // OAuth Login Handler
+  const handleOAuthLogin = async (e: React.MouseEvent<HTMLButtonElement>, providerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const provider = providerId.toLowerCase();
+
+    if (provider !== "google" && provider !== "github") {
+      console.warn("Gecersiz provider:", provider);
+      return;
+    }
+
+    console.log(`[OAuth] ${provider} girisi baslatiliyor...`);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider as "google" | "github",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error(`[OAuth Error] ${provider}:`, error.message);
+        alert(`Giris Basarisiz: ${error.message}`);
+      }
+    } catch (err) {
+      const ex = err as any;
+      console.error("[OAuth Error]:", ex);
+      alert(`Bir hata olustu: ${ex?.message || ex}`);
+    }
+  };
+
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
   // Manually parse hash tokens and call setSession — onAuthStateChange receives
@@ -780,6 +814,7 @@ export default function AnimatedCharactersLoginPage({
                   title={s.name}
                   onMouseEnter={() => setHovSocial(s.id)}
                   onMouseLeave={() => setHovSocial(null)}
+                  onClick={(e) => handleOAuthLogin(e, s.id)}
                   className="flex items-center justify-center py-2.5 rounded-xl transition-all duration-200"
                   style={{
                     background:  isHov ? s.hoverBg  : "rgba(255,255,255,0.04)",
