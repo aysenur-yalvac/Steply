@@ -60,25 +60,42 @@ const SOCIAL = [
 export default function SocialAuthRow() {
   const [hovered, setHovered] = useState<string | null>(null);
 
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+
   const handleOAuthLogin = async (e: React.MouseEvent, providerId: string) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const provider = providerId.toLowerCase();
+    console.log("OAuth Login baslatiliyor, provider:", provider);
+
     if (provider !== 'google' && provider !== 'github') {
       alert(`${providerId} ile giris henuz aktif degil.`);
       return;
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider as any,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      setLoadingProvider(provider);
+      const supabase = createClient();
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-    if (error) {
-      alert(`Giris hatasi: ${error.message}`);
+      if (error) {
+        console.error("Supabase OAuth Hatasi:", error);
+        alert(`Giris Hatasi: ${error.message}`);
+      } else {
+        console.log("OAuth yonlendirmesi basarili:", data);
+      }
+    } catch (err: any) {
+      console.error("Beklenmeyen Hata:", err);
+      alert(`Bir hata olustu: ${err?.message || err}`);
+    } finally {
+      setLoadingProvider(null);
     }
   };
 
