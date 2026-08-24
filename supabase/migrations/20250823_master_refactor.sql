@@ -1,39 +1,62 @@
 ﻿-- ================================================================
--- Steply Master Refactor Migration
--- Run this in Supabase Dashboard > SQL Editor
+-- Steply Master Refactor Migration (Idempotent / Safe Version)
+-- Her seferinde guvenle calistiriabilir: CREATE IF NOT EXISTS + DROP IF EXISTS
+-- Supabase Dashboard > SQL Editor'da calistirin
 -- ================================================================
 
 -- ===== 1. profiles tablosuna yeni kolonlar =====
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS teacher_status TEXT DEFAULT 'unverified'
-    CHECK (teacher_status IN ('unverified', 'pending', 'verified')),
+  ADD COLUMN IF NOT EXISTS teacher_status TEXT DEFAULT 'unverified',
   ADD COLUMN IF NOT EXISTS institution_code TEXT,
   ADD COLUMN IF NOT EXISTS verification_doc_url TEXT;
 
--- role kolonuna 'admin' degerini ekle (constraint varsa guncelle)
-DO $$
-BEGIN
-  ALTER TABLE public.profiles
-    DROP CONSTRAINT IF EXISTS profiles_role_check;
-  ALTER TABLE public.profiles
-    ADD CONSTRAINT profiles_role_check
-    CHECK (role IN ('student', 'teacher', 'admin'));
-EXCEPTION WHEN OTHERS THEN NULL;
-END$$;
+-- teacher_status icin gecerli degerler
+ALTER TABLE public.profiles
+  DROP CONSTRAINT IF EXISTS profiles_teacher_status_check;
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_teacher_status_check
+  CHECK (teacher_status IN ('unverified', 'pending', 'verified'));
 
--- ===== 2. RLS Politikalari =====
+-- role icin admin degerini ekle
+ALTER TABLE public.profiles
+  DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_role_check
+  CHECK (role IN ('student', 'teacher', 'admin'));
 
--- files tablosu icin
+-- ===== 2. files tablosunu olustur (yoksa) =====
+CREATE TABLE IF NOT EXISTS public.files (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name        TEXT NOT NULL,
+  file_path   TEXT NOT NULL,
+  size        BIGINT,
+  mime_type   TEXT,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+-- ===== 3. assignment_submissions tablosunu olustur (yoksa) =====
+CREATE TABLE IF NOT EXISTS public.assignment_submissions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID NOT NULL,
+  user_id       UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  file_url      TEXT,
+  file_name     TEXT,
+  submitted_at  TIMESTAMPTZ DEFAULT now()
+);
+
+-- ===== 4. files icin RLS =====
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users see own files" ON public.files;
-CREATE POLICY "Users see own files"
+DROP POLICY IF EXISTS "Kullanicilar sadece kendi dosyalarini gorebilir" ON public.files;
+CREATE POLICY "Kullanicilar sadece kendi dosyalarini gorebilir"
 ON public.files FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- assignments tablosu - ogrenciler kendi odevlerini gonderebilir
--- ogretmenler tum odeyleri gorebilir
+-- ===== 5. assignment_submissions icin RLS =====
+ALTER TABLE public.assignment_submissions ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "assignment_submissions_isolation" ON public.assignment_submissions;
 CREATE POLICY "assignment_submissions_isolation"
 ON public.assignment_submissions FOR ALL
@@ -46,10 +69,9 @@ USING (
 )
 WITH CHECK (auth.uid() = user_id);
 
--- ===== 3. Storage RLS (assignments bucket) =====
--- Supabase Storage politikalari Dashboard > Storage > Policies bolumunden de eklenebilir
+-- ===== 6. Storage RLS (assignments bucket) =====
+-- NOT: Bu politikalar icin 'assignments' bucket'inin Dashboard > Storage'dan onceden olusturulmasi gerekir.
 
--- assignments bucket: kullanici sadece kendi klasorune yazabilir
 DROP POLICY IF EXISTS "auth_uploads_assignment" ON storage.objects;
 CREATE POLICY "auth_uploads_assignment"
 ON storage.objects FOR INSERT TO authenticated
@@ -72,20 +94,19 @@ USING (
   )
 );
 
--- ===== 4. Admin Kontrol Fonksiyonu =====
--- Ogretmen dogrulama: admin bu fonksiyon ile onay verir
+-- ===== 7. Ogretmen dogrulama admin fonksiyonu =====
 CREATE OR REPLACE FUNCTION public.verify_teacher(teacher_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
-  -- Sadece admin kullanabilir
   IF NOT EXISTS (
     SELECT 1 FROM public.profiles
     WHERE id = auth.uid() AND role = 'admin'
   ) THEN
-    RAISE EXCEPTION 'Unauthorized';
+    RAISE EXCEPTION 'Unauthorized: Only admins can verify teachers';
   END IF;
 
   UPDATE public.profiles
@@ -94,5 +115,5 @@ BEGIN
 END;
 $$;
 
--- ===== 5. Schema Reload =====
+-- ===== 8. Schema Reload =====
 NOTIFY pgrst, 'reload schema';
