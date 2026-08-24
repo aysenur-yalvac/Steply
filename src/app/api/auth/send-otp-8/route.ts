@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
       const { error: sendError } = await resend.emails.send({
-        from: "Steply <noreply@must-b.com>",
+        from: "Steply <onboarding@resend.dev>",
         to: email,
         subject: "Steply - E-posta Doğrulama Kodunuz",
         html: `
@@ -47,7 +47,8 @@ export async function POST(request: Request) {
       });
 
       if (sendError) {
-        throw new Error("Resend API uzerinden e-posta gonderilemedi.");
+        console.error("Resend API Error Detail:", sendError);
+        throw new Error(`Resend hatasi: ${sendError.message}`);
       }
     } else {
       // 3. Fallback / Dev Mode
