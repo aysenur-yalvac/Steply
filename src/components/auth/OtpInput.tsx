@@ -2,13 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 import { classifyEmail } from "@/lib/email-classification";
 import { Loader2, Mail, CheckCircle, RefreshCw, Shield } from "lucide-react";
 
 export default function OtpInput({ email }: { email: string }) {
   const router = useRouter();
-  const [otp, setOtp] = useState<string[]>(Array(8).fill("")); // 8 HANELI OTP
+  const [otp, setOtp] = useState<string[]>(Array(8).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -19,6 +18,9 @@ export default function OtpInput({ email }: { email: string }) {
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
+    // Sayfa yuklendiginde otomatik olarak kodu gonder
+    handleResend();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleVerify = async (code?: string) => {
@@ -46,9 +48,18 @@ export default function OtpInput({ email }: { email: string }) {
         return;
       }
 
-      setSuccessMsg("E-postaniz dogrulandi! Yonlendiriliyorsunuz...");
+      setSuccessMsg("E-postaniz dogrulandi! Oturumunuz aciliyor...");
       setSuccess(true);
-      setTimeout(() => router.replace(data.targetRoute || "/dashboard"), 1500);
+      
+      // Magic link ile otomatik login ve yonlendirme
+      setTimeout(() => {
+        if (data.magicLink) {
+          window.location.href = data.magicLink;
+        } else {
+          router.replace("/dashboard");
+        }
+      }, 1500);
+
     } catch {
       setError("Beklenmeyen bir hata olustu.");
     } finally {
@@ -89,12 +100,25 @@ export default function OtpInput({ email }: { email: string }) {
 
   const handleResend = async () => {
     setResending(true);
+    setError(null);
     try {
-      const supabase = createClient();
-      await supabase.auth.resend({ type: "signup", email });
+      const res = await fetch("/api/auth/send-otp-8", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Kod gonderilemedi.");
+      }
+      
+      // Development Fallback & Resend Success Toast
+      // Biz burada hata degil ama kullaniciya guven verici toast (yada metin) gosteriyoruz
       setResent(true);
-    } catch {
-      setError("Kod gonderilemedi.");
+      setTimeout(() => setResent(false), 5000);
+    } catch (err: any) {
+      setError(`E-posta gonderilemedi: ${err.message || "Bilinmeyen hata"}`);
     } finally {
       setResending(false);
     }
@@ -176,6 +200,13 @@ export default function OtpInput({ email }: { email: string }) {
         <div className="w-full max-w-xs rounded-xl px-4 py-3 text-sm text-red-300 text-center"
           style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)" }}>
           {error}
+        </div>
+      )}
+
+      {resent && !error && (
+        <div className="w-full max-w-xs rounded-xl px-4 py-3 text-xs text-green-300 text-center"
+          style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)" }}>
+          8 haneli kod e-postaniza tekrar gonderildi. Lutfen spam/gereksiz klasorunu de kontrol ediniz.
         </div>
       )}
 

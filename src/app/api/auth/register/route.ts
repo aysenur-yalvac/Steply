@@ -87,8 +87,18 @@ export async function POST(request: Request) {
     await supabase.from("profiles").update(profileUpdate).eq("id", data.user.id);
   }
 
+  // Ilk 8 haneli custom OTP gonderimini tetikle
+  try {
+    await fetch(`${requestUrl.origin}/api/auth/send-otp-8`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch (err) {
+    console.error("Ilk OTP gonderimi basarisiz:", err);
+  }
+
   // GUVENLIK: Otomatik oturum acilmasini KESIN OLARAK engelle! (Zero Bypass)
-  // Eger supabase session dondurduyse, aninda cikis yap (cunku OTP onaylanmadi).
   if (data.session) {
     await supabase.auth.signOut();
   }
