@@ -11,7 +11,6 @@ const PROTECTED_PREFIX = "/dashboard";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
-
   const { pathname } = request.nextUrl;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,13 +21,9 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
+      getAll() { return request.cookies.getAll(); },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        );
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
@@ -37,43 +32,62 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  let user: any = null;
-  let emailConfirmed = true; // default safe
+  let session: any = null;
   try {
-    const { data } = await Promise.race([
+    const result = await Promise.race([
       supabase.auth.getSession(),
       new Promise<{ data: { session: null } }>((resolve) =>
         setTimeout(() => resolve({ data: { session: null } }), 4500)
       ),
     ]);
-    user = data.session?.user ?? null;
-    // email_confirmed_at is null when unverified
-    emailConfirmed = !!data.session?.user?.email_confirmed_at;
+    session = (result as any).data?.session ?? null;
   } catch {
     return supabaseResponse;
   }
 
+  const user = session?.user ?? null;
   const isProtected = pathname.startsWith(PROTECTED_PREFIX);
   const isAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  // Unauthenticated user → login
+  // ----- 1. Oturum yok → login -----
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
-    if (pathname === url.pathname) return supabaseResponse;
+    if (pathname === "/auth/login") return supabaseResponse;
     return NextResponse.redirect(url);
   }
 
-  // Authenticated but email NOT confirmed → verify-email wall
-  // (Allow them on /auth/verify-email itself)
-  if (user && !emailConfirmed && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/verify-email";
-    url.searchParams.set("email", user.email ?? "");
-    return NextResponse.redirect(url);
+  // ----- 2. OTP Duvarı: E-posta dogrulanmamis → verify-email -----
+  if (user && isProtected) {
+    const emailConfirmed = !!user.email_confirmed_at;
+    if (!emailConfirmed && pathname !== "/auth/verify-email") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/verify-email";
+      url.searchParams.set("email", user.email ?? "");
+      return NextResponse.redirect(url);
+    }
   }
 
-  // Authenticated user on auth pages → dashboard
+  // ----- 3. Ogretmen beklemede → teacher/pending -----
+  if (user && isProtected && !pathname.startsWith("/dashboard/teacher/pending") && !pathname.startsWith("/dashboard/admin")) {
+    // Ogretmen kontrolu: sadece teacher rolu olanlar icin
+    if (user.user_metadata?.role === "teacher" || user.app_metadata?.role === "teacher") {
+      // Profile'dan teacher_status al (hafif sorgu)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("teacher_status, role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "teacher" && profile?.teacher_status !== "verified") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard/teacher/pending";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // ----- 4. Auth sayfasinda oturumu acik kullanici → dashboard -----
   if (user && isAuthPage) {
     if (request.nextUrl.searchParams.get("link_account") === "true") {
       return supabaseResponse;

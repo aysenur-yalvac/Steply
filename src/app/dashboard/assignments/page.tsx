@@ -1,4 +1,4 @@
-﻿export const dynamic = 'force-dynamic';
+﻿export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { redirect } from "next/navigation";
@@ -14,27 +14,34 @@ export default async function AssignmentsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/auth/login");
-  }
+  if (!user) redirect("/auth/login");
 
-  // Get user profile to check role
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, grade")
     .eq("id", user.id)
     .single();
 
   const userRole = profile?.role || "student";
-  
-  // Dogrudan filtresiz tum odevleri cek
-  const { data: assignments, error } = await supabase
-    .from('assignments')
-    .select('*, teacher:profiles!assignments_teacher_id_fkey(full_name)')
-    .or('is_deleted.eq.false,is_deleted.is.null')
-    .order('created_at', { ascending: false });
+  const userGrade = profile?.grade || null;
 
-  // Eger veritabani okuma hatasi varsa KESINLIKLE GIZLEME, ekrana kirmizi kutuda bas!
+  let query = supabase
+    .from("assignments")
+    .select("*, teacher:profiles!assignments_teacher_id_fkey(full_name)")
+    .or("is_deleted.eq.false,is_deleted.is.null")
+    .order("created_at", { ascending: false });
+
+  // ---- Data Isolation ----
+  if (userRole === "teacher") {
+    // Ogretmenler sadece kendi olusturdugu odevleri gorur
+    query = query.eq("teacher_id", user.id);
+  } else if (userRole === "student" && userGrade) {
+    // Ogrenciler sadece kendi sinif seviyelerindeki odevleri gorur
+    query = query.eq("grade", userGrade);
+  }
+
+  const { data: assignments, error } = await query;
+
   if (error) {
     return (
       <div className="p-8 text-red-500 bg-red-500/10 rounded-xl border border-red-500/20 max-w-5xl mx-auto mt-10">

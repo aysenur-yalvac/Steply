@@ -134,3 +134,54 @@ $$;
 
 -- ===== 8. Schema Reload =====
 NOTIFY pgrst, 'reload schema';
+
+
+-- ===== 9. assignments tablosu: Ogretmen ve Sinif Izolasyonu =====
+-- teacher_id kolonu yoksa ekle
+ALTER TABLE public.assignments
+  ADD COLUMN IF NOT EXISTS teacher_id UUID REFERENCES auth.users(id);
+
+-- grade_level / grade kolonu yoksa ekle  
+ALTER TABLE public.assignments
+  ADD COLUMN IF NOT EXISTS grade TEXT;
+
+-- RLS aktif et
+ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Ogretmen kendi odevlerini gorur" ON public.assignments;
+CREATE POLICY "Ogretmen kendi odevlerini gorur"
+ON public.assignments FOR ALL
+USING (
+  -- Ogretmen: sadece kendi olusturdugu odevler
+  (auth.uid() = teacher_id)
+  OR
+  -- Ogrenci: kendi sinif seviyesine ait odevler
+  (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND role = 'student'
+        AND (grade = assignments.grade OR grade IS NULL OR assignments.grade IS NULL)
+    )
+  )
+  OR
+  -- Admin: hepsini gorer
+  (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+);
+
+-- ===== 10. profiles: teacher_status varsayilan 'pending' yap =====
+ALTER TABLE public.profiles
+  ALTER COLUMN teacher_status SET DEFAULT 'pending';
+
+-- Mevcut dogrulanmamis ogretmenleri pending yap
+UPDATE public.profiles
+SET teacher_status = 'pending'
+WHERE role = 'teacher'
+  AND (teacher_status IS NULL OR teacher_status = 'unverified');
+
+NOTIFY pgrst, 'reload schema';
