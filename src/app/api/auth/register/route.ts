@@ -6,26 +6,37 @@ import { classifyEmail } from "@/lib/email-classification";
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url);
   const formData = await request.formData();
-  const email = String(formData.get("email"));
+  const email = String(formData.get("email")).trim();
   const password = String(formData.get("password"));
   const fullName = String(formData.get("fullName"));
-  const requestedRole = String(formData.get("role")); // kullanicinin sectigi rol
-  const institution = formData.get("institution")
-    ? String(formData.get("institution"))
-    : null;
+  const requestedRole = String(formData.get("role")); // 'student' or 'teacher'
+  const institution = formData.get("institution") ? String(formData.get("institution")) : null;
   const cookieStore = await cookies();
 
-  // E-posta domain siniflandirmasi
+  // 1. E-posta domain siniflandirmasi
   const classification = classifyEmail(email);
 
-  // Kurumsal e-posta → domain'den gelen rol override eder
+  // 2. SERT DOMAIN VE ROL DOGRULAMASI (Guvenlik Kilidi)
+  if (requestedRole === "teacher" && classification.role === "student") {
+    return NextResponse.redirect(
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Ogrenci e-posta adresi ile Ogretmen hesabi olusturulamaz! Lutfen kurumsal ogretmen e-postanizi giriniz.")}`,
+      { status: 303 }
+    );
+  }
+
+  if (requestedRole === "student" && classification.role === "teacher") {
+    return NextResponse.redirect(
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Ogretmen e-posta adresi ile Ogrenci hesabi olusturulamaz!")}`,
+      { status: 303 }
+    );
+  }
+
+  // 3. Rol Atamasi
   const finalRole = classification.role ?? requestedRole ?? "student";
   const teacherStatus =
-    classification.role === "teacher"
-      ? "verified"          // Kurumsal ogretmen: dogrudan verified
-      : classification.role === null && requestedRole === "teacher"
-        ? "pending"         // Kisisel mail ile ogretmen: pending (fallback)
-        : null;             // Ogrenci: status gereksiz
+    finalRole === "teacher"
+      ? (classification.role === "teacher" ? "verified" : "pending")
+      : null;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,24 +59,24 @@ export async function POST(request: Request) {
     email,
     password,
     options: {
-      emailRedirectTo: `${requestUrl.origin}/auth/callback`,
       data: {
         full_name: fullName,
         role: finalRole,
         institution: institution,
         teacher_status: teacherStatus,
+        email_verified: false, // Explicitly set custom metadata for zero-bypass
       },
     },
   });
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?message=${encodeURIComponent(error.message)}`,
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(error.message)}`,
       { status: 303 }
     );
   }
 
-  // Profil tablosunu da hemen guncelle (trigger disilik garantisi)
+  // Profil tablosunu aninda guncelle
   if (data.user) {
     const profileUpdate: Record<string, string | null> = {
       role: finalRole,
@@ -73,18 +84,16 @@ export async function POST(request: Request) {
     };
     if (teacherStatus) profileUpdate.teacher_status = teacherStatus;
 
-    await supabase
-      .from("profiles")
-      .update(profileUpdate)
-      .eq("id", data.user.id);
+    await supabase.from("profiles").update(profileUpdate).eq("id", data.user.id);
   }
 
-  // Oturum acildiysa (email confirm kapali): dashboard'a git
+  // GUVENLIK: Otomatik oturum acilmasini KESIN OLARAK engelle! (Zero Bypass)
+  // Eger supabase session dondurduyse, aninda cikis yap (cunku OTP onaylanmadi).
   if (data.session) {
-    return NextResponse.redirect(`${requestUrl.origin}/dashboard`, { status: 303 });
+    await supabase.auth.signOut();
   }
 
-  // Email confirm acik: OTP sayfasina git
+  // Kullaniciyi dogrudan ve kesin olarak verify-email sayfasina at
   return NextResponse.redirect(
     `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
     { status: 303 }

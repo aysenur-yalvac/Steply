@@ -49,46 +49,41 @@ export async function updateSession(request: NextRequest) {
   const isProtected = pathname.startsWith(PROTECTED_PREFIX);
   const isAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  // ----- 1. Oturum yok → login -----
-  if (!user && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    if (pathname === "/auth/login") return supabaseResponse;
-    return NextResponse.redirect(url);
-  }
-
-  // ----- 2. OTP Duvarı: E-posta dogrulanmamis → verify-email -----
-  if (user && isProtected) {
-    const emailConfirmed = !!user.email_confirmed_at;
-    if (!emailConfirmed && pathname !== "/auth/verify-email") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/verify-email";
-      url.searchParams.set("email", user.email ?? "");
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // ----- 3. Ogretmen beklemede → teacher/pending -----
-  if (user && isProtected && !pathname.startsWith("/dashboard/teacher/pending") && !pathname.startsWith("/dashboard/admin")) {
-    // Ogretmen kontrolu: sadece teacher rolu olanlar icin
-    if (user.user_metadata?.role === "teacher" || user.app_metadata?.role === "teacher") {
-      // Profile'dan teacher_status al (hafif sorgu)
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("teacher_status, role")
-        .eq("id", user.id)
-        .single();
-
-      if (profile?.role === "teacher" && profile?.teacher_status !== "verified") {
+  // GUVENLIK KILIDI: OTP Duvari (Zero Bypass)
+  if (isProtected) {
+    // 1. Oturum yok VEYA e-posta dogrulanmamissa (8 haneli OTP asilmamissa) ANINDA geri yolla
+    const isVerified = user && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true);
+    
+    if (!isVerified) {
+      if (pathname !== "/auth/verify-email") {
         const url = request.nextUrl.clone();
-        url.pathname = "/dashboard/teacher/pending";
+        url.pathname = "/auth/verify-email";
+        if (user?.email) url.searchParams.set("email", user.email);
         return NextResponse.redirect(url);
+      }
+    } else {
+      // 2. E-posta dogrulanmis ancak Ogretmen (pending) kontrolu
+      if (!pathname.startsWith("/dashboard/teacher/pending") && !pathname.startsWith("/dashboard/admin")) {
+        const userRole = user.user_metadata?.role || user.app_metadata?.role;
+        if (userRole === "teacher") {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("teacher_status, role")
+            .eq("id", user.id)
+            .single();
+
+          if (profile?.role === "teacher" && profile?.teacher_status !== "verified") {
+            const url = request.nextUrl.clone();
+            url.pathname = "/dashboard/teacher/pending";
+            return NextResponse.redirect(url);
+          }
+        }
       }
     }
   }
 
-  // ----- 4. Auth sayfasinda oturumu acik kullanici → dashboard -----
-  if (user && isAuthPage) {
+  // Auth sayfasinda oturumu acik, onayi tamamlanmis kullanici -> dashboard
+  if (user && isAuthPage && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true)) {
     if (request.nextUrl.searchParams.get("link_account") === "true") {
       return supabaseResponse;
     }
