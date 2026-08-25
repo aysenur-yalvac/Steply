@@ -14,29 +14,19 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
 
   // 1. E-posta domain siniflandirmasi
-  const classification = classifyEmail(email);
+  const validation = require("@/lib/email-classification").validateRoleAndEmail(email, requestedRole);
 
   // 2. SERT DOMAIN VE ROL DOGRULAMASI (Guvenlik Kilidi)
-  if (requestedRole === "teacher" && classification.role !== "teacher") {
+  if (!validation.valid) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Öğrenci veya kisisel e-posta adresi ile Öğretmen hesabi olusturulamaz! Lutfen kurumsal ogretmen e-postanizi giriniz.")}`,
-      { status: 303 }
-    );
-  }
-
-  if (requestedRole === "student" && classification.role === "teacher") {
-    return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Ogretmen e-posta adresi ile Ogrenci hesabi olusturulamaz!")}`,
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(validation.error)}`,
       { status: 303 }
     );
   }
 
   // 3. Rol Atamasi
-  const finalRole = classification.role ?? requestedRole ?? "student";
-  const teacherStatus =
-    finalRole === "teacher"
-      ? (classification.role === "teacher" ? "verified" : "pending")
-      : null;
+  const finalRole = requestedRole === "teacher" ? "teacher" : "student";
+  const teacherStatus = finalRole === "teacher" ? "verified" : null;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

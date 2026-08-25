@@ -51,15 +51,15 @@ export async function POST(request: Request) {
   role = profile?.role || "student";
 
   // SUNUCU TARAFLI SERT ROL KONTROLU
-  const classification = classifyEmail(email);
-  if (role === "teacher" && classification.role !== "teacher") {
-    // Eger veri tabaninda ogretmen secilmis ama mail ogrenci/kisisel ise reddet
+  const isTeacher = require("@/lib/email-classification").isTeacherEmail(email);
+  if (role === "teacher" && !isTeacher) {
+    // Eger veri tabaninda ogretmen secilmis ama mail kurumsal degilse reddet
     return NextResponse.json(
-      { error: "Öğrenci veya kişisel e-posta adresi ile Öğretmen paneline giriş yapılamaz! Lütfen öğrenci girişini kullanınız veya kurumsal e-posta ile kayıt olunuz." },
+      { error: "Geçerli bir kurumsal öğretmen e-posta adresi (@meb.k12.tr vb.) ile giriş yapmalısınız." },
       { status: 403 }
     );
   }
-
+  
   // Her durumda statusu verified yap (Manuel onay kaldirildi)
   const updates: Record<string, string> = { role };
   if (role === "teacher") {
