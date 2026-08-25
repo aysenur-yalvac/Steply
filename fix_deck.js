@@ -1,9 +1,13 @@
-"use client";
+﻿const fs = require('fs');
+const path = require('path');
+const file = path.resolve('src/components/auth/OtpInput.tsx');
+
+const content = `"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isTeacherEmail } from "@/lib/email-classification";
-import { Mail, Loader2, RefreshCw, CheckCircle } from "lucide-react";
+import { Mail, Loader2, RefreshCw, CheckCircle, Shield } from "lucide-react";
 
 export default function OtpInput({ email, role = "student" }: { email: string; role?: string }) {
   const router = useRouter();
@@ -52,12 +56,14 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         setShake(true);
         setTimeout(() => setShake(false), 400);
         setOtp(Array(8).fill(""));
+        // Don't auto-focus so deck animation resets, or let them click again
         return;
       }
 
       setSuccessMsg("E-postanız doğrulandı! Oturumunuz açılıyor...");
       setSuccess(true);
       
+      // Magic link ile otomatik login ve yonlendirme
       setTimeout(() => {
         if (data.magicLink) {
           window.location.href = data.magicLink;
@@ -76,17 +82,20 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   };
 
   const handleChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, "").slice(-1);
+    const digit = value.replace(/\\D/g, "").slice(-1);
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
     setError(null);
     
+    // Auto-advance
     if (digit && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
     
+    // Auto-verify if complete
     if (digit && index === 7 && newOtp.every((d) => d !== "")) {
+      // Small timeout to allow state to settle
       setTimeout(() => handleVerify(newOtp.join("")), 50);
     }
   };
@@ -106,7 +115,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
+    const paste = e.clipboardData.getData("text").replace(/\\D/g, "").slice(0, 8);
     const newOtp = [...otp];
     paste.split("").forEach((char, i) => { if (i < 8) newOtp[i] = char; });
     setOtp(newOtp);
@@ -130,12 +139,14 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       });
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || "Kod gönderilemedi.");
+      if (!res.ok) {
+        throw new Error(data.error || "Kod gönderilemedi.");
+      }
       
       setResent(true);
       setTimeout(() => setResent(false), 5000);
     } catch (err: any) {
-      setError(`E-posta gönderilemedi: ${err.message || "Bilinmeyen hata"}`);
+      setError(\`E-posta gönderilemedi: \${err.message || "Bilinmeyen hata"}\`);
     } finally {
       setResending(false);
     }
@@ -144,6 +155,9 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   const isTeacher = isTeacherEmail(email);
   const hasValue = otp.some((d) => d !== "");
   
+  // State 1: Idle (Deck is fanned out) -> !isFocused && !hasValue && !loading
+  // State 2: Active (Flat) -> (isFocused || hasValue) && !loading
+  // State 3: Verifying (Gathered) -> loading
   const isIdle = !isFocused && !hasValue && !loading;
 
   if (success) {
@@ -187,7 +201,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           <>
             <h1 className="text-2xl font-extrabold text-white mb-2">Kontrol ediliyor...</h1>
             <p className="text-slate-400 text-sm max-w-sm">
-              Bir saniye, kodunuzu doğruluyoruz.
+              Bir saniye, kodunuzu dogruluyoruz.
             </p>
           </>
         ) : (
@@ -208,23 +222,26 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
       {/* OTP DECK CONTAINER */}
       <div 
-        className={`flex gap-2 relative mt-4 mb-4 ${shake ? "otp-shake" : ""}`}
+        className={\`flex gap-2 relative mt-4 mb-4 \${shake ? "otp-shake" : ""}\`}
         onFocus={() => setIsFocused(true)}
         onBlur={(e) => {
+          // Only unset focus if we aren't focusing another input inside the deck
           if (!e.currentTarget.contains(e.relatedTarget as Node)) {
             setIsFocused(false);
           }
         }}
       >
         {otp.map((digit, i) => {
-          let transform = "translateY(0px) rotate(0deg) scale(1)";
+          let transform = "translateY(0px) rotate(0deg) scale(1)"; // Default active
           
           if (loading) {
+            // State 3: Gathered in center
             const translateX = (3.5 - i) * 40;
-            transform = `translateX(${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)`;
+            transform = \`translateX(\${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)\`;
           } else if (isIdle) {
-            const rotateDeg = (i - 3.5) * 4;
-            transform = `translateY(0px) rotate(${rotateDeg}deg) scale(1)`;
+            // State 1: Fanned out
+            const rotateDeg = (i - 3.5) * 4; // Adjusted to 4deg for 8 slots to look nice
+            transform = \`translateY(0px) rotate(\${rotateDeg}deg) scale(1)\`;
           }
 
           return (
@@ -246,7 +263,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
                 boxShadow: digit && !loading ? "0 0 10px rgba(160,32,240,0.2)" : "none",
                 borderColor: digit && !loading ? "rgba(160,32,240,0.5)" : "rgba(255,255,255,0.1)",
                 transform: transform,
-                zIndex: loading ? 8 - Math.abs(3.5 - i) : 1
+                zIndex: loading ? 8 - Math.abs(3.5 - i) : 1 // Center items on top when gathered
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "rgba(160,32,240,0.8)";
@@ -305,3 +322,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, content, 'utf8');
+console.log("Replaced OtpInput.tsx with Deck Animation code.");
