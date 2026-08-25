@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { classifyEmail } from "@/lib/email-classification";
 import { Loader2, Mail, CheckCircle, RefreshCw, Shield } from "lucide-react";
 
-export default function OtpInput({ email }: { email: string }) {
+import { isTeacherEmail } from "@/lib/email-classification";
+
+export default function OtpInput({ email, role = "student" }: { email: string; role?: string }) {
   const router = useRouter();
   const [otp, setOtp] = useState<string[]>(Array(8).fill(""));
   const [loading, setLoading] = useState(false);
@@ -124,8 +125,7 @@ export default function OtpInput({ email }: { email: string }) {
     }
   };
 
-  const classification = classifyEmail(email);
-  const isInstitutional = classification.role !== null;
+  const isTeacher = isTeacherEmail(email);
 
   if (success) {
     return (
@@ -154,22 +154,10 @@ export default function OtpInput({ email }: { email: string }) {
         </p>
       </div>
 
-      {isInstitutional && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{
-            background: classification.role === "teacher"
-              ? "rgba(160,32,240,0.12)"
-              : "rgba(34,197,94,0.10)",
-            border: classification.role === "teacher"
-              ? "1px solid rgba(160,32,240,0.3)"
-              : "1px solid rgba(34,197,94,0.25)",
-            color: classification.role === "teacher" ? "#C97EFF" : "#6EE7B7",
-          }}>
-          <Shield className="w-3 h-3" />
-          {classification.role === "teacher"
-            ? "Kurumsal ogretmen e-postasi — dogrulama sonrasi otomatik yetkilendirileceksiniz"
-            : "Kurumsal ogrenci e-postasi"}
-        </div>
+      {role === "teacher" && isTeacher && (
+        <p className="text-xs text-amber-400 mb-4 text-center">
+          Kurumsal öğretmen e-postası — doğrulama sonrası otomatik yetkilendirileceksiniz.
+        </p>
       )}
 
       {/* 8 OTP Inputs */}

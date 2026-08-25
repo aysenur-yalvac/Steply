@@ -39,7 +39,20 @@ export async function POST(request: Request) {
   if (error) {
     let message = 'Login failed. Please check your information and try again.'
     if (error.message.includes('Email not confirmed')) {
-      message = 'Please verify your email address. Check your inbox (and spam folder).'
+      // Send OTP and redirect to verify-email
+      try {
+        await fetch(`${requestUrl.origin}/api/auth/send-otp-8`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+      } catch (err) {
+        console.error("Ilk OTP gonderimi basarisiz:", err);
+      }
+      return NextResponse.redirect(
+        `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
+        { status: 303 }
+      );
     }
     // Keep link_account params so middleware doesn't redirect the logged-in user away.
     const errorUrl = new URL('/auth/login', requestUrl.origin)

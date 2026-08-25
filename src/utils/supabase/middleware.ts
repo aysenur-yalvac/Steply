@@ -59,6 +59,8 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone();
         url.pathname = "/auth/verify-email";
         if (user?.email) url.searchParams.set("email", user.email);
+        const userRole = user?.user_metadata?.role || user?.app_metadata?.role;
+        if (userRole) url.searchParams.set("role", userRole);
         return NextResponse.redirect(url);
       }
     } else {

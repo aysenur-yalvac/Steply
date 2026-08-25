@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
   // Kullaniciyi dogrudan ve kesin olarak verify-email sayfasina at
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
+    `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}&role=${finalRole}`,
     { status: 303 }
   );
 }

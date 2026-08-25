@@ -6,10 +6,11 @@ import OtpInput from "@/components/auth/OtpInput";
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; role?: string }>;
 }) {
   const params = await searchParams;
   const email = params.email;
+  const role = params.role || "student";
 
   if (!email) {
     redirect("/auth/register");
@@ -48,7 +49,7 @@ export default async function VerifyEmailPage({
         }}
       >
         <Suspense fallback={null}>
-          <OtpInput email={decodeURIComponent(email)} />
+          <OtpInput email={decodeURIComponent(email)} role={role} />
         </Suspense>
       </div>
     </div>
