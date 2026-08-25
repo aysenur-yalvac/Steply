@@ -17,9 +17,9 @@ export async function POST(request: Request) {
   const classification = classifyEmail(email);
 
   // 2. SERT DOMAIN VE ROL DOGRULAMASI (Guvenlik Kilidi)
-  if (requestedRole === "teacher" && classification.role === "student") {
+  if (requestedRole === "teacher" && classification.role !== "teacher") {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Ogrenci e-posta adresi ile Ogretmen hesabi olusturulamaz! Lutfen kurumsal ogretmen e-postanizi giriniz.")}`,
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent("Öğrenci veya kisisel e-posta adresi ile Öğretmen hesabi olusturulamaz! Lutfen kurumsal ogretmen e-postanizi giriniz.")}`,
       { status: 303 }
     );
   }

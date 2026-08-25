@@ -62,22 +62,19 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
     } else {
-      // 2. E-posta dogrulanmis ancak Ogretmen (pending) kontrolu
-      if (!pathname.startsWith("/dashboard/teacher/pending") && !pathname.startsWith("/dashboard/admin")) {
-        const userRole = user.user_metadata?.role || user.app_metadata?.role;
-        if (userRole === "teacher") {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("teacher_status, role")
-            .eq("id", user.id)
-            .single();
+      // 2. Rol bazli panel erisim kontrolu
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
 
-          if (profile?.role === "teacher" && profile?.teacher_status !== "verified") {
-            const url = request.nextUrl.clone();
-            url.pathname = "/dashboard/teacher/pending";
-            return NextResponse.redirect(url);
-          }
-        }
+      const dbRole = profile?.role || "student";
+
+      if (dbRole === "student" && (pathname.startsWith("/dashboard/teacher") || pathname.startsWith("/dashboard/admin"))) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard/student";
+        return NextResponse.redirect(url);
       }
     }
   }
