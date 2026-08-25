@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   const user = userData.users.find((u: any) => u.email === email);
   if (!user) return NextResponse.json({ error: "Kullanici hesabi bulunamadi." }, { status: 404 });
 
-  // 3. ZORUNLU KILIDI AÇ (Zero Bypass onayi)
+  // 3. ZORUNLU KILIDI AC (Zero Bypass onayi)
   await supabaseAdmin.auth.admin.updateUserById(user.id, {
     email_confirm: true,
     user_metadata: { ...user.user_metadata, email_verified: true }
@@ -46,31 +46,25 @@ export async function POST(request: Request) {
   // 4. Domain bazli profil otomasyonu
   let targetRoute = "/dashboard";
   let role = "student";
-  let teacherStatus = null;
 
-  const classification = classifyEmail(email);
-  if (classification.role) {
-    const updates: Record<string, string> = { role: classification.role };
-    if (classification.teacherStatus) updates.teacher_status = classification.teacherStatus;
-    await supabaseAdmin.from("profiles").update(updates).eq("id", user.id);
-    role = classification.role;
-    teacherStatus = classification.teacherStatus;
-  } else {
-    const { data: profile } = await supabaseAdmin.from("profiles").select("role, teacher_status").eq("id", user.id).single();
-    role = profile?.role || "student";
-    teacherStatus = profile?.teacher_status;
+  const { data: profile } = await supabaseAdmin.from("profiles").select("role").eq("id", user.id).single();
+  role = profile?.role || "student";
+
+  // Her durumda statusu verified yap (Manuel onay kaldirildi)
+  const updates: Record<string, string> = { role };
+  if (role === "teacher") {
+    updates.teacher_status = "verified";
   }
+  
+  await supabaseAdmin.from("profiles").update(updates).eq("id", user.id);
 
-  if (role === "teacher" && teacherStatus === "verified") {
+  if (role === "teacher") {
     targetRoute = "/dashboard/teacher";
-  } else if (role === "student") {
+  } else {
     targetRoute = "/dashboard/student";
-  } else if (role === "teacher") {
-    targetRoute = "/dashboard/teacher/pending";
   }
 
   // 5. Kullaniciyi login yapmak icin Magic Link olustur
-  // requestUrl origin'i bul
   const requestUrl = new URL(request.url);
   const redirectUrl = `${requestUrl.origin}${targetRoute}`;
 
@@ -86,6 +80,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Oturum acma linki olusturulamadi." }, { status: 500 });
   }
 
-  // action_link, dogrudan auth Callback uzerinden login yapip redirectTo'ya yonlendirir
   return NextResponse.json({ success: true, magicLink: linkData.properties.action_link });
 }

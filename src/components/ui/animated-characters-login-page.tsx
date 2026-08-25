@@ -1,14 +1,15 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { classifyEmail } from "@/lib/email-classification";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/utils/supabase/client";
 
-// ── Pupil (tracks mouse, no white eyeball) ────────────────────────────────────
+// â”€â”€ Pupil (tracks mouse, no white eyeball) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface PupilProps {
   size?: number;
   maxDistance?: number;
@@ -66,7 +67,7 @@ const Pupil = ({
   );
 };
 
-// ── EyeBall (full eyeball with blinking) ──────────────────────────────────────
+// â”€â”€ EyeBall (full eyeball with blinking) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface EyeBallProps {
   size?: number;
   pupilSize?: number;
@@ -142,7 +143,7 @@ const EyeBall = ({
   );
 };
 
-// ── Social auth ───────────────────────────────────────────────────────────────
+// â”€â”€ Social auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SOCIAL = [
   {
     id: "google", name: "Google",
@@ -167,18 +168,18 @@ const SOCIAL = [
   }
   ] as const;
 
-// ── Role cards ────────────────────────────────────────────────────────────────
+// â”€â”€ Role cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ROLES = [
-  { value: "student" as const, label: "Öğrenci", desc: "Proje yükle, takip et, portfolyo oluştur.", Icon: GraduationCap, bar: "#7C3AFF", labelColor: "#C97EFF" },
-  { value: "teacher" as const, label: "Öğretmen", desc: "Projeleri denetle ve puan ver.", Icon: Shield, bar: "#FF7F50", labelColor: "#FFA880" },
+  { value: "student" as const, label: "Ã–ÄŸrenci", desc: "Proje yÃ¼kle, takip et, portfolyo oluÅŸtur.", Icon: GraduationCap, bar: "#7C3AFF", labelColor: "#C97EFF" },
+  { value: "teacher" as const, label: "Ã–ÄŸretmen", desc: "Projeleri denetle ve puan ver.", Icon: Shield, bar: "#FF7F50", labelColor: "#FFA880" },
 ];
 
-// ── Input style helpers ───────────────────────────────────────────────────────
+// â”€â”€ Input style helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const INPUT_BASE: React.CSSProperties = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "white", caretColor: "#C97EFF" };
 const FOCUS_STYLE: React.CSSProperties = { borderColor: "rgba(124,58,255,0.55)", background: "rgba(255,255,255,0.08)", boxShadow: "0 0 0 3px rgba(124,58,255,0.13)" };
 const BLUR_STYLE: React.CSSProperties  = { borderColor: "rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.05)", boxShadow: "none" };
 
-// ── Main component ────────────────────────────────────────────────────────────
+// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Mode = "login" | "register";
 
 export default function AnimatedCharactersLoginPage({
@@ -231,7 +232,7 @@ export default function AnimatedCharactersLoginPage({
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
-  // Manually parse hash tokens and call setSession — onAuthStateChange receives
+  // Manually parse hash tokens and call setSession â€” onAuthStateChange receives
   // INITIAL_SESSION null because a fresh createClient() never auto-parses the hash.
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -378,7 +379,7 @@ export default function AnimatedCharactersLoginPage({
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
         <Loader2 className="w-10 h-10 text-violet-400 animate-spin mb-4" />
-        <p className="text-sm font-medium text-slate-300">Hedef hesaba geçiş yapılıyor, lütfen bekleyin…</p>
+        <p className="text-sm font-medium text-slate-300">Hedef hesaba geÃ§iÅŸ yapÄ±lÄ±yor, lÃ¼tfen bekleyinâ€¦</p>
       </div>
     );
   }
@@ -386,7 +387,7 @@ export default function AnimatedCharactersLoginPage({
   return (
     <div className="flex-1 grid lg:grid-cols-2" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
-      {/* ── Left panel: Characters ────────────────────────────────────────── */}
+      {/* â”€â”€ Left panel: Characters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden"
         style={{ background: "linear-gradient(135deg, #1A0A3A 0%, #0D0B2A 50%, #0B0E14 100%)" }}
@@ -405,7 +406,7 @@ export default function AnimatedCharactersLoginPage({
         <div className="relative z-20 flex items-end justify-center" style={{ height: "440px" }}>
           <div className="relative" style={{ width: "550px", height: "400px" }}>
 
-            {/* Purple tall rectangle — back layer */}
+            {/* Purple tall rectangle â€” back layer */}
             <div
               ref={purpleRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -444,7 +445,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Dark rectangle — middle layer */}
+            {/* Dark rectangle â€” middle layer */}
             <div
               ref={blackRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -486,7 +487,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Coral semi-circle — front left */}
+            {/* Coral semi-circle â€” front left */}
             <div
               ref={orangeRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -519,7 +520,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Yellow rounded rectangle — front right */}
+            {/* Yellow rounded rectangle â€” front right */}
             <div
               ref={yellowRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -566,9 +567,9 @@ export default function AnimatedCharactersLoginPage({
 
         {/* Footer links */}
         <div className="relative z-20 flex items-center gap-8 text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
-          <a href="#" className="hover:text-white transition-colors">Gizlilik Politikası</a>
-          <a href="#" className="hover:text-white transition-colors">Kullanım Koşulları</a>
-          <a href="#" className="hover:text-white transition-colors">İletişim</a>
+          <a href="#" className="hover:text-white transition-colors">Gizlilik PolitikasÄ±</a>
+          <a href="#" className="hover:text-white transition-colors">KullanÄ±m KoÅŸullarÄ±</a>
+          <a href="#" className="hover:text-white transition-colors">Ä°letiÅŸim</a>
         </div>
 
         {/* Decorative glows */}
@@ -579,12 +580,12 @@ export default function AnimatedCharactersLoginPage({
         </div>
       </div>
 
-      {/* ── Right panel: Form ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Right panel: Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         className="flex flex-col overflow-y-auto"
         style={{ background: "#0B0E14" }}
       >
-        {/* Back button — top of form panel */}
+        {/* Back button â€” top of form panel */}
         <div className="px-8 pt-10 pb-0">
           <BackButton href="/" />
         </div>
@@ -603,12 +604,12 @@ export default function AnimatedCharactersLoginPage({
           {/* Heading */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-extrabold tracking-tight text-white mb-1.5">
-              {isLogin ? "Tekrar Hoş Geldin" : "Topluluğa Katıl"}
+              {isLogin ? "Tekrar HoÅŸ Geldin" : "TopluluÄŸa KatÄ±l"}
             </h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
               {isLogin
-                ? "Projelerine devam etmek için hesabına giriş yap."
-                : "Hemen kayıt ol ve akademik yolculuğunu başlat."}
+                ? "Projelerine devam etmek iÃ§in hesabÄ±na giriÅŸ yap."
+                : "Hemen kayÄ±t ol ve akademik yolculuÄŸunu baÅŸlat."}
             </p>
           </div>
 
@@ -616,7 +617,7 @@ export default function AnimatedCharactersLoginPage({
           {!isLogin && (
             <div className="mb-6">
               <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5" style={{ color: "rgba(255,255,255,0.30)" }}>
-                Rolünüzü Seçin
+                RolÃ¼nÃ¼zÃ¼ SeÃ§in
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 {ROLES.map(({ value, label, desc, Icon, bar, labelColor }) => {
@@ -680,7 +681,7 @@ export default function AnimatedCharactersLoginPage({
                 <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Ad Soyad</label>
                 <input
                   name="fullName"
-                  placeholder="Ali Yılmaz"
+                  placeholder="Ali YÄ±lmaz"
                   required
                   autoComplete="name"
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
@@ -717,7 +718,7 @@ export default function AnimatedCharactersLoginPage({
                 </label>
                 <input
                   name="institution"
-                  placeholder="İstanbul Teknik Üniversitesi"
+                  placeholder="Ä°stanbul Teknik Ãœniversitesi"
                   autoComplete="organization"
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
@@ -730,13 +731,13 @@ export default function AnimatedCharactersLoginPage({
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Şifre</label>
+                <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Åifre</label>
               </div>
               <div className="relative">
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   required
                   minLength={isLogin ? undefined : 6}
                   autoComplete={isLogin ? "current-password" : "new-password"}
@@ -769,12 +770,12 @@ export default function AnimatedCharactersLoginPage({
                   className="border-[#7C3AFF] data-[state=checked]:bg-[#7C3AFF] data-[state=checked]:border-[#7C3AFF]"
                 />
                 <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>
-                  Beni Hatırla
+                  Beni HatÄ±rla
                 </span>
               </label>
               {isLogin && (
                 <a href="#" className="text-[11px] font-semibold transition-colors hover:text-purple-300" style={{ color: "#A78BFA" }}>
-                  Şifremi Unuttum
+                  Åifremi Unuttum
                 </a>
               )}
             </div>
@@ -792,14 +793,14 @@ export default function AnimatedCharactersLoginPage({
               className="btn-aura group relative w-full flex items-center justify-center gap-2 text-white font-bold py-3 rounded-xl text-sm overflow-hidden mt-1"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 dark:bg-none" />
-              <span className="relative z-10">{isLogin ? "Giriş Yap" : "Hesap Oluştur"}</span>
+              <span className="relative z-10">{isLogin ? "GiriÅŸ Yap" : "Hesap OluÅŸtur"}</span>
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>Veya şununla devam et</span>
+            <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>Veya ÅŸununla devam et</span>
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
           </div>
 
@@ -831,12 +832,12 @@ export default function AnimatedCharactersLoginPage({
           {/* Switch link */}
           <p className="mt-6 text-center text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
             {isLogin ? (
-              <>Hesabın yok mu?{" "}
-                <Link href="/auth/register" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Kayıt Ol</Link>
+              <>HesabÄ±n yok mu?{" "}
+                <Link href="/auth/register" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>KayÄ±t Ol</Link>
               </>
             ) : (
-              <>Zaten hesabın var mı?{" "}
-                <Link href="/auth/login" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Giriş Yap</Link>
+              <>Zaten hesabÄ±n var mÄ±?{" "}
+                <Link href="/auth/login" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>GiriÅŸ Yap</Link>
               </>
             )}
           </p>
@@ -846,3 +847,4 @@ export default function AnimatedCharactersLoginPage({
     </div>
   );
 }
+
