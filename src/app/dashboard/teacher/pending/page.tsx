@@ -34,7 +34,7 @@ export default function TeacherPendingPage() {
 
       let docUrl = null;
       if (file) {
-        if (file.size > 10 * 1024 * 1024) throw new Error("Dosya boyutu 10MB altinda olmalidir.");
+        if (file.size > 4 * 1024 * 1024) throw new Error("Dosya boyutu 4MB altinda olmalidir.");
         const ext = file.name.split(".").pop();
         const path = `${user.id}/verification.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -187,11 +187,21 @@ export default function TeacherPendingPage() {
                       <>
                         <Upload className="w-6 h-6 text-slate-500" />
                         <span className="text-sm text-slate-400">Dosya secmek icin tiklayin</span>
-                        <span className="text-xs text-slate-600">PDF, PNG, JPG - Maks. 10 MB</span>
+                        <span className="text-xs text-slate-600">PDF, PNG, JPG - Maks. 4 MB</span>
                       </>
                     )}
                   </button>
-                  <input ref={fileRef} type="file" className="hidden" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+                  <input ref={fileRef} type="file" className="hidden" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => {
+  const selectedFile = e.target.files?.[0] ?? null;
+  if (selectedFile && selectedFile.size > 4 * 1024 * 1024) {
+    setError("Dosya boyutu 4 MB'tan buyuk olamaz. Lutfen daha kucuk bir belge yukleyin.");
+    setFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+  } else {
+    setError(null);
+    setFile(selectedFile);
+  }
+}} />
                 </div>
 
                 {error && (
@@ -221,3 +231,4 @@ export default function TeacherPendingPage() {
     </div>
   );
 }
+
