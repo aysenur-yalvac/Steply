@@ -170,8 +170,8 @@ const SOCIAL = [
 
 // â”€â”€ Role cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ROLES = [
-  { value: "student" as const, label: "Ã–ÄŸrenci", desc: "Proje yÃ¼kle, takip et, portfolyo oluÅŸtur.", Icon: GraduationCap, bar: "#7C3AFF", labelColor: "#C97EFF" },
-  { value: "teacher" as const, label: "Ã–ÄŸretmen", desc: "Projeleri denetle ve puan ver.", Icon: Shield, bar: "#FF7F50", labelColor: "#FFA880" },
+  { value: "student" as const, label: "Öğrenci", desc: "Proje yükle, takip et, portfolyo oluştur.", Icon: GraduationCap, bar: "#7C3AFF", labelColor: "#C97EFF" },
+  { value: "teacher" as const, label: "Öğretmen", desc: "Projeleri denetle ve puan ver.", Icon: Shield, bar: "#FF7F50", labelColor: "#FFA880" },
 ];
 
 // â”€â”€ Input style helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -379,7 +379,7 @@ export default function AnimatedCharactersLoginPage({
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
         <Loader2 className="w-10 h-10 text-violet-400 animate-spin mb-4" />
-        <p className="text-sm font-medium text-slate-300">Hedef hesaba geÃ§iÅŸ yapÄ±lÄ±yor, lÃ¼tfen bekleyinâ€¦</p>
+        <p className="text-sm font-medium text-slate-300">Hedef hesaba geçiş yapılıyor, lütfen bekleyinâ€¦</p>
       </div>
     );
   }
@@ -567,9 +567,9 @@ export default function AnimatedCharactersLoginPage({
 
         {/* Footer links */}
         <div className="relative z-20 flex items-center gap-8 text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
-          <a href="#" className="hover:text-white transition-colors">Gizlilik PolitikasÄ±</a>
-          <a href="#" className="hover:text-white transition-colors">KullanÄ±m KoÅŸullarÄ±</a>
-          <a href="#" className="hover:text-white transition-colors">Ä°letiÅŸim</a>
+          <a href="#" className="hover:text-white transition-colors">Gizlilik Politikası</a>
+          <a href="#" className="hover:text-white transition-colors">Kullanım Koşulları</a>
+          <a href="#" className="hover:text-white transition-colors">İletişim</a>
         </div>
 
         {/* Decorative glows */}
@@ -604,12 +604,12 @@ export default function AnimatedCharactersLoginPage({
           {/* Heading */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-extrabold tracking-tight text-white mb-1.5">
-              {isLogin ? "Tekrar HoÅŸ Geldin" : "TopluluÄŸa KatÄ±l"}
+              {isLogin ? "Tekrar Hoş Geldin" : "Topluluğa Katıl"}
             </h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
               {isLogin
-                ? "Projelerine devam etmek iÃ§in hesabÄ±na giriÅŸ yap."
-                : "Hemen kayÄ±t ol ve akademik yolculuÄŸunu baÅŸlat."}
+                ? "Projelerine devam etmek için hesabına giriş yap."
+                : "Hemen kayıt ol ve akademik yolculuğunu başlat."}
             </p>
           </div>
 
@@ -617,7 +617,7 @@ export default function AnimatedCharactersLoginPage({
           {!isLogin && (
             <div className="mb-6">
               <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5" style={{ color: "rgba(255,255,255,0.30)" }}>
-                RolÃ¼nÃ¼zÃ¼ SeÃ§in
+                Rolünüzü Seçin
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 {ROLES.map(({ value, label, desc, Icon, bar, labelColor }) => {
@@ -681,7 +681,7 @@ export default function AnimatedCharactersLoginPage({
                 <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Ad Soyad</label>
                 <input
                   name="fullName"
-                  placeholder="Ali YÄ±lmaz"
+                  placeholder="Ali Yılmaz"
                   required
                   autoComplete="name"
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
@@ -696,18 +696,23 @@ export default function AnimatedCharactersLoginPage({
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>E-posta</label>
               <input
-                name="email"
-                type="email"
-                placeholder="ornek@ogrenci.edu.tr"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={(e) => { setIsTyping(true); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE }); }}
-                onBlur={(e)  => { setIsTyping(false); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE }); }}
-                className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
-                style={INPUT_BASE}
-              />
+                  name="email"
+                  type="email"
+                  placeholder="ornek@ogrenci.edu.tr"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={(e) => { setIsTyping(true); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE }); }}
+                  onBlur={(e)  => { setIsTyping(false); Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE }); }}
+                  className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
+                  style={INPUT_BASE}
+                />
+                {!isLogin && role === "teacher" && (
+                  <p className="text-xs text-amber-400 mt-1.5 flex items-center gap-1">
+                    <span>ℹ️</span> Öğretmenlerin @meb.k12.tr, @meb.gov.tr veya kurumsal e-posta kullanması zorunludur.
+                  </p>
+                )}
             </div>
 
             {/* Institution (register) */}
@@ -718,7 +723,7 @@ export default function AnimatedCharactersLoginPage({
                 </label>
                 <input
                   name="institution"
-                  placeholder="Ä°stanbul Teknik Ãœniversitesi"
+                  placeholder="İstanbul Teknik Üniversitesi"
                   autoComplete="organization"
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
@@ -770,7 +775,7 @@ export default function AnimatedCharactersLoginPage({
                   className="border-[#7C3AFF] data-[state=checked]:bg-[#7C3AFF] data-[state=checked]:border-[#7C3AFF]"
                 />
                 <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>
-                  Beni HatÄ±rla
+                  Beni Hatırla
                 </span>
               </label>
               {isLogin && (
@@ -793,14 +798,14 @@ export default function AnimatedCharactersLoginPage({
               className="btn-aura group relative w-full flex items-center justify-center gap-2 text-white font-bold py-3 rounded-xl text-sm overflow-hidden mt-1"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 dark:bg-none" />
-              <span className="relative z-10">{isLogin ? "GiriÅŸ Yap" : "Hesap OluÅŸtur"}</span>
+              <span className="relative z-10">{isLogin ? "Giriş Yap" : "Hesap Oluştur"}</span>
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>Veya ÅŸununla devam et</span>
+            <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>Veya şununla devam et</span>
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
           </div>
 
@@ -832,12 +837,12 @@ export default function AnimatedCharactersLoginPage({
           {/* Switch link */}
           <p className="mt-6 text-center text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
             {isLogin ? (
-              <>HesabÄ±n yok mu?{" "}
-                <Link href="/auth/register" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>KayÄ±t Ol</Link>
+              <>Hesabın yok mu?{" "}
+                <Link href="/auth/register" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Kayıt Ol</Link>
               </>
             ) : (
-              <>Zaten hesabÄ±n var mÄ±?{" "}
-                <Link href="/auth/login" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>GiriÅŸ Yap</Link>
+              <>Zaten hesabın var mı?{" "}
+                <Link href="/auth/login" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Giriş Yap</Link>
               </>
             )}
           </p>
