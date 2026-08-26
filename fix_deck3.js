@@ -1,4 +1,8 @@
-"use client";
+﻿const fs = require('fs');
+const path = require('path');
+const file = path.resolve('src/components/auth/OtpInput.tsx');
+
+const content = `"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -76,7 +80,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   };
 
   const handleChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, "").slice(-1);
+    const digit = value.replace(/\\D/g, "").slice(-1);
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
@@ -106,7 +110,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
+    const paste = e.clipboardData.getData("text").replace(/\\D/g, "").slice(0, 8);
     const newOtp = [...otp];
     paste.split("").forEach((char, i) => { if (i < 8) newOtp[i] = char; });
     setOtp(newOtp);
@@ -135,7 +139,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       setResent(true);
       setTimeout(() => setResent(false), 5000);
     } catch (err: any) {
-      setError(`E-posta gönderilemedi: ${err.message || "Bilinmeyen hata"}`);
+      setError(\`E-posta gönderilemedi: \${err.message || "Bilinmeyen hata"}\`);
     } finally {
       setResending(false);
     }
@@ -160,7 +164,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
   return (
     <div className="flex flex-col items-center gap-6 relative w-full">
-      <style>{`
+      <style>{\`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           20% { transform: translateX(-5px); }
@@ -176,7 +180,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
         }
         /* Gizleme: .slot-value icinde rakamlari seffaf yapalim eger dogrulanıyorsa */
-      `}</style>
+      \`}</style>
 
       <div className="w-16 h-16 rounded-full flex items-center justify-center"
         style={{ background: "rgba(160,32,240,0.12)", border: "1px solid rgba(160,32,240,0.3)" }}>
@@ -209,7 +213,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
       {/* OTP DECK CONTAINER */}
       <div 
-        className={`flex gap-2 relative mt-4 mb-4 ${shake ? "otp-shake" : ""}`}
+        className={\`flex gap-2 relative mt-4 mb-4 \${shake ? "otp-shake" : ""}\`}
         onFocus={() => setIsFocused(true)}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -222,10 +226,10 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           
           if (loading) {
             const translateX = (3.5 - i) * 40;
-            transform = `translateX(${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)`;
+            transform = \`translateX(\${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)\`;
           } else if (isIdle) {
             const rotateDeg = (i - 3.5) * 4;
-            transform = `translateY(0px) rotate(${rotateDeg}deg) scale(1)`;
+            transform = \`translateY(0px) rotate(\${rotateDeg}deg) scale(1)\`;
           }
 
           return (
@@ -307,3 +311,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, content.trim(), 'utf8');
+console.log("Successfully wrote OtpInput.tsx with Deck Animation.");
