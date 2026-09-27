@@ -15,14 +15,11 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   
-  // States for Deck Animation
-  const [isFocused, setIsFocused] = useState(false);
   const [shake, setShake] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    // DO NOT auto-focus on mount so the user can see the deck animation!
     handleResend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -142,9 +139,6 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   };
 
   const isTeacher = isTeacherEmail(email);
-  const hasValue = otp.some((d) => d !== "");
-  
-  const isIdle = !isFocused && !hasValue && !loading;
 
   if (success) {
     return (
@@ -175,7 +169,6 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           transform-origin: 50% 320%;
           transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
         }
-        /* Gizleme: .slot-value icinde rakamlari seffaf yapalim eger dogrulanıyorsa */
       `}</style>
 
       <div className="w-16 h-16 rounded-full flex items-center justify-center"
@@ -210,20 +203,14 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       {/* OTP DECK CONTAINER */}
       <div 
         className={`flex gap-2 relative mt-4 mb-4 ${shake ? "otp-shake" : ""}`}
-        onFocus={() => setIsFocused(true)}
-        onBlur={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsFocused(false);
-          }
-        }}
       >
         {otp.map((digit, i) => {
-          let transform = "translateY(0px) rotate(0deg) scale(1)";
+          let transform = "";
           
           if (loading) {
             const translateX = (3.5 - i) * 40;
             transform = `translateX(${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)`;
-          } else if (isIdle) {
+          } else {
             const rotateDeg = (i - 3.5) * 4;
             transform = `translateY(0px) rotate(${rotateDeg}deg) scale(1)`;
           }
