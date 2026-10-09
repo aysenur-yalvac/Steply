@@ -23,6 +23,7 @@ import {
   UserX,
   School,
   Heart,
+  Users,
   Trash2,
 } from "lucide-react";
 import { removeLinkedAccountAction } from "@/lib/actions";
@@ -51,6 +52,7 @@ const NAV_ITEMS = [
   { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
   { label: "Odevler",     href: "/dashboard/assignments",icon: FileText },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
+  { label: "Sınıflarım",   href: "/dashboard/classes",    icon: Users },
   { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
   { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
   { 
