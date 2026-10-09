@@ -13,9 +13,20 @@ export async function GET(request: Request) {
     
     if (!error && data?.user?.email) {
       // SSO Login / Signup - apply institutional domain profile rules
+      // Mevcut profili cek, ogretmense ezme
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+      const currentRole = profile?.role;
+      
       const classification = classifyEmail(data.user.email);
-      if (classification.role !== null) {
-        const updates: Record<string, string> = { role: classification.role };
+      
+      let newRole = classification.role;
+      // Eger kullanici zaten ogretmense, onu student/null yapma
+      if (currentRole === "teacher") {
+        newRole = "teacher";
+      }
+
+      if (newRole !== null) {
+        const updates: Record<string, string> = { role: newRole };
         if (classification.teacherStatus) {
           updates.teacher_status = classification.teacherStatus;
         }

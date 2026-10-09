@@ -52,6 +52,12 @@ export async function POST(request: Request) {
 
   // SUNUCU TARAFLI SERT ROL KONTROLU
   const isTeacher = require("@/lib/email-classification").isTeacherEmail(email);
+  
+  // HER ZAMAN KONTROL: Eger whitelist/kurumsal ise role zorunlu "teacher" olsun
+  if (isTeacher) {
+    role = "teacher";
+  }
+
   if (role === "teacher" && !isTeacher) {
     // Eger veri tabaninda ogretmen secilmis ama mail kurumsal degilse reddet
     return NextResponse.json(
