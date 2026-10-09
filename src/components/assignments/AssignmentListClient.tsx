@@ -12,9 +12,11 @@ import { useRouter } from "next/navigation";
 export default function AssignmentListClient({
   assignments,
   userRole,
+  teacherClasses = [],
 }: {
   assignments: Assignment[];
   userRole: string;
+  teacherClasses?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -206,7 +208,7 @@ export default function AssignmentListClient({
       )}
 
       {/* Modal */}
-      {isModalOpen && <CreateAssignmentModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && <CreateAssignmentModal onClose={() => setIsModalOpen(false)} teacherClasses={teacherClasses} />}
       {editingAssignment && <EditAssignmentModal assignment={editingAssignment} onClose={() => { setEditingAssignment(null); router.refresh(); }} />}
     </div>
   );

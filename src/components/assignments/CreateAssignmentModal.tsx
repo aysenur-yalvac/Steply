@@ -5,10 +5,11 @@ import { X, Calendar, Type, AlignLeft, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createAssignmentAction } from "@/lib/actions";
 
-export default function CreateAssignmentModal({ onClose }: { onClose: () => void }) {
+export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: { onClose: () => void; teacherClasses?: { id: string; name: string }[] }) {
   const [title, setTitle] = useState("");
   const [courseName, setCourseName] = useState("Genel");
   const [grade, setGrade] = useState("Tumu");
+  const [classId, setClassId] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
       course_name: courseName,
       due_date: isoDate,
       grade: grade,
+      class_id: classId || null,
     });
 
     setLoading(false);
@@ -68,7 +70,23 @@ export default function CreateAssignmentModal({ onClose }: { onClose: () => void
             </div>
           )}
 
-                              <div className="flex gap-4">
+                              <div className="space-y-2 flex-1 mb-4">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                Sınıf Seçimi
+              </label>
+              <select
+                value={classId}
+                onChange={(e) => setClassId(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none"
+              >
+                <option value="">Genel (Tüm Sınıflar)</option>
+                {teacherClasses.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+<div className="flex gap-4">
             <div className="space-y-2 flex-1">
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />

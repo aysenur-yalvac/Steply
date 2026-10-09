@@ -2202,6 +2202,7 @@ export async function createAssignmentAction(formData: {
   course_name?: string;
   grade?: string;
   due_date: string;
+  class_id?: string | null;
 }) {
   try {
     const supabase = await createClient();
