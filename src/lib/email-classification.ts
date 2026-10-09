@@ -1,17 +1,30 @@
-﻿/**
+/**
  * Institutional Email Domain Auto-Verification Utility
  * Kurumsal e-posta domain'ine gore otomatik rol ve status atar.
  */
 
+// Gelistirici / Admin E-posta Izin Listesi
+// Bu e-postalar kurumsal domain olmasa dahi otomatik olarak "teacher" rolü alir.
+const ADMIN_DEV_EMAILS = [
+  "aysenuryalvac@gmail.com",
+];
+
 export function isTeacherEmail(email: string): boolean {
-  const normalized = email.toLowerCase();
+  if (!email) return false;
   
-  // Ogrenci uzantilari kesinlikle ogretmen OLMAMALIDIR
+  const normalized = email.toLowerCase().trim();
+
+  // 1. Gelistirici / Admin Kontrolu (Whitelist - istisna)
+  if (ADMIN_DEV_EMAILS.includes(normalized)) {
+    return true;
+  }
+
+  // 2. Ogrenci uzantilari kesinlikle ogretmen OLMAMALIDIR
   if (normalized.includes(".ogr.") || normalized.includes("ogrenci.") || normalized.includes("student.")) {
     return false;
   }
 
-  // Ogretmen kabul edilen resmi/kurumsal uzantilar
+  // 3. Ogretmen kabul edilen resmi/kurumsal uzantilar
   return (
     normalized.endsWith("@meb.k12.tr") ||
     normalized.endsWith("@meb.gov.tr") ||
@@ -37,7 +50,6 @@ export function validateRoleAndEmail(email: string, requestedRole: string) {
   // 2. Ogrenci Rolu Kurallari:
   if (requestedRole === "student") {
     // Ogrenciler HERHANGI bir e-posta ile kayit/giris yapabilir (Gmail, Hotmail, Okul maili vb.)
-    // Hicbir e-posta uzantisi engellenmez!
     return { valid: true };
   }
 
@@ -51,7 +63,7 @@ export type EmailClassification =
 
 export function classifyEmail(email: string): EmailClassification {
   if (isTeacherEmail(email)) {
-    return { role: "teacher", teacherStatus: "verified", reason: "Kurumsal ogretmen e-postasi" };
+    return { role: "teacher", teacherStatus: "verified", reason: "Kurumsal veya yetkili ogretmen e-postasi" };
   }
   
   const normalized = email.toLowerCase();
