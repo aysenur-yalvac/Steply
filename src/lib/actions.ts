@@ -2183,6 +2183,8 @@ export interface Assignment {
   grade: string;
   due_date: string;
   created_at: string;
+  class_id?: string | null;
+  class?: { name: string } | null;
   teacher?: { full_name: string | null };
 }
 

@@ -1,17 +1,24 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { X, Calendar, Type, AlignLeft, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createAssignmentAction } from "@/lib/actions";
 
-export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: { onClose: () => void; teacherClasses?: { id: string; name: string }[] }) {
+export default function CreateAssignmentModal({
+  onClose,
+  teacherClasses = [],
+  defaultClassId,
+}: {
+  onClose: () => void;
+  teacherClasses?: { id: string; name: string }[];
+  defaultClassId?: string;
+}) {
   const [title, setTitle] = useState("");
   const [courseName, setCourseName] = useState("Genel");
-  const [grade, setGrade] = useState("Tumu");
-  const [classId, setClassId] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [classId, setClassId] = useState(defaultClassId || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -25,7 +32,7 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
 
     setLoading(true);
     setError(null);
-    
+
     const isoDate = new Date(dueDate).toISOString();
 
     const res = await createAssignmentAction({
@@ -33,7 +40,6 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
       description,
       course_name: courseName,
       due_date: isoDate,
-      grade: grade,
       class_id: classId || null,
     });
 
@@ -70,55 +76,44 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
             </div>
           )}
 
-                              <div className="space-y-2 flex-1 mb-4">
+          {/* Sinif Secimi - sadece bir tane, defaultClassId varsa gizli */}
+          {defaultClassId ? (
+            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Bu sinifa ait odev olusturuluyor.
+            </div>
+          ) : (
+            <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                Sınıf Seçimi
+                Sinif Secin
               </label>
               <select
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none"
               >
-                <option value="">Genel (Tüm Sınıflar)</option>
+                <option value="">-- Sinif Secin (Zorunlu) --</option>
                 {teacherClasses.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
-<div className="flex gap-4">
-            <div className="space-y-2 flex-1">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Ders Adi
-              </label>
-              <input
-                type="text"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-                placeholder="Orn: Yazilim Mimarisi"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2 flex-1">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                Sinif / Duzey
-              </label>
-              <select
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-              >
-                <option value="Tumu">Tumu</option>
-                <option value="1. Sinif">1. Sinif</option>
-                <option value="2. Sinif">2. Sinif</option>
-                <option value="3. Sinif">3. Sinif</option>
-                <option value="4. Sinif">4. Sinif</option>
-                <option value="Yuksek Lisans / Doktora">Yuksek Lisans / Doktora</option>
-              </select>
-            </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+              Ders Adi
+            </label>
+            <input
+              type="text"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+              placeholder="Orn: Yazilim Mimarisi"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -131,7 +126,7 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Orn: Algoritma Projesi"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               required
             />
           </div>
@@ -145,7 +140,7 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Odevin detaylari ve gereksinimleri..."
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all min-h-[100px] resize-none"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all min-h-[100px] resize-none"
             />
           </div>
 
@@ -158,7 +153,7 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
               type="datetime-local"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               required
             />
             <p className="text-xs text-slate-500">
@@ -170,7 +165,7 @@ export default function CreateAssignmentModal({ onClose, teacherClasses = [] }: 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50"
             >
               {loading ? "Olusturuluyor..." : "Odevi Olustur"}
             </button>
