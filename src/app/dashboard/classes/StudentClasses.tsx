@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { joinClassAction } from './actions';
-import { LogIn, BookOpen, User, ChevronRight } from 'lucide-react';
+import { LogIn, BookOpen, User, ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function StudentClasses({ initialMemberships }: { initialMemberships: any[] }) {
+  const router = useRouter();
   const [memberships, setMemberships] = useState(initialMemberships);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,13 +23,20 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
     const code = formData.get('code') as string;
 
     try {
-      await joinClassAction(code);
+      const res = await joinClassAction(code);
+      if (!res.success) {
+        setError(res.error || "Sınıfa katılınamadı.");
+        setLoading(false);
+        return;
+      }
       setSuccessMsg("Sınıfa başarıyla katıldınız!");
       setTimeout(() => {
+        setIsModalOpen(false);
+        router.refresh();
         window.location.reload();
-      }, 1500);
+      }, 1200);
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Beklenmeyen bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -40,8 +49,8 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
           <p className="text-slate-400 mt-1">Kayıtlı olduğunuz sınıflar.</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all"
+          onClick={() => { setError(null); setSuccessMsg(null); setIsModalOpen(true); }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md"
         >
           <LogIn className="w-5 h-5" />
           Sınıfa Katıl
@@ -54,7 +63,7 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
           <h3 className="text-xl font-medium text-white mb-2">Henüz bir sınıfa katılmadınız</h3>
           <p className="text-slate-400 mb-6">Öğretmeninizin size ilettiği katılım koduyla bir sınıfa katılın.</p>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { setError(null); setSuccessMsg(null); setIsModalOpen(true); }}
             className="bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 px-4 py-2 rounded-xl font-medium transition-all"
           >
             Sınıfa Katıl
@@ -97,8 +106,9 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
             <p className="text-slate-400 text-sm mb-6">Öğretmeninizin size ilettiği katılım kodunu girin.</p>
 
             {successMsg ? (
-              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-center font-medium">
-                {successMsg}
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-center font-medium flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                <span>{successMsg}</span>
               </div>
             ) : (
               <form onSubmit={handleJoin} className="space-y-4">
@@ -108,13 +118,14 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
                     name="code"
                     required
                     placeholder="örn: STP-1234"
-                    className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 uppercase tracking-widest font-mono"
+                    className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 uppercase tracking-widest font-mono transition-colors"
                   />
                 </div>
 
                 {error && (
-                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {error}
+                  <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{error}</span>
                   </div>
                 )}
 
@@ -129,7 +140,7 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-5 py-2 rounded-xl font-medium transition-all"
+                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-5 py-2 rounded-xl font-medium transition-all shadow-md"
                   >
                     {loading ? 'Katılınıyor...' : 'Katıl'}
                   </button>

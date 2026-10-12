@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClassAction } from "./actions";
-import { Plus, Users, Copy, Check, BookOpen, ChevronRight } from "lucide-react";
+import { Plus, Users, Copy, Check, BookOpen, ChevronRight, AlertCircle } from "lucide-react";
 
 export default function TeacherClasses({ initialClasses }: { initialClasses: any[] }) {
+  const router = useRouter();
   const [classes, setClasses] = useState(initialClasses);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,11 +20,19 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
     setError(null);
     const formData = new FormData(e.currentTarget);
     try {
-      const newClass = await createClassAction(formData);
-      setClasses([{ ...newClass, class_members: [{ count: 0 }] }, ...classes]);
+      const res = await createClassAction(formData);
+      if (!res.success) {
+        setError(res.error || "Sınıf oluşturulurken bir hata oluştu.");
+        setLoading(false);
+        return;
+      }
+      if (res.data) {
+        setClasses(prev => [{ ...res.data, class_members: [{ count: 0 }] }, ...prev]);
+      }
       setIsModalOpen(false);
+      router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Beklenmeyen bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -44,8 +54,8 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
           <p className="text-slate-400 mt-1">Öğrencileriniz için sınıflar oluşturun ve yönetin.</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all"
+          onClick={() => { setError(null); setIsModalOpen(true); }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md"
         >
           <Plus className="w-5 h-5" />
           Yeni Sınıf Oluştur
@@ -58,7 +68,7 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
           <h3 className="text-xl font-medium text-white mb-2">Henüz sınıfınız yok</h3>
           <p className="text-slate-400 mb-6">Öğrencilerinizi davet etmek için ilk sınıfınızı oluşturun.</p>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { setError(null); setIsModalOpen(true); }}
             className="bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 px-4 py-2 rounded-xl font-medium transition-all"
           >
             Sınıf Oluştur
@@ -117,7 +127,7 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
                   name="name"
                   required
                   placeholder="örn: 10-A Web Geliştirme"
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 transition-colors"
                 />
               </div>
               <div>
@@ -126,13 +136,14 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
                   name="description"
                   rows={3}
                   placeholder="Sınıf hakkında kısa bilgi..."
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 transition-colors"
                 ></textarea>
               </div>
 
               {error && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                  {error}
+                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -147,7 +158,7 @@ export default function TeacherClasses({ initialClasses }: { initialClasses: any
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-5 py-2 rounded-xl font-medium transition-all"
+                  className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-5 py-2 rounded-xl font-medium transition-all shadow-md"
                 >
                   {loading ? "Oluşturuluyor..." : "Oluştur"}
                 </button>

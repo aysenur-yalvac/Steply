@@ -14,11 +14,13 @@ export default function AssignmentListClient({
   userRole,
   teacherClasses = [],
   defaultClassId,
+  hideHeader = false,
 }: {
   assignments: Assignment[];
   userRole: string;
   teacherClasses?: { id: string; name: string }[];
   defaultClassId?: string;
+  hideHeader?: boolean;
 }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,23 +58,25 @@ export default function AssignmentListClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Odevler</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            {isTeacher ? "Olusturdugunuz tum odevler" : "Siniflarinizdan gelen odevler"}
-          </p>
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Ödevler</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              {isTeacher ? "Oluşturduğunuz tüm ödevler" : "Sınıflarınızdan gelen ödevler"}
+            </p>
+          </div>
+          {isTeacher && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+            >
+              <FolderPlus className="w-5 h-5" />
+              Yeni Ödev
+            </button>
+          )}
         </div>
-        {isTeacher && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
-          >
-            <FolderPlus className="w-5 h-5" />
-            Yeni Odev
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Filters */}
       {assignmentsList.length > 0 && (

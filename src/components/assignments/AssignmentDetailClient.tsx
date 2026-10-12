@@ -119,7 +119,7 @@ export default function AssignmentDetailClient({
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header Back Button */}
       <Link 
-        href="/dashboard/assignments"
+        href={assignment.class_id ? `/dashboard/classes/${assignment.class_id}` : "/dashboard/classes"}
         className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-400 transition-colors font-medium mb-2"
       >
         <ArrowLeft className="w-4 h-4" />

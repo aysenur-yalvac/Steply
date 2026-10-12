@@ -37,7 +37,7 @@ export default async function AssignmentDetailPage({
   
   const assignment = await getAssignmentByIdAction(assignmentId);
   if (!assignment) {
-    redirect("/dashboard/assignments");
+    redirect("/dashboard/classes");
   }
 
   const submissions = await getAssignmentSubmissionsAction(assignmentId);

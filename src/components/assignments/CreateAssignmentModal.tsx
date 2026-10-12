@@ -26,7 +26,13 @@ export default function CreateAssignmentModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !dueDate) {
-      setError("Baslik ve Son Teslim Tarihi zorunludur.");
+      setError("Başlık ve Son Teslim Tarihi zorunludur.");
+      return;
+    }
+
+    const targetClassId = defaultClassId || classId;
+    if (!targetClassId) {
+      setError("Lütfen ödevin atanacağı bir sınıf seçin.");
       return;
     }
 
@@ -40,17 +46,18 @@ export default function CreateAssignmentModal({
       description,
       course_name: courseName,
       due_date: isoDate,
-      class_id: classId || null,
+      class_id: targetClassId,
     });
 
     setLoading(false);
 
     if (!res.success) {
-      alert(`VERITABANI HATASI: ${res.error}`);
+      setError(res.error || "Ödev oluşturulurken bir hata oluştu.");
       return;
     }
 
     onClose();
+    router.refresh();
     window.location.reload();
   };
 

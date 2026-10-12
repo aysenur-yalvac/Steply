@@ -1,80 +1,160 @@
-﻿'use server'
+'use server';
 
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
 export async function createClassAction(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
-  
-  // Generate code e.g. STP-XXXX
-  const generateCode = () => 'STP-' + Math.floor(1000 + Math.random() * 9000).toString();
-  
-  let code = generateCode();
-  
-  const { data, error } = await supabase.from('classes').insert({
-    teacher_id: user.id,
-    name,
-    description,
-    code
-  }).select().single();
-  
-  if (error) {
-    if (error.code === '23505') { // UNIQUE violation for code
-      // Try once more with a new code
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user?.id) {
+      return {
+        success: false,
+        error: "Oturum süreniz dolmuş veya kullanıcı doğrulanamadı. Lütfen tekrar giriş yapın."
+      };
+    }
+
+    const name = (formData.get('name') as string)?.trim();
+    const description = (formData.get('description') as string)?.trim() || null;
+
+    if (!name) {
+      return {
+        success: false,
+        error: "Sınıf adı zorunludur."
+      };
+    }
+
+    const admin = createAdminClient();
+
+    // Sınıf kodu üretici (STP-XXXX formatında benzersiz)
+    const generateCode = () => {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let c = "STP-";
+      for (let i = 0; i < 4; i++) {
+        c += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return c;
+    };
+
+    let code = generateCode();
+    let isUnique = false;
+
+    for (let attempts = 0; attempts < 10; attempts++) {
+      const { data: existing } = await admin
+        .from('classes')
+        .select('id')
+        .eq('code', code)
+        .maybeSingle();
+
+      if (!existing) {
+        isUnique = true;
+        break;
+      }
       code = generateCode();
-      const { data: retryData, error: retryError } = await supabase.from('classes').insert({
+    }
+
+    const { data, error } = await admin
+      .from('classes')
+      .insert({
         teacher_id: user.id,
         name,
         description,
         code
-      }).select().single();
-      if (retryError) throw new Error(retryError.message);
-      revalidatePath('/dashboard/classes');
-      return retryData;
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("createClassAction Supabase Error:", error);
+      return {
+        success: false,
+        error: error.message || "Sınıf oluşturulurken veritabanı hatası oluştu."
+      };
     }
-    throw new Error(error.message);
+
+    revalidatePath('/dashboard/classes');
+    return {
+      success: true,
+      data
+    };
+  } catch (err: any) {
+    console.error("createClassAction Unexpected Error:", err);
+    return {
+      success: false,
+      error: err?.message || "Sınıf oluşturulurken beklenmeyen bir hata meydana geldi."
+    };
   }
-  
-  revalidatePath('/dashboard/classes');
-  return data;
 }
 
 export async function joinClassAction(code: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  
-  // Find class by code
-  const { data: classData, error: classError } = await supabase
-    .from('classes')
-    .select('id')
-    .eq('code', code)
-    .single();
-    
-  if (classError || !classData) {
-    throw new Error("Geçersiz katılım kodu.");
-  }
-  
-  // Insert into class_members
-  const { error: joinError } = await supabase
-    .from('class_members')
-    .insert({
-      class_id: classData.id,
-      student_id: user.id
-    });
-    
-  if (joinError) {
-    if (joinError.code === '23505') {
-      throw new Error("Bu sınıfa zaten kayıtlısınız.");
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user?.id) {
+      return {
+        success: false,
+        error: "Oturum süreniz dolmuş. Lütfen tekrar giriş yapın."
+      };
     }
-    throw new Error(joinError.message);
+
+    const cleanCode = code?.trim().toUpperCase();
+    if (!cleanCode) {
+      return {
+        success: false,
+        error: "Lütfen geçerli bir katılım kodu girin."
+      };
+    }
+
+    const admin = createAdminClient();
+
+    // Sınıfı koda göre bul
+    const { data: classData, error: classError } = await admin
+      .from('classes')
+      .select('id, name')
+      .eq('code', cleanCode)
+      .maybeSingle();
+
+    if (classError || !classData) {
+      return {
+        success: false,
+        error: "Geçersiz veya bulunamayan katılım kodu."
+      };
+    }
+
+    // Sınıf üyelerine ekle
+    const { error: joinError } = await admin
+      .from('class_members')
+      .insert({
+        class_id: classData.id,
+        student_id: user.id
+      });
+
+    if (joinError) {
+      if (joinError.code === '23505') {
+        return {
+          success: false,
+          error: "Bu sınıfa zaten kayıtlısınız."
+        };
+      }
+      return {
+        success: false,
+        error: joinError.message || "Sınıfa kayıt olurken bir hata oluştu."
+      };
+    }
+
+    revalidatePath('/dashboard/classes');
+    return {
+      success: true,
+      data: classData
+    };
+  } catch (err: any) {
+    console.error("joinClassAction Unexpected Error:", err);
+    return {
+      success: false,
+      error: err?.message || "Sınıfa katılırken beklenmeyen bir hata meydana geldi."
+    };
   }
-  
-  revalidatePath('/dashboard/classes');
-  return { success: true };
 }

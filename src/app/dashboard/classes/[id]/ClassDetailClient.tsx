@@ -91,6 +91,7 @@ export default function ClassDetailClient({
           userRole={isTeacher ? "teacher" : "student"}
           teacherClasses={teacherClasses}
           defaultClassId={cls.id}
+          hideHeader={true}
         />
       )}
 

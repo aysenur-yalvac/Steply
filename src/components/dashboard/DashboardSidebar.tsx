@@ -50,9 +50,8 @@ const NAV_ITEMS = [
   { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
   { label: "Watchlist",   href: "#watchlist",            icon: Bookmark,  isWatchlist: true },
   { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
-  { label: "Odevler",     href: "/dashboard/assignments",icon: FileText },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
-  { label: "Sınıflarım",   href: "/dashboard/classes",    icon: Users },
+  { label: "S\u0131n\u0131flar\u0131m", href: "/dashboard/classes",    icon: Users },
   { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
   { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
   { 
