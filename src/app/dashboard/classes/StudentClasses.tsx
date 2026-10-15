@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { joinClassAction } from './actions';
@@ -13,6 +13,11 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Sunucudan gelen initialMemberships güncellendiğinde senkronize et
+  useEffect(() => {
+    setMemberships(initialMemberships);
+  }, [initialMemberships]);
 
   const handleJoin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,12 +34,25 @@ export default function StudentClasses({ initialMemberships }: { initialMembersh
         setLoading(false);
         return;
       }
+
+      // 1. Yeni katıldığı sınıfı mevcut state listesine ANINDA ekle
+      if (res.data) {
+        setMemberships((prev) => [
+          res.data,
+          ...prev.filter((m: any) => m.classes?.id !== res.data.classes?.id),
+        ]);
+      }
+
+      // 2. Başarı mesajını göster ve modalı kapat
       setSuccessMsg("Sınıfa başarıyla katıldınız!");
       setTimeout(() => {
         setIsModalOpen(false);
-        router.refresh();
-        window.location.reload();
-      }, 1200);
+        setSuccessMsg(null);
+        setLoading(false);
+      }, 700);
+
+      // 3. Arka planda sunucu önbelleğini yenile (tam sayfa yenilemesi olmadan)
+      router.refresh();
     } catch (err: any) {
       setError(err?.message || "Beklenmeyen bir hata oluştu.");
       setLoading(false);

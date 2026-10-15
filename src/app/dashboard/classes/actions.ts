@@ -113,7 +113,7 @@ export async function joinClassAction(code: string) {
     // Sınıfı koda göre bul
     const { data: classData, error: classError } = await admin
       .from('classes')
-      .select('id, name')
+      .select('*')
       .eq('code', cleanCode)
       .maybeSingle();
 
@@ -125,12 +125,14 @@ export async function joinClassAction(code: string) {
     }
 
     // Sınıf üyelerine ekle
-    const { error: joinError } = await admin
+    const { data: memberData, error: joinError } = await admin
       .from('class_members')
       .insert({
         class_id: classData.id,
         student_id: user.id
-      });
+      })
+      .select()
+      .single();
 
     if (joinError) {
       if (joinError.code === '23505') {
@@ -145,10 +147,30 @@ export async function joinClassAction(code: string) {
       };
     }
 
+    // Öğretmen profilini getir
+    const { data: teacherProfile } = await admin
+      .from('profiles')
+      .select('id, full_name, email, avatar_url')
+      .eq('id', classData.teacher_id)
+      .maybeSingle();
+
+    const fullClass = {
+      ...classData,
+      profiles: teacherProfile || { full_name: 'Öğretmen' }
+    };
+
+    // Revalidation çağrıları
     revalidatePath('/dashboard/classes');
+    revalidatePath('/dashboard');
+    revalidatePath(`/dashboard/classes/${classData.id}`);
+
     return {
       success: true,
-      data: classData
+      data: {
+        class_id: classData.id,
+        joined_at: memberData?.joined_at || new Date().toISOString(),
+        classes: fullClass
+      }
     };
   } catch (err: any) {
     console.error("joinClassAction Unexpected Error:", err);
