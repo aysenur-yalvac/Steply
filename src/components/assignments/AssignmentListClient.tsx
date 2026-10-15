@@ -15,12 +15,14 @@ export default function AssignmentListClient({
   teacherClasses = [],
   defaultClassId,
   hideHeader = false,
+  onAssignmentClick,
 }: {
   assignments: Assignment[];
   userRole: string;
   teacherClasses?: { id: string; name: string }[];
   defaultClassId?: string;
   hideHeader?: boolean;
+  onAssignmentClick?: (assignment: Assignment) => void;
 }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);

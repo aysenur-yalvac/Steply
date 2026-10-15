@@ -2195,7 +2195,11 @@ export interface AssignmentSubmission {
   file_url: string;
   file_name: string;
   submitted_at: string;
-  student?: { full_name: string | null };
+  grade?: number | null;
+  feedback?: string | null;
+  status?: string | null;
+  graded_at?: string | null;
+  student?: { full_name: string | null; email?: string | null; avatar_url?: string | null };
 }
 
 export async function createAssignmentAction(formData: {
@@ -2320,39 +2324,176 @@ export async function submitAssignmentAction(
   file_url: string,
   file_name: string
 ): Promise<{ success: true; submission: AssignmentSubmission } | { error: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Unauthorized' };
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Oturum açılmamış." };
 
-  const { data, error } = await supabase
-    .from('assignment_submissions')
-    .insert({
-      assignment_id,
-      student_id: user.id,
-      file_url,
-      file_name
-    })
-    .select()
-    .single();
+    const admin = createAdminClient();
 
-  if (error) return { error: error.message };
-  revalidatePath(`/dashboard/assignments/${assignment_id}`);
-  return { success: true, submission: data };
+    // Önceden bu ödev için teslim yapılmış mı kontrol et
+    const { data: existing } = await admin
+      .from("assignment_submissions")
+      .select("id")
+      .eq("assignment_id", assignment_id)
+      .eq("student_id", user.id)
+      .maybeSingle();
+
+    let result;
+    if (existing) {
+      // Varsa güncelle
+      const { data, error } = await admin
+        .from("assignment_submissions")
+        .update({
+          file_url,
+          file_name,
+          submitted_at: new Date().toISOString(),
+          status: "submitted"
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+
+      if (error) return { error: error.message };
+      result = data;
+    } else {
+      // Yoksa yeni oluştur
+      const { data, error } = await admin
+        .from("assignment_submissions")
+        .insert({
+          assignment_id,
+          student_id: user.id,
+          file_url,
+          file_name,
+          status: "submitted",
+          submitted_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) return { error: error.message };
+      result = data;
+    }
+
+    revalidatePath(`/dashboard/assignments/${assignment_id}`);
+    revalidatePath("/dashboard/classes/[id]", "page");
+    return { success: true, submission: result };
+  } catch (err: any) {
+    console.error("submitAssignmentAction error:", err);
+    return { error: err?.message || "Ödev teslim edilirken bir hata oluştu." };
+  }
+}
+
+export async function getStudentSubmissionAction(
+  assignment_id: string
+): Promise<AssignmentSubmission | null> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("assignment_submissions")
+      .select("*")
+      .eq("assignment_id", assignment_id)
+      .eq("student_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("getStudentSubmissionAction error:", error);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error("getStudentSubmissionAction error:", err);
+    return null;
+  }
 }
 
 export async function getAssignmentSubmissionsAction(assignment_id: string): Promise<AssignmentSubmission[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('assignment_submissions')
-    .select('*, student:profiles!assignment_submissions_student_id_fkey(full_name)')
-    .eq('assignment_id', assignment_id)
-    .order('submitted_at', { ascending: false });
+  try {
+    const admin = createAdminClient();
+    
+    // Doğrudan join denemesi
+    const { data, error } = await admin
+      .from("assignment_submissions")
+      .select("*, student:profiles!assignment_submissions_student_id_fkey(full_name, email, avatar_url)")
+      .eq("assignment_id", assignment_id)
+      .order("submitted_at", { ascending: false });
 
-  if (error) {
-    console.error('Error fetching submissions:', error);
+    if (!error && data) {
+      return data;
+    }
+
+    // Join başarısız olursa manuel eşleştirme (güvenli fallback)
+    const { data: rawSubmissions, error: rawError } = await admin
+      .from("assignment_submissions")
+      .select("*")
+      .eq("assignment_id", assignment_id)
+      .order("submitted_at", { ascending: false });
+
+    if (rawError || !rawSubmissions) {
+      console.error("Error fetching submissions fallback:", rawError);
+      return [];
+    }
+
+    const studentIds = Array.from(new Set(rawSubmissions.map(s => s.student_id)));
+    if (studentIds.length === 0) return rawSubmissions;
+
+    const { data: profiles } = await admin
+      .from("profiles")
+      .select("id, full_name, email, avatar_url")
+      .in("id", studentIds);
+
+    const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+    return rawSubmissions.map(s => ({
+      ...s,
+      student: profileMap.get(s.student_id) || { full_name: "Öğrenci", email: "" }
+    }));
+  } catch (err) {
+    console.error("Error fetching submissions exception:", err);
     return [];
   }
-  return data || [];
+}
+
+export async function gradeSubmissionAction(
+  submission_id: string,
+  grade: number,
+  feedback?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Oturum açılmamış." };
+
+    if (grade < 0 || grade > 100) {
+      return { success: false, error: "Not 0 ile 100 arasında olmalıdır." };
+    }
+
+    const admin = createAdminClient();
+
+    const { error } = await admin
+      .from("assignment_submissions")
+      .update({
+        grade: Math.round(grade),
+        feedback: feedback?.trim() || null,
+        status: "graded",
+        graded_at: new Date().toISOString()
+      })
+      .eq("id", submission_id);
+
+    if (error) {
+      console.error("gradeSubmissionAction error:", error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard/classes/[id]", "page");
+    return { success: true };
+  } catch (err: any) {
+    console.error("gradeSubmissionAction unexpected error:", err);
+    return { success: false, error: err?.message || "Not kaydedilirken bir hata oluştu." };
+  }
 }
 
 export async function softDeleteAssignmentAction(id: string) {

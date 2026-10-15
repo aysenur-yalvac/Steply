@@ -6,6 +6,7 @@ import { Users, FileText, ArrowLeft, FolderPlus, Copy, Check, ShieldCheck, Calen
 import AssignmentListClient from "@/components/assignments/AssignmentListClient";
 import type { Assignment } from "@/lib/actions";
 import CreateAssignmentModal from "@/components/assignments/CreateAssignmentModal";
+import AssignmentDetailModal from "@/components/assignments/AssignmentDetailModal";
 
 type TabType = "assignments" | "members";
 
@@ -26,6 +27,7 @@ export default function ClassDetailClient({
 }) {
   const [activeTab, setActiveTab] = useState<TabType>("assignments");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleCopyCode = (e: React.MouseEvent) => {
@@ -180,6 +182,7 @@ export default function ClassDetailClient({
               teacherClasses={teacherClasses}
               defaultClassId={cls.id}
               hideHeader={true}
+              onAssignmentClick={(assignment) => setSelectedAssignment(assignment)}
             />
           )}
         </div>
@@ -293,6 +296,19 @@ export default function ClassDetailClient({
             )}
           </div>
         </div>
+      )}
+
+      {/* Assignment Detail & Submission / Grading Modal */}
+      {selectedAssignment && (
+        <AssignmentDetailModal
+          assignment={selectedAssignment}
+          isTeacher={isTeacher}
+          userId={userId}
+          onClose={() => setSelectedAssignment(null)}
+          onSubmissionSuccess={() => {
+            // refresh
+          }}
+        />
       )}
 
       {/* Create Assignment Modal */}
