@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FolderPlus, Clock, ChevronRight, FileText, Trash2, Pencil } from "lucide-react";
+import { FolderPlus, Clock, ChevronRight, FileText, Trash2, Pencil, UploadCloud } from "lucide-react";
 import EditAssignmentModal from "./EditAssignmentModal";
 import CreateAssignmentModal from "./CreateAssignmentModal";
 import { softDeleteAssignmentAction } from "@/lib/actions";
