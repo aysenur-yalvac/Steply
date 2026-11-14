@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -6,6 +6,25 @@ const nextConfig: NextConfig = {
       dynamic: 30,
       static: 180,
     },
+  },
+  async redirects() {
+    return [
+      {
+        source: "/signup",
+        destination: "/auth/register",
+        permanent: false,
+      },
+      {
+        source: "/register",
+        destination: "/auth/register",
+        permanent: false,
+      },
+      {
+        source: "/login",
+        destination: "/auth/login",
+        permanent: false,
+      },
+    ];
   },
 };
 

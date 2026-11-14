@@ -1,4 +1,4 @@
-import LoginCard from "./LoginCard";
+﻿import LoginCard from "./LoginCard";
 
 export default async function LoginPage({
   searchParams,
@@ -6,10 +6,14 @@ export default async function LoginPage({
   searchParams: Promise<{ message?: string; error?: string; link_account?: string; owner_id?: string }>;
 }) {
   const resolved = await searchParams;
-  const displayMessage =
-    resolved?.error === "invalid_token"
-      ? "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin."
-      : resolved?.message;
+  let displayMessage = resolved?.message;
+  if (resolved?.error === "invalid_token") {
+    displayMessage = "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin.";
+  } else if (resolved?.error === "oauth_failed") {
+    displayMessage = "Giriş yapılırken bir sorun oluştu. Lütfen tekrar deneyin.";
+  } else if (resolved?.error) {
+    displayMessage = resolved.error;
+  }
 
   return (
     <LoginCard

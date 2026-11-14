@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { classifyEmail } from "@/lib/email-classification";
-import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2 } from "lucide-react";
+import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
 import { BackButton } from "@/components/ui/back-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/utils/supabase/client";
@@ -185,16 +186,45 @@ type Mode = "login" | "register";
 export default function AnimatedCharactersLoginPage({
   mode,
   message,
+  error,
   linkAccount,
   ownerId,
 }: {
   mode: Mode;
   message?: string;
+  error?: string;
   linkAccount?: boolean;
   ownerId?: string;
 }) {
   const isLogin = mode === "login";
   const router  = useRouter();
+
+  // Toast effect for account_not_found
+  useEffect(() => {
+    const isAccountNotFound =
+      error === "account_not_found" ||
+      (typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("error") === "account_not_found");
+
+    if (isAccountNotFound) {
+      toast.error(
+        "Bu Google hesabıyla kayıtlı bir üyelik bulunamadı. Lütfen önce yeni hesap oluşturun.",
+        {
+          id: "account_not_found_toast",
+          duration: 6000,
+          icon: "⚠️",
+          style: {
+            background: "#18181b",
+            color: "#fef08a",
+            border: "1px solid rgba(234, 179, 8, 0.4)",
+            padding: "12px 16px",
+            fontSize: "13px",
+            fontWeight: 500,
+          },
+        }
+      );
+    }
+  }, [error]);
 
   // OAuth Login Handler
   const handleOAuthLogin = async (e: React.MouseEvent<HTMLButtonElement>, providerId: string) => {
@@ -208,20 +238,26 @@ export default function AnimatedCharactersLoginPage({
       return;
     }
 
-    console.log(`[OAuth] ${provider} girisi baslatiliyor...`);
+    console.log(`[OAuth] ${provider} (${isLogin ? "login" : "signup"}) baslatiliyor...`);
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
+      const intent = isLogin ? "login" : "signup";
+      const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
+      callbackUrl.searchParams.set("intent", intent);
+      if (linkAccount) callbackUrl.searchParams.set("link_account", "true");
+      if (ownerId) callbackUrl.searchParams.set("owner_id", ownerId);
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: provider as "google" | "github",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 
-      if (error) {
-        console.error(`[OAuth Error] ${provider}:`, error.message);
-        alert(`Giris Basarisiz: ${error.message}`);
+      if (oauthError) {
+        console.error(`[OAuth Error] ${provider}:`, oauthError.message);
+        alert(`Giris Basarisiz: ${oauthError.message}`);
       }
     } catch (err) {
       const ex = err as any;
@@ -787,8 +823,32 @@ export default function AnimatedCharactersLoginPage({
 
             {/* Error message */}
             {message && (
-              <div className="p-3 text-red-400 text-xs rounded-xl text-center leading-relaxed" style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.20)" }}>
-                {message}
+              <div
+                className={`p-3.5 text-xs rounded-xl flex items-start gap-2.5 leading-relaxed ${
+                  error === "account_not_found" || message.includes("Google hesabıyla")
+                    ? "text-amber-200 border-amber-500/35 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+                    : "text-red-400 border-red-500/20 bg-red-500/10"
+                }`}
+                style={{
+                  border:
+                    error === "account_not_found" || message.includes("Google hesabıyla")
+                      ? "1px solid rgba(245, 158, 11, 0.40)"
+                      : "1px solid rgba(248, 113, 113, 0.20)",
+                  background:
+                    error === "account_not_found" || message.includes("Google hesabıyla")
+                      ? "rgba(245, 158, 11, 0.12)"
+                      : "rgba(248, 113, 113, 0.08)",
+                }}
+              >
+                {error === "account_not_found" || message.includes("Google hesabıyla") ? (
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                ) : null}
+                <div className="flex-1 text-left">
+                  {error === "account_not_found" || message.includes("Google hesabıyla") ? (
+                    <div className="font-semibold text-amber-300 mb-0.5">Kayıt Bulunamadı</div>
+                  ) : null}
+                  <span>{message}</span>
+                </div>
               </div>
             )}
 

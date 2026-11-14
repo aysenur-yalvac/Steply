@@ -33,9 +33,8 @@ const SOCIAL = [
   }
 ];
 
-export default function SocialAuthRow() {
+export default function SocialAuthRow({ mode = "login" }: { mode?: "login" | "register" }) {
   const [hovered, setHovered] = useState<string | null>(null);
-
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const handleOAuthLogin = async (e: React.MouseEvent, providerId: string) => {
@@ -54,10 +53,14 @@ export default function SocialAuthRow() {
       setLoadingProvider(provider);
       const supabase = createClient();
       
+      const intent = mode === "register" ? "signup" : "login";
+      const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
+      callbackUrl.searchParams.set("intent", intent);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 
@@ -81,7 +84,7 @@ export default function SocialAuthRow() {
       <div className="flex items-center gap-3 my-6">
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
         <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
-          Veya ÅŸununla devam et
+          Veya şununla devam et
         </span>
         <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
       </div>
@@ -113,4 +116,3 @@ export default function SocialAuthRow() {
     </>
   );
 }
-
