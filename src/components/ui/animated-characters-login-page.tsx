@@ -759,6 +759,7 @@ export default function AnimatedCharactersLoginPage({
                 </label>
                 <input
                   name="institution"
+                  list="institution-suggestions"
                   placeholder="İstanbul Teknik Üniversitesi"
                   autoComplete="organization"
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
@@ -766,6 +767,17 @@ export default function AnimatedCharactersLoginPage({
                   onFocus={(e) => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...FOCUS_STYLE })}
                   onBlur={(e)  => Object.assign(e.currentTarget.style, { ...INPUT_BASE, ...BLUR_STYLE })}
                 />
+                <datalist id="institution-suggestions">
+                  <option value="Boğaziçi Üniversitesi" />
+                  <option value="Hacettepe Üniversitesi" />
+                  <option value="İstanbul Teknik Üniversitesi" />
+                  <option value="Kütahya Dumlupınar Üniversitesi" />
+                  <option value="Kütahya Sağlık Bilimleri Üniversitesi" />
+                  <option value="Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)" />
+                  <option value="Marmara Üniversitesi" />
+                  <option value="Orta Doğu Teknik Üniversitesi" />
+                  <option value="Yıldız Teknik Üniversitesi" />
+                </datalist>
               </div>
             )}
 

@@ -1452,18 +1452,47 @@ export async function searchUniversitiesAction(
   query: string,
 ): Promise<{ results: { name: string; country: string }[]; error?: string }> {
   if (!query || query.trim().length < 2) return { results: [] };
+  const trimmed = query.trim();
+  const qLower = trimmed.toLowerCase();
+
+  // KSBÜ / KSBU aramasını Kütahya Sağlık sorgusuna eşle
+  const isKsbuAlias = qLower === 'ksbu' || qLower === 'ksbü';
+  const rpcQuery = isKsbuAlias ? 'Kütahya Sağlık' : trimmed;
+
   const admin = createAdminClient();
-  // Uses search_universities() RPC which applies unaccent() on both sides,
-  // ensuring Turkish chars like Ä°/Ä±, Å/ÅŸ, Ä/ÄŸ match regardless of case/diacritics.
   const { data, error } = await admin.rpc('search_universities', {
-    q: query.trim(),
+    q: rpcQuery,
     lim: 12,
   });
-  if (error) {
+
+  let list = (data ?? []) as { name: string; country: string }[];
+
+  // Güvence: Kullanıcı KSBÜ veya Kütahya Sağlık aradığında listede yoksa ekle
+  const matchesKsbu =
+    isKsbuAlias ||
+    'kütahya sağlık bilimleri üniversitesi'.includes(qLower) ||
+    'kutahya saglik bilimleri universitesi'.includes(qLower);
+
+  if (matchesKsbu) {
+    const alreadyInList = list.some(
+      (u) =>
+        u.name.toLowerCase().includes('kütahya sağlık') ||
+        u.name.toLowerCase().includes('kutahya saglik')
+    );
+    if (!alreadyInList) {
+      list = [
+        { name: 'Kütahya Sağlık Bilimleri Üniversitesi', country: 'Türkiye' },
+        ...list,
+      ];
+    }
+  }
+
+  if (error && list.length === 0) {
     console.error('[searchUniversities]', error.message);
     return { results: [], error: error.message };
   }
-  return { results: (data ?? []) as { name: string; country: string }[] };
+
+  return { results: list };
 }
 
 export async function getBlockedUsersAction(): Promise<FollowUser[]> {
