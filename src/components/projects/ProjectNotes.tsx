@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -18,28 +18,21 @@ interface Props {
   currentUserAvatar: string | null;
 }
 
-function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 // ── MessageBubble — universal CSS collapse, no horizontal scroll ──────────────
 function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = note.content.length > LONG_MSG_CHARS;
 
-  // 1. Bubble Container styling
+  // Bubble Container styling
   const bubbleBase = isOwn
-    ? "bg-violet-50 border border-violet-100 rounded-2xl rounded-tr-none shadow-sm dark:bg-purple-600/90 dark:text-white dark:border-purple-500/50"
-    : "bg-gray-100 border border-gray-200/60 rounded-2xl rounded-tl-none shadow-sm dark:bg-slate-800 dark:text-slate-100 dark:border dark:border-slate-700/70";
+    ? "bg-violet-50 border border-violet-100 rounded-2xl rounded-tr-none shadow-sm dark:bg-purple-600 dark:text-white dark:border-purple-500/50"
+    : "bg-white border border-gray-200/60 rounded-2xl rounded-tl-none shadow-sm dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700/70";
 
   const toggleColor = isOwn
-    ? "text-violet-600 hover:text-violet-800"
-    : "text-gray-600 dark:text-slate-300 hover:text-gray-800";
+    ? "text-violet-600 dark:text-purple-200 hover:text-violet-800"
+    : "text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-white";
 
-  const fromColor = isOwn ? "from-violet-50" : "from-gray-100";
+  const fromColor = isOwn ? "from-violet-50 dark:from-purple-600" : "from-white dark:from-slate-800";
 
   // Create timestamp
   const timestamp = note.created_at 
@@ -67,6 +60,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
 
       {isLong && (
         <button
+          type="button"
           onClick={() => setExpanded((v) => !v)}
           className={`mt-1.5 text-xs font-semibold transition-colors ${toggleColor}`}
         >
@@ -74,7 +68,7 @@ function MessageBubble({ note, isOwn }: { note: ProjectNote; isOwn: boolean }) {
         </button>
       )}
 
-      {/* 3. Footer Timestamp */}
+      {/* Footer Timestamp */}
       <span className="text-[11px] text-gray-400 dark:text-slate-400 mt-2 text-right block select-none">
         {timestamp}
       </span>
@@ -147,29 +141,29 @@ export default function ProjectNotes({
   }
 
   return (
-    <div className="border border-gray-200/70 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+    <div className="border border-gray-200/70 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col bg-white dark:bg-slate-900">
 
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white/90 backdrop-blur-sm border-b border-gray-100 shrink-0">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100">
+      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-slate-800 shrink-0">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100 dark:bg-slate-800">
           <MessageSquare className="w-4 h-4 text-gray-500 dark:text-slate-400" />
         </div>
         <div>
-          <p className="text-sm font-bold text-gray-800 leading-none">Proje Notları</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">Sadece ekip üyeleri görebilir</p>
+          <p className="text-sm font-bold text-gray-800 dark:text-slate-100 leading-none">Proje Notları</p>
+          <p className="text-[11px] text-gray-400 dark:text-slate-400 mt-0.5">Sadece ekip üyeleri görebilir</p>
         </div>
       </div>
 
       {/* Message area */}
       <div
         ref={listRef}
-        className="flex-1 min-h-[200px] max-h-[420px] overflow-y-auto px-4 py-4 flex flex-col gap-3.5
-                   bg-[#F9FAFB] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex-1 min-h-[220px] max-h-[420px] overflow-y-auto px-4 py-4 flex flex-col gap-3.5
+                   bg-[#F9FAFB] dark:bg-slate-950/90 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-10 gap-2">
-            <MessageSquare className="w-7 h-7 text-gray-200" />
-            <p className="text-sm text-gray-400">Henüz not yok. İlk notu sen ekle!</p>
+            <MessageSquare className="w-7 h-7 text-gray-300 dark:text-slate-600" />
+            <p className="text-sm text-gray-400 dark:text-slate-500">Henüz not yok. İlk notu sen ekle!</p>
           </div>
         ) : (
           notes.map((note) => {
@@ -186,7 +180,7 @@ export default function ProjectNotes({
 
                 <div className={`flex flex-col min-w-0 max-w-[90%] ${isOwn ? "items-end" : "items-start"}`}>
                   {!isOwn && (
-                    <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">
+                    <span className="text-[11px] font-semibold text-gray-400 dark:text-slate-400 mb-1 ml-1">
                       {note.author_name ?? "Üye"}
                     </span>
                   )}
@@ -199,7 +193,7 @@ export default function ProjectNotes({
       </div>
 
       {/* Input bar */}
-      <div className="bg-white/90 dark:bg-[#1a2234] backdrop-blur-sm border-t border-gray-100 dark:border-slate-700/60 px-3 py-3 shrink-0">
+      <div className="bg-white/90 dark:bg-slate-900 backdrop-blur-sm border-t border-gray-100 dark:border-slate-800 px-3 py-3 shrink-0">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -212,7 +206,9 @@ export default function ProjectNotes({
             disabled={isSubmitting}
             className="
               flex-1 resize-none px-4 py-2.5 rounded-xl
-              bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500
+              bg-gray-50 border border-gray-200 text-sm text-gray-800
+              dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700
+              focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500
               outline-none transition-all leading-snug
               focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200
               disabled:opacity-50

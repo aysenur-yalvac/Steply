@@ -1,5 +1,6 @@
-'use client';
+﻿'use client';
 
+import { downloadFileFromUrl } from '@/lib/download';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Stage, Layer, Line } from 'react-konva';
@@ -467,16 +468,14 @@ export default function PdfViewer({
                 <p className="text-sm font-bold text-slate-200">PDF önizlemesi yüklenemedi</p>
                 <p className="text-xs text-slate-400 mt-1">Dosya tarayıcıda doğrudan açılamıyor veya erişim izni gerekebilir.</p>
               </div>
-              <a
-                href={file.url}
-                target="_blank"
-                rel="noreferrer"
-                download
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              <button
+                type="button"
+                onClick={() => downloadFileFromUrl(file.url, file.name)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 Dosyayı Doğrudan İndir
-              </a>
+              </button>
             </div>
           }
           className="flex flex-col items-center gap-8 w-full"

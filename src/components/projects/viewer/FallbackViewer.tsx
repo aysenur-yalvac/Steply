@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+import { downloadFileFromUrl } from '@/lib/download';
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, File } from 'lucide-react';
 
@@ -37,22 +39,20 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row bg-slate-50 overflow-hidden">
-      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white overflow-auto">
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 overflow-auto">
         <File className="w-24 h-24 text-slate-300 mb-4" />
-        <h3 className="text-xl font-bold text-slate-700">{file.name}</h3>
+        <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200">{file.name}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Bu dosya türü için tarayıcı önizlemesi desteklenmiyor.</p>
-        <a 
-          href={file.url} 
-          target="_blank" 
-          rel="noreferrer" 
-          download 
-          className="mt-6 px-6 py-2 bg-indigo-100 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-200 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
+        <button
+          type="button"
+          onClick={() => downloadFileFromUrl(file.url, file.name)}
+          className="mt-6 px-6 py-2 bg-indigo-100 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-200 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 cursor-pointer"
         >
           Dosyayı İndir
-        </a>
+        </button>
       </div>
-      <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 bg-slate-50 flex flex-col">
-        <div className="p-4 border-b border-slate-200 bg-slate-50">
+      <div className="w-full md:w-80 lg:w-96 h-full border-l border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex flex-col">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80">
           <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" />
             Notlar
@@ -72,7 +72,7 @@ export default function FallbackViewer({ file, annotations, onStageAnnotation, o
           <div ref={messagesEndRef} />
         </div>
         {canAnnotate && (
-          <div className="p-4 bg-slate-50 border-t border-slate-200">
+          <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800">
             <textarea
               value={noteText}
               onChange={e => setNoteText(e.target.value)}

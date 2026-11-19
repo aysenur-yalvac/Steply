@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
@@ -7,51 +7,24 @@ interface BackButtonProps {
   href?: string;
   label?: string;
   variant?: "dark" | "light";
+  className?: string;
 }
 
-export function BackButton({ href = "/", label = "Geri", variant = "dark" }: BackButtonProps) {
-  const isDark = variant === "dark";
-
+export function BackButton({ href = "/", label = "Geri", variant = "light", className = "" }: BackButtonProps) {
   return (
     <Link
       href={href}
-      className={`group inline-flex items-center rounded-xl text-sm font-semibold transition-all duration-300 focus-visible:outline-none ${
-        isDark
-          ? "text-white/60 hover:text-white/90 focus-visible:ring-2 focus-visible:ring-purple-500"
-          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-500/30"
-      }`}
-      style={
-        isDark
-          ? {
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              height: "36px",
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }
-          : {
-              background: "rgba(255,255,255,0.80)",
-              border: "1px solid #e2e8f0",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              height: "36px",
-              paddingLeft: "10px",
-              paddingRight: "10px",
-              boxShadow: "0 1px 3px 0 rgba(0,0,0,0.06)",
-            }
-      }
+      className={`group inline-flex items-center h-9 px-2.5 rounded-xl text-sm font-semibold transition-all duration-300 focus-visible:outline-none
+        bg-white/85 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-700/90
+        border border-slate-200/90 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600
+        text-slate-600 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white
+        shadow-sm backdrop-blur-md focus-visible:ring-2 focus-visible:ring-indigo-500/30 ${className}`}
     >
       {/* Icon — slides left on hover */}
       <ChevronLeft
         size={16}
         strokeWidth={2}
-        className={`shrink-0 transition-all duration-300 group-hover:-translate-x-0.5 ${
-          isDark
-            ? "text-white/50 group-hover:text-white/90"
-            : "text-slate-400 group-hover:text-violet-600"
-        }`}
+        className="shrink-0 text-slate-400 dark:text-slate-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-all duration-300 group-hover:-translate-x-0.5"
         aria-hidden="true"
       />
 

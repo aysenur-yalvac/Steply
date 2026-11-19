@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Users, CheckSquare, FileText, MessageSquare, LineChart } from 'lucide-react';
-import ProjectAnalytics from '@/components/projects/ProjectAnalytics';
+import ProjectAnalyticsView, { TeamMember } from './ProjectAnalyticsView';
+import { getProjectTasksAction, ProjectTask } from '@/lib/actions';
 
 type TabType = 'overview' | 'team' | 'milestones' | 'files' | 'notes' | 'analytics';
 
@@ -20,6 +21,8 @@ interface ProjectTabsWrapperProps {
   currentUserId?: string;
   projectNotes?: any[];
   reviews?: any[];
+  initialTasks?: ProjectTask[];
+  teamMembers?: TeamMember[];
 }
 
 export default function ProjectTabsWrapper({
@@ -28,16 +31,27 @@ export default function ProjectTabsWrapper({
   milestonesContent,
   filesContent,
   notesContent,
+  analyticsContent,
   showNotesTab,
   hasNotes,
   projectId,
   currentUserId,
   projectNotes = [],
   reviews = [],
+  initialTasks = [],
+  teamMembers = [],
 }: ProjectTabsWrapperProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [tasks, setTasks] = useState<ProjectTask[]>(initialTasks);
   const [hasViewedNotes, setHasViewedNotes] = useState(false);
   const [hasUnreadNotes, setHasUnreadNotes] = useState(false);
+
+  // Keep tasks synced if server-rendered initialTasks changes
+  useEffect(() => {
+    if (initialTasks && initialTasks.length > 0) {
+      setTasks(initialTasks);
+    }
+  }, [initialTasks]);
 
   useEffect(() => {
     if (!projectId || typeof window === 'undefined') return;
@@ -74,9 +88,19 @@ export default function ProjectTabsWrapper({
         localStorage.setItem(`project_read_${projectId}`, new Date().toISOString());
       }
     }
+    // Background refresh tasks when switching to milestones or analytics
+    if ((id === 'milestones' || id === 'analytics') && projectId) {
+      getProjectTasksAction(projectId)
+        .then((res) => {
+          if (res.success && res.tasks) {
+            setTasks(res.tasks);
+          }
+        })
+        .catch((err) => console.error('[ProjectTabsWrapper] Failed to refresh tasks:', err));
+    }
   };
 
-    const tabs = [
+  const tabs = [
     { id: 'overview', label: 'Genel Bakış & Takım', icon: Layers },
   ];
   if (milestonesContent) {
@@ -85,9 +109,9 @@ export default function ProjectTabsWrapper({
   tabs.push({ id: 'files', label: 'Dosyalar', icon: FileText });
 
   if (showNotesTab) {
-      tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });
-    }
-    tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
+    tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });
+  }
+  tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
 
   return (
     <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start w-full">
@@ -107,7 +131,6 @@ export default function ProjectTabsWrapper({
             >
               <Icon className="w-5 h-5" />
               {tab.label}
-              
             </button>
           );
         })}
@@ -122,7 +145,13 @@ export default function ProjectTabsWrapper({
           )}
           {activeTab === 'milestones' && (
             <motion.div key="milestones" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-              {milestonesContent}
+              {React.isValidElement(milestonesContent)
+                ? React.cloneElement(milestonesContent as any, {
+                    tasks,
+                    onTasksChange: setTasks,
+                    initialTasks: tasks,
+                  })
+                : milestonesContent}
             </motion.div>
           )}
           {activeTab === 'files' && (
@@ -150,7 +179,7 @@ export default function ProjectTabsWrapper({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {projectId ? <ProjectAnalytics projectId={projectId} /> : <div className="text-slate-500">Proje bilgisi bulunamadı.</div>}
+              <ProjectAnalyticsView tasks={tasks} members={teamMembers} />
             </motion.div>
           )}
         </AnimatePresence>

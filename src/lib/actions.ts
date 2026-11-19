@@ -151,7 +151,8 @@ async function verifyProjectFileAccess(
 
 export async function getFileViewUrlAction(
   projectId: string,
-  fileUrlOrPath: string
+  fileUrlOrPath: string,
+  downloadName?: string
 ): Promise<{ success: boolean; viewUrl?: string; error?: string }> {
   try {
     if (!projectId || !fileUrlOrPath) {
@@ -183,7 +184,7 @@ export async function getFileViewUrlAction(
     const { data: signedData, error: signedError } = await admin
       .storage
       .from('project-files')
-      .createSignedUrl(storagePath, 3600);
+      .createSignedUrl(storagePath, 3600, downloadName ? { download: downloadName } : undefined);
 
     if (signedError || !signedData?.signedUrl) {
       console.warn('[getFileViewUrlAction] Signed URL generation failed, falling back:', signedError?.message);
@@ -664,6 +665,8 @@ async function assertProjectAccess(supabase: Awaited<ReturnType<typeof createCli
   if (project.student_id === user.id) return { user, admin, role: 'owner' as const };
   const { data: membership } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
   if (membership) return { user, admin, role: 'collaborator' as const };
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle();
+  if (profile?.role === 'teacher') return { user, admin, role: 'teacher' as const };
   return null;
 }
 
@@ -2807,3 +2810,25 @@ export async function bulkPermanentDeleteAssignmentsAction(ids: string[]) {
   }
 }
 
+
+
+export async function getProjectTasksAction(
+  projectId: string
+): Promise<{ success: boolean; tasks?: ProjectTask[]; error?: string }> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from('project_tasks')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, tasks: (data ?? []) as ProjectTask[] };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
+  }
+}

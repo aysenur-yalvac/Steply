@@ -184,7 +184,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
 
   if (!isTeamMember) {
     return (
-      <div className="rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+      <div className="bg-white/80 dark:bg-[#1a2234] border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-md rounded-3xl p-6 shadow-sm mb-6 w-full col-span-full">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2 mb-4">
           <Github className="w-5 h-5" /> GitHub Bağlantısı
         </h3>
@@ -200,7 +200,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   }
 
   return (
-    <div className="rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative w-full col-span-full max-h-[420px] h-[420px] flex flex-col overflow-hidden" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
+    <div className="bg-white/80 dark:bg-[#1a2234] border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-sm mb-6 relative w-full col-span-full max-h-[420px] h-[420px] flex flex-col overflow-hidden">
       <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800 mb-4 shrink-0">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
           <Github className="w-5 h-5" /> GitHub
@@ -229,17 +229,17 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto pl-2 pr-2 pt-4 pb-4 custom-scrollbar">
-          <div className="relative border-l-2 border-indigo-100 ml-2 space-y-4">
+          <div className="relative border-l-2 border-indigo-100 dark:border-slate-800 ml-2 space-y-4">
             {commits.map((commit: any) => (
               <div key={commit.id} className="relative pl-8">
-                <span className="absolute -left-[11px] top-3 w-5 h-5 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center overflow-hidden z-10">
+                <span className="absolute -left-[11px] top-3 w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-700 flex items-center justify-center overflow-hidden z-10">
                   {commit.author_avatar ? (
                     <img src={commit.author_avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <Github className="w-3 h-3 text-indigo-400" />
                   )}
                 </span>
-                <div className="flex flex-col bg-slate-50 border border-slate-200/60 dark:bg-[#0f172a] dark:border dark:border-slate-700/80 dark:shadow-sm hover:dark:border-slate-500/80 transition-colors rounded-xl p-3 shadow-sm">
+                <div className="flex flex-col bg-slate-50 border border-slate-200/60 dark:bg-slate-900/90 dark:border-slate-800 dark:border dark:border-slate-700/80 dark:shadow-sm hover:dark:border-slate-500/80 transition-colors rounded-xl p-3 shadow-sm">
                   <span className="text-xs text-slate-400 font-medium">{new Date(commit.pushed_at).toLocaleString('tr-TR')}</span>
                   <p className="text-sm text-slate-700 dark:text-slate-100 font-medium mt-1 break-words">{commit.commit_message}</p>
                   <div className="flex items-center gap-2 mt-1">

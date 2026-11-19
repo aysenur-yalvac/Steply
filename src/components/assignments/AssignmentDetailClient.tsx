@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { downloadFileFromUrl } from '@/lib/download';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, File, Lock, FileText, Download, ArrowLeft, Loader2, Calendar } from "lucide-react";

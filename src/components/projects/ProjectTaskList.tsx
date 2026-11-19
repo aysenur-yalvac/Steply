@@ -12,6 +12,8 @@ import { TeamMember } from "./ProjectAnalyticsView";
 interface Props {
   projectId: string;
   initialTasks: ProjectTask[];
+  tasks?: ProjectTask[];
+  onTasksChange?: (updater: (prev: ProjectTask[]) => ProjectTask[]) => void;
   canEdit: boolean;
   teamMembers: TeamMember[];
   currentUserId?: string;
@@ -19,8 +21,26 @@ interface Props {
   projectOwnerName?: string | null;
 }
 
-export default function ProjectTaskList({ projectId, initialTasks, canEdit, teamMembers, currentUserId, projectOwnerId, projectOwnerName }: Props) {
-  const [tasks, setTasks] = useState<ProjectTask[]>(initialTasks);
+export default function ProjectTaskList({
+  projectId,
+  initialTasks,
+  tasks: controlledTasks,
+  onTasksChange,
+  canEdit,
+  teamMembers,
+  currentUserId,
+  projectOwnerId,
+  projectOwnerName,
+}: Props) {
+  const [internalTasks, setInternalTasks] = useState<ProjectTask[]>(initialTasks);
+  const tasks = controlledTasks !== undefined ? controlledTasks : internalTasks;
+
+  const updateTasks = (updater: (prev: ProjectTask[]) => ProjectTask[]) => {
+    if (onTasksChange) {
+      onTasksChange(updater);
+    }
+    setInternalTasks(updater);
+  };
   const [newTitle, setNewTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
@@ -33,7 +53,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
   const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
   const handleUpdateTask = (updatedTask: ProjectTask) => {
-    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+    updateTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
   };
 
   const handleTaskClick = (task: ProjectTask) => {
@@ -50,7 +70,7 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
       if ("error" in result) {
         toast.error(result.error);
       } else {
-        setTasks((prev) => [...prev, result.task]);
+        updateTasks((prev) => [...prev, result.task]);
         setNewTitle("");
         inputRef.current?.focus();
         router.refresh();
@@ -62,12 +82,12 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
 
   async function handleToggle(taskId: string, is_completed: boolean) {
     if (pendingIds.has(taskId)) return;
-    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed } : t));
+    updateTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed } : t));
     setPendingIds((s) => new Set(s).add(taskId));
     try {
       const result = await toggleTaskCompletion(taskId, projectId, is_completed);
       if ("error" in result) {
-        setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed: !is_completed } : t));
+        updateTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed: !is_completed } : t));
         toast.error(result.error);
       } else {
         router.refresh();
@@ -79,12 +99,12 @@ export default function ProjectTaskList({ projectId, initialTasks, canEdit, team
 
   async function handleDelete(task: ProjectTask) {
     if (pendingIds.has(task.id)) return;
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    updateTasks((prev) => prev.filter((t) => t.id !== task.id));
     setPendingIds((s) => new Set(s).add(task.id));
     try {
       const result = await deleteProjectTask(task.id, projectId);
       if ("error" in result) {
-        setTasks((prev) => [...prev, task].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+        updateTasks((prev) => [...prev, task].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
         toast.error(result.error);
       } else {
         router.refresh();

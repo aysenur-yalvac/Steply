@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { GitHubIntegrationCard } from '@/components/projects/GitHubIntegrationCard';
 import { getGitHubRepoAction, getProjectCommitsAction } from '@/lib/actions';
 
@@ -19,7 +19,6 @@ import { Avatar } from '@/components/ui/avatar';
 import { ProjectFile, ProjectTask, getProjectActivitiesAction, getProjectNotesAction, markProjectCompletedAction } from '@/lib/actions';
 import ProjectTags from '@/components/projects/ProjectTags';
 import ProjectTabsWrapper from '@/components/projects/ProjectTabsWrapper';
-import ProjectAnalyticsView from '@/components/projects/ProjectAnalyticsView';
 import CompleteProjectButton from '@/components/projects/CompleteProjectButton';
 
 export default async function ProjectDetailPage({
@@ -237,7 +236,8 @@ export default async function ProjectDetailPage({
               currentUserId={user.id}
               projectNotes={projectNotes}
               reviews={reviews}
-              analyticsContent={<ProjectAnalyticsView tasks={projectTasks} members={teamMembers} />}
+              initialTasks={projectTasks}
+              teamMembers={teamMembers}
                 overviewContent={
                 <div className="flex flex-col gap-8">
                   <ProjectEditableContent

@@ -1,5 +1,6 @@
-"use client";
+﻿'use client';
 
+import { downloadFileFromUrl } from '@/lib/download';
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
 import { saveFileRecordAction, softDeleteFileAction, getFileViewUrlAction, ProjectFile, FileVisibility } from '@/lib/actions';
@@ -175,11 +176,15 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   const handleDownloadFile = async (e: React.MouseEvent, file: ProjectFile) => {
     e.stopPropagation();
     try {
-      const res = await getFileViewUrlAction(projectId, file.url);
+      toast.loading(`${file.name} indiriliyor...`, { id: `download-${file.id}` });
+      const res = await getFileViewUrlAction(projectId, file.url, file.name);
       const downloadUrl = (res.success && res.viewUrl) ? res.viewUrl : file.url;
-      window.open(downloadUrl, '_blank');
-    } catch {
-      window.open(file.url, '_blank');
+      await downloadFileFromUrl(downloadUrl, file.name);
+      toast.success('Dosya indirildi', { id: `download-${file.id}` });
+    } catch (err) {
+      console.error('Download error:', err);
+      await downloadFileFromUrl(file.url, file.name);
+      toast.dismiss(`download-${file.id}`);
     }
   };
 
