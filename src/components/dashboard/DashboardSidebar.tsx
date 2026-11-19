@@ -8,8 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FileText,
   BarChart2,
-  Bookmark,
-  Calendar,
+Calendar,
   Settings,
   LogOut,
   Menu,
@@ -30,7 +29,6 @@ import type { LinkedAccount } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
 import { createClient } from "@/utils/supabase/client";
-import WatchlistDrawer from "@/components/dashboard/WatchlistDrawer";
 import UnreadMessagesBadge from "@/components/dashboard/UnreadMessagesBadge";
 
 interface SidebarProps {
@@ -47,7 +45,6 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { label: "My Projects", href: "/dashboard",            icon: LayoutDashboard },
   { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
-  { label: "Watchlist",   href: "#watchlist",            icon: Bookmark,  isWatchlist: true },
   { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
   { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
@@ -87,12 +84,10 @@ function NavContent({
   linkedAccounts = [],
   userId,
   onClose,
-  onOpenWatchlist,
   collapsed = false,
   onToggleExpand,
 }: SidebarProps & {
   onClose: () => void;
-  onOpenWatchlist: () => void;
   collapsed?: boolean;
   onToggleExpand?: () => void;
 }) {
@@ -269,28 +264,16 @@ function NavContent({
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
               const { label, href, icon: Icon, subItems } = item as any;
-              const isWatchlist = (item as any).isWatchlist;
               const isTeacherOnly = (item as any).teacherOnly;
               const isStudentOnly = (item as any).studentOnly;
               if (isTeacherOnly && !isTeacher) return null;
               if (isStudentOnly && isTeacher) return null;
               
-              const isActive = !isWatchlist && (href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href));
+              const isActive = (href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href));
               const isOpen = openMenus[label];
 
 
-              if (isWatchlist) {
-                return collapsed ? (
-                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} title={label} className="w-full flex items-center justify-center py-2.5 rounded-xl text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 transition-all duration-150">
-                    <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
-                  </button>
-                ) : (
-                  <button key={label} onClick={() => { onOpenWatchlist(); onClose(); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-950 transition-all duration-150 group">
-                    <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                    {label}
-                  </button>
-                );
-              }
+              
 
               if (subItems) {
                 return (
@@ -566,7 +549,6 @@ function NavContent({
 
 export default function DashboardSidebar(props: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -609,7 +591,6 @@ export default function DashboardSidebar(props: SidebarProps) {
         <NavContent
           {...props}
           onClose={() => {}}
-          onOpenWatchlist={() => setWatchlistOpen(true)}
           collapsed={!isExpanded}
           onToggleExpand={() => setIsExpanded(v => !v)}
         />
@@ -644,14 +625,11 @@ export default function DashboardSidebar(props: SidebarProps) {
               <NavContent
                 {...props}
                 onClose={() => setMobileOpen(false)}
-                onOpenWatchlist={() => { setWatchlistOpen(true); setMobileOpen(false); }}
               />
             </motion.aside>
           </>
         )}
       </AnimatePresence>
-
-      <WatchlistDrawer isOpen={watchlistOpen} onClose={() => setWatchlistOpen(false)} />
     </>
   );
 }

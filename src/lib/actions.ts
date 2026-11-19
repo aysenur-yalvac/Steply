@@ -152,32 +152,6 @@ export async function deleteFileAction(projectId: string, fileUrl: string) {
   return { success: true };
 }
 
-export async function toggleWatchlistAction(projectId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-
-  const { data: existing } = await supabase
-    .from("mentored_projects")
-    .select("id")
-    .eq("teacher_id", user.id)
-    .eq("project_id", projectId)
-    .single();
-
-  if (existing) {
-    await supabase.from("mentored_projects").delete().eq("id", existing.id);
-  } else {
-    await supabase.from("mentored_projects").insert({
-      teacher_id: user.id,
-      project_id: projectId
-    });
-  }
-
-  // Revalidate so dashboard UI updates immediately
-  revalidatePath("/dashboard");
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true, isWatched: !existing };
-}
 
 export async function addQuickNoteAction(projectId: string, content: string) {
   const supabase = await createClient();
@@ -376,28 +350,6 @@ export async function updateUserPrivacyAction(isPublic: boolean): Promise<{ succ
   return { success: true };
 }
 
-export async function getWatchlistAction() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, data: [] };
-
-  const { data, error } = await supabase
-    .from('mentored_projects')
-    .select('project_id, projects(id, title, profiles!student_id(full_name, is_public))')
-    .eq('teacher_id', user.id);
-
-  if (error) return { success: false, data: [] };
-
-  const formattedData = data
-    .filter((item: any) => item.projects?.profiles?.is_public !== false)
-    .map((item: any) => ({
-       id: item.projects?.id,
-       title: item.projects?.title,
-       studentName: item.projects?.profiles?.full_name || 'Unknown'
-    })).filter((i: any) => i.id);
-
-  return { success: true, data: formattedData };
-}
 
 // â”€â”€ Notification System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

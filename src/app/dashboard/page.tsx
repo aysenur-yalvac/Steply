@@ -27,12 +27,10 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
   // Fetch all independent data in parallel
   const [
     profileRes,
-    mentoredDataRes,
-    notesDataRes,
+        notesDataRes,
     followData,
   ] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user?.id).single(),
-    supabase.from('mentored_projects').select('project_id').eq('teacher_id', user?.id),
     supabase.from('project_notes').select('project_id, content, profiles!teacher_id(full_name)'),
     user?.id ? getFollowDataAction(user.id) : Promise.resolve({ followers: [], following: [] })
   ]);
@@ -42,7 +40,6 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
   const isStudent = profile?.role === 'student';
 
   let projects: any[] = [];
-  let watchedIds = new Set<string>(mentoredDataRes.data?.map((m: any) => m.project_id) || []);
   let projectNotes: Record<string, { content: string; teacherName?: string }> = {};
 
   if (notesDataRes.data) {
@@ -55,30 +52,20 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     // Use admin client to bypass RLS on profiles join — teachers need to read
     // student names from other users' profiles which the session client blocks.
     const admin = createAdminClient();
-    if (!q) {
-      const watchedArr = Array.from(watchedIds);
-      if (watchedArr.length > 0) {
-        const { data } = await admin
-          .from('projects')
-          .select('*, profiles!student_id(full_name, avatar_url, is_public)')
-          .in('id', watchedArr)
-          .order('created_at', { ascending: false });
-        projects = (data || []).filter((p: any) => p.profiles?.is_public !== false);
-      }
-    } else {
-      const { data } = await admin
+    const { data } = await admin
         .from('projects')
         .select('*, profiles!student_id(full_name, avatar_url, is_public)')
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
       let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
-      all = all.filter((p: any) =>
-        p.title.toLowerCase().includes(q) ||
-        (p.profiles?.full_name || '').toLowerCase().includes(q) ||
-        (p.tags ?? []).some((t: string) => t.includes(q)),
-      );
+      if (q) {
+        all = all.filter((p: any) =>
+          p.title.toLowerCase().includes(q) ||
+          (p.profiles?.full_name || '').toLowerCase().includes(q) ||
+          (p.tags ?? []).some((t: string) => t.includes(q)),
+        );
+      }
       projects = all;
-    }
   } else {
     const { data } = await supabase
       .from('projects')
@@ -159,7 +146,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-4">
           {isTeacher
-            ? 'Monitor the latest milestones of all watched student projects.'
+            ? 'Monitor the latest milestones of all student projects.'
             : 'Manage your active projects and keep your portfolio up to date.'}
         </p>
         <div className="pb-5">
@@ -216,7 +203,6 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               projects={[]}
               isTeacher={isTeacher}
               isStudent={isStudent}
-              watchedIds={watchedIds}
               projectNotes={projectNotes}
               currentUserId={user?.id}
               collaboratorProjects={collaboratorProjects}
@@ -246,7 +232,6 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
             projects={projects}
             isTeacher={isTeacher}
             isStudent={isStudent}
-            watchedIds={watchedIds}
             projectNotes={projectNotes}
             currentUserId={user?.id}
             collaboratorProjects={collaboratorProjects}

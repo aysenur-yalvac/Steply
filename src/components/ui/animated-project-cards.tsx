@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronDown, Github, Calendar, CheckCircle, Clock,
-  Bookmark, MessageSquarePlus, Loader2, Trash2, Save, Edit3,
+  ChevronDown, Github, Calendar, CheckCircle, Clock, MessageSquarePlus, Loader2, Trash2, Save, Edit3,
 } from "lucide-react";
 import { updateProgress, deleteProjectAction } from "@/app/dashboard/actions";
-import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
+import { addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
 import toast from "react-hot-toast";
 
@@ -27,7 +26,6 @@ type Project = {
 type CardProps = {
   project: Project;
   isTeacher?: boolean;
-  isWatched?: boolean;
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
@@ -73,14 +71,12 @@ function logoColor(title: string) {
 function AnimatedProjectCard({
   project,
   isTeacher,
-  isWatched: initialIsWatched = false,
   teacherNote: initialTeacherNote = "",
   currentUserId,
 }: CardProps) {
   const [isExpanded,    setIsExpanded]    = useState(false);
   const [localProgress, setLocalProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
-  const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
@@ -99,17 +95,6 @@ function AnimatedProjectCard({
       
     }
     await updateProgress(formData);
-  };
-
-  const handleToggleWatch = async () => {
-    const prev = isWatched;
-    setIsWatched(!prev);
-    try {
-      await toggleWatchlistAction(project.id);
-      toast.success(!prev ? "Added to Watchlist" : "Removed from Watchlist", {
-        style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(160,32,240,0.3)", fontSize: "13px", fontWeight: "bold" },
-      });
-    } catch { setIsWatched(prev); toast.error("An error occurred"); }
   };
 
   const saveNote = async () => {
@@ -199,18 +184,6 @@ function AnimatedProjectCard({
 
         {/* Action icons + chevron */}
         <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={handleToggleWatch}
-            className="p-1.5 rounded-full transition-all"
-            style={{
-              background: isWatched ? "rgba(160,32,240,0.85)" : "rgba(255,255,255,0.05)",
-              border: `1px solid ${isWatched ? "rgba(160,32,240,0.9)" : "rgba(255,255,255,0.10)"}`,
-              color: isWatched ? "#fff" : "rgba(255,255,255,0.30)",
-            }}
-            title={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
-          >
-            <Bookmark className="w-3.5 h-3.5" fill={isWatched ? "currentColor" : "none"} strokeWidth={2} />
-          </button>
 
           {currentUserId === project.student_id && (
             <motion.button
@@ -432,13 +405,11 @@ function AnimatedProjectCard({
 export function AnimatedProjectCards({
   projects,
   isTeacher,
-  watchedIds,
   projectNotes,
   currentUserId,
 }: {
   projects: Project[];
   isTeacher: boolean;
-  watchedIds: Set<string>;
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
 }) {
@@ -460,7 +431,6 @@ export function AnimatedProjectCards({
           <AnimatedProjectCard
             project={project}
             isTeacher={isTeacher}
-            isWatched={watchedIds.has(project.id)}
             teacherNote={projectNotes[project.id]?.content}
             teacherNameForNote={projectNotes[project.id]?.teacherName}
             currentUserId={currentUserId}

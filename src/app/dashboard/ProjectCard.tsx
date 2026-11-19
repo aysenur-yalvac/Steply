@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import {
-  Github, Calendar, CheckCircle, Clock, Bookmark,
+  Github, Calendar, CheckCircle, Clock,
   MessageSquarePlus, Loader2, Trash2, Save, Edit3, Users, Flag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { deleteProjectAction } from './actions';
-import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
+import { addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
 import FavoriteHeart from '@/components/ui/FavoriteHeart';
 
 import toast from 'react-hot-toast';
@@ -46,7 +46,6 @@ type Project = {
 export default function ProjectCard({
   project,
   isTeacher,
-  isWatched: initialIsWatched = false,
   isFavorited: initialIsFavorited = false,
   teacherNote: initialTeacherNote = '',
   teacherNameForNote,
@@ -55,14 +54,12 @@ export default function ProjectCard({
 }: {
   project: Project;
   isTeacher?: boolean;
-  isWatched?: boolean;
   isFavorited?: boolean;
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
   isCollaborator?: boolean;
 }) {
-  const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const showFavoriteHeart = currentUserId !== project.student_id;
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
@@ -73,21 +70,6 @@ export default function ProjectCard({
   const canAddNote  = currentUserId === project.student_id;
 
   const cleanDesc = (project.description ?? '').replace(/\[.*?\]/g, '').trim();
-
-
-  const handleToggleWatch = async () => {
-    const prev = isWatched;
-    setIsWatched(!prev);
-    try {
-      await toggleWatchlistAction(project.id);
-      toast.success(!prev ? 'Added to Watchlist' : 'Removed from Watchlist', {
-        style: { borderRadius: '10px', background: '#1e293b', color: '#e2e8f0', fontSize: '13px', fontWeight: 'bold' },
-      });
-    } catch {
-      setIsWatched(prev);
-      toast.error('An error occurred');
-    }
-  };
 
   const saveNote = async () => {
     setIsNoteSaving(true);
@@ -210,14 +192,6 @@ export default function ProjectCard({
             {showFavoriteHeart && (
               <FavoriteHeart projectId={project.id} initialFavorited={initialIsFavorited} size="sm" />
             )}
-            <button
-              onClick={handleToggleWatch}
-              className="p-1 rounded-full transition-colors text-slate-400 hover:text-violet-600"
-              style={{ color: isWatched ? '#7C3AFF' : undefined }}
-              title={isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}
-            >
-              <Bookmark className="w-3.5 h-3.5" fill={isWatched ? 'currentColor' : 'none'} />
-            </button>
 
             {project.github_link && (
               <a

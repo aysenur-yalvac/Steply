@@ -4,14 +4,11 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import clsx from "clsx";
-import { Bookmark } from "lucide-react";
-import { toggleWatchlistAction } from "@/lib/actions";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface ProjectResult {
   id: string;
   title: string;
-  isWatched?: boolean;
 }
 
 interface UserResult {
@@ -142,8 +139,6 @@ export const GooeySearchBar = ({
   const [searchText, setSearchText] = useState("");
   const [results,    setResults]    = useState<SearchResults>({ projects: [], users: [] });
   const [isLoading,  setIsLoading]  = useState(false);
-  // Optimistic watchlist state: set of project IDs the current user is watching
-  const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
 
   const debouncedText = useDebounce(searchText, 350);
 
@@ -167,12 +162,7 @@ export const GooeySearchBar = ({
         .then((r) => r.json())
         .then((data: SearchResults) => {
           if (!cancelled) {
-            setResults(data);
-            // Initialise watched state from API-supplied isWatched flags
-            setWatchedIds(
-              new Set(data.projects.filter((p) => p.isWatched).map((p) => p.id))
-            );
-            setIsLoading(false);
+            setResults(data);            setIsLoading(false);
           }
         })
         .catch(() => {
@@ -194,31 +184,6 @@ export const GooeySearchBar = ({
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, [step]);
-
-  // ── Watchlist toggle (optimistic) ─────────────────────────────────────────
-  const handleToggleWatch = async (e: React.MouseEvent, projectId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const wasWatched = watchedIds.has(projectId);
-    // Optimistic update
-    setWatchedIds((prev) => {
-      const next = new Set(prev);
-      if (wasWatched) next.delete(projectId);
-      else next.add(projectId);
-      return next;
-    });
-    try {
-      await toggleWatchlistAction(projectId);
-    } catch {
-      // Revert on failure
-      setWatchedIds((prev) => {
-        const next = new Set(prev);
-        if (wasWatched) next.add(projectId);
-        else next.delete(projectId);
-        return next;
-      });
-    }
-  };
 
   const hasResults = results.projects.length > 0 || results.users.length > 0;
   const showDropdown = step === 2 && (isLoading || hasResults || debouncedText.length > 0);
@@ -263,8 +228,7 @@ export const GooeySearchBar = ({
                       Projects
                     </div>
                     {results.projects.map((item, i) => {
-                      const watched = watchedIds.has(item.id);
-                      return (
+                                            return (
                         <motion.div
                           key={item.id}
                           initial={{ opacity: 0, x: -6 }}
@@ -281,18 +245,6 @@ export const GooeySearchBar = ({
                             <span className="gsb-dropdown-dot" />
                             {item.title}
                           </Link>
-                          <button
-                            className={clsx("gsb-watchlist-btn", watched && "watched")}
-                            onClick={(e) => handleToggleWatch(e, item.id)}
-                            title={watched ? "Remove from Watchlist" : "Add to Watchlist"}
-                            aria-label={watched ? "Remove from Watchlist" : "Add to Watchlist"}
-                          >
-                            <Bookmark
-                              style={{ width: 15, height: 15 }}
-                              fill={watched ? "currentColor" : "none"}
-                              strokeWidth={2}
-                            />
-                          </button>
                         </motion.div>
                       );
                     })}

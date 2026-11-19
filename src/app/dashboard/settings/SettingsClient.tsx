@@ -8,7 +8,6 @@ import {
   Bell,
   BellOff,
   Mail,
-  Bookmark,
   MessageSquare,
   Sliders,
   Save,
@@ -273,7 +272,6 @@ export default function SettingsClient({
   // Notifications
   const [muteAll, setMuteAll] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [watchlistAlerts, setWatchlistAlerts] = useState(true);
   const [projectInvites, setProjectInvites] = useState(true);
 
   async function handleProfileSave(e: React.FormEvent) {
@@ -978,36 +976,6 @@ export default function SettingsClient({
                     <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100">
 
                       {/* Master mute */}
-                      <NotifRow
-                        icon={<BellOff className="w-4 h-4" />}
-                        iconColor="text-rose-500"
-                        title="Mute All Notifications"
-                        description="Silence every alert across the platform."
-                        checked={muteAll}
-                        onChange={setMuteAll}
-                        isMaster
-                      />
-
-                      {/* Sub-toggles — dimmed when muteAll is on */}
-                      <NotifRow
-                        icon={<Mail className="w-4 h-4" />}
-                        iconColor="text-violet-500"
-                        title="Email Notifications"
-                        description="Receive email updates when you're away from the platform."
-                        checked={emailNotifications}
-                        onChange={setEmailNotifications}
-                        disabled={muteAll}
-                      />
-
-                      <NotifRow
-                        icon={<Bookmark className="w-4 h-4" />}
-                        iconColor="text-violet-500"
-                        title="Watchlist Updates"
-                        description="Get notified when a saved project has new activity."
-                        checked={watchlistAlerts}
-                        onChange={setWatchlistAlerts}
-                        disabled={muteAll}
-                      />
 
                       <NotifRow
                         icon={<MessageSquare className="w-4 h-4" />}

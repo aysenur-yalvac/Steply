@@ -26,22 +26,9 @@ export async function GET(req: NextRequest) {
     .filter((p) => p.student_id === user.id || !p.is_private)
     .slice(0, 5);
 
-  // Fetch the current user's watchlist entries for the visible project IDs
-  const visibleIds = visibleProjects.map((p) => p.id);
-  let watchedSet = new Set<string>();
-  if (visibleIds.length > 0) {
-    const { data: watchData } = await supabase
-      .from("mentored_projects")
-      .select("project_id")
-      .eq("teacher_id", user.id)
-      .in("project_id", visibleIds);
-    watchedSet = new Set((watchData ?? []).map((w) => w.project_id));
-  }
-
   const projects = visibleProjects.map(({ id, title }) => ({
     id,
     title,
-    isWatched: watchedSet.has(id),
   }));
 
   // ── Users: unaccent RPC with ilike fallback (exclude self by ID only) ────

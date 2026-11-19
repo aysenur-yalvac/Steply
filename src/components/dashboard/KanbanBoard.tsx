@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
   Flag,
-  Bookmark,
   Loader2,
   Trash2,
   Save,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { deleteProjectAction } from "@/app/dashboard/actions";
-import { toggleWatchlistAction, addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
+import { addQuickNoteAction, deleteQuickNoteAction } from "@/lib/actions";
 
 import toast from "react-hot-toast";
 
@@ -99,13 +98,11 @@ function avatarColor(seed: string) {
 function KanbanCard({
   project,
   isTeacher,
-  isWatched: initialIsWatched = false,
   teacherNote: initialTeacherNote = "",
   currentUserId,
 }: {
   project: Project;
   isTeacher?: boolean;
-  isWatched?: boolean;
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
@@ -115,7 +112,6 @@ function KanbanCard({
   const [savedProgress, setSavedProgress] = useState(project.progress_percentage);
   const [isDragging,    setIsDragging]    = useState(false);
   const [saveStatus,    setSaveStatus]    = useState<"idle" | "saving" | "done">("idle");
-  const [isWatched,     setIsWatched]     = useState(initialIsWatched);
   const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
@@ -139,20 +135,6 @@ function KanbanCard({
   const idSum              = strHash(project.id);
   const commentCount       = ((idSum >> 2) % 6) + 1;
   const studentName        = project.profiles?.full_name || "?";
-
-  const handleToggleWatch = async () => {
-    const prev = isWatched;
-    setIsWatched(!prev);
-    try {
-      await toggleWatchlistAction(project.id);
-      toast.success(!prev ? "Added to Watchlist" : "Removed from Watchlist", {
-        style: { borderRadius: "10px", background: "#1e293b", color: "#e2e8f0", fontSize: "13px", fontWeight: "bold" },
-      });
-    } catch {
-      setIsWatched(prev);
-      toast.error("An error occurred");
-    }
-  };
 
   const saveNote = async () => {
     setIsNoteSaving(true);
@@ -262,13 +244,6 @@ function KanbanCard({
               <MessageCircle className="w-4 h-4" />
               {commentCount}
             </span>
-            <button
-              onClick={(e) => { e.stopPropagation(); handleToggleWatch(); }}
-              className="p-1 rounded-full transition-colors hover:text-violet-600"
-              style={{ color: isWatched ? "#7C3AFF" : undefined }}
-            >
-              <Bookmark className="w-4 h-4" fill={isWatched ? "currentColor" : "none"} />
-            </button>
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
@@ -443,14 +418,12 @@ function KanbanColumn({
   columnKey,
   projects,
   isTeacher,
-  watchedIds,
   projectNotes,
   currentUserId,
 }: {
   columnKey: ColumnKey;
   projects: Project[];
   isTeacher: boolean;
-  watchedIds: Set<string>;
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
 }) {
@@ -501,7 +474,7 @@ function KanbanColumn({
             <KanbanCard
               project={project}
               isTeacher={isTeacher}
-              isWatched={watchedIds.has(project.id)}
+              
               teacherNote={projectNotes[project.id]?.content}
               teacherNameForNote={projectNotes[project.id]?.teacherName}
               currentUserId={currentUserId}
@@ -526,13 +499,11 @@ function KanbanColumn({
 export function KanbanBoard({
   projects,
   isTeacher,
-  watchedIds,
   projectNotes,
   currentUserId,
 }: {
   projects: Project[];
   isTeacher: boolean;
-  watchedIds: Set<string>;
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
 }) {
@@ -540,7 +511,7 @@ export function KanbanBoard({
   const inReview  = projects.filter((p) => { const s = p.status ?? 'todo'; return s === 'in_progress' || s === 'in_review'; });
   const completed = projects.filter((p) => p.status === 'completed');
 
-  const common = { isTeacher, watchedIds, projectNotes, currentUserId };
+  const common = { isTeacher, projectNotes, currentUserId };
 
   return (
     <div className="grid grid-cols-3 gap-6 pb-4 pt-1">

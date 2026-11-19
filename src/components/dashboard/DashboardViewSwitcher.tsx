@@ -406,7 +406,6 @@ interface Props {
   projects: Project[];
   isTeacher: boolean;
   isStudent: boolean;
-  watchedIds: Set<string>;
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
   collaboratorProjects?: any[];
@@ -416,7 +415,6 @@ export default function DashboardViewSwitcher({
   projects,
   isTeacher,
   isStudent,
-  watchedIds,
   projectNotes,
   currentUserId,
   collaboratorProjects = [],
@@ -629,7 +627,6 @@ export default function DashboardViewSwitcher({
                 <KanbanBoard
                   projects={filteredProjects}
                   isTeacher={isTeacher}
-                  watchedIds={watchedIds}
                   projectNotes={projectNotes}
                   currentUserId={currentUserId}
                 />
@@ -676,7 +673,6 @@ export default function DashboardViewSwitcher({
                         project={p}
                         isTeacher={isTeacher}
                         currentUserId={currentUserId}
-                        isWatched={watchedIds?.has(p.id)}
                         isFavorited={false}
                         isCollaborator
                       />

@@ -3,14 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, LogOut, Bookmark } from 'lucide-react';
+import { Menu, X, User, LogOut, } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
-import WatchlistDrawer from '@/components/dashboard/WatchlistDrawer';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen]     = useState(false);
-  const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
-  const [mounted, setMounted]           = useState(false);
+    const [mounted, setMounted]           = useState(false);
   const pathname  = usePathname();
   const { user, signOut, loading } = useAuth();
 
@@ -72,13 +70,7 @@ export default function Navbar() {
                 >
                   <User className="w-4 h-4" /> Profile
                 </Link>
-                <button
-                  onClick={() => { setIsWatchlistOpen(true); closeMenus(); }}
-                  className="w-full md:w-auto text-sm font-medium text-center text-slate-300 hover:text-white transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
-                >
-                  <Bookmark className="w-4 h-4" /> Watchlist
-                </button>
-                <button
+                                <button
                   onClick={() => signOut()}
                   className="w-full md:w-auto text-sm font-bold text-center text-slate-400 hover:text-red-400 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
                 >
@@ -111,7 +103,6 @@ export default function Navbar() {
         )}
       </div>
 
-      <WatchlistDrawer isOpen={isWatchlistOpen} onClose={() => setIsWatchlistOpen(false)} />
-    </nav>
+          </nav>
   );
 }

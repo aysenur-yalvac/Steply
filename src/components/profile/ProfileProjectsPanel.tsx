@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Clock, FolderOpen, ExternalLink, Bookmark } from "lucide-react";
+import { CheckCircle, Clock, FolderOpen, ExternalLink } from "lucide-react";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
-import { toggleWatchlistAction } from "@/lib/actions";
 import FavoriteHeart from "@/components/ui/FavoriteHeart";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -32,32 +31,17 @@ function cleanDesc(raw: string) {
 function ProfileProjectCard({
   project,
   isTeacher,
-  isWatched: initialWatched,
   isFavorited,
   showFavorite,
 }: {
   project: Project;
   isTeacher: boolean;
-  isWatched: boolean;
   isFavorited: boolean;
   showFavorite: boolean;
 }) {
   const isCompleted = project.progress_percentage === 100;
   const desc = cleanDesc(project.description ?? "");
-  const [watched,   setWatched]   = useState(initialWatched);
   const [saving,    setSaving]    = useState(false);
-
-  async function handleBookmark(e: React.MouseEvent) {
-    e.preventDefault();
-    if (saving) return;
-    setSaving(true);
-    try {
-      await toggleWatchlistAction(project.id);
-      setWatched((v) => !v);
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <motion.div
@@ -86,26 +70,7 @@ function ProfileProjectCard({
             {showFavorite && (
               <FavoriteHeart projectId={project.id} initialFavorited={isFavorited} />
             )}
-            {/* Bookmark — watchlist (teacher only) */}
-            {isTeacher && (
-              <button
-                type="button"
-                onClick={handleBookmark}
-                disabled={saving}
-                title={watched ? "Takipten çık" : "Takibe al"}
-                className={`p-1.5 rounded-lg transition-all shrink-0 ${
-                  watched
-                    ? "text-violet-600 bg-violet-50 border border-violet-200 hover:bg-violet-100"
-                    : "text-slate-400 hover:text-violet-600 hover:bg-violet-50"
-                } disabled:opacity-50`}
-              >
-                <Bookmark
-                  className="w-4 h-4"
-                  fill={watched ? "currentColor" : "none"}
-                  strokeWidth={watched ? 0 : 1.5}
-                />
-              </button>
-            )}
+            
           </div>
         </div>
 
@@ -197,13 +162,11 @@ function ColumnHeader({
 export default function ProfileProjectsPanel({
   projects,
   isTeacher = false,
-  initialWatchedIds = [],
   initialFavoritedIds = [],
   showFavorite = false,
 }: {
   projects: Project[];
   isTeacher?: boolean;
-  initialWatchedIds?: string[];
   initialFavoritedIds?: string[];
   showFavorite?: boolean;
 }) {
@@ -289,7 +252,7 @@ export default function ProfileProjectsPanel({
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                       </motion.div>
                     ))
                   : <EmptySlot label="completed" />
@@ -321,7 +284,7 @@ export default function ProfileProjectsPanel({
                           visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
                         }}
                       >
-                        <ProfileProjectCard project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
+                        <ProfileProjectCard project={p} isTeacher={isTeacher} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                       </motion.div>
                     ))
                   : <EmptySlot label="in-progress" />
@@ -342,7 +305,7 @@ export default function ProfileProjectsPanel({
             {filteredSingle.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {filteredSingle.map((p) => (
-                  <ProfileProjectCard key={p.id} project={p} isTeacher={isTeacher} isWatched={initialWatchedIds.includes(p.id)} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
+                  <ProfileProjectCard key={p.id} project={p} isTeacher={isTeacher} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
                 ))}
               </div>
             ) : (
