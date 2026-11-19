@@ -7,7 +7,9 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 // Set up worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+if (typeof window !== 'undefined' && 'Worker' in window) {
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+}
 
 export default function PdfViewer({ file, annotations, onStageAnnotation, canAnnotate }: any) {
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -119,7 +121,33 @@ export default function PdfViewer({ file, annotations, onStageAnnotation, canAnn
           <Document
             file={file.url}
             onLoadSuccess={onDocumentLoadSuccess}
-            loading={<div className="p-20 flex justify-center"><Loader2 className="animate-spin text-indigo-500 w-10 h-10" /></div>}
+            onLoadError={(err) => console.error('[PdfViewer] Document load error:', err)}
+            loading={
+              <div className="p-20 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="animate-spin text-indigo-500 w-10 h-10" />
+                <span className="text-xs text-slate-400">PDF yükleniyor...</span>
+              </div>
+            }
+            error={
+              <div className="p-12 flex flex-col items-center justify-center gap-4 text-center">
+                <div className="p-3 rounded-full bg-red-50 text-red-500">
+                  <Loader2 className="w-6 h-6 rotate-45" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">PDF önizlemesi yüklenemedi</p>
+                  <p className="text-xs text-slate-400 mt-1">Dosya tarayıcıda doğrudan açılamıyor olabilir.</p>
+                </div>
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+                >
+                  Dosyayı Doğrudan İndir
+                </a>
+              </div>
+            }
           >
             <Page 
               pageNumber={pageNumber} 

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
-import { saveFileRecordAction, softDeleteFileAction, ProjectFile, FileVisibility } from '@/lib/actions';
+import { saveFileRecordAction, softDeleteFileAction, getFileViewUrlAction, ProjectFile, FileVisibility } from '@/lib/actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 import SmartFileViewerModal from './SmartFileViewerModal';
@@ -16,24 +16,35 @@ interface FileSectionProps {
   initialFiles: ProjectFile[];
   isOwner: boolean;
   isCollaborator?: boolean;
+  isTeacher?: boolean;
+  currentUserId?: string;
 }
 
 type PendingFile = ProjectFile & { pending?: boolean };
 
 function sanitizeName(name: string): string {
-  return name
+  const lastDot = name.lastIndexOf('.');
+  const ext = lastDot !== -1 ? name.substring(lastDot).toLowerCase() : '';
+  const baseName = lastDot !== -1 ? name.substring(0, lastDot) : name;
+
+  const normalized = baseName
     .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
     .replace(/ü/g, 'u').replace(/Ü/g, 'U')
     .replace(/ş/g, 's').replace(/Ş/g, 'S')
     .replace(/ı/g, 'i').replace(/İ/g, 'I')
     .replace(/ö/g, 'o').replace(/Ö/g, 'O')
     .replace(/ç/g, 'c').replace(/Ç/g, 'C')
-    .replace(/[^a-zA-Z0-9.-]/g, '_');
+    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+
+  const safeBase = normalized || 'file';
+  return safeBase + ext;
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, currentUserId }: FileSectionProps & { currentUserId?: string }) {
+export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, isTeacher = false, currentUserId }: FileSectionProps) {
   // Collaborators have the same file management rights as the owner
-  const canManageFiles = isOwner || isCollaborator;
+  const canManageFiles = isOwner || isCollaborator || isTeacher;
   const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [viewerFile, setViewerFile] = useState<ProjectFile | null>(null);
@@ -139,19 +150,36 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
     if (!deleteModalTarget) return;
     setIsDeleting(true);
     const fileUrl = deleteModalTarget;
-    // Optimistic UI: anında kaldır
+    const previousFiles = files;
+    // Optimistic UI: anında listeden kaldır
     setFiles(prev => prev.filter(f => f.url !== fileUrl));
     
     try {
-      await softDeleteFileAction(projectId, fileUrl);
-      toast.success('Dosya çöp kutusuna taşındı.');
+      const res = await softDeleteFileAction(projectId, fileUrl);
+      if (res && !res.success) {
+        setFiles(previousFiles);
+        toast.error(res.error || 'Dosya silinemedi.');
+      } else {
+        toast.success('Dosya başarıyla silindi.');
+      }
     } catch (error: unknown) {
+      setFiles(previousFiles);
       const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
       toast.error('Dosya silinemedi: ' + errorMessage);
-      // Geri al (isteğe bağlı) - şu anlık basit optimistic kalsın
     } finally {
       setIsDeleting(false);
       setDeleteModalTarget(null);
+    }
+  };
+
+  const handleDownloadFile = async (e: React.MouseEvent, file: ProjectFile) => {
+    e.stopPropagation();
+    try {
+      const res = await getFileViewUrlAction(projectId, file.url);
+      const downloadUrl = (res.success && res.viewUrl) ? res.viewUrl : file.url;
+      window.open(downloadUrl, '_blank');
+    } catch {
+      window.open(file.url, '_blank');
     }
   };
 
@@ -176,23 +204,31 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
 
   return (
     <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <HardDrive className="w-5 h-5 text-indigo-500" /> Project Files
-        </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50">
+            <HardDrive className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-snug">
+              Project Files
+            </h3>
+            <p className="text-xs text-slate-400 font-medium">
+              Proje dokümanları, ekler ve yüklemeler
+            </p>
+          </div>
+        </div>
         {canManageFiles && (
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
-              <select
-                value={fileVisibility}
-                onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
-                className="bg-white border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-[220px]"
-              >
-                <option value="PUBLIC">🌐 Herkese Açık</option>
-                <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>
-                <option value="ONLY_ME">🔒 Sadece Bana Özel</option>
-              </select>
-            </div>
+          <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
+            <select
+              value={fileVisibility}
+              onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer min-w-[170px]"
+            >
+              <option value="PUBLIC">🌐 Herkese Açık</option>
+              <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>
+              <option value="ONLY_ME">🔒 Sadece Bana Özel</option>
+            </select>
 
             <input
               type="file"
@@ -205,7 +241,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white rounded-xl text-sm font-medium transition-all"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {isUploading ? 'Yükleniyor...' : 'Dosya Yükle'}
@@ -277,17 +313,14 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      download
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDownloadFile(e, file as ProjectFile)}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                       title="İndir"
                     >
                       <Download className="w-4 h-4" />
-                    </a>
+                    </button>
                     {canManageFiles && (
                       <button
                         onClick={(e) => {

@@ -504,23 +504,28 @@ export async function permanentDeleteProjectAction(projectId: string) {
   return { success: true };
 }
 
-export async function softDeleteFileAction(projectId: string, fileUrl: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  const admin = createAdminClient();
-  const { data: project } = await admin.from("projects").select("student_id, files").eq("id", projectId).single();
-  if (!project) throw new Error("Project not found.");
-  const existingFiles = (project.files as any[]) || [];
-  const fileToDelete = existingFiles.find((f: any) => f.url === fileUrl);
-  if (!fileToDelete) throw new Error("File not found.");
-  await admin.from("deleted_files").insert({ project_id: projectId, file_data: fileToDelete, deleted_by: user.id });
-  const updatedFiles = existingFiles.filter((f: any) => f.url !== fileUrl);
-  const { error } = await admin.from("projects").update({ files: updatedFiles }).eq("id", projectId);
-  if (error) throw new Error(error.message);
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  revalidatePath("/dashboard/trash");
-  return { success: true };
+export async function softDeleteFileAction(projectId: string, fileUrl: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Unauthorized" };
+    const admin = createAdminClient();
+    const { data: project } = await admin.from("projects").select("student_id, files").eq("id", projectId).single();
+    if (!project) return { success: false, error: "Project not found." };
+    const existingFiles = (project.files as any[]) || [];
+    const fileToDelete = existingFiles.find((f: any) => f.url === fileUrl);
+    if (!fileToDelete) return { success: false, error: "File not found." };
+    await admin.from("deleted_files").insert({ project_id: projectId, file_data: fileToDelete, deleted_by: user.id });
+    const updatedFiles = existingFiles.filter((f: any) => f.url !== fileUrl);
+    const { error } = await admin.from("projects").update({ files: updatedFiles }).eq("id", projectId);
+    if (error) return { success: false, error: error.message };
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard/trash");
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
+  }
 }
 
 export async function restoreFileAction(deletedFileId: string) {

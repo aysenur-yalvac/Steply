@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Save } from 'lucide-react';
+import { X, Loader2, Save, Download } from 'lucide-react';
 import ImageViewer from './viewer/ImageViewer';
 import PdfViewer from './viewer/PdfViewer';
 import CodeViewer from './viewer/CodeViewer';
 import FallbackViewer from './viewer/FallbackViewer';
-import { getFileAnnotationsAction, saveFileAnnotationAction, saveFileDrawingsAction } from '@/lib/actions';
+import { getFileAnnotationsAction, saveFileAnnotationAction, saveFileDrawingsAction, getFileViewUrlAction } from '@/lib/actions';
 import toast from 'react-hot-toast';
 
 import { ProjectFile } from '@/lib/actions';
@@ -26,6 +26,8 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [resolvedUrl, setResolvedUrl] = useState<string>('');
+  const [isResolvingUrl, setIsResolvingUrl] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -35,13 +37,29 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   const [stagedAnnotation, setStagedAnnotation] = useState<any>(null);
 
   useEffect(() => {
+    let isCurrent = true;
     if (isOpen && file) {
       loadAnnotations();
+      setIsResolvingUrl(true);
+      getFileViewUrlAction(projectId, file.url)
+        .then((res) => {
+          if (isCurrent && res.success && res.viewUrl) {
+            setResolvedUrl(res.viewUrl);
+          }
+        })
+        .catch((err) => {
+          console.error('[SmartFileViewerModal] Signed URL error:', err);
+        })
+        .finally(() => {
+          if (isCurrent) setIsResolvingUrl(false);
+        });
     } else {
       setAnnotations([]);
       setStagedAnnotation(null);
+      setResolvedUrl('');
     }
-  }, [isOpen, file]);
+    return () => { isCurrent = false; };
+  }, [isOpen, file, projectId]);
 
   const loadAnnotations = async () => {
     if (!file) return;
@@ -103,6 +121,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   };
 
   if (!mounted || !isOpen || !file) return null;
+  const activeFile = { ...file, url: resolvedUrl || file.url };
 
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
@@ -130,10 +149,21 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
               <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{file.name}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Smart Preview & Annotation</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              <a
+                href={activeFile.url}
+                target="_blank"
+                rel="noreferrer"
+                download={file.name}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
+                title="İndir"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">İndir</span>
+              </a>
               <button
-                  type="button"
-                  onClick={handleSaveAnnotation}
+                type="button"
+                onClick={handleSaveAnnotation}
                   disabled={isSaving || !stagedAnnotation}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 relative z-50 pointer-events-auto"
                 >
@@ -150,7 +180,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
 
           {/* Content Body */}
           <div className="flex-1 overflow-auto relative">
-            {isLoading ? (
+            {(isLoading || isResolvingUrl) ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
               </div>
@@ -158,7 +188,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
               <>
                 {isImage && (
                   <ImageViewer 
-                    file={file} 
+                    file={activeFile} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
                     onImmediateSave={handleImmediateSave}
@@ -167,7 +197,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                 )}
                 {isPdf && (
                   <PdfViewer 
-                    file={file} 
+                    file={activeFile} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
                     onImmediateSave={handleImmediateSave}
@@ -176,7 +206,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                 )}
                 {isCode && (
                   <CodeViewer 
-                    file={file} 
+                    file={activeFile} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
                     onImmediateSave={handleImmediateSave}
@@ -185,7 +215,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
                 )}
                 {!isImage && !isPdf && !isCode && (
                   <FallbackViewer 
-                    file={file} 
+                    file={activeFile} 
                     annotations={annotations} 
                     onStageAnnotation={setStagedAnnotation} 
                     onImmediateSave={handleImmediateSave}

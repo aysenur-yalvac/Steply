@@ -102,54 +102,174 @@ export async function saveFileRecordAction(
   }
 }
 
-export async function deleteFileAction(projectId: string, fileUrl: string) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("You must be logged in.");
 
-  // Use admin client for all DB operations so RLS never blocks ownership check or update
-  const admin = createAdminClient();
+async function verifyProjectFileAccess(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+  projectId: string
+): Promise<{ allowed: boolean; isOwner: boolean; isTeacher: boolean; isCollaborator: boolean }> {
+  try {
+    const { data: project } = await admin
+      .from('projects')
+      .select('student_id')
+      .eq('id', projectId)
+      .single();
 
-  const { data: project, error: projectError } = await admin
-    .from("projects").select("student_id, files, status")
-    .eq("id", projectId)
-    .single();
+    if (!project) return { allowed: false, isOwner: false, isTeacher: false, isCollaborator: false };
 
-  if (projectError || !project) throw new Error("Project not found.");
-
-  // Allow owner OR verified collaborator
-  if (project.student_id !== user.id) {
-    const { data: membership } = await admin
-      .from("project_members")
-      .select("id")
-      .eq("project_id", projectId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (!membership) throw new Error("You do not have permission for this action.");
-  }
-
-  // Remove from Supabase Storage
-  const pathParts = fileUrl.split("project-files/");
-  if (pathParts.length > 1) {
-    const filePath = pathParts[1];
-    const { error: storageError } = await admin.storage.from("project-files").remove([filePath]);
-    if (storageError) {
-      console.error("[deleteFileAction] Storage removal error:", storageError);
+    if (project.student_id === userId) {
+      return { allowed: true, isOwner: true, isTeacher: false, isCollaborator: false };
     }
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (profile?.role === 'teacher') {
+      return { allowed: true, isOwner: false, isTeacher: true, isCollaborator: false };
+    }
+
+    const { data: isMember } = await admin
+      .from('project_members')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (isMember) {
+      return { allowed: true, isOwner: false, isTeacher: false, isCollaborator: true };
+    }
+
+    return { allowed: false, isOwner: false, isTeacher: false, isCollaborator: false };
+  } catch (e) {
+    console.error('[verifyProjectFileAccess] error:', e);
+    return { allowed: false, isOwner: false, isTeacher: false, isCollaborator: false };
   }
+}
 
-  const existingFiles = (project.files as ProjectFile[]) || [];
-  const updatedFiles = existingFiles.filter((f) => f.url !== fileUrl);
+export async function getFileViewUrlAction(
+  projectId: string,
+  fileUrlOrPath: string
+): Promise<{ success: boolean; viewUrl?: string; error?: string }> {
+  try {
+    if (!projectId || !fileUrlOrPath) {
+      return { success: false, error: 'Geçersiz proje veya dosya bilgisi.' };
+    }
 
-  const { error: updateError } = await admin
-    .from("projects")
-    .update({ files: updatedFiles })
-    .eq("id", projectId);
+    const supabase = await createClient();
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !user) {
+      return { success: false, error: 'Oturum açmanız gerekiyor.' };
+    }
 
-  if (updateError) throw new Error("Database could not be updated: " + updateError.message);
+    const admin = createAdminClient();
+    const auth = await verifyProjectFileAccess(admin, user.id, projectId);
+    if (!auth.allowed) {
+      return { success: false, error: 'Bu dosyayı görüntüleme yetkiniz bulunmuyor.' };
+    }
 
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true };
+    let storagePath = fileUrlOrPath;
+    const marker = '/project-files/';
+    const markerIdx = fileUrlOrPath.indexOf(marker);
+    if (markerIdx !== -1) {
+      let sub = fileUrlOrPath.substring(markerIdx + marker.length);
+      const qIdx = sub.indexOf('?');
+      if (qIdx !== -1) sub = sub.substring(0, qIdx);
+      storagePath = decodeURIComponent(sub);
+    }
+
+    const { data: signedData, error: signedError } = await admin
+      .storage
+      .from('project-files')
+      .createSignedUrl(storagePath, 3600);
+
+    if (signedError || !signedData?.signedUrl) {
+      console.warn('[getFileViewUrlAction] Signed URL generation failed, falling back:', signedError?.message);
+      const { data: pubData } = admin.storage.from('project-files').getPublicUrl(storagePath);
+      return { success: true, viewUrl: pubData?.publicUrl || fileUrlOrPath };
+    }
+
+    return { success: true, viewUrl: signedData.signedUrl };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[getFileViewUrlAction] Exception:', err);
+    return { success: false, error: 'Dosya bağlantısı oluşturulamadı: ' + msg };
+  }
+}
+
+
+export async function deleteFileAction(
+  projectId: string,
+  fileUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!projectId || !fileUrl) {
+      return { success: false, error: 'Geçersiz parametreler.' };
+    }
+
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'İşlem için oturum açmalısınız.' };
+    }
+
+    const admin = createAdminClient();
+    const access = await verifyProjectFileAccess(admin, user.id, projectId);
+    if (!access.allowed) {
+      return { success: false, error: 'Bu dosyayı silmek için yetkiniz bulunmuyor.' };
+    }
+
+    const { data: project, error: projectError } = await admin
+      .from('projects').select('student_id, files, status')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return { success: false, error: 'Proje bulunamadı.' };
+    }
+
+    const existingFiles = (project.files as ProjectFile[]) || [];
+    const targetFile = existingFiles.find((f) => f.url === fileUrl);
+
+    try {
+      const pathParts = fileUrl.split('project-files/');
+      if (pathParts.length > 1) {
+        let filePath = pathParts[1];
+        const qIdx = filePath.indexOf('?');
+        if (qIdx !== -1) filePath = filePath.substring(0, qIdx);
+        await admin.storage.from('project-files').remove([decodeURIComponent(filePath)]);
+      }
+    } catch (storageErr) {
+      console.warn('[deleteFileAction] Storage removal ignored:', storageErr);
+    }
+
+    const updatedFiles = existingFiles.filter((f) => f.url !== fileUrl);
+    const { error: updateError } = await admin
+      .from('projects')
+      .update({ files: updatedFiles })
+      .eq('id', projectId);
+
+    if (updateError) {
+      return { success: false, error: 'Veritabanı güncellenemedi: ' + updateError.message };
+    }
+
+    try {
+      if (targetFile) {
+        await logProjectActivity(admin, projectId, user.id, 'file_deleted', (targetFile.name || 'Dosya') + ' silindi.');
+      }
+    } catch (logErr) {
+      console.warn('[deleteFileAction] Log activity error ignored:', logErr);
+    }
+
+    revalidatePath('/dashboard/projects/' + projectId);
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[deleteFileAction] Error:', err);
+    return { success: false, error: 'Dosya silinemedi: ' + msg };
+  }
 }
 
 
@@ -1773,87 +1893,164 @@ export async function permanentDeleteProjectAction(projectId: string) {
 
 
 
-export async function softDeleteFileAction(projectId: string, fileUrl: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not logged in");
-  const admin = createAdminClient();
-  
-  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
-    if (!project) throw new Error("Project not found");
-    if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('student_id', user.id).maybeSingle();
-      if (!isMember) throw new Error("Unauthorized");
+export async function softDeleteFileAction(
+  projectId: string,
+  fileUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!projectId || !fileUrl) {
+      return { success: false, error: 'Geçersiz parametreler.' };
     }
 
-  const files = (project.files as any[]) || [];
-  const updatedFiles = files.map((f: any) => 
-    f.url === fileUrl ? { ...f, deleted_at: new Date().toISOString() } : f
-  );
-
-  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
-  if (error) throw new Error(error.message);
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true };
-}
-
-export async function restoreFileAction(projectId: string, fileUrl: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not logged in");
-  const admin = createAdminClient();
-  
-  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
-    if (!project) throw new Error("Project not found");
-    if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('student_id', user.id).maybeSingle();
-      if (!isMember) throw new Error("Unauthorized");
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'İşlem için oturum açmalısınız.' };
     }
 
-  const files = (project.files as any[]) || [];
-  const updatedFiles = files.map((f: any) => {
-    if (f.url === fileUrl) {
-      const { deleted_at, ...rest } = f;
-      return rest;
-    }
-    return f;
-  });
-
-  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
-  if (error) throw new Error(error.message);
-  revalidatePath('/dashboard/trash/files');
-  revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true };
-}
-
-export async function permanentDeleteFileAction(projectId: string, fileUrl: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not logged in");
-  const admin = createAdminClient();
-  
-  const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
-    if (!project) throw new Error("Project not found");
-    if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('student_id', user.id).maybeSingle();
-      if (!isMember) throw new Error("Unauthorized");
+    const admin = createAdminClient();
+    const access = await verifyProjectFileAccess(admin, user.id, projectId);
+    if (!access.allowed) {
+      return { success: false, error: 'Bu dosyayı silmek için yetkiniz bulunmuyor.' };
     }
 
-  const files = (project.files as any[]) || [];
-  const updatedFiles = files.filter((f: any) => f.url !== fileUrl);
+    const { data: project, error: projectError } = await admin
+      .from('projects')
+      .select('student_id, files')
+      .eq('id', projectId)
+      .single();
 
-  const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
-  if (error) throw new Error(error.message);
-  revalidatePath('/dashboard/trash/files');
-  
-  // Actually remove from storage
-  const pathParts = fileUrl.split("project-files/");
-  if (pathParts.length > 1) {
-    const filePath = pathParts[1];
-    await admin.storage.from("project-files").remove([filePath]);
+    if (projectError || !project) {
+      return { success: false, error: 'Proje bulunamadı.' };
+    }
+
+    const files = (project.files as any[]) || [];
+    const targetFile = files.find((f: any) => f.url === fileUrl);
+    if (!targetFile) {
+      return { success: false, error: 'Silinecek dosya bulunamadı.' };
+    }
+
+    const updatedFiles = files.map((f: any) =>
+      f.url === fileUrl ? { ...f, deleted_at: new Date().toISOString() } : f
+    );
+
+    const { error: updateError } = await admin
+      .from('projects')
+      .update({ files: updatedFiles })
+      .eq('id', projectId);
+
+    if (updateError) {
+      return { success: false, error: 'Veritabanı güncellenemedi: ' + updateError.message };
+    }
+
+    try {
+      await logProjectActivity(
+        admin,
+        projectId,
+        user.id,
+        'file_deleted',
+        (targetFile.name || 'Dosya') + ' çöp kutusuna taşındı.'
+      );
+    } catch (actErr) {
+      console.warn('[softDeleteFileAction] Activity log error (ignored):', actErr);
+    }
+
+    revalidatePath('/dashboard/projects/' + projectId);
+    revalidatePath('/dashboard/trash/files');
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[softDeleteFileAction] Error:', err);
+    return { success: false, error: 'Dosya silinemedi: ' + msg };
   }
+}
 
-  return { success: true };
+export async function restoreFileAction(
+  projectId: string,
+  fileUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'Oturum açmanız gerekiyor.' };
+    }
+
+    const admin = createAdminClient();
+    const access = await verifyProjectFileAccess(admin, user.id, projectId);
+    if (!access.allowed) {
+      return { success: false, error: 'Yetkiniz bulunmuyor.' };
+    }
+
+    const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
+    if (!project) return { success: false, error: 'Proje bulunamadı.' };
+
+    const files = (project.files as any[]) || [];
+    const updatedFiles = files.map((f: any) => {
+      if (f.url === fileUrl) {
+        const { deleted_at, ...rest } = f;
+        return rest;
+      }
+      return f;
+    });
+
+    const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/dashboard/trash/files');
+    revalidatePath('/dashboard/projects/' + projectId);
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
+  }
+}
+
+export async function permanentDeleteFileAction(
+  projectId: string,
+  fileUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'Oturum açmanız gerekiyor.' };
+    }
+
+    const admin = createAdminClient();
+    const access = await verifyProjectFileAccess(admin, user.id, projectId);
+    if (!access.allowed) {
+      return { success: false, error: 'Yetkiniz bulunmuyor.' };
+    }
+
+    const { data: project } = await admin.from('projects').select('student_id, files').eq('id', projectId).single();
+    if (!project) return { success: false, error: 'Proje bulunamadı.' };
+
+    const files = (project.files as any[]) || [];
+    const updatedFiles = files.filter((f: any) => f.url !== fileUrl);
+
+    const { error } = await admin.from('projects').update({ files: updatedFiles }).eq('id', projectId);
+    if (error) return { success: false, error: error.message };
+
+    try {
+      const pathParts = fileUrl.split('project-files/');
+      if (pathParts.length > 1) {
+        let filePath = pathParts[1];
+        const qIdx = filePath.indexOf('?');
+        if (qIdx !== -1) filePath = filePath.substring(0, qIdx);
+        await admin.storage.from('project-files').remove([decodeURIComponent(filePath)]);
+      }
+    } catch (storageErr) {
+      console.warn('[permanentDeleteFileAction] Storage removal error (ignored):', storageErr);
+    }
+
+    revalidatePath('/dashboard/trash/files');
+    revalidatePath('/dashboard/projects/' + projectId);
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
+  }
 }
 
 export async function bulkRestoreProjectsAction(projectIds: string[]) {
@@ -1907,7 +2104,7 @@ export async function bulkRestoreFilesAction(filesToRestore: {projectId: string,
     
     // Auth check
     if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('student_id', user.id).maybeSingle();
+      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
       if (!isMember) continue;
     }
 
@@ -1938,7 +2135,7 @@ export async function bulkPermanentDeleteFilesAction(filesToDelete: {projectId: 
     if (!project) continue;
     
     if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('student_id', user.id).maybeSingle();
+      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
       if (!isMember) continue;
     }
 

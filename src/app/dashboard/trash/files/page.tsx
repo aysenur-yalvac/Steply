@@ -13,7 +13,7 @@ export default async function TrashFilesPage() {
   const { data: memberProjects } = await admin
     .from('project_members')
     .select('project_id')
-    .eq('student_id', user?.id);
+    .eq('user_id', user?.id);
     
   const memberIds = memberProjects?.map(m => m.project_id) || [];
   const orQuery = memberIds.length > 0 
