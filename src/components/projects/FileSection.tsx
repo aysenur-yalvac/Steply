@@ -203,7 +203,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   });
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 shadow-sm">
+    <div className="bg-white/80 dark:bg-[#1a2234] dark:border-slate-700/60 backdrop-blur-sm border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/60">
         <div className="flex items-center gap-2.5">
           <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50">
@@ -219,11 +219,11 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
           </div>
         </div>
         {canManageFiles && (
-          <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
             <select
               value={fileVisibility}
               onChange={(e) => setFileVisibility(e.target.value as FileVisibility)}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer min-w-[170px]"
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer w-full sm:w-auto min-w-0"
             >
               <option value="PUBLIC">🌐 Herkese Açık</option>
               <option value="MEMBERS_ONLY">👥 Sadece Ekip Üyeleri</option>
@@ -241,7 +241,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
+              className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95 w-full sm:w-auto"
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {isUploading ? 'Yükleniyor...' : 'Dosya Yükle'}
@@ -264,7 +264,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
 
       <div className="space-y-3">
         {visibleFiles.length === 0 ? (
-          <div className="text-center py-10 border-2 border-dashed border-indigo-300 rounded-xl bg-indigo-50">
+          <div className="text-center py-10 border-2 border-dashed border-indigo-300 dark:border-indigo-900/50 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20">
             <File className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
             <p className="text-slate-500 dark:text-slate-400 text-sm">Henüz dosya yüklenmedi.</p>
           </div>
@@ -286,7 +286,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                 </div>
                 <div className="overflow-hidden">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{file.name}</p>
                     {file.isPrivate && (
                       <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 uppercase tracking-wide">
                         <Lock className="w-2.5 h-2.5" /> Private

@@ -99,7 +99,11 @@ export default function ProjectTabsWrapper({
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id as TabType)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative ${isActive ? 'bg-violet-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border border-slate-100 hover:border-violet-200'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-semibold text-sm relative border ${
+                isActive
+                  ? 'bg-violet-600 text-white shadow-md shadow-violet-500/25 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600'
+                  : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border-slate-100 hover:border-violet-200 dark:bg-[#1a2234] dark:text-slate-300 dark:border-slate-700/60 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
             >
               <Icon className="w-5 h-5" />
               {tab.label}
@@ -109,7 +113,7 @@ export default function ProjectTabsWrapper({
         })}
       </div>
 
-      <div className="flex-1 w-full bg-white/40 border border-white/50 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-sm min-h-[400px] relative">
+      <div className="flex-1 w-full min-w-0 bg-white/40 dark:bg-[#1a2234]/70 border border-white/50 dark:border-slate-700/60 backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>

@@ -368,10 +368,10 @@ export default async function ProjectDetailPage({
             <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Project Status</h3>
               <div className="mb-4">
-                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> Completed</span>}
-                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> In Review</span>}
-                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border-violet-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> In Progress</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"> To Do</span>}
+                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"> Completed</span>}
+                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60"> In Review</span>}
+                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/60"> In Progress</span>}
+                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80"> To Do</span>}
               </div>
               
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Milestone Progress</h4>
@@ -382,8 +382,8 @@ export default async function ProjectDetailPage({
 
               {isOwner && !isCompleted && <CompleteProjectButton projectId={projectId} isCompletedInitial={isCompleted} />}
               {isCompleted && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-emerald-700 text-sm font-semibold p-4 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm w-full">
-                  <Check className="w-5 h-5 text-emerald-600" /> Proje Tamamlandı
+                <div className="mt-4 flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-semibold p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 shadow-sm w-full">
+                  <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Proje Tamamlandı
                 </div>
               )}
             </div>

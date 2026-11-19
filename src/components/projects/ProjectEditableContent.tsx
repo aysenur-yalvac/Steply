@@ -473,21 +473,21 @@ export default function ProjectEditableContent({
         </div>
 
         {/* Dates + GitHub row */}
-        <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+        <div className="flex flex-wrap items-center gap-y-3 gap-x-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
           {project.github_link && (
             <a
               href={project.github_link}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 text-dusty-rose hover:text-rose-600 transition-colors font-bold"
+              className="flex items-center gap-2 text-dusty-rose hover:text-rose-600 transition-colors font-bold text-sm"
             >
-              <Github className="w-5 h-5" /> GitHub Repository
+              <Github className="w-4 h-4 shrink-0" /> GitHub Repository
             </a>
           )}
           {/* Start date */}
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              <Calendar className="w-4 h-4 text-slate-400" /> Başlangıç
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+              <Calendar className="w-4 h-4 text-slate-400" /> Başlangıç:
             </span>
             <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">
               {project.start_date || project.created_at ? new Date((project.start_date || project.created_at) as string).toLocaleDateString("tr-TR") : "Belirtilmedi"}
@@ -495,14 +495,14 @@ export default function ProjectEditableContent({
           </div>
 
           {/* End date */}
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              <Calendar className="w-4 h-4 text-slate-400" /> Bitiş
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+              <Calendar className="w-4 h-4 text-slate-400" /> Bitiş:
             </span>
             <span className="text-sm font-medium">
               {project.end_date 
-                ? <span className="text-emerald-600">{new Date(project.end_date).toLocaleDateString("tr-TR")}</span>
-                : <span className="text-violet-600 font-bold bg-violet-50 px-2 py-0.5 rounded-full text-[11px] uppercase tracking-wider">Devam Ediyor</span>
+                ? <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{new Date(project.end_date).toLocaleDateString("tr-TR")}</span>
+                : <span className="text-violet-600 dark:text-violet-300 font-bold bg-violet-50 dark:bg-violet-950/70 border border-violet-200 dark:border-violet-800/60 px-2.5 py-0.5 rounded-full text-[11px] uppercase tracking-wider inline-flex items-center">Devam Ediyor</span>
               }
             </span>
           </div>
@@ -510,7 +510,7 @@ export default function ProjectEditableContent({
 
         {/* ── Privacy Toggle (owner only) ──────────────────────────────────── */}
         {isOwner && (
-          <div className="mt-5 pt-5 border-t border-slate-100">
+          <div className="mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isPrivate ? (
@@ -519,7 +519,7 @@ export default function ProjectEditableContent({
                   <Globe className="w-4 h-4 text-emerald-500" />
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {isPrivate ? "Private Project" : "Public Project"}
                   </p>
                   <p className="text-xs text-slate-400">

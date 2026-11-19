@@ -394,8 +394,10 @@ body {
   background-color: #7c3aed !important;
 }
 
-/* 7. Animasyonlu Canvas / SVG Maske Parlamalarını Koyu Moda Çek */
-.dark canvas,
+/* 7. Animasyonlu Canvas / SVG Maske Parlamalarını Koyu Moda Çek (Doküman & Çizim hariç) */
+.dark canvas.bg-canvas,
+.dark .canvas-bg canvas,
+.dark canvas:not(.react-pdf__Page__canvas):not(.drawing-canvas):not(.konvajs-content canvas):not([data-canvas-isolated="true"]),
 .dark [class*="animate-bg"],
 .dark [class*="mesh-gradient"] {
   opacity: 0.25 !important;
@@ -498,4 +500,31 @@ body {
     background-color: #1e293b !important;
     color: #e2e8f0 !important;
     border: 1px solid rgba(51, 65, 85, 0.8) !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FILE VIEWER & PDF PREVIEW ISOLATION (Original Colors & Sharp Contrast)
+   Must NEVER be darkened, filtered, inverted, or styled by dark mode
+   ───────────────────────────────────────────────────────────── */
+.file-preview-isolated {
+  background-color: #0b0f19 !important;
+}
+
+.file-preview-isolated .pdf-page-container,
+.file-preview-isolated .react-pdf__Page,
+.file-preview-isolated .react-pdf__Page__canvas,
+.file-preview-isolated canvas.react-pdf__Page__canvas {
+  opacity: 1 !important;
+  filter: none !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.file-preview-isolated .konvajs-content,
+.file-preview-isolated .konvajs-content canvas,
+.file-preview-isolated canvas.drawing-canvas {
+  opacity: 1 !important;
+  filter: none !important;
+  background-color: transparent !important;
 }

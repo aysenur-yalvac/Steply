@@ -96,7 +96,8 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
 
       let res;
       if (stagedAnnotation.type === 'drawing') {
-        res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(stagedAnnotation.lines));
+        const payloadToSave = stagedAnnotation.pages || stagedAnnotation.lines;
+        res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(payloadToSave));
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
@@ -110,7 +111,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
       setAnnotations((prev) => [...prev, res.data]);
       setStagedAnnotation(null);
       
-      // ANCAK KAYIT BAŞARILIYSA MODALI KAPAT:
+      // ANCAK KAYIT BAÅARILIYSA MODALI KAPAT:
       onClose();
     } catch (err: any) {
       toast.error("Kaydedilemedi", { position: "bottom-right" });
@@ -141,10 +142,10 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full h-full bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl relative z-10" onClick={(e) => e.stopPropagation()}
+          className="w-full h-full bg-white dark:bg-slate-900 rounded-2xl flex flex-col overflow-hidden shadow-2xl relative z-10" onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
             <div>
               <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{file.name}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Smart Preview & Annotation</p>
@@ -179,7 +180,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
           </div>
 
           {/* Content Body */}
-          <div className="flex-1 overflow-auto relative">
+          <div className="flex-1 overflow-auto relative bg-slate-100 dark:bg-slate-950">
             {(isLoading || isResolvingUrl) ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
