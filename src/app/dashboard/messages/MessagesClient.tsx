@@ -45,8 +45,14 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     setSearchError(null);
     const timer = setTimeout(async () => {
       try {
-        const results = await searchUsersAction(cleanQuery);
-        setSearchResults(results);
+        const res = await searchUsersAction(cleanQuery);
+        if (res.error) {
+          setSearchError(res.error);
+          setSearchResults([]);
+        } else {
+          setSearchError(null);
+          setSearchResults(res.users || []);
+        }
       } catch (err: any) {
         console.error("[MessagesClient] User search failed:", err);
         setSearchError(err?.message || "Arama sırasında bir hata oluştu.");

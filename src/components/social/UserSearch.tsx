@@ -39,8 +39,8 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
     setIsLoading(true);
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const data = await searchUsersAction(query);
-        setResults(data);
+        const res = await searchUsersAction(query);
+        setResults(res.users || []);
         setIsOpen(true);
       } catch (error) {
         console.error("Search error:", error);

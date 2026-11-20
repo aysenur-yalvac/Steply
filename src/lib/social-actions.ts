@@ -3,6 +3,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 
+export type SearchUsersResult = {
+  users: UserSearchResult[];
+  error: string | null;
+};
+
 export type UserSearchResult = {
   id: string;
   full_name: string;
@@ -28,48 +33,56 @@ export type Message = {
 /**
  * Searches users by name or email using the search_users RPC.
  */
-export async function searchUsersAction(query: string): Promise<UserSearchResult[]> {
+export async function searchUsersAction(query: string): Promise<SearchUsersResult> {
   const cleanQuery = (query || "").trim();
-  if (!cleanQuery) return [];
-
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    console.error("[searchUsersAction] Auth error or user not found:", authError);
-    return [];
+  if (!cleanQuery) {
+    return { users: [], error: null };
   }
 
-  // Analytics ve School sayfalarındaki gibi RLS engeline takılmadan profilleri listelemek için admin client kullan
-  let client: any;
   try {
-    client = createAdminClient();
-  } catch (adminErr) {
-    console.warn("[searchUsersAction] createAdminClient fallback to standard supabase client:", adminErr);
-    client = supabase;
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[searchUsersAction] Auth error or user not found:", authError);
+      return { users: [], error: "Oturum açmanız gerekiyor." };
+    }
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch (adminErr) {
+      console.warn("[searchUsersAction] createAdminClient fallback to standard supabase client:", adminErr);
+      client = supabase;
+    }
+
+    const { data, error } = await client
+      .from('profiles')
+      .select('*')
+      .ilike('full_name', `%${cleanQuery}%`)
+      .neq('id', user.id)
+      .limit(20);
+
+    if (error) {
+      console.error("[searchUsersAction] Supabase query error:", error);
+      return { users: [], error: error.message || "Arama sırasında veritabanı hatası oluştu." };
+    }
+
+    const users: UserSearchResult[] = (data || []).map((row: any) => ({
+      id: row.id,
+      full_name: row.full_name || 'İsimsiz Kullanıcı',
+      email: row.email || row.school_email || '',
+      role: row.role || 'student',
+      steply_score: row.steply_score ?? row.total_score ?? 0,
+      institution: row.institution || row.university || row.school || '',
+      avatar_url: row.avatar_url || null,
+    }));
+
+    return { users, error: null };
+  } catch (err: any) {
+    console.error("[searchUsersAction] Unexpected error:", err);
+    return { users: [], error: err?.message || "Arama sırasında beklenmedik bir hata oluştu." };
   }
-
-  const { data, error } = await client
-    .from('profiles')
-    .select('id, full_name, avatar_url, role, institution, steply_score')
-    .ilike('full_name', `%${cleanQuery}%`)
-    .neq('id', user.id)
-    .limit(30);
-
-  if (error) {
-    console.error("[searchUsersAction] Supabase query error:", error);
-    throw new Error(`Kullanıcı aranırken veritabanı hatası oluştu: ${error.message}`);
-  }
-
-  return (data || []).map((p: any) => ({
-    id: p.id,
-    full_name: p.full_name || 'İsimsiz Kullanıcı',
-    email: '',
-    role: p.role || 'student',
-    steply_score: p.steply_score ?? 0,
-    institution: p.institution || null,
-    avatar_url: p.avatar_url || null,
-  })) as UserSearchResult[];
 }
 
 /**

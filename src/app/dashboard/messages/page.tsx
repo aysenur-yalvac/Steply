@@ -14,9 +14,16 @@ export default async function MessagesLayoutPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
-  const { data: currentUserProfile } = await supabase
+  let adminClient: any = supabase;
+  try {
+    adminClient = createAdminClient();
+  } catch {
+    adminClient = supabase;
+  }
+
+  const { data: currentUserProfile } = await adminClient
     .from('profiles')
-    .select('id, full_name')
+    .select('*')
     .eq('id', user.id)
     .single();
 
@@ -27,15 +34,9 @@ export default async function MessagesLayoutPage({
 
   let selectedUserProfile = null;
   if (selectedUserId) {
-    let client: any;
-    try {
-      client = createAdminClient();
-    } catch {
-      client = supabase;
-    }
-    const { data, error } = await client
+    const { data, error } = await adminClient
       .from('profiles')
-      .select('id, full_name')
+      .select('*')
       .eq('id', selectedUserId)
       .single();
     if (data) selectedUserProfile = data;
