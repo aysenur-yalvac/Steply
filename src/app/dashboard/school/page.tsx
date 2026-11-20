@@ -159,10 +159,7 @@ async function SchoolPageContent() {
 function PageHeader({ institution, subtitle }: { institution: string | null; subtitle: string }) {
   return (
     <div
-      className="relative overflow-hidden px-6 lg:px-10 pt-6 pb-8"
-      style={{
-        background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #4c1d95 100%)',
-      }}
+      className="relative overflow-hidden px-6 lg:px-10 pt-6 pb-8 border-b bg-gradient-to-r from-slate-100 via-violet-50/60 to-slate-100 border-slate-200/80 text-slate-900 dark:from-[#131722] dark:via-[#1b182c] dark:to-[#131722] dark:border-slate-800/80 dark:text-slate-100"
     >
       {/* Decorative blobs */}
       <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full opacity-10 bg-white dark:bg-slate-900 dark:bg-slate-900" />
@@ -177,18 +174,18 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
           <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
             <School className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
-          <p className="text-xs font-semibold text-indigo-300 uppercase tracking-widest">Okulum</p>
+          <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-widest">Okulum</p>
         </div>
 
         {institution ? (
           <>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight drop-shadow-sm">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
               {institution}
             </h1>
-            <p className="mt-2 text-sm text-indigo-300 font-medium capitalize">{subtitle}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 font-medium capitalize">{subtitle}</p>
           </>
         ) : (
-          <h1 className="text-3xl font-extrabold text-white/60 tracking-tight">Henüz bir okul seçilmedi</h1>
+          <h1 className="text-3xl font-extrabold text-slate-400 dark:text-slate-500 tracking-tight">Henüz bir okul seçilmedi</h1>
         )}
       </div>
     </div>

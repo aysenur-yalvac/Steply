@@ -75,12 +75,12 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
             if (results.length > 0) setIsOpen(true);
           }}
           placeholder={placeholder}
-          className="w-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-700 text-sm rounded-2xl pl-11 pr-4 py-3 focus:outline-none focus:border-dusty-rose/40 focus:ring-4 focus:ring-dusty-rose/5 transition-all placeholder:text-slate-400 shadow-sm"
+          className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm rounded-2xl pl-11 pr-4 py-3 focus:outline-none focus:border-dusty-rose/40 focus:ring-4 focus:ring-dusty-rose/5 transition-all placeholder:text-slate-400 shadow-sm"
         />
       </div>
 
       {isOpen && query.trim().length >= 2 && (
-        <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50">
+        <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50">
           {isLoading && results.length === 0 ? (
             <div className="p-5 text-center text-sm font-medium text-slate-400 flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-dusty-rose" /> Searching network...
@@ -99,7 +99,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                       <UserIcon className="w-5 h-5" />
                     </div>
                     <div className="overflow-hidden flex-1">
-                      <div className="font-semibold text-slate-200 text-sm truncate group-hover:text-white transition-colors">{user.full_name}</div>
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">{user.full_name}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.email}</div>
                       {sanitizeInstitution(user.institution) && (
                         <div className="text-xs text-slate-400 truncate mt-0.5">{sanitizeInstitution(user.institution)}</div>

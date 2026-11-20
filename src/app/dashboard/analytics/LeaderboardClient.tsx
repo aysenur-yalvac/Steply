@@ -18,9 +18,9 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 const RANK_STYLE: Record<number, { bg: string; text: string; ring: string; icon: string }> = {
-  1: { bg: "bg-amber-50 [#1a2234] ", text: "text-amber-700 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   ring: "ring-amber-400",   icon: "🥇" },
-  2: { bg: "bg-slate-100 [#1a2234] ", text: "text-slate-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   ring: "ring-slate-400",   icon: "🥈" },
-  3: { bg: "bg-orange-50 [#1a2234] ", text: "text-orange-700 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  ring: "ring-orange-400",  icon: "🥉" },
+  1: { bg: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/40", text: "text-amber-700 dark:text-amber-300", ring: "ring-amber-400 dark:ring-amber-600", icon: "🥇" },
+  2: { bg: "bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60", text: "text-slate-600 dark:text-slate-300", ring: "ring-slate-400 dark:ring-slate-500", icon: "🥈" },
+  3: { bg: "bg-orange-50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/40", text: "text-orange-700 dark:text-orange-300", ring: "ring-orange-400 dark:ring-orange-600", icon: "🥉" },
 };
 
 function RankBadge({ rank }: { rank: number }) {

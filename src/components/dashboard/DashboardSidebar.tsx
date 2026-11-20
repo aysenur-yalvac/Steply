@@ -279,7 +279,7 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-1 w-full">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-150 border ${isActive || isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive || isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
@@ -314,7 +314,7 @@ function NavContent({
               const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
               
               return collapsed ? (
-                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-150 border ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
+                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                     {isMessages && <UnreadMessagesBadge collapsed={true} />}

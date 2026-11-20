@@ -27,26 +27,36 @@ export type Message = {
  * Searches users by name or email using the search_users RPC.
  */
 export async function searchUsersAction(query: string): Promise<UserSearchResult[]> {
-  if (!query || query.length < 2) return [];
+  if (!query || query.trim().length < 2) return [];
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error("You must be logged in to search users.");
+    return [];
   }
 
-  const { data, error } = await supabase.rpc("search_users", {
-    search_query: query,
-  });
+  // Query profiles directly with ilike as requested
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, role, institution, steply_score')
+    .ilike('full_name', `%${query.trim()}%`)
+    .neq('id', user.id)
+    .limit(20);
 
   if (error) {
     console.error("[searchUsersAction] Error:", error);
-    throw new Error("Failed to search users.");
+    return [];
   }
 
-  // Filter out the current user
-  return (data as UserSearchResult[]).filter((u) => u.id !== user.id);
+  return (data || []).map((p: any) => ({
+    id: p.id,
+    full_name: p.full_name || '',
+    email: p.email || p.school_email || '',
+    role: p.role || 'student',
+    steply_score: p.steply_score ?? 0,
+    institution: p.institution || null,
+  })) as UserSearchResult[];
 }
 
 /**
