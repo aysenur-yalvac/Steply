@@ -3,35 +3,30 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, LogOut, } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen]     = useState(false);
-    const [mounted, setMounted]           = useState(false);
-  const pathname  = usePathname();
-  const { user, signOut, loading } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
   if (pathname.startsWith('/dashboard')) return null;
 
   const closeMenus = () => setIsMenuOpen(false);
+  const isUserProfilePage = pathname.startsWith('/user/');
 
   return (
     <nav
-      className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center sticky top-0 z-50"
-      style={{
-        background: "rgba(11,14,20,0.88)",
-        borderBottom: "1px solid rgba(160,32,240,0.13)",
-        backdropFilter: "blur(22px)",
-        WebkitBackdropFilter: "blur(22px)",
-      }}
+      className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center sticky top-0 z-50 transition-colors duration-200 bg-white/80 dark:bg-[#0b0e14]/90 border-b border-slate-200/80 dark:border-purple-900/30 backdrop-blur-xl"
     >
       {/* Brand + mobile toggle */}
       <div className="flex justify-between items-center w-full md:w-auto">
         <Link
-          href="/dashboard"
+          href={user ? "/dashboard" : "/"}
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           onClick={closeMenus}
         >
@@ -43,66 +38,62 @@ export default function Navbar() {
               style={{ clipPath: "inset(2px)" }}
             />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-white">Steply</span>
+          <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">Steply</span>
         </Link>
 
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white transition-colors"
-          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Nav links */}
-      <div
-        className={`${isMenuOpen ? "flex" : "hidden"} md:flex flex-col md:flex-row items-center gap-5 mt-4 md:mt-0`}
-      >
-        {!loading && (
-          <>
-            {user ? (
-              <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                <Link
-                  href="/dashboard/profile"
-                  className="w-full md:w-auto text-sm font-medium text-center text-slate-300 hover:text-white transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
-                  onClick={closeMenus}
-                >
-                  <User className="w-4 h-4" /> Profile
-                </Link>
-                                <button
-                  onClick={() => signOut()}
-                  className="w-full md:w-auto text-sm font-bold text-center text-slate-400 hover:text-red-400 transition-colors py-2 md:px-4 flex items-center justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" strokeWidth={2.5} /> Sign Out
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                {!pathname.startsWith('/auth') && (
-                  <Link
-                    href="/auth/login"
-                    onClick={closeMenus}
-                    className="w-full md:w-auto text-sm font-semibold text-center text-slate-300 hover:text-white transition-colors py-2 md:px-5"
-                  >
-                    Log In
-                  </Link>
-                )}
-                {!pathname.startsWith('/auth') && (
-                  <Link
-                    href="/auth/register"
-                    onClick={closeMenus}
-                    className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95"
-                  >
-                    Sign Up
-                  </Link>
-                )}
-              </div>
-            )}
-          </>
+        {!isUserProfilePage && (
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-colors"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         )}
       </div>
 
-          </nav>
+      {/* Nav links (hidden on /user/[id] profile view) */}
+      {!isUserProfilePage && (
+        <div
+          className={`${isMenuOpen ? "flex" : "hidden"} md:flex flex-col md:flex-row items-center gap-5 mt-4 md:mt-0`}
+        >
+          {!loading && (
+            <>
+              {user ? (
+                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                  <Link
+                    href="/dashboard"
+                    className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-4"
+                    onClick={closeMenus}
+                  >
+                    Dashboard
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                  {!pathname.startsWith('/auth') && (
+                    <Link
+                      href="/auth/login"
+                      onClick={closeMenus}
+                      className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5"
+                    >
+                      Log In
+                    </Link>
+                  )}
+                  {!pathname.startsWith('/auth') && (
+                    <Link
+                      href="/auth/register"
+                      onClick={closeMenus}
+                      className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95"
+                    >
+                      Sign Up
+                    </Link>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </nav>
   );
 }

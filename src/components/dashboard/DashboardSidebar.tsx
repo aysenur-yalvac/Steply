@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -215,10 +215,10 @@ function NavContent({
   return (
     <div className="flex flex-col h-full select-none">
       {/* Logo + toggle */}
-      <div className={`border-b border-slate-100 ${collapsed ? 'flex flex-col items-center gap-2 px-2 py-3' : 'px-5 py-5'}`}>
+      <div className={`border-b border-slate-100 dark:border-slate-800/80 ${collapsed ? "flex flex-col items-center gap-3 py-4 px-2" : "px-5 py-5"}`}>
         {collapsed ? (
           <>
-            <Link href="/dashboard" onClick={onClose} className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
+            <Link href="/dashboard" onClick={onClose} className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
               <img src="/image_5.png" alt="Steply" className="w-10 h-10 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
             </Link>
             {onToggleExpand && (
@@ -226,7 +226,7 @@ function NavContent({
                 type="button"
                 onClick={onToggleExpand}
                 title="Genişlet"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-slate-800 dark:hover:text-violet-400 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -255,13 +255,13 @@ function NavContent({
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 py-4 overflow-y-auto ${collapsed ? 'px-1' : 'px-3'}`}>
+      <nav className={`flex-1 py-4 overflow-y-auto ${collapsed ? "px-2 flex flex-col items-center" : "px-3"}`}>
         {!collapsed && (
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
             Main Menu
           </p>
         )}
-        <div className="space-y-0.5">
+        <div className={collapsed ? "flex flex-col items-center gap-2 w-full" : "space-y-0.5"}>
           {NAV_ITEMS.map((item) => {
               const { label, href, icon: Icon, subItems } = item as any;
               const isTeacherOnly = (item as any).teacherOnly;
@@ -279,7 +279,7 @@ function NavContent({
                 return (
                   <div key={label} className="flex flex-col gap-0.5">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700 " : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 "} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
+                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-150 ${isActive || isOpen ? "bg-violet-50 text-violet-700 " : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 "} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                         <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                       </button>
                     ) : (
@@ -314,7 +314,7 @@ function NavContent({
               const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
               
               return collapsed ? (
-                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-full flex items-center justify-center py-2.5 rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
+                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-150 ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-transparent dark:text-purple-400 dark:font-bold dark:shadow-none" : "text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                     {isMessages && <UnreadMessagesBadge collapsed={true} />}
@@ -335,7 +335,7 @@ function NavContent({
           </nav>
 
       {/* User footer */}
-      <div className={`relative border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>
+      <div className={`relative border-t border-slate-100 dark:border-slate-800/80 ${collapsed ? "p-2 flex flex-col items-center" : "p-3"}`}>
 
         {/* ============================================================
             POPOVER MENU — floats above footer, works in both modes
@@ -424,14 +424,14 @@ function NavContent({
               type="button"
               onClick={() => setIsAccountMenuOpen(o => !o)}
               title={userName || userEmail || "Hesaplar"}
-              className="flex items-center justify-center w-9 h-9 rounded-full ring-2 ring-emerald-500 hover:ring-emerald-400 transition-all p-[2px]"
+              className="flex items-center justify-center w-10 h-10 rounded-full ring-2 ring-emerald-500 hover:ring-emerald-400 transition-all p-[2px]"
             >
               <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={32} />
             </button>
             <button
               onClick={() => signOut()}
               title="Çıkış Yap"
-              className="flex items-center justify-center p-2 w-9 h-9 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800 transition-all"
             >
               <LogOut className="w-4 h-4" strokeWidth={1.5} />
             </button>

@@ -174,8 +174,8 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
         </div>
 
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 dark:bg-slate-900/10 border border-white/20 backdrop-blur-sm">
-            <School className="w-5 h-5 text-white" />
+          <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <School className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
           <p className="text-xs font-semibold text-indigo-300 uppercase tracking-widest">Okulum</p>
         </div>

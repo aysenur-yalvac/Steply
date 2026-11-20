@@ -113,8 +113,7 @@ export default async function PublicProfilePage({
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #f0f4ff 100%)" }}
+      className="min-h-screen bg-slate-50 dark:bg-[#0b0e14] transition-colors duration-200"
     >
       <div className="max-w-6xl mx-auto px-6 py-10">
 
@@ -124,13 +123,7 @@ export default async function PublicProfilePage({
 
         {/* ── Profile header ─────────────────────────────────────────────── */}
         <div
-          className="rounded-3xl p-8 mb-6 shadow-xl"
-          style={{
-            background: "rgba(255,255,255,0.60)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.75)",
-          }}
+          className="rounded-3xl p-8 mb-6 shadow-xl bg-white/70 dark:bg-[#1a2234]/80 border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-xl transition-colors duration-200"
         >
           <div className="flex flex-col sm:flex-row items-start gap-6">
 
@@ -140,7 +133,7 @@ export default async function PublicProfilePage({
                 src={profile.avatar_url}
                 name={profile.full_name ?? "?"}
                 size="lg"
-                className="w-24 h-24 text-3xl ring-4 ring-white shadow-lg"
+                className="w-24 h-24 text-3xl ring-4 ring-white dark:ring-slate-800 shadow-lg"
               />
               {profile.role && (
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#7C3AFF] text-white shadow-md uppercase tracking-wider">
@@ -152,7 +145,7 @@ export default async function PublicProfilePage({
             {/* Name + info */}
             <div className="flex-1 min-w-0 pt-1">
               <div className="flex items-start justify-between gap-4 flex-wrap">
-                <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
                   {profile.full_name ?? "Steply Member"}
                 </h1>
                 {viewer && !isSelf && (
@@ -169,9 +162,9 @@ export default async function PublicProfilePage({
 
               {/* Private notice */}
               {isPrivate && (
-                <div className="mt-3 flex items-start gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="mt-3 flex items-start gap-2 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
                   <ShieldOff className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                  <p className="text-sm text-slate-500 font-medium">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                     This profile is private. You can only see the name and avatar.
                   </p>
                 </div>
@@ -181,14 +174,14 @@ export default async function PublicProfilePage({
               {!isPrivate && (
                 <>
                   {sanitizeInstitution(profile.institution) && (
-                    <span className="flex items-center gap-1.5 mt-2 text-sm text-slate-500 font-medium">
+                    <span className="flex items-center gap-1.5 mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
                       <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       {sanitizeInstitution(profile.institution)}
                     </span>
                   )}
 
                   {profile.bio && (
-                    <p className="mt-3 text-slate-600 text-sm leading-relaxed max-w-xl">
+                    <p className="mt-3 text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-xl">
                       {profile.bio}
                     </p>
                   )}
@@ -220,14 +213,14 @@ export default async function PublicProfilePage({
           <div>
             {/* Section header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-xl bg-white border border-violet-200 shadow-sm">
-                <FolderOpen className="w-5 h-5 text-violet-600" />
+              <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-slate-800 shadow-sm">
+                <FolderOpen className="w-5 h-5 text-violet-600 dark:text-violet-400" />
               </div>
               <div>
-                <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-tight">
+                <h2 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
                   Public Projects
                 </h2>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">
                   {projects.length} project{projects.length !== 1 ? "s" : ""} · publicly visible
                 </p>
               </div>
@@ -235,11 +228,11 @@ export default async function PublicProfilePage({
 
             {projects.length === 0 ? (
               /* Global empty state */
-              <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
-                <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-                  <FolderOpen className="w-7 h-7 text-slate-300" />
+              <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 min-h-[200px] flex flex-col items-center justify-center gap-3 p-8">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm">
+                  <FolderOpen className="w-7 h-7 text-slate-300 dark:text-slate-600" />
                 </div>
-                <p className="text-sm text-slate-400 font-medium">No public projects yet.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">No public projects yet.</p>
               </div>
             ) : (
               <ProfileProjectsPanel
