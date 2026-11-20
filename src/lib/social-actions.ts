@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 export type UserSearchResult = {
   id: string;
@@ -28,27 +29,36 @@ export type Message = {
  * Searches users by name or email using the search_users RPC.
  */
 export async function searchUsersAction(query: string): Promise<UserSearchResult[]> {
-  const q = (query || "").trim();
-  if (q.length < 1) return [];
+  const cleanQuery = (query || "").trim();
+  if (!cleanQuery) return [];
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
+    console.error("[searchUsersAction] Auth error or user not found:", authError);
     return [];
   }
 
-  // Query profiles table with ilike on full_name and email
-  let { data, error } = await supabase
+  // Analytics ve School sayfalarındaki gibi RLS engeline takılmadan profilleri listelemek için admin client kullan
+  let client: any;
+  try {
+    client = createAdminClient();
+  } catch (adminErr) {
+    console.warn("[searchUsersAction] createAdminClient fallback to standard supabase client:", adminErr);
+    client = supabase;
+  }
+
+  const { data, error } = await client
     .from('profiles')
     .select('id, full_name, avatar_url, role, institution, steply_score')
-    .ilike('full_name', `%${q}%`)
+    .ilike('full_name', `%${cleanQuery}%`)
     .neq('id', user.id)
     .limit(30);
 
   if (error) {
-    console.error("[searchUsersAction] Error:", error);
-    return [];
+    console.error("[searchUsersAction] Supabase query error:", error);
+    throw new Error(`Kullanıcı aranırken veritabanı hatası oluştu: ${error.message}`);
   }
 
   return (data || []).map((p: any) => ({

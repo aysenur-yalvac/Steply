@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import MessagesClient from './MessagesClient';
 import { getRecentConversationsAction } from '@/lib/social-actions';
@@ -26,12 +27,19 @@ export default async function MessagesLayoutPage({
 
   let selectedUserProfile = null;
   if (selectedUserId) {
-    const { data } = await supabase
+    let client: any;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+    const { data, error } = await client
       .from('profiles')
       .select('id, full_name')
       .eq('id', selectedUserId)
       .single();
     if (data) selectedUserProfile = data;
+    if (error) console.error("[MessagesLayoutPage] Selected user profile error:", error);
   }
 
   const recentConversations = await getRecentConversationsAction();

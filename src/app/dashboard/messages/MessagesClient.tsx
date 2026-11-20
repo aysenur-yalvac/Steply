@@ -28,24 +28,28 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const supabase = createClient();
 
-  // 250ms debounced user search
+  // 250ms debounced user search with trim
   useEffect(() => {
-    const q = searchQuery.trim();
-    if (q.length < 1) {
+    const cleanQuery = searchQuery.trim();
+    if (!cleanQuery) {
       setSearchResults([]);
+      setSearchError(null);
       setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
+    setSearchError(null);
     const timer = setTimeout(async () => {
       try {
-        const results = await searchUsersAction(q);
+        const results = await searchUsersAction(cleanQuery);
         setSearchResults(results);
-      } catch (err) {
-        console.error("User search failed:", err);
+      } catch (err: any) {
+        console.error("[MessagesClient] User search failed:", err);
+        setSearchError(err?.message || "Arama sırasında bir hata oluştu.");
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -197,13 +201,17 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                   <h3 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest">Kullanıcılar</h3>
                   <span className="text-[10px] text-slate-400">{searchResults.length} sonuç</span>
                 </div>
-                {isSearching && searchResults.length === 0 ? (
+                {searchError ? (
+                  <div className="p-4 text-center text-red-500 dark:text-red-400 text-xs bg-red-50 dark:bg-red-950/30 rounded-xl m-2 border border-red-200 dark:border-red-900/50">
+                    {searchError}
+                  </div>
+                ) : isSearching && searchResults.length === 0 ? (
                   <div className="p-6 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-violet-600" /> Kullanıcılar aranıyor...
+                    <Loader2 className="w-4 h-4 animate-spin text-violet-600 dark:text-violet-400" /> Kullanıcılar aranıyor...
                   </div>
                 ) : searchResults.length === 0 ? (
                   <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">
-                    "{searchQuery}" ile eşleşen kullanıcı bulunamadı.
+                    "{searchQuery.trim()}" ile eşleşen kullanıcı bulunamadı.
                   </div>
                 ) : (
                   searchResults.map((u) => (
