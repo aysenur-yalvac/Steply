@@ -11,18 +11,25 @@ export default async function AgendaPage() {
   if (!user) redirect('/auth/login');
 
   // Fetch user's agenda tasks (works for both students and teachers)
-  const { data: tasks } = await supabase
+  const { data: rawTasks } = await supabase
     .from('agenda_tasks')
     .select('*')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true });
+
+  const tasks = (rawTasks || []).map((t: any) => ({
+    id: t.id,
+    title: t.title || t.task_title || '',
+    due_date: t.due_date,
+    is_completed: t.is_completed ?? false,
+  }));
 
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-6">
         <BackButton href="/dashboard" variant="light" />
       </div>
-      <AgendaClient initialTasks={tasks || []} />
+      <AgendaClient initialTasks={tasks} />
     </div>
   );
 }

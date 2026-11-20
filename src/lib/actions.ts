@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
@@ -391,13 +391,15 @@ export async function addAgendaTaskAction(title: string, due_date: string) {
   const { data, error } = await supabase.from('agenda_tasks').insert({
     user_id: user.id,
     title,
+    task_title: title,
     due_date
   }).select().single();
 
   if (error) return { success: false, error: `Agenda Error [${error.code}]: ${error.message}` };
 
   revalidatePath('/dashboard/agenda');
-  return { success: true, task: data };
+  const taskNormalized = data ? { ...data, title: data.title || data.task_title || "" } : data;
+  return { success: true, task: taskNormalized };
 }
 
 export async function toggleAgendaTaskAction(taskId: string, is_completed: boolean) {

@@ -104,7 +104,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
 
   const { data: upcomingTasks } = await supabase
     .from('agenda_tasks')
-    .select('id, title, due_date')
+    .select('id, title, task_title, due_date')
     .eq('user_id', user?.id)
     .eq('is_completed', false)
     .lte('due_date', tomorrowStr)
@@ -179,7 +179,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
                     }`}
                   >
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
-                    <span className="flex-1 truncate">{task.title}</span>
+                      <span className="flex-1 truncate">{task.title || task.task_title}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700 ' : 'bg-amber-100 text-amber-700 '} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                       {isToday ? 'Due Today!' : 'Due Tomorrow'}
                     </span>
