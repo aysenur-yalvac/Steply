@@ -9,6 +9,7 @@ export type UserSearchResult = {
   role: string;
   steply_score: number;
   institution: string | null;
+  avatar_url?: string | null;
 };
 
 export type Message = {
@@ -27,7 +28,8 @@ export type Message = {
  * Searches users by name or email using the search_users RPC.
  */
 export async function searchUsersAction(query: string): Promise<UserSearchResult[]> {
-  if (!query || query.trim().length < 2) return [];
+  const q = (query || "").trim();
+  if (q.length < 1) return [];
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -36,13 +38,13 @@ export async function searchUsersAction(query: string): Promise<UserSearchResult
     return [];
   }
 
-  // Query profiles directly with ilike as requested
-  const { data, error } = await supabase
+  // Query profiles table with ilike on full_name and email
+  let { data, error } = await supabase
     .from('profiles')
     .select('id, full_name, avatar_url, role, institution, steply_score')
-    .ilike('full_name', `%${query.trim()}%`)
+    .ilike('full_name', `%${q}%`)
     .neq('id', user.id)
-    .limit(20);
+    .limit(30);
 
   if (error) {
     console.error("[searchUsersAction] Error:", error);
@@ -51,11 +53,12 @@ export async function searchUsersAction(query: string): Promise<UserSearchResult
 
   return (data || []).map((p: any) => ({
     id: p.id,
-    full_name: p.full_name || '',
-    email: p.email || p.school_email || '',
+    full_name: p.full_name || 'İsimsiz Kullanıcı',
+    email: '',
     role: p.role || 'student',
     steply_score: p.steply_score ?? 0,
     institution: p.institution || null,
+    avatar_url: p.avatar_url || null,
   })) as UserSearchResult[];
 }
 

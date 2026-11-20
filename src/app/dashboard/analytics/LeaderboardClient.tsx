@@ -67,7 +67,7 @@ function LeaderboardTable({
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.02, type: "spring", stiffness: 300, damping: 28 }}
-            className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${isMe ? "bg-violet-50 border-l-2 border-violet-500 dark:!bg-[#1a2234] dark:border-l-2 dark:border-violet-500" : rowStyle ? `${rowStyle.bg} hover:opacity-90` : "hover:bg-slate-50/70 dark:!bg-[#1a2234] dark:border dark:border-slate-800"}`}
+            className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${isMe ? "bg-violet-50 border-l-2 border-violet-500 dark:bg-violet-950/20 dark:border-l-2 dark:border-violet-500" : "hover:bg-slate-50/70 dark:hover:bg-slate-800/40"}`}
           >
             {/* Rank */}
             <div className="shrink-0 w-10 flex justify-center">

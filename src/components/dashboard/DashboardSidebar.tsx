@@ -277,18 +277,25 @@ function NavContent({
 
               if (subItems) {
                 return (
-                  <div key={label} className="flex flex-col gap-1 w-full">
+                  <div key={label} className="w-full flex flex-col gap-1">
                     {collapsed ? (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} title={label} className={`w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive || isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
-                        <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                      <button
+                        onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }}
+                        title={label}
+                        className={`relative w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}
+                      >
+                        <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }} className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 border ${isActive || isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white"}`}>
+                      <button
+                        onClick={(e) => { e.preventDefault(); toggleMenu(label); if(href) { router.push(href); onClose?.(); } }}
+                        className={`relative w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 border group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : isOpen ? "bg-violet-50 text-violet-700 border-violet-100 dark:bg-slate-800 dark:text-violet-400 dark:border-slate-700/80" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white"}`}
+                      >
                         <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 shrink-0 ${isActive || isOpen ? "text-violet-600" : "text-slate-400"}`} strokeWidth={1.5} />
+                          <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : isOpen ? "text-violet-600 dark:text-violet-400" : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white"}`} strokeWidth={isActive ? 2 : 1.5} />
                           <span>{label}</span>
                         </div>
-                        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""} ${isActive ? "text-white" : "text-slate-400"}`} />
                       </button>
                     )}
                     {isOpen && !collapsed && (

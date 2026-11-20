@@ -159,7 +159,7 @@ async function SchoolPageContent() {
 function PageHeader({ institution, subtitle }: { institution: string | null; subtitle: string }) {
   return (
     <div
-      className="relative overflow-hidden px-6 lg:px-10 pt-6 pb-8 border-b bg-gradient-to-r from-slate-100 via-violet-50/60 to-slate-100 border-slate-200/80 text-slate-900 dark:from-[#131722] dark:via-[#1b182c] dark:to-[#131722] dark:border-slate-800/80 dark:text-slate-100"
+      className="relative overflow-hidden px-6 lg:px-10 pt-6 pb-8 border-b bg-gradient-to-r from-violet-100 via-purple-50 to-indigo-100 border border-violet-200/90 shadow-sm text-slate-900 dark:from-[#131722] dark:via-[#1b182c] dark:to-[#131722] dark:border-slate-800/80 dark:text-slate-100"
     >
       {/* Decorative blobs */}
       <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full opacity-10 bg-white dark:bg-slate-900 dark:bg-slate-900" />
@@ -182,7 +182,7 @@ function PageHeader({ institution, subtitle }: { institution: string | null; sub
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
               {institution}
             </h1>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 font-medium capitalize">{subtitle}</p>
+            <p className="mt-2 text-sm text-violet-950/70 dark:text-slate-400 font-medium capitalize">{subtitle}</p>
           </>
         ) : (
           <h1 className="text-3xl font-extrabold text-slate-400 dark:text-slate-500 tracking-tight">Henüz bir okul seçilmedi</h1>
