@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Sınıf Detayı | Steply",
+  title: "Sınıf Detayı | Academy.Must-b",
   description: "Sınıf ödevleri ve katılımcıları",
 };
 

@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+﻿import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/admin'
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
   // Resolve owner_id: form hidden input is the primary source; cookie is the fallback
   // in case the client component failed to render the hidden inputs.
-  const cookieOwnerId = cookieStore.get('_steply_link_owner')?.value ?? null
+  const cookieOwnerId = cookieStore.get('_Must-b Academy_link_owner')?.value ?? null
   const resolvedOwnerId  = ownerId ?? (linkAccount === 'true' ? cookieOwnerId : null) ?? cookieOwnerId
   const resolvedLinkMode = linkAccount === 'true' || (!!cookieOwnerId && !!resolvedOwnerId)
 
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         `${requestUrl.origin}/auth/link-complete?owner_id=${resolvedOwnerId}&linked_uid=${data.user.id}`,
         { status: 303 },
       )
-      res.cookies.delete('_steply_link_owner')
+      res.cookies.delete('_Must-b Academy_link_owner')
       return res
     } catch (e) {
       console.error('[link_account] failed:', e)
@@ -175,5 +175,6 @@ export async function POST(request: Request) {
     status: 303,
   })
 }
+
 
 

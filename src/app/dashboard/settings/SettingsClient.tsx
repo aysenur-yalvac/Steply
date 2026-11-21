@@ -1043,7 +1043,7 @@ export default function SettingsClient({
                               className="w-9 h-9 text-sm shrink-0"
                             />
                             <span className="flex-1 text-sm font-semibold text-slate-700 truncate">
-                              {u.full_name ?? "Steply Member"}
+                              {u.full_name ?? "Must-b Academy Member"}
                             </span>
                             <button
                               disabled={unblocking === u.id}
@@ -1081,3 +1081,4 @@ export default function SettingsClient({
     </div>
   );
 }
+

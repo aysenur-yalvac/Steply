@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import Navbar from "@/components/layout/Navbar";
@@ -18,8 +18,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Steply | Student & Teacher Project Management",
-  description: "Steply is an education-focused platform where students and teachers can manage projects. Powered by Must-b.",
+  title: {
+    default: "Academy.Must-b",
+    template: "%s | Academy.Must-b",
+  },
+  description: "Must-b Academy is an education-focused platform where students and teachers can manage projects. Powered by Must-b.",
+  icons: {
+    icon: [
+      { url: "/marka/favicon.ico" },
+      { url: "/marka/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/marka/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/marka/icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/marka/favicon.ico",
+    apple: [
+      { url: "/marka/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
@@ -50,3 +66,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -219,7 +219,7 @@ function NavContent({
         {collapsed ? (
           <>
             <Link href="/dashboard" onClick={onClose} className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
-              <img src="/image_5.png" alt="Steply" className="w-10 h-10 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
+              <img src="/marka/logo.png" alt="Must-b Academy" className="w-10 h-10 object-contain dark:hidden" /><img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-10 h-10 object-cover rounded-lg hidden dark:block" />
             </Link>
             {onToggleExpand && (
               <button
@@ -236,9 +236,9 @@ function NavContent({
           <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity" onClick={onClose}>
               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-                <img src="/image_5.png" alt="Steply" className="w-9 h-9 object-cover scale-110" style={{ clipPath: "inset(2px)" }} />
+                <img src="/marka/logo.png" alt="Must-b Academy" className="w-9 h-9 object-contain dark:hidden" /><img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-9 h-9 object-cover rounded-md hidden dark:block" />
               </div>
-              <span className="font-extrabold text-xl tracking-tight text-slate-800 dark:text-slate-200">Steply</span>
+              <span className="font-extrabold text-xl tracking-tight text-slate-800 dark:text-slate-200">Must-b Academy</span>
             </Link>
             {onToggleExpand && (
               <button
@@ -640,4 +640,5 @@ export default function DashboardSidebar(props: SidebarProps) {
     </>
   );
 }
+
 

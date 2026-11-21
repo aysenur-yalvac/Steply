@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, User as UserIcon } from 'lucide-react';
@@ -105,9 +105,9 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                         <div className="text-xs text-slate-400 truncate mt-0.5">{sanitizeInstitution(user.institution)}</div>
                       )}
                     </div>
-                    {user.steply_score !== undefined && (
+                    {user.Must-b Academy_score !== undefined && (
                       <div className="shrink-0 text-[10px] font-bold px-2 py-1 rounded bg-slate-50 border border-slate-100 text-dusty-rose shadow-inner tracking-wider">
-                        SCORE: {user.steply_score}
+                        SCORE: {user.Must-b Academy_score}
                       </div>
                     )}
                   </li>
@@ -125,3 +125,4 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
     </div>
   );
 }
+

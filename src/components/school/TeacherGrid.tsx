@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -70,7 +70,7 @@ function TeacherCard({
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
             <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight truncate group-hover:text-blue-700 transition-colors">
-              {t.full_name ?? "Steply Üyesi"}
+              {t.full_name ?? "Must-b Academy Üyesi"}
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
           </div>
@@ -123,3 +123,4 @@ export default function TeacherGrid({ teachers }: { teachers: TeacherRow[] }) {
     </>
   );
 }
+

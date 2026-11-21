@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import { X, Search, Users, MessageSquare, UserMinus, ArrowLeftRight, Loader2 } from "lucide-react";
@@ -229,7 +229,7 @@ function FollowModal({
                         onClick={onClose}
                         className="text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-700 transition-colors truncate block"
                       >
-                        {u.full_name ?? "Steply Member"}
+                        {u.full_name ?? "Must-b Academy Member"}
                       </Link>
                       {isMutual && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-500 mt-0.5">
@@ -413,3 +413,4 @@ export default function SocialWidget({
     </>
   );
 }
+

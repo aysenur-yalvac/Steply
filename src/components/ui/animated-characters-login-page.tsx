@@ -431,10 +431,8 @@ export default function AnimatedCharactersLoginPage({
         {/* Logo */}
         <div className="relative z-20">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition-opacity">
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,255,0.20)", border: "1px solid rgba(124,58,255,0.35)" }}>
-              <Sparkles className="size-4" style={{ color: "#C97EFF" }} />
-            </div>
-            <span>Steply</span>
+            <img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-8 h-8 rounded-lg object-cover" />
+            <span>Must-b Academy</span>
           </Link>
         </div>
 
@@ -631,10 +629,8 @@ export default function AnimatedCharactersLoginPage({
 
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-10">
-            <div className="size-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,255,0.20)", border: "1px solid rgba(124,58,255,0.35)" }}>
-              <Sparkles className="size-3.5" style={{ color: "#C97EFF" }} />
-            </div>
-            <span className="font-extrabold text-lg text-white">Steply</span>
+            <img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-7 h-7 rounded-lg object-cover" />
+            <span className="font-extrabold text-lg text-white">Must-b Academy</span>
           </div>
 
           {/* Heading */}
@@ -924,4 +920,5 @@ export default function AnimatedCharactersLoginPage({
     </div>
   );
 }
+
 

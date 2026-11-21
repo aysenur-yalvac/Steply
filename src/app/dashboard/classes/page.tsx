@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+﻿export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { createClient } from '@/utils/supabase/server';
@@ -9,7 +9,7 @@ import StudentClasses from './StudentClasses';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sınıflarım | Steply',
+  title: 'Sınıflarım | Academy.Must-b',
 };
 
 export default async function ClassesPage() {
@@ -83,3 +83,4 @@ export default async function ClassesPage() {
     return <StudentClasses initialMemberships={formattedMemberships} />;
   }
 }
+

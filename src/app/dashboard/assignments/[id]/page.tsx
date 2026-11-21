@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const resolvedParams = await params;
   const assignment = await getAssignmentByIdAction(resolvedParams.id);
   return {
-    title: assignment ? `${assignment.title} - Steply` : "Odev Detayi - Steply",
+    title: assignment ? `${assignment.title} - Academy.Must-b` : "Odev Detayi - Academy.Must-b",
   };
 }
 

@@ -29,12 +29,12 @@ export async function POST(request: Request) {
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
       const { error: sendError } = await resend.emails.send({
-        from: "Steply <onboarding@resend.dev>",
+        from: "Must-b Academy <onboarding@resend.dev>",
         to: email,
-        subject: "Steply - E-posta Doğrulama Kodunuz",
+        subject: "Must-b Academy - E-posta Doğrulama Kodunuz",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #A020F0; text-align: center;">Steply'e Hoş Geldiniz!</h2>
+            <h2 style="color: #A020F0; text-align: center;">Must-b Academy'e Hoş Geldiniz!</h2>
             <p style="color: #333; font-size: 16px; line-height: 1.5;">Hesabınızı etkinleştirmek ve kurumsal e-postanızı doğrulamak için aşağıdaki 8 haneli kodu kullanın:</p>
             <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
               <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">${code}</span>
@@ -61,3 +61,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

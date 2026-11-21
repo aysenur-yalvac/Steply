@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -80,7 +80,7 @@ function PersonCard({
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-1">
             <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight truncate group-hover:text-violet-700 transition-colors">
-              {s.full_name ?? 'Steply Üyesi'}
+              {s.full_name ?? 'Must-b Academy Üyesi'}
             </p>
             <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-violet-400 shrink-0 mt-0.5 transition-colors" />
           </div>
@@ -196,7 +196,7 @@ export default function SchoolStudentPanel({
             <GraduationCap className="w-6 h-6 text-slate-300" />
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{emptyMessage}</p>
-          <p className="text-xs text-slate-400 text-center max-w-xs">Arkadaşlarını Steply&apos;ye davet et!</p>
+          <p className="text-xs text-slate-400 text-center max-w-xs">Arkadaşlarını Must-b Academy&apos;ye davet et!</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -236,3 +236,4 @@ export default function SchoolStudentPanel({
     </section>
   );
 }
+

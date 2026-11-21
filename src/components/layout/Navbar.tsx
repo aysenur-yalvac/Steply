@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -30,15 +30,19 @@ export default function Navbar() {
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           onClick={closeMenus}
         >
-          <div className="w-7 h-7 relative overflow-hidden flex items-center justify-center rounded-sm">
+          <div className="w-8 h-8 relative overflow-hidden flex items-center justify-center rounded-lg">
             <img
-              src="/image_5.png"
-              alt="Steply Logo"
-              className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-[0_0_10px_rgba(160,32,240,0.5)]"
-              style={{ clipPath: "inset(2px)" }}
+              src="/marka/logo.png"
+              alt="Must-b Academy Logo"
+              className="w-8 h-8 object-contain dark:hidden"
+            />
+            <img
+              src="/marka/logo-dark.png"
+              alt="Must-b Academy Logo"
+              className="w-8 h-8 object-cover rounded-md hidden dark:block"
             />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">Steply</span>
+          <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">Must-b Academy</span>
         </Link>
 
         {!isUserProfilePage && (

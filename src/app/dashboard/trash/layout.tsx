@@ -3,7 +3,7 @@ import { BackButton } from "@/components/ui/back-button";
 import TrashTabsClient from "@/components/dashboard/TrashTabsClient";
 
 export const metadata: Metadata = {
-  title: "Cop Kutusu | Steply",
+  title: "Cop Kutusu | Academy.Must-b",
 };
 
 export default function TrashLayout({ children }: { children: React.ReactNode }) {
@@ -29,4 +29,5 @@ export default function TrashLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
+
 

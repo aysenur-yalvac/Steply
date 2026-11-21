@@ -53,7 +53,7 @@ export default function Footer() {
               MUST-B
             </a>
             <span className="text-slate-600 text-xs hidden sm:inline">•</span>
-            <span className="text-slate-500 text-xs hidden sm:inline">Steply Platform &copy; {new Date().getFullYear()}</span>
+            <span className="text-slate-500 text-xs hidden sm:inline">Must-b Academy Platform &copy; {new Date().getFullYear()}</span>
           </div>
 
           {/* Legal links */}
@@ -75,3 +75,4 @@ export default function Footer() {
     </>
   );
 }
+

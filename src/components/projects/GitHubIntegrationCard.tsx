@@ -1,4 +1,4 @@
-
+﻿
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -161,14 +161,14 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
                   <span>👥 Ekip Arkadaşları Nasıl Dahil Edilir?</span>
                 </h4>
                 <p className="text-slate-600 dark:text-slate-300 dark:text-zinc-300 mb-2 leading-relaxed text-xs">
-                  Projeye ortak olan diğer üyelerin de attığı commit'lerin Steply akışına düşmesi için:
+                  Projeye ortak olan diğer üyelerin de attığı commit'lerin Must-b Academy akışına düşmesi için:
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300 dark:text-zinc-300 text-xs">
                   <li>
                     GitHub deponuzdan <strong>Settings &gt; Collaborators</strong> sekmesine gidip arkadaşlarınızı ekleyin.
                   </li>
                   <li>
-                    Ekip üyelerinizin <strong>Steply e-postaları</strong> ile bilgisayarlarındaki <strong>Git e-postasının</strong> (<code>git config user.email</code>) aynı olduğundan emin olun.
+                    Ekip üyelerinizin <strong>Must-b Academy e-postaları</strong> ile bilgisayarlarındaki <strong>Git e-postasının</strong> (<code>git config user.email</code>) aynı olduğundan emin olun.
                   </li>
                 </ul>
                 <p className="mt-2 text-indigo-700 dark:text-indigo-300 font-medium text-xs">
@@ -260,3 +260,4 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
     </div>
   );
 }
+

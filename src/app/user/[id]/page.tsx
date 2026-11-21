@@ -146,7 +146,7 @@ export default async function PublicProfilePage({
             <div className="flex-1 min-w-0 pt-1">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
-                  {profile.full_name ?? "Steply Member"}
+                  {profile.full_name ?? "Must-b Academy Member"}
                 </h1>
                 {viewer && !isSelf && (
                   <div className="flex items-center gap-1.5">

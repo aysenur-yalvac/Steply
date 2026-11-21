@@ -165,7 +165,7 @@ export default async function ProjectDetailPage({
     const revMap = new Map(reviewerProfiles?.map((p) => [p.id, p]) ?? []);
     reviews = rawReviews.map((r) => ({
       ...r,
-      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Steply Member',
+      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Must-b Academy Member',
       reviewer_role:   revMap.get(r.reviewer_id)?.role       ?? null,
       reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url ?? null,
     }));
@@ -211,7 +211,7 @@ export default async function ProjectDetailPage({
               <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Developed by{" "}
                 <span className="font-bold" style={{ color: "#7C3AFF" }}>
-                  {ownerName ?? "Steply Member"}
+                  {ownerName ?? "Must-b Academy Member"}
                 </span>
                 .
               </p>

@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import DashboardLoading from './loading';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "My Projects | Steply",
+  title: "My Projects | Academy.Must-b",
 };
 import Link from 'next/link';
 
@@ -251,3 +251,4 @@ export default function DashboardPage(props: { searchParams?: Promise<{ q?: stri
     </Suspense>
   );
 }
+

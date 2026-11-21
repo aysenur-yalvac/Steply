@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle, TrendingUp, Users, Zap, Upload, Award } from "lucide-react";
@@ -91,7 +91,7 @@ export default function Home() {
             className="bg-clip-text text-transparent"
             style={{ backgroundImage: "linear-gradient(135deg, #A020F0 0%, #7C3AFF 50%, #FF7F50 100%)" }}
           >
-            with Steply.
+            with Must-b Academy.
           </span>
         </motion.h1>
 
@@ -274,7 +274,7 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-slate-400 text-sm max-w-md leading-relaxed">
-              Join students and mentors already tracking milestones, exchanging feedback, and building portfolios on Steply.
+              Join students and mentors already tracking milestones, exchanging feedback, and building portfolios on Must-b Academy.
             </p>
           </div>
 
@@ -300,3 +300,4 @@ export default function Home() {
     </div>
   );
 }
+

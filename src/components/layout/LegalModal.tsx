@@ -10,7 +10,7 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Gizlilik Politikası",
     sections: [
       {
-        body: "Bu Gizlilik Politikası, MUST-B Teknoloji A.Ş. tarafından işletilen Steply platformunun kullanıcı verilerini nasıl topladığını, işlediğini ve koruduğunu açıklamaktadır. Platformumuzu kullanarak bu politikayı kabul etmiş sayılırsınız."
+        body: "Bu Gizlilik Politikası, MUST-B Teknoloji A.Ş. tarafından işletilen Must-b Academy platformunun kullanıcı verilerini nasıl topladığını, işlediğini ve koruduğunu açıklamaktadır. Platformumuzu kullanarak bu politikayı kabul etmiş sayılırsınız."
       },
       {
         heading: "1. Toplanan Kişisel Veriler",
@@ -38,11 +38,11 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Kullanım Koşulları",
     sections: [
       {
-        body: "Bu Kullanım Koşulları, MUST-B Teknoloji A.Ş. tarafından sunulan Steply platformunu kullanmanıza ilişkin yasal çerçeveyi belirlemektedir. Platforma erişim sağlayarak bu koşulları kabul etmiş sayılırsınız."
+        body: "Bu Kullanım Koşulları, MUST-B Teknoloji A.Ş. tarafından sunulan Must-b Academy platformunu kullanmanıza ilişkin yasal çerçeveyi belirlemektedir. Platforma erişim sağlayarak bu koşulları kabul etmiş sayılırsınız."
       },
       {
         heading: "1. Hizmetin Tanımı",
-        body: "Steply, öğrencilerin projelerini yönetmesine, öğretmenlerin ödev oluşturmasına ve eğitim süreçlerinin dijital ortamda takip edilmesine olanak tanıyan bir eğitim yönetim platformudur."
+        body: "Must-b Academy, öğrencilerin projelerini yönetmesine, öğretmenlerin ödev oluşturmasına ve eğitim süreçlerinin dijital ortamda takip edilmesine olanak tanıyan bir eğitim yönetim platformudur."
       },
       {
         heading: "2. Hesap Sorumluluğu",
@@ -98,7 +98,7 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Çerez (Cookie) Politikası",
     sections: [
       {
-        body: "Bu politika, Steply platformunun çerez kullanımını ve çerezler aracılığıyla gerçekleştirilen veri işleme faaliyetlerini açıklamaktadır."
+        body: "Bu politika, Must-b Academy platformunun çerez kullanımını ve çerezler aracılığıyla gerçekleştirilen veri işleme faaliyetlerini açıklamaktadır."
       },
       {
         heading: "Çerez Nedir?",
@@ -119,7 +119,7 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     sections: [
       {
         heading: "MUST-B Teknoloji A.Ş.",
-        body: "Türkiye merkezli bir eğitim teknolojisi girişimidir. Steply platformu, MUST-B bünyesinde geliştirilmekte ve işletilmektedir."
+        body: "Türkiye merkezli bir eğitim teknolojisi girişimidir. Must-b Academy platformu, MUST-B bünyesinde geliştirilmekte ve işletilmektedir."
       },
       {
         heading: "İletişim Kanalları",
@@ -186,7 +186,7 @@ export default function LegalModal({ slug, onClose }: LegalModalProps) {
         >
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">{title}</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Steply / MUST-B Teknoloji A.Ş.</p>
+            <p className="text-xs text-slate-500 mt-0.5">Must-b Academy / MUST-B Teknoloji A.Ş.</p>
           </div>
           <button
             type="button"
@@ -240,3 +240,4 @@ export default function LegalModal({ slug, onClose }: LegalModalProps) {
     </div>
   );
 }
+

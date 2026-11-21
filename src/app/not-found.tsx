@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { BookOpen, Home } from "lucide-react";
 
 export default function NotFound() {
@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className="flex flex-col items-center max-w-lg">
         <div className="flex items-center gap-2 mb-8 animate-bounce">
           <BookOpen className="w-12 h-12 text-indigo-500" />
-          <span className="font-bold text-4xl tracking-tight text-slate-900 dark:text-white">Steply</span>
+          <span className="font-bold text-4xl tracking-tight text-slate-900 dark:text-white">Must-b Academy</span>
         </div>
         
         <h1 className="text-8xl font-black text-indigo-500/20 mb-4 select-none">404</h1>
@@ -35,3 +35,4 @@ export default function NotFound() {
     </div>
   );
 }
+

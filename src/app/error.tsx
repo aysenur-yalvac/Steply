@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -21,7 +21,7 @@ export default function Error({
       <div className="flex flex-col items-center max-w-lg">
         <div className="flex items-center gap-2 mb-12">
           <BookOpen className="w-10 h-10 text-red-500" />
-          <span className="font-bold text-3xl tracking-tight text-slate-900 dark:text-white">Steply</span>
+          <span className="font-bold text-3xl tracking-tight text-slate-900 dark:text-white">Must-b Academy</span>
         </div>
 
         <div className="p-6 rounded-full bg-red-500/10 text-red-500 mb-8 border border-red-500/20">
@@ -69,3 +69,4 @@ export default function Error({
     </div>
   );
 }
+
