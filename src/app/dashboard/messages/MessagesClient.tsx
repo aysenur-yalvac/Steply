@@ -172,13 +172,13 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
-      <div className="h-[calc(100vh-145px)] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
+      <div className="h-[calc(100vh-8.5rem)] min-h-[540px] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 dark:bg-slate-950 flex flex-col ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 space-y-3 bg-white dark:bg-slate-900">
+        <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 flex flex-col h-full min-h-0 ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+          <div className="shrink-0 p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 space-y-3 bg-white dark:bg-slate-900">
              <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-               <MessageSquare className="w-5 h-5 text-violet-600 dark:text-violet-400" /> Inbox
+               <MessageSquare className="w-5 h-5 text-violet-600 dark:text-violet-400" /> Mesajlar
              </h2>
              <div className="relative flex items-center">
                <Search className="w-4 h-4 absolute left-3.5 text-slate-400" />
@@ -203,7 +203,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
              </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar">
             {searchQuery.trim().length >= 1 ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between px-3 mb-2 mt-1">
@@ -329,3 +329,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     </PageWrapper>
   );
 }
+
+
+
+

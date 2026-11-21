@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
@@ -325,7 +325,7 @@ export async function updateProfileAction(formData: FormData) {
   const avatar_url = formData.get('avatar_url') as string;
   const university     = sanitizeInstitution(formData.get('university') as string | null);
   const institution    = university ?? sanitizeInstitution(formData.get('institution') as string | null);
-  const role           = (formData.get('role')           as string | null) || null;
+  // role is intentionally NOT read -- changes are locked server-side
   const grade          = (formData.get('grade')          as string | null)?.trim() || null;
   const school_number  = (formData.get('school_number')  as string | null)?.trim() || null;
   const school_email   = (formData.get('school_email')   as string | null)?.trim() || null;
@@ -343,7 +343,7 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
-    role: role as any,
+    // role excluded intentionally
     grade: grade as any,
     school_number: school_number as any,
     school_email: school_email as any,
@@ -364,7 +364,6 @@ export async function updateProfileAction(formData: FormData) {
         website_url,
         avatar_url,
         institution,
-        role: role as any,
       }).eq('id', user.id);
       if (coreError) return { error: coreError.message };
     } else {
@@ -2834,3 +2833,4 @@ export async function getProjectTasksAction(
     return { success: false, error: msg };
   }
 }
+

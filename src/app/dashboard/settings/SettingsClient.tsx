@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -684,19 +684,16 @@ export default function SettingsClient({
 
                     {/* Role */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-role" className="text-sm font-medium text-slate-600 dark:text-slate-300">Rolünüz</label>
-                      <div className="relative">
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                        <select
-                          id="s-role"
-                          value={role}
-                          onChange={(e) => { setRole(e.target.value); if (e.target.value === 'teacher') setGrade(''); }}
-                          className={selectCls}
-                        >
-                          <option value="student">Öğrenci</option>
-                          <option value="teacher">Öğretmen</option>
-                        </select>
+                      <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" /> Rolünüz
+                      </label>
+                      <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-80 cursor-not-allowed">
+                        <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                          {role === 'teacher' ? 'Öğretmen' : 'Öğrenci'}
+                        </span>
+                        <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 ml-auto" />
                       </div>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">Rol değiştirilemez. Destek için yöneticinize başvurun.</p>
                     </div>
 
                     {/* Grade — shown only for students */}

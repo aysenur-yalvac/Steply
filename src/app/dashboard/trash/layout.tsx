@@ -16,7 +16,7 @@ export default function TrashLayout({ children }: { children: React.ReactNode })
             <div>
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Cop Kutusu</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Silinmis projeleriniz, dosyalariniz ve odevleriniz burada yer alir.
+                Silinmis projeleriniz ve dosyalariniz burada yer alir.
               </p>
             </div>
           </div>
@@ -29,3 +29,4 @@ export default function TrashLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
+
