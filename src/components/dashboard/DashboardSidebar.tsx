@@ -56,7 +56,7 @@ const NAV_ITEMS = [
     subItems: [
       { label: "Silinen Projeler", href: "/dashboard/trash/projects" },
       { label: "Silinen Dosyalar", href: "/dashboard/trash/files" },
-      { label: "Silinen Odevler", href: "/dashboard/trash/assignments" }
+
     ]
   },
 ];

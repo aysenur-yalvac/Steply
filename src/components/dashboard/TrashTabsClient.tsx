@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,7 +9,6 @@ export default function TrashTabsClient() {
   const tabs = [
     { name: "Projeler", href: "/dashboard/trash/projects" },
     { name: "Dosyalar", href: "/dashboard/trash/files" },
-    { name: "Odevler", href: "/dashboard/trash/assignments" },
   ];
 
   return (
