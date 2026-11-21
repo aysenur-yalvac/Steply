@@ -105,9 +105,9 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                         <div className="text-xs text-slate-400 truncate mt-0.5">{sanitizeInstitution(user.institution)}</div>
                       )}
                     </div>
-                    {user.Must-b Academy_score !== undefined && (
+                    {user.steply_score !== undefined && (
                       <div className="shrink-0 text-[10px] font-bold px-2 py-1 rounded bg-slate-50 border border-slate-100 text-dusty-rose shadow-inner tracking-wider">
-                        SCORE: {user.Must-b Academy_score}
+                        SCORE: {user.steply_score}
                       </div>
                     )}
                   </li>
@@ -125,4 +125,5 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
     </div>
   );
 }
+
 
