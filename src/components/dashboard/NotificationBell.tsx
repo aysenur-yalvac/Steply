@@ -2,46 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, MessageSquare, FolderOpen, Calendar, CheckCheck, X } from "lucide-react";
+import { Bell, MessageSquare, CheckCheck, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { markNotificationAsReadAction, markAllNotificationsReadAction } from "@/lib/actions";
-import type { Notification } from "@/lib/actions";
+import {
+  getUserNotificationsAndMessagesAction,
+  markAllNotificationsAndMessagesReadAction,
+  AppNotificationItem
+} from "@/lib/social-actions";
 import { createClient } from "@/utils/supabase/client";
-
-// Helper to fix UTF-8 Mojibake from old database entries
-function decodeCorruptedText(text: string) {
-  if (!text) return text;
-  return text
-    .replace(/payla\xC5\xB8t\xC4\xB1/g, 'paylaştı')
-    .replace(/payla\xef\xbf\xbd\xef\xbf\xbdt\xef\xbf\xbd/g, 'paylaştı')
-    .replace(/y\xC3\xBCklendi/g, 'yüklendi')
-    .replace(/y\xef\xbf\xbdklendi/g, 'yüklendi')
-    .replace(/G\xC3\xB6rev/g, 'Görev')
-    .replace(/G\xef\xbf\xbdrev/g, 'Görev')
-    .replace(/g\xC3\xB6rev/g, 'görev')
-    .replace(/g\xef\xbf\xbdrev/g, 'görev')
-    .replace(/de\xC4\x9Ferlendirme/g, 'değerlendirme')
-    .replace(/de\xef\xbf\xbd/g, 'değ')
-    .replace(/Ã¼/g, 'ü')
-    .replace(/Ã¶/g, 'ö')
-    .replace(/Ã§/g, 'ç')
-    .replace(/ÃŸ/g, 'ş')
-    .replace(/Ä±/g, 'ı')
-    .replace(/ÄŸ/g, 'ğ')
-    .replace(/Ã\x9C/g, 'Ü')
-    .replace(/Ã\x96/g, 'Ö')
-    .replace(/Ã\x87/g, 'Ç')
-    .replace(/Å\x9E/g, 'Ş')
-    .replace(/Ä\xB0/g, 'İ')
-    .replace(/Ä\x9E/g, 'Ğ')
-    .replace(/\s+/g, ' ');
-}
-
-function typeIcon(type: Notification["type"]) {
-  if (type === "message") return <MessageSquare className="w-4 h-4 text-violet-500" />;
-  if (type === "project") return <FolderOpen className="w-4 h-4 text-emerald-500" />;
-  return <Calendar className="w-4 h-4 text-amber-500" />;
-}
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -53,33 +21,52 @@ function timeAgo(iso: string) {
   return `${Math.floor(h / 24)}g önce`;
 }
 
-function notificationHref(n: Notification): string | null {
-  if (n.related_id && (n.type === "message" || n.type === "project" || n.type === "task")) {
-    return `/dashboard/projects/${n.related_id}`;
-  }
-  return null;
-}
-
 export default function NotificationBell({
-  initialNotifications,
+  initialNotifications = [],
   currentUserId,
 }: {
-  initialNotifications: any[];
+  initialNotifications?: any[];
   currentUserId: string;
 }) {
-  const [notifications, setNotifications] = useState<any[]>(initialNotifications);
+  const [items, setItems] = useState<AppNotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const unread = notifications.filter((n) => !n.is_read).length;
-  const topNotifications = notifications.slice(0, 10);
+  // Fetch notifications and messages
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const res = await getUserNotificationsAndMessagesAction();
+      setItems(res.notifications);
+      setUnreadCount(res.unreadCount);
+    } catch (err) {
+      console.error("[NotificationBell] Failed to refresh:", err);
+    }
+  }, []);
 
-  // ── Supabase Realtime: push new notifications without page reload ────────────
+  useEffect(() => {
+    refreshNotifications();
+  }, [refreshNotifications]);
+
+  // Supabase Realtime for instant updates
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel(`notifications:user:${currentUserId}`)
+      .channel(`bell-realtime:${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${currentUserId}`,
+        },
+        () => {
+          refreshNotifications();
+        }
+      )
       .on(
         "postgres_changes",
         {
@@ -88,13 +75,8 @@ export default function NotificationBell({
           table: "notifications",
           filter: `user_id=eq.${currentUserId}`,
         },
-        (payload) => {
-          const incoming = payload.new as Notification;
-          setNotifications((prev) => {
-            // Deduplicate in case server + realtime both deliver the same row
-            if (prev.some((n) => n.id === incoming.id)) return prev;
-            return [incoming, ...prev];
-          });
+        () => {
+          refreshNotifications();
         }
       )
       .subscribe();
@@ -102,128 +84,174 @@ export default function NotificationBell({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, refreshNotifications]);
 
-  // ── Outside-click close ──────────────────────────────────────────────────────
+  // Click outside and Escape key to close
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", onClickOutside);
+      document.addEventListener("keydown", onKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
-  // ── Click handler: mark read + navigate ─────────────────────────────────────
-  const handleClick = useCallback(
-    async (n: Notification) => {
-      // Optimistic read
-      setNotifications((prev) =>
-        prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item))
-      );
-      setOpen(false);
+  const handleMarkAllRead = async () => {
+    setItems((prev) => prev.map((item) => ({ ...item, is_read: true })));
+    setUnreadCount(0);
+    await markAllNotificationsAndMessagesReadAction();
+    router.refresh();
+  };
 
-      await markNotificationAsReadAction(n.id);
-
-      const href = notificationHref(n);
-      if (href) router.push(href);
-    },
-    [router]
-  );
-
-  async function handleMarkAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    await markAllNotificationsReadAction();
-  }
+  const handleItemClick = (item: AppNotificationItem) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, is_read: true } : i))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+    setOpen(false);
+    if (item.link) {
+      router.push(item.link);
+    }
+  };
 
   return (
     <div className="relative" ref={panelRef}>
-      {/* Bell button */}
+      {/* Bell Button */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
-        aria-label="Notifications"
+        onClick={() => {
+          setOpen((v) => !v);
+          if (!open) refreshNotifications();
+        }}
+        className="relative p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-slate-800 transition-colors"
+        aria-label="Bildirimler"
       >
         <Bell className="w-5 h-5" strokeWidth={1.75} />
-        {unread > 0 && (
-          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center leading-none">
-            {unread > 9 ? "9+" : unread}
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 min-w-[18px] h-4.5 px-1 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center leading-none shadow-sm animate-pulse">
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Dropdown panel */}
+      {/* Floating Popover Panel */}
       <AnimatePresence>
         {open && (
           <motion.div
             key="notif-panel"
-            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.97 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-900/10 z-50 overflow-hidden"
+            exit={{ opacity: 0, y: 6, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-[#131722] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl shadow-xl dark:shadow-2xl z-50 overflow-hidden"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Bildirimler</span>
-              <div className="flex items-center gap-1">
-                {unread > 0 && (
+            {/* Popover Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Bildirimler</span>
+                {unreadCount > 0 && (
+                  <span className="text-[11px] font-semibold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full">
+                    {unreadCount} yeni
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
-                    className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 font-medium px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors"
+                    className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold px-2.5 py-1 rounded-lg hover:bg-violet-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    <CheckCheck className="w-3.5 h-3.5" /> Tümünü Okundu İşaretle
+                    <CheckCheck className="w-3.5 h-3.5" /> Tümünü Oku
                   </button>
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* List */}
-            <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 [scrollbar-width:thin]">
-              {topNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                  <Bell className="w-8 h-8 mb-2 opacity-40" strokeWidth={1.5} />
-                  <p className="text-sm">Henüz bildirim yok</p>
+            {/* Notification & Message List */}
+            <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 [scrollbar-width:thin]">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12 text-slate-400">
+                  <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-slate-400">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-2.5">
+                    <Bell className="w-6 h-6 text-slate-400 dark:text-slate-500" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Henüz yeni bildirimin yok.</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Mesajlar ve güncellemeler burada görünecektir.</p>
                 </div>
               ) : (
-                topNotifications.map((n) => {
-                  const href = notificationHref(n);
-                  return (
-                    <button
-                      key={n.id}
-                      onClick={() => handleClick(n)}
-                      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors
-                        ${n.is_read ? "opacity-60 hover:bg-slate-50" : "hover:bg-violet-50/60"}
-                        ${href ? "cursor-pointer" : "cursor-default"}`}
-                    >
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 shrink-0">
-                        {typeIcon(n.type)}
+                items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item)}
+                    className={`w-full flex items-start gap-3.5 px-4 py-3 text-left transition-colors ${
+                      item.is_read
+                        ? "opacity-70 hover:bg-slate-50 dark:hover:bg-slate-850 dark:hover:bg-slate-800/40"
+                        : "bg-violet-50/50 dark:bg-violet-950/20 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+                    }`}
+                  >
+                    {/* Avatar / Icon */}
+                    {item.sender_avatar ? (
+                      <img
+                        src={item.sender_avatar}
+                        alt=""
+                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 mt-0.5"
+                      />
+                    ) : item.sender_name ? (
+                      <div className="w-9 h-9 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-xs mt-0.5 shadow-sm">
+                        {item.sender_name.charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm leading-snug ${n.is_read ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-200 font-medium"}`}>
-                          {n.title}
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                    )}
+
+                    {/* Text content */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs sm:text-sm leading-snug ${
+                        item.is_read
+                          ? "text-slate-700 dark:text-slate-300"
+                          : "text-slate-900 dark:text-slate-100 font-bold"
+                      }`}>
+                        {item.title}
+                      </p>
+                      {item.body && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                          {item.body}
                         </p>
-                        {n.body && (
-                          <p className="text-xs text-slate-400 mt-0.5 truncate">{n.body}</p>
-                        )}
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <p className="text-xs text-slate-300">{timeAgo(n.created_at)}</p>
-                          {href && (
-                            <span className="text-[10px] text-violet-400 font-medium">→ Projeye git</span>
-                          )}
-                        </div>
-                      </div>
-                      
-                    </button>
-                  );
-                })
+                      )}
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        {timeAgo(item.created_at)}
+                      </p>
+                    </div>
+
+                    {/* Unread indicator */}
+                    {!item.is_read && (
+                      <span className="w-2 h-2 rounded-full bg-violet-600 shrink-0 mt-2" />
+                    )}
+                  </button>
+                ))
               )}
             </div>
           </motion.div>

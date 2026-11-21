@@ -10,6 +10,10 @@ import { useRouter } from 'next/navigation';
 interface User {
   id: string;
   full_name: string;
+  avatar_url?: string | null;
+  role?: string | null;
+  institution?: string | null;
+  university?: string | null;
 }
 
 interface ChatWindowProps {
@@ -166,8 +170,35 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
   return (
     <div className="flex flex-col h-full w-full bg-slate-50/70 overflow-hidden relative border-l border-slate-200/80">
       {/* Header */}
-      <div className="p-5 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 z-10 shadow-sm">
-        <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 dark:text-white">{selectedUser.full_name}</h3>
+      <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3.5 min-w-0">
+          {selectedUser.avatar_url ? (
+            <img
+              src={selectedUser.avatar_url}
+              alt={selectedUser.full_name}
+              className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm shadow-sm">
+              {(selectedUser.full_name || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
+              {selectedUser.full_name}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              {selectedUser.institution || selectedUser.university || (selectedUser.role === 'teacher' ? 'Öğretmen' : 'Öğrenci')}
+            </p>
+          </div>
+        </div>
+
+        <a
+          href={`/user/${selectedUser.id}`}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors shrink-0"
+        >
+          Profili Gör →
+        </a>
       </div>
 
       {/* Messages */}
@@ -190,14 +221,34 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             const isLastFromSame = index > 0 && messages[index - 1].sender_id === msg.sender_id;
             
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isLastFromSame ? 'mt-1' : 'mt-6'}`}>
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isLastFromSame ? 'mt-1' : 'mt-5'}`}>
+                {!isMine && (
+                  <div className="shrink-0 mr-2.5 mt-0.5">
+                    {selectedUser.avatar_url ? (
+                      <img
+                        src={selectedUser.avatar_url}
+                        alt=""
+                        className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center text-violet-700 dark:text-violet-300 font-bold text-xs shadow-sm">
+                        {(selectedUser.full_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div 
                   className={`max-w-[75%] md:max-w-[70%] px-5 py-3 shadow-sm ${
                     isMine 
-                      ? 'bg-gradient-to-br from-soft-lavender to-violet-400 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-200/50' 
-                      : 'bg-white text-slate-700 rounded-2xl rounded-tl-md border border-slate-200 shadow-sm'
+                      ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30' 
+                      : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm'
                   }`}
                 >
+                  {!isMine && !isLastFromSame && (
+                    <p className="text-[11px] font-bold text-violet-600 dark:text-violet-400 mb-1">
+                      {selectedUser.full_name}
+                    </p>
+                  )}
                   <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.content}</p>
                   
                   {msg.metadata?.mentioned_project_id && (
@@ -258,9 +309,17 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
           <button
             type="submit"
             disabled={!newMessage.trim() || isSending}
-            className="px-5 py-3.5 bg-dusty-rose hover:bg-rose-600 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-2xl transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center shrink-0"
+            className={`px-5 py-3.5 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
+              newMessage.trim() && !isSending
+                ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white'
+                : 'bg-slate-200 text-slate-500 border border-slate-300/70 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 cursor-not-allowed'
+            }`}
           >
-            {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 text-white" />}
+            {isSending ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            ) : (
+              <Send className={`w-4 h-4 ${newMessage.trim() ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+            )}
           </button>
         </form>
       </div>

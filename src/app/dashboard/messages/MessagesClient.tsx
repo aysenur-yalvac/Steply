@@ -14,6 +14,9 @@ import { createClient } from '@/utils/supabase/client';
 interface CurrentUser {
   id: string;
   full_name: string;
+  avatar_url?: string | null;
+  role?: string | null;
+  institution?: string | null;
 }
 
 interface MessagesClientProps {
@@ -264,27 +267,40 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                     <button
                       key={conv.other_user.id}
                       onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                      className={`w-full text-left flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-zinc-800/80 border-l-4 border-l-indigo-600 text-indigo-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-50 dark:bg-slate-950 dark:bg-slate-950 dark:hover:bg-zinc-900/50 border-l-4 border-transparent transition-colors'}`}
+                      className={`w-full text-left flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-200 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
                     >
-                      <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:border-slate-800 flex items-center justify-center shrink-0 shadow-sm">
-                        <User className={`w-5 h-5 ${selectedUser?.id === conv.other_user.id ? 'text-dusty-rose' : 'text-slate-400'}`} />
-                      </div>
+                      {conv.other_user.avatar_url ? (
+                        <img
+                          src={conv.other_user.avatar_url}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm shadow-sm">
+                          {(conv.other_user.full_name || '?').charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex flex-col overflow-hidden w-full">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-semibold text-sm truncate">{conv.other_user.full_name}</span>
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-sm truncate text-slate-800 dark:text-slate-100">{conv.other_user.full_name}</span>
                           {conv.last_message && (
                             <span className="text-[10px] text-slate-400 shrink-0">
-                              {new Date(conv.last_message.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              {new Date(conv.last_message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
                         </div>
+                        {(conv.other_user.institution || conv.other_user.role) && (
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mb-0.5">
+                            {conv.other_user.institution || (conv.other_user.role === 'teacher' ? 'Öğretmen' : 'Öğrenci')}
+                          </p>
+                        )}
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {conv.last_message?.content || "Click to start chatting"}
+                          {conv.last_message?.content || "Sohbeti başlatmak için tıkla"}
                         </p>
                       </div>
                       {/* Unread Badge */}
                       {selectedUser?.id !== conv.other_user.id && conv.unread_count > 0 && (
-                        <div className="ml-auto shrink-0 self-center bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
+                        <div className="ml-auto shrink-0 self-center bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
                           {formatUnreadBadge(conv.unread_count)}
                         </div>
                       )}

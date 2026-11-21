@@ -180,6 +180,10 @@ export type Conversation = {
     id: string;
     full_name: string;
     email: string;
+    avatar_url?: string | null;
+    role?: string | null;
+    institution?: string | null;
+    university?: string | null;
   };
   last_message: Message;
   unread_count: number;
@@ -192,34 +196,50 @@ export async function getRecentConversationsAction(): Promise<Conversation[]> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (authError || !user) throw new Error("Not logged in");
+  if (authError || !user) return [];
 
-  // Fetch all messages involving the user, order by created_at DESC
-  const { data: messages, error } = await supabase
+  let client: any = supabase;
+  try {
+    client = createAdminClient();
+  } catch {
+    client = supabase;
+  }
+
+  // Fetch all messages involving the user, with full profile information
+  const { data: messages, error } = await client
     .from("messages")
     .select(`
       *,
-      sender:profiles!messages_sender_id_fkey(id, full_name, email),
-      receiver:profiles!messages_receiver_id_fkey(id, full_name, email)
+      sender:profiles!messages_sender_id_fkey(*),
+      receiver:profiles!messages_receiver_id_fkey(*)
     `)
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
   if (error) {
     console.error("[getRecentConversationsAction] Error:", error);
-    throw new Error("Failed to fetch conversations.");
+    return [];
   }
 
   const convMap = new Map<string, Conversation>();
 
   for (const msg of (messages as any[])) {
     const isSender = msg.sender_id === user.id;
-    const otherUser = isSender ? msg.receiver : msg.sender;
-    const otherId = otherUser.id;
+    const otherUserRaw = isSender ? msg.receiver : msg.sender;
+    if (!otherUserRaw) continue;
+    const otherId = otherUserRaw.id;
 
     if (!convMap.has(otherId)) {
       convMap.set(otherId, {
-        other_user: otherUser,
+        other_user: {
+          id: otherUserRaw.id,
+          full_name: otherUserRaw.full_name || 'İsimsiz Kullanıcı',
+          email: otherUserRaw.email || otherUserRaw.school_email || '',
+          avatar_url: otherUserRaw.avatar_url || null,
+          role: otherUserRaw.role || 'student',
+          institution: otherUserRaw.institution || otherUserRaw.university || '',
+          university: otherUserRaw.university || null,
+        },
         last_message: msg as Message,
         unread_count: 0,
       });
@@ -289,5 +309,155 @@ export async function getUnreadChatCountAction(): Promise<{ count: number; error
   } catch (err: any) {
     console.error("[getUnreadChatCountAction Catch]:", err);
     return { count: 0, error: err.message };
+  }
+}
+
+export type AppNotificationItem = {
+  id: string;
+  type: 'message' | 'notification';
+  title: string;
+  body: string;
+  is_read: boolean;
+  sender_avatar?: string | null;
+  sender_name?: string | null;
+  created_at: string;
+  link: string;
+};
+
+export async function getUserNotificationsAndMessagesAction(): Promise<{
+  notifications: AppNotificationItem[];
+  unreadCount: number;
+}> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { notifications: [], unreadCount: 0 };
+    }
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    const items: AppNotificationItem[] = [];
+
+    // 1. Fetch recent messages sent to the current user
+    try {
+      const { data: incomingMessages } = await client
+        .from('messages')
+        .select(`
+          id,
+          content,
+          is_read,
+          created_at,
+          sender_id,
+          sender:profiles!messages_sender_id_fkey(*)
+        `)
+        .eq('receiver_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (incomingMessages) {
+        for (const msg of incomingMessages) {
+          const sender = (msg as any).sender || {};
+          const senderName = sender.full_name || 'Bir kullanıcı';
+          items.push({
+            id: `msg-${msg.id}`,
+            type: 'message',
+            title: `${senderName} sana mesaj gönderdi`,
+            body: msg.content || '',
+            is_read: Boolean(msg.is_read),
+            sender_avatar: sender.avatar_url || null,
+            sender_name: senderName,
+            created_at: msg.created_at,
+            link: `/dashboard/messages?userId=${msg.sender_id}`,
+          });
+        }
+      }
+    } catch (e) {
+      console.error("[getUserNotificationsAndMessagesAction] Messages fetch error:", e);
+    }
+
+    // 2. Fetch notifications from notifications table if it exists
+    try {
+      const { data: notifs } = await client
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (notifs) {
+        for (const n of notifs) {
+          let link = '/dashboard';
+          if (n.related_id) {
+            link = `/dashboard/projects/${n.related_id}`;
+          }
+          items.push({
+            id: `notif-${n.id}`,
+            type: 'notification',
+            title: n.title || 'Yeni bildirim',
+            body: n.body || '',
+            is_read: Boolean(n.is_read),
+            sender_avatar: null,
+            sender_name: null,
+            created_at: n.created_at,
+            link,
+          });
+        }
+      }
+    } catch (e) {
+      // notifications table might be empty or optional
+    }
+
+    // Sort by created_at DESC
+    items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const unreadCount = items.filter(i => !i.is_read).length;
+    return { notifications: items.slice(0, 30), unreadCount };
+  } catch (err) {
+    console.error("[getUserNotificationsAndMessagesAction] Unexpected error:", err);
+    return { notifications: [], unreadCount: 0 };
+  }
+}
+
+export async function markAllNotificationsAndMessagesReadAction(): Promise<{ success: boolean }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) return { success: false };
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    // Mark messages as read
+    await client
+      .from('messages')
+      .update({ is_read: true })
+      .eq('receiver_id', user.id)
+      .eq('is_read', false);
+
+    // Mark notifications as read
+    try {
+      await client
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    } catch {}
+
+    return { success: true };
+  } catch (err) {
+    console.error("[markAllNotificationsAndMessagesReadAction] Error:", err);
+    return { success: false };
   }
 }
