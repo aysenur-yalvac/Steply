@@ -3,11 +3,15 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { classifyEmail } from '@/lib/email-classification';
+import { getSiteOrigin } from '@/lib/site-url';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = getSiteOrigin(request);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const nextParam = searchParams.get('next');
+  const next = (!nextParam || nextParam === '/') ? '/dashboard' : nextParam;
+  const destination = next.startsWith('/') ? next : `/${next}`;
   const intent = searchParams.get('intent');
   const isLinkAccount = searchParams.get('link_account') === 'true';
 
@@ -85,6 +89,13 @@ export async function GET(request: Request) {
       }
 
       // 2. SSO Login / Signup - kurumsal domain ve profil rol kurallarını uygula
+      // Doğrulama durumunu güncelle (Zero Bypass güvencesi)
+      if (!data.user.user_metadata?.email_verified) {
+        await supabase.auth.updateUser({
+          data: { email_verified: true },
+        });
+      }
+
       // Mevcut profili çek, öğretmense ezme
       const { data: profile } = await supabase
         .from("profiles")
@@ -111,7 +122,7 @@ export async function GET(request: Request) {
           .update(updates)
           .eq("id", data.user.id);
       }
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 

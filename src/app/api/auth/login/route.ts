@@ -2,8 +2,10 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { getSiteOrigin } from '@/lib/site-url'
 
 export async function POST(request: Request) {
+  const origin = getSiteOrigin(request)
   const requestUrl = new URL(request.url)
   const formData = await request.formData()
   const email = String(formData.get('email'))
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
     if (error.message.includes('Email not confirmed')) {
       // Send OTP and redirect to verify-email
       try {
-        await fetch(`${requestUrl.origin}/api/auth/send-otp-8`, {
+        await fetch(`${origin}/api/auth/send-otp-8`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
@@ -50,12 +52,12 @@ export async function POST(request: Request) {
         console.error("Ilk OTP gonderimi basarisiz:", err);
       }
       return NextResponse.redirect(
-        `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
+        `${origin}/auth/verify-email?email=${encodeURIComponent(email)}`,
         { status: 303 }
       );
     }
     // Keep link_account params so middleware doesn't redirect the logged-in user away.
-    const errorUrl = new URL('/auth/login', requestUrl.origin)
+    const errorUrl = new URL('/auth/login', origin)
     if (linkAccount === 'true' && ownerId) {
       errorUrl.searchParams.set('link_account', 'true')
       errorUrl.searchParams.set('owner_id', ownerId)
@@ -139,7 +141,7 @@ export async function POST(request: Request) {
       // Pass linked_uid so switch-to-owner can verify the DB row directly
       // without relying on the session cookie (which may lag after login redirect).
       const res = NextResponse.redirect(
-        `${requestUrl.origin}/auth/link-complete?owner_id=${resolvedOwnerId}&linked_uid=${data.user.id}`,
+        `${origin}/auth/link-complete?owner_id=${resolvedOwnerId}&linked_uid=${data.user.id}`,
         { status: 303 },
       )
       res.cookies.delete('_Must-b Academy_link_owner')
@@ -171,7 +173,7 @@ export async function POST(request: Request) {
     })
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
+  return NextResponse.redirect(`${origin}/dashboard`, {
     status: 303,
   })
 }

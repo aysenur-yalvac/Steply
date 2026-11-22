@@ -1,10 +1,11 @@
 ﻿import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { classifyEmail } from "@/lib/email-classification";
+import { classifyEmail, validateRoleAndEmail } from "@/lib/email-classification";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export async function POST(request: Request) {
-  const requestUrl = new URL(request.url);
+  const origin = getSiteOrigin(request);
   const formData = await request.formData();
   const email = String(formData.get("email")).trim();
   const password = String(formData.get("password"));
@@ -14,12 +15,12 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
 
   // 1. E-posta domain siniflandirmasi
-  const validation = require("@/lib/email-classification").validateRoleAndEmail(email, requestedRole);
+  const validation = validateRoleAndEmail(email, requestedRole);
 
   // 2. SERT DOMAIN VE ROL DOGRULAMASI (Guvenlik Kilidi)
   if (!validation.valid) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(validation.error)}`,
+      `${origin}/auth/register?error=${encodeURIComponent(validation.error || "Geçersiz e-posta veya rol.")}`,
       { status: 303 }
     );
   }
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     email,
     password,
     options: {
+      emailRedirectTo: `${origin}/auth/callback`,
       data: {
         full_name: fullName,
         role: finalRole,
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(error.message.includes('already registered') || error.message.includes('User already registered') ? 'Bu e-posta adresi zaten kayıtlı.' : (error.message.includes('Password should be') ? 'Şifre en az 6 karakter olmalıdır.' : error.message))}`,
+      `${origin}/auth/register?error=${encodeURIComponent(error.message.includes('already registered') || error.message.includes('User already registered') ? 'Bu e-posta adresi zaten kayıtlı.' : (error.message.includes('Password should be') ? 'Şifre en az 6 karakter olmalıdır.' : error.message))}`,
       { status: 303 }
     );
   }
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
 
   // Ilk 8 haneli custom OTP gonderimini tetikle
   try {
-    await fetch(`${requestUrl.origin}/api/auth/send-otp-8`, {
+    await fetch(`${origin}/api/auth/send-otp-8`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -95,7 +97,7 @@ export async function POST(request: Request) {
 
   // Kullaniciyi dogrudan ve kesin olarak verify-email sayfasina at
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/verify-email?email=${encodeURIComponent(email)}&role=${finalRole}`,
+    `${origin}/auth/verify-email?email=${encodeURIComponent(email)}&role=${finalRole}`,
     { status: 303 }
   );
 }

@@ -2,13 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSiteOrigin } from '@/lib/site-url'
 
 export async function POST(request: NextRequest) {
-  const host  = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
-  const proto = request.headers.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
-  const rawOrigin = `${proto}://${host}`
-  // Supabase treats redirectTo without a scheme as a relative path — ensure https://
-  const origin = rawOrigin.startsWith('http') ? rawOrigin : `https://${rawOrigin}`
+  const origin = getSiteOrigin(request)
 
   // Parse body
   let linked_user_id: string | undefined

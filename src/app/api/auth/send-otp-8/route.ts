@@ -3,6 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { Resend } from "resend";
 
+const RESEND_TEST_MODE_ERROR =
+  "E-posta servisi şu an test modundadır; domain doğrulaması tamamlanana kadar yalnızca yönetici e-posta adresine doğrulama kodu gönderilebilir.";
+
+function isResendTestModeError(msg?: string | null): boolean {
+  if (!msg) return false;
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes("you can only send testing emails") ||
+    lower.includes("testing emails to your own email address") ||
+    lower.includes("only send testing emails")
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
@@ -48,7 +61,10 @@ export async function POST(request: Request) {
 
       if (sendError) {
         console.error("Resend API Error Detail:", sendError);
-        throw new Error(`Resend hatasi: ${sendError.message}`);
+        if (isResendTestModeError(sendError.message)) {
+          return NextResponse.json({ error: RESEND_TEST_MODE_ERROR }, { status: 403 });
+        }
+        throw new Error(`Resend hatası: ${sendError.message}`);
       }
     } else {
       // 3. Fallback / Dev Mode
@@ -58,7 +74,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, message: "Kod basariyla gonderildi." });
   } catch (err: any) {
     console.error("send-otp-8 Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const msg = err.message || "Bilinmeyen hata";
+    if (isResendTestModeError(msg)) {
+      return NextResponse.json({ error: RESEND_TEST_MODE_ERROR }, { status: 403 });
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 

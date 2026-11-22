@@ -24,6 +24,21 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const RESEND_TEST_MODE_WARNING =
+    "E-posta servisi şu an test modundadır; domain doğrulaması tamamlanana kadar yalnızca yönetici e-posta adresine doğrulama kodu gönderilebilir.";
+
+  const formatOtpError = (raw: string): string => {
+    if (
+      raw.includes("You can only send testing emails") ||
+      raw.includes("testing emails to your own email address") ||
+      raw.includes("only send testing emails") ||
+      raw.includes("domain doğrulaması tamamlanana kadar")
+    ) {
+      return RESEND_TEST_MODE_WARNING;
+    }
+    return raw;
+  };
+
   const handleVerify = async (code?: string) => {
     const token = code || otp.join("");
     if (token.length !== 8) {
@@ -45,7 +60,8 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin.");
+        const rawErr = data.error || "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin.";
+        setError(formatOtpError(rawErr));
         setShake(true);
         setTimeout(() => setShake(false), 400);
         setOtp(Array(8).fill(""));
@@ -127,12 +143,15 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       });
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || "Kod gönderilemedi.");
+      if (!res.ok) {
+        throw new Error(data.error || "Kod gönderilemedi.");
+      }
       
       setResent(true);
       setTimeout(() => setResent(false), 5000);
     } catch (err: any) {
-      setError(`E-posta gönderilemedi: ${err.message || "Bilinmeyen hata"}`);
+      const rawMsg = err.message || "Bilinmeyen hata";
+      setError(formatOtpError(rawMsg));
     } finally {
       setResending(false);
     }
@@ -153,7 +172,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 relative w-full">
+    <div className="flex flex-col items-center gap-4 relative w-full">
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
@@ -171,12 +190,12 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         }
       `}</style>
 
-      <div className="w-16 h-16 rounded-full flex items-center justify-center"
+      <div className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
         style={{ background: "rgba(160,32,240,0.12)", border: "1px solid rgba(160,32,240,0.3)" }}>
         <Mail className="w-7 h-7 text-purple-400" />
       </div>
 
-      <div className="text-center h-16">
+      <div className="text-center">
         {loading ? (
           <>
             <h1 className="text-2xl font-extrabold text-white mb-2">Kontrol ediliyor...</h1>
@@ -188,21 +207,21 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           <>
             <h1 className="text-2xl font-extrabold text-white mb-2">E-postanızı doğrulayın</h1>
             <p className="text-slate-400 text-sm max-w-sm">
-              <span className="text-purple-300 font-semibold">{email}</span> adresine gönderilen 8 haneli kodu girin.
+              <span className="text-purple-300 font-semibold break-all">{email}</span> adresine gönderilen 8 haneli kodu girin.
             </p>
           </>
         )}
       </div>
 
       {role === "teacher" && isTeacher && (
-        <p className="text-xs text-amber-400 mb-2 text-center h-4">
+        <p className="text-xs text-amber-400 text-center max-w-sm">
           Kurumsal öğretmen e-postası — doğrulama sonrası otomatik yetkilendirileceksiniz.
         </p>
       )}
 
       {/* OTP DECK CONTAINER */}
       <div 
-        className={`flex gap-2 relative mt-4 mb-4 ${shake ? "otp-shake" : ""}`}
+        className={`flex gap-2 relative my-2 ${shake ? "otp-shake" : ""}`}
       >
         {otp.map((digit, i) => {
           let transform = "";
@@ -252,27 +271,29 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         })}
       </div>
 
-      <div className="h-10 w-full max-w-xs flex items-center justify-center">
-        {error && (
-          <div className="w-full rounded-xl px-4 py-2.5 text-sm text-red-300 text-center"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)" }}>
-            {error}
-          </div>
-        )}
-        
-        {resent && !error && (
-          <div className="w-full rounded-xl px-4 py-2.5 text-xs text-green-300 text-center"
-            style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)" }}>
-            8 haneli kod tekrar gönderildi. Spam/gereksiz klasörünüze de bakınız.
-          </div>
-        )}
-      </div>
+      {/* Hata veya Bilgi Bildirimi - Akış düzeni (flex-col gap-4) içinde butonla asla üst üste binmez */}
+      {error && (
+        <div
+          role="alert"
+          className="w-full max-w-sm rounded-xl px-4 py-3 text-xs leading-relaxed text-rose-200 text-center border border-rose-500/40 bg-rose-950/50 shadow-sm transition-all"
+        >
+          {error}
+        </div>
+      )}
+
+      {resent && !error && (
+        <div
+          className="w-full max-w-sm rounded-xl px-4 py-2.5 text-xs text-emerald-300 text-center border border-emerald-500/30 bg-emerald-950/50 shadow-sm"
+        >
+          8 haneli kod tekrar gönderildi. Spam/gereksiz klasörünüze de bakınız.
+        </div>
+      )}
 
       <button
         type="button"
         onClick={() => handleVerify()}
         disabled={loading || otp.some((d) => d === "")}
-        className="w-full max-w-xs py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90"
+        className="w-full max-w-sm py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:cursor-not-allowed shadow-md"
         style={{
           background: "linear-gradient(135deg, #A020F0 0%, #7C3AFF 100%)",
           opacity: loading || otp.some((d) => d === "") ? 0.5 : 1,

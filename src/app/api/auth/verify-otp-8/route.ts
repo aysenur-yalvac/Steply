@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from "next/server";
 import { classifyEmail } from "@/lib/email-classification";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export async function POST(request: Request) {
   const { email, token } = await request.json();
@@ -81,8 +82,8 @@ export async function POST(request: Request) {
   }
 
   // 5. Kullaniciyi login yapmak icin Magic Link olustur
-  const requestUrl = new URL(request.url);
-  const redirectUrl = `${requestUrl.origin}${targetRoute}`;
+  const siteOrigin = getSiteOrigin(request);
+  const redirectUrl = `${siteOrigin}${targetRoute}`;
 
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
     type: "magiclink",
