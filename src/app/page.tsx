@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -29,6 +29,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import LegalModal from "@/components/layout/LegalModal";
+import CanvasParticles from "@/components/ui/CanvasParticles";
 import NeuralNoise from "@/components/ui/neural-noise";
 
 type LegalSlug = "privacy" | "terms" | "kvkk" | "cookies" | "contact";
@@ -59,8 +60,41 @@ export default function Home() {
         <LegalModal slug={openLegalModal} onClose={() => setOpenLegalModal(null)} />
       )}
 
-      {/* ── WebGL NeuralNoise Arka Plan Animasyonu ── */}
+      {/* ── Arka Plan Parçacık ve Işık Animasyonları ── */}
+      <CanvasParticles />
       <NeuralNoise color={[0.55, 0.25, 0.95]} opacity={0.75} speed={0.0008} />
+
+      {/* Mor / Eflatun Süzülen Işık Küreleri */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.18, 0.28, 0.18],
+            x: [0, 25, 0],
+            y: [0, -25, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-32 -left-32 w-[650px] h-[650px] rounded-full bg-violet-600/20 blur-[140px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.12, 0.22, 0.12],
+            x: [0, -30, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-1/4 -right-32 w-[700px] h-[700px] rounded-full bg-purple-600/18 blur-[160px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.14, 0.24, 0.14],
+          }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute -bottom-40 left-1/3 w-[800px] h-[600px] rounded-full bg-indigo-600/15 blur-[160px]"
+        />
+      </div>
 
       {/* ── 1. Yapışkan Üst Menü (Sticky Header) ── */}
       <header
@@ -119,7 +153,7 @@ export default function Home() {
       </header>
 
       {/* ── 2. Üst Karşılama Alanı (Hero Section) ── */}
-      <section className="relative z-10 pt-16 sm:pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
+      <section className="relative pt-16 sm:pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex flex-col items-center text-center z-10">
         {/* Maskot Çerçevesi */}
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
@@ -184,11 +218,8 @@ export default function Home() {
           </a>
         </motion.div>
       </section>
-      </div>
-    );
-}
       {/* ── 3. Nasıl Çalışır (3 Adım + Vurgu Şeridi) ── */}
-      <section id="nasil-calisir" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20">
+      <section id="nasil-calisir" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20 z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -207,7 +238,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group backdrop-blur-sm"
+            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group"
           >
             <span className="text-5xl font-black bg-gradient-to-br from-violet-400 to-purple-600 bg-clip-text text-transparent block mb-5">
               01
@@ -226,7 +257,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group backdrop-blur-sm"
+            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group"
           >
             <span className="text-5xl font-black bg-gradient-to-br from-violet-400 to-purple-600 bg-clip-text text-transparent block mb-5">
               02
@@ -245,7 +276,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group backdrop-blur-sm"
+            className="relative p-8 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all group"
           >
             <span className="text-5xl font-black bg-gradient-to-br from-violet-400 to-purple-600 bg-clip-text text-transparent block mb-5">
               03
@@ -265,7 +296,7 @@ export default function Home() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.5 }}
-          className="w-full p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-violet-950/40 via-purple-900/20 to-slate-900/60 border border-violet-500/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-violet-950/30 backdrop-blur-sm"
+          className="w-full p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-violet-950/40 via-purple-900/20 to-slate-900/60 border border-violet-500/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-violet-950/30"
         >
           <div className="flex items-center gap-4 text-left">
             <div className="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center shrink-0 text-violet-400 shadow-inner">
@@ -285,12 +316,9 @@ export default function Home() {
           </Link>
         </motion.div>
       </section>
-      </div>
-    );
-}
 
       {/* ── 4. Canlı Demo (Etkileşimli Panel Önizlemesi) ── */}
-      <section id="canli-demo" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20">
+      <section id="canli-demo" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20 z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -348,7 +376,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
-          className="w-full rounded-2xl bg-[#0B1120] border border-violet-500/25 shadow-2xl shadow-violet-950/40 overflow-hidden backdrop-blur-md"
+          className="w-full rounded-2xl bg-[#0B1120] border border-violet-500/25 shadow-2xl shadow-violet-950/40 overflow-hidden"
         >
           {/* Tarayıcı Başlığı & Adres Çubuğu */}
           <div className="px-4 py-3 bg-[#080D19] border-b border-slate-800/80 flex items-center justify-between gap-4">
@@ -479,11 +507,8 @@ export default function Home() {
           </div>
         </motion.div>
       </section>
-      </div>
-    );
-}
       {/* ── 5. Panelin İçi (Gerçek Sidebar Modülleriyle 6 Kart) ── */}
-      <section id="panelin-ici" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20">
+      <section id="panelin-ici" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20 z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -505,7 +530,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -528,7 +553,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -551,7 +576,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -574,7 +599,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -597,7 +622,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -620,7 +645,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group backdrop-blur-sm"
+            className="p-7 rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0A0F1D]/80 border border-slate-800 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-600/10 transition-all flex flex-col justify-between group"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-violet-600/15 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-all mb-5 shadow-inner">
@@ -638,12 +663,9 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      </div>
-    );
-}
 
       {/* ── 6. Beyaz Zeminli Vurgu Bölümü (Kontrast Alanı) ── */}
-      <section className="relative z-10 w-full !bg-white !text-slate-900 py-24 px-4 sm:px-6 lg:px-8 shadow-2xl">
+      <section className="w-full !bg-white text-slate-900 py-24 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Sol Sütun: Avantajlar */}
           <motion.div
@@ -704,7 +726,7 @@ export default function Home() {
             </div>
           </motion.div>
 
-          {/* Sağ Sütun: Gerçek İşleyişi Yansıtan Koyu Önizleme Kartı (bg-[#0F172A]) */}
+          {/* Sağ Sütun: Gerçek İşleyişi Yansıtan Önizleme Kartı */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -712,9 +734,9 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-5"
           >
-            <div className="relative p-6 sm:p-8 rounded-3xl bg-[#0F172A] border border-slate-700/80 shadow-2xl space-y-6">
+            <div className="relative p-6 sm:p-8 rounded-3xl bg-[#0F172A] border border-slate-800 shadow-2xl space-y-6">
               {/* Başlık & Rol Rozeti */}
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-violet-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-violet-600/30">
                     MB
@@ -730,17 +752,17 @@ export default function Home() {
               </div>
 
               {/* Gerçek Bildirim Paneli Davetiyesi */}
-              <div className="p-4 rounded-2xl bg-[#1E293B] border border-slate-700 shadow-sm flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-violet-600/30 text-violet-300 flex items-center justify-center shrink-0 font-bold text-xs border border-violet-500/40">
+              <div className="p-4 rounded-2xl bg-white border border-violet-100 shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 font-bold text-xs border border-violet-200">
                   AH
                 </div>
                 <div className="flex-1 text-xs">
                   <div className="flex items-center justify-between">
-                    <p className="font-bold !text-white">Yeni Proje Davetiyesi</p>
-                    <span className="text-[10px] !text-slate-400">şimdi</span>
+                    <p className="font-bold text-slate-900">Yeni Proje Davetiyesi</p>
+                    <span className="text-[10px] text-slate-400">şimdi</span>
                   </div>
-                  <p className="!text-slate-300 mt-1">
-                    <span className="font-semibold !text-white">Ahmet Hakan</span> seni <span className="text-violet-400 font-semibold">"Akıllı Kampüs ve Veri Analitiği"</span> projesine davet etti.
+                  <p className="text-slate-600 mt-1">
+                    <span className="font-semibold text-slate-900">Ahmet Hakan</span> seni <span className="text-violet-700 font-semibold">"Akıllı Kampüs ve Veri Analitiği"</span> projesine davet etti.
                   </p>
                   <div className="flex items-center gap-2 mt-3">
                     <span className="px-3 py-1.5 rounded-lg bg-violet-600 text-white font-bold text-[11px] shadow-sm">
@@ -754,20 +776,20 @@ export default function Home() {
               </div>
 
               {/* Proje Görev Özeti */}
-              <div className="p-4 rounded-2xl bg-[#1E293B] border border-slate-700 shadow-sm space-y-3">
-                <div className="flex justify-between items-center text-xs font-bold !text-white">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-800">
                   <span>Proje Görevleri & Dosyalar</span>
-                  <span className="text-violet-400 font-extrabold">%85 Tamamlandı</span>
+                  <span className="text-violet-600 font-extrabold">%85 Tamamlandı</span>
                 </div>
-                <div className="w-full bg-slate-700/80 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                   <div className="bg-gradient-to-r from-violet-600 to-purple-500 h-2 rounded-full" style={{ width: "85%" }} />
                 </div>
-                <div className="flex items-center justify-between pt-1 text-[11px] !text-slate-300">
+                <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
                   <span className="flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5 text-violet-400" /> 6 Doküman Paylaşıldı
+                    <FileText className="w-3.5 h-3.5 text-violet-600" /> 6 Doküman Paylaşıldı
                   </span>
                   <span className="flex items-center gap-1">
-                    <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> 18/21 Görev Bitti
+                    <CheckSquare className="w-3.5 h-3.5 text-emerald-600" /> 18/21 Görev Bitti
                   </span>
                 </div>
               </div>
@@ -775,6 +797,202 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      </div>
-    );
+      {/* ── 7. Güvenlik ve KVKK Bölümü ── */}
+      <section id="guvenlik" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full scroll-mt-20 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <p className="text-xs font-bold tracking-widest uppercase text-violet-400 mb-2">Maksimum Koruma</p>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-4">Güvenlik ve Veri Gizliliği</h2>
+          <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
+            Akademik verileriniz ve öğrenci kayıtlarınız kurumsal düzeyde korunur.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-violet-500/40 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400 flex items-center justify-center mb-4 shadow-inner">
+              <Shield className="w-5 h-5" />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Rol Bazlı Erişim (RLS)</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Öğretmen ve öğrenci yetkileri veritabanı seviyesinde izole edilir; yetkisiz veri erişimi imkânsızdır.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-violet-500/40 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400 flex items-center justify-center mb-4 shadow-inner">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Şifreli Veri İletimi</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Tüm ağ trafiği uçtan uca TLS/SSL şifreleme ve güvenli oturum anahtarlarıyla korunur.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-violet-500/40 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400 flex items-center justify-center mb-4 shadow-inner">
+              <FileCheck className="w-5 h-5" />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">KVKK Uyumlu Altyapı</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Kişisel Verilerin Korunması Kanunu standartlarına tam uyumlu veri saklama ve işleme mimarisi.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-violet-500/40 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400 flex items-center justify-center mb-4 shadow-inner">
+              <Cloud className="w-5 h-5" />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Kesintisiz Bulut Erişimi</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Yedekli sunucularla %99.9 çalışma süresi ve her cihazdan kesintisiz, hızlı erişim imkânı.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 8. İletişim Kutusu ── */}
+      <section id="iletisim" className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full scroll-mt-20 z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#0B1120] to-[#070B14] border border-violet-500/30 text-center space-y-6 shadow-2xl shadow-violet-950/40"
+        >
+          <span className="text-xs font-bold tracking-widest uppercase text-violet-400">Bizimle İletişime Geçin</span>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
+            Sorularınız veya Kurumsal İş Birlikleri İçin Bize Ulaşın
+          </h2>
+          <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
+            Akademik kurumunuz veya sınıfınız için özel yapılandırma taleplerinizde destek ekibimiz her zaman yanınızda.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            {/* Email Box + Copy Button */}
+            <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900/90 border border-violet-500/30 text-slate-200 text-sm font-mono shadow-inner">
+              <a href="mailto:support@mustbacademy.com" className="hover:text-violet-400 transition-colors">
+                support@mustbacademy.com
+              </a>
+              <button
+                onClick={handleCopyEmail}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-violet-400 hover:text-white transition-colors"
+                title="E-postayı kopyala"
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <Link
+              href="/auth/register"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-600/30 transition-all hover:-translate-y-0.5"
+            >
+              <span>Kayıt Ol</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── 9. Kurumsal Footer (4 Sütunlu) ── */}
+      <footer className="w-full bg-[#05080F] border-t border-slate-800/80 pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-xs text-slate-400 z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+          {/* 1. Sütun: Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-8 h-8 rounded-lg object-cover" />
+              <span className="font-extrabold text-lg text-white">Must-b Academy</span>
+            </div>
+            <p className="text-slate-400 leading-relaxed text-xs">
+              Öğretmen ve öğrenci iş birliğini güçlendiren, modern ve akıllı proje yönetim platformu.
+            </p>
+            <p className="text-[11px] text-slate-500">
+              © 2026 Must-b Academy. Tüm hakları saklıdır.
+            </p>
+          </div>
+
+          {/* 2. Sütun: Platform */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-white text-sm">Platform</h4>
+            <ul className="space-y-2">
+              <li><a href="#nasil-calisir" className="hover:text-violet-400 transition-colors">Nasıl Çalışır</a></li>
+              <li><a href="#canli-demo" className="hover:text-violet-400 transition-colors">Canlı Demo</a></li>
+              <li><a href="#panelin-ici" className="hover:text-violet-400 transition-colors">Panelin İçi</a></li>
+              <li><a href="#guvenlik" className="hover:text-violet-400 transition-colors">Güvenlik</a></li>
+            </ul>
+          </div>
+
+          {/* 3. Sütun: Erişim */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-white text-sm">Erişim</h4>
+            <ul className="space-y-2">
+              <li><Link href="/auth/login" className="hover:text-violet-400 transition-colors">Panele Giriş</Link></li>
+              <li><Link href="/auth/register" className="hover:text-violet-400 transition-colors">Kayıt Ol</Link></li>
+            </ul>
+          </div>
+
+          {/* 4. Sütun: İletişim & Yasal */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-white text-sm">İletişim & Yasal</h4>
+            <ul className="space-y-2">
+              <li>
+                <a href="mailto:support@mustbacademy.com" className="hover:text-violet-400 transition-colors">
+                  support@mustbacademy.com
+                </a>
+              </li>
+              <li>
+                <button onClick={() => setOpenLegalModal("kvkk")} className="hover:text-violet-400 transition-colors">
+                  KVKK Aydınlatma Metni
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setOpenLegalModal("privacy")} className="hover:text-violet-400 transition-colors">
+                  Gizlilik Politikası
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setOpenLegalModal("terms")} className="hover:text-violet-400 transition-colors">
+                  Kullanım Koşulları
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+          <span>Powered by Must-b Ecosystem</span>
+          <span>academy.must-b.com</span>
+        </div>
+      </footer>
+    </div>
+  );
 }

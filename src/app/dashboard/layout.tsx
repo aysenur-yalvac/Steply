@@ -58,8 +58,7 @@ export default async function DashboardLayout({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex"
-      style={{ background: '#f5f3ff' }}
+      className="fixed inset-0 z-[60] flex bg-[#f5f3ff] dark:bg-[#131927]"
     >
       <DashboardSidebar
         userName={profile?.full_name}
