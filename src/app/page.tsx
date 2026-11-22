@@ -29,8 +29,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import LegalModal from "@/components/layout/LegalModal";
-import CanvasParticles from "@/components/ui/CanvasParticles";
-import NeuralNoise from "@/components/ui/neural-noise";
+import { NeuralNoise } from "@/components/ui/neural-noise";
 
 type LegalSlug = "privacy" | "terms" | "kvkk" | "cookies" | "contact";
 
@@ -61,8 +60,7 @@ export default function Home() {
       )}
 
       {/* ── Arka Plan Parçacık ve Işık Animasyonları ── */}
-      <CanvasParticles />
-      <NeuralNoise color={[0.55, 0.25, 0.95]} opacity={0.75} speed={0.0008} />
+      <NeuralNoise color={[0.48, 0.2, 0.88]} opacity={0.42} speed={0.0006} />
 
       {/* Mor / Eflatun Süzülen Işık Küreleri */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
