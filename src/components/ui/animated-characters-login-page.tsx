@@ -786,7 +786,7 @@ export default function AnimatedCharactersLoginPage({
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   required
                   minLength={isLogin ? undefined : 6}
                   autoComplete={isLogin ? "current-password" : "new-password"}

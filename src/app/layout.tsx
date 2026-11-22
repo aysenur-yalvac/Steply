@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Academy.Must-b",
-    template: "%s | Academy.Must-b",
+    default: "Must-b Academy | Akademik Proje ve Takım Yönetim Platformu",
+    template: "%s | Must-b Academy",
   },
-  description: "Must-b Academy is an education-focused platform where students and teachers can manage projects. Powered by Must-b.",
+  description: "Must-b Academy; öğrenci ve danışman öğretmenlerin projelerini, sınıflarını ve akademik çalışmalarını modern araçlarla verimli şekilde yönetebilecekleri eğitim odaklı iş birliği platformudur. Must-b tarafından desteklenmektedir.",
   icons: {
     icon: [
       { url: "/marka/favicon.ico" },
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="tr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col transition-colors duration-300`}
       >
@@ -66,4 +66,3 @@ export default function RootLayout({
     </html>
   );
 }
-

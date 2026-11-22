@@ -54,12 +54,12 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
         setTasks([...tasks, normalizedTask].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()));
         setNewTaskTitle('');
         setNewTaskDate('');
-        toast.success("Task added to your agenda!");
+        toast.success("Görev ajandanıza eklendi!");
       } else {
-        toast.error(res.error ?? "Task could not be added");
+        toast.error(res.error ?? "Görev eklenemedi");
       }
     } catch (e) {
-      toast.error("An error occurred");
+      toast.error("Bir hata oluştu");
     } finally {
       setIsAdding(false);
     }
@@ -73,7 +73,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     } catch (e) {
       // Revert
       setTasks(tasks.map(t => t.id === taskId ? { ...t, is_completed: currentStatus } : t));
-      toast.error("Could not update task");
+      toast.error("Görev güncellenemedi");
     }
   };
 
@@ -83,12 +83,12 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     setTasks(tasks.filter(t => t.id !== taskId));
     try {
       await deleteAgendaTaskAction(taskId);
-      toast.success("Agenda cleared!", {
+      toast.success("Görev ajandadan silindi!", {
         style: { borderRadius: '12px', background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', fontSize: '13px', fontWeight: 'bold' }
       });
     } catch (e) {
       setTasks(previousTasks);
-      toast.error("Could not delete task");
+      toast.error("Görev silinemedi");
     }
   };
 
@@ -100,8 +100,8 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
           <Calendar className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Personal Agenda</h1>
-          <p className="text-slate-500 dark:text-slate-400">Track your project goals and deadlines.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Kişisel Ajanda</h1>
+          <p className="text-slate-500 dark:text-slate-400">Proje hedeflerinizi ve teslim tarihlerini takip edin.</p>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
         <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-4 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
           <input 
             type="text" 
-            placeholder="What do you need to complete? (e.g. Design Database)" 
+            placeholder="Neyi tamamlamanız gerekiyor? (Örn: Veritabanı Tasarımı)" 
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
             className="flex-[2] px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
@@ -128,14 +128,14 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             disabled={isAdding}
             className="px-6 py-4 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md shadow-violet-500/25 active:scale-95 flex items-center justify-center shrink-0"
           >
-            {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus className="w-5 h-5 mr-2" /> Add Task</>}
+            {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus className="w-5 h-5 mr-2" /> Görev Ekle</>}
           </button>
         </form>
 
         <div className="space-y-3">
           {tasks.length === 0 ? (
              <div className="text-center text-slate-400 py-10 font-medium bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
-                You have no tasks in your agenda. Start planning!
+                Ajandanızda henüz görev yok. Hemen planlamaya başlayın!
              </div>
           ) : (
             <AnimatePresence>
@@ -177,10 +177,10 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                                 : 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-100 dark:border-violet-900/40'
                           }`}>
                             {isPastDue && !task.is_completed ? <Flag className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {new Date(task.due_date).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
                           {isPastDue && !task.is_completed && (
-                            <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Past Due</span>
+                            <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Gecikti</span>
                           )}
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
                       whileHover={{ scale: 1.1, rotate: [0, -15, 15, -15, 15, 0] }}
                       whileTap={{ scale: 0.9 }}
                       className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-full transition-colors ml-4 shrink-0"
-                      title="Delete Task"
+                      title="Görevi Sil"
                     >
                       <Trash2 className="w-5 h-5" />
                     </motion.button>

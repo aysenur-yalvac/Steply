@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   })
 
   if (error) {
-    let message = 'Login failed. Please check your information and try again.'
+    let message = error.message.includes('Invalid login credentials') ? 'E-posta adresi veya şifre hatalı.' : 'Giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.'
     if (error.message.includes('Email not confirmed')) {
       // Send OTP and redirect to verify-email
       try {

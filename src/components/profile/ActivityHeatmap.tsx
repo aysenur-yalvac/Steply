@@ -122,7 +122,7 @@ export default function ActivityHeatmap({ activities }: Props) {
                     return <div key={di} style={{ width: CELL, height: CELL }} />;
                   }
                   const level = getLevel(cell.count);
-                  const dateLabel = new Date(cell.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+                  const dateLabel = new Date(cell.date).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" });
                   const tip = cell.count === 0
                     ? `No activity — ${dateLabel}`
                     : `${cell.count} action${cell.count !== 1 ? "s" : ""} — ${dateLabel}`;

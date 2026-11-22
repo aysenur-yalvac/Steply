@@ -56,9 +56,9 @@ type Project = {
 
 // â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
-  Low:    { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: ""   },
-  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: ""  },
-  High:   { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: ""   },
+  Düşük: { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: ""   },
+  Orta: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: ""  },
+  Yüksek: { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: ""   },
 };
 
 function getPriorityClasses(priority?: string | null) {
@@ -226,13 +226,13 @@ function KanbanCard({
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-3 font-medium">
             <Flag className="w-3.5 h-3.5 shrink-0 text-slate-300" />
             {project.start_date && (
-              <span>{new Date(project.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+              <span>{new Date(project.start_date).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
             {project.start_date && project.end_date && (
               <span className="text-slate-300">â†’</span>
             )}
             {project.end_date && (
-              <span>{new Date(project.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+              <span>{new Date(project.end_date).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
           </div>
         )}
@@ -309,7 +309,7 @@ function KanbanCard({
               {/* Team */}
               {project.profiles?.full_name && (
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ekip</p>
                   <div className="flex items-center gap-1.5">
                     <div
                       className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
@@ -333,7 +333,7 @@ function KanbanCard({
                           <textarea
                             value={noteContent}
                             onChange={(e) => setNoteContent(e.target.value)}
-                            placeholder="Quick private note..."
+                            placeholder="Hızlı özel not yazın..."
                             rows={2}
                             className="w-full bg-transparent text-xs text-slate-700 dark:text-slate-100 placeholder:text-slate-400 border-none outline-none resize-none"
                           />
@@ -367,7 +367,7 @@ function KanbanCard({
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              onClick={() => { if (window.confirm("Delete this note?")) deleteNote(); }}
+                              onClick={() => { if (window.confirm("Bu notu silmek istediğinize emin misiniz?")) deleteNote(); }}
                               disabled={isNoteSaving}
                               className="p-1 text-slate-400 hover:text-red-500 transition-colors"
                             >
@@ -393,19 +393,19 @@ function KanbanCard({
 // â”€â”€ Column config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const COLUMN_CONFIG = {
   todo: {
-    label: "To Do",
+    label: "Yapılacaklar",
     countBg: "#EDE9FE",
     countColor: "#7C3AED",
     accentColor: "#7C3AED",
   },
   inreview: {
-    label: "In Review",
+    label: "İncelemede",
     countBg: "#DBEAFE",
     countColor: "#2563EB",
     accentColor: "#2563EB",
   },
   completed: {
-    label: "Completed",
+    label: "Tamamlandı",
     countBg: "#D1FAE5",
     countColor: "#059669",
     accentColor: "#059669",
@@ -487,7 +487,7 @@ function KanbanColumn({
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 flex items-center justify-center shadow-sm">
               <FolderOpen className="w-6 h-6 text-slate-300" />
             </div>
-            <p className="text-sm text-slate-400 font-medium">No projects here</p>
+            <p className="text-sm text-slate-400 font-medium">Bu aşamada henüz proje yok</p>
           </div>
         )}
       </motion.div>

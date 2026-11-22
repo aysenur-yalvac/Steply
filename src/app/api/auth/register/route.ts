@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(error.message)}`,
+      `${requestUrl.origin}/auth/register?error=${encodeURIComponent(error.message.includes('already registered') || error.message.includes('User already registered') ? 'Bu e-posta adresi zaten kayıtlı.' : (error.message.includes('Password should be') ? 'Şifre en az 6 karakter olmalıdır.' : error.message))}`,
       { status: 303 }
     );
   }

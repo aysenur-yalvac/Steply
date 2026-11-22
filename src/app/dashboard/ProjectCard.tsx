@@ -76,8 +76,8 @@ export default function ProjectCard({
     try {
       await addQuickNoteAction(project.id, noteContent);
       setIsEditingNote(false);
-      toast.success('Note saved!');
-    } catch { toast.error('An error occurred'); }
+      toast.success('Not kaydedildi!');
+    } catch { toast.error('Bir hata oluştu'); }
     finally { setIsNoteSaving(false); }
   };
 
@@ -87,19 +87,19 @@ export default function ProjectCard({
       await deleteQuickNoteAction(project.id);
       setNoteContent('');
       setIsEditingNote(true);
-      toast.success('Note cleared!');
+      toast.success('Not silindi!');
     } catch { toast.error('An error occurred'); }
     finally { setIsNoteSaving(false); }
   };
 
   const handleDeleteProject = async () => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
+    if (!window.confirm('Bu projeyi silmek istediğinize emin misiniz?')) return;
     setIsDeleting(true);
     try {
       await deleteProjectAction(project.id);
-      toast.success('Project deleted.');
+      toast.success('Proje silindi.');
     } catch {
-      toast.error('Failed to delete project');
+      toast.error('Proje silinemedi');
       setIsDeleting(false);
     }
   };
@@ -123,11 +123,11 @@ export default function ProjectCard({
           )}
           {isCompleted ? (
             <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-              <CheckCircle className="w-3.5 h-3.5" /> Completed
+              <CheckCircle className="w-3.5 h-3.5" /> Tamamlandı
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-              <Clock className="w-3.5 h-3.5" /> In Progress
+              <Clock className="w-3.5 h-3.5" /> Devam Ediyor
             </span>
           )}
         </div>
@@ -140,7 +140,7 @@ export default function ProjectCard({
         {/* Owner label for collaborator / teacher */}
         {(isTeacher || isCollaborator) && project.profiles?.full_name && (
           <p className="text-sm text-slate-400 font-medium mb-2">
-            {isCollaborator ? 'Owner' : 'Student'}:{' '}
+            {isCollaborator ? 'Proje Sahibi' : 'Öğrenci'}:{' '}
             <span className="text-slate-600 dark:text-slate-300 font-semibold">{project.profiles.full_name}</span>
           </p>
         )}
@@ -158,13 +158,13 @@ export default function ProjectCard({
             <Flag className="w-3.5 h-3.5 shrink-0 text-slate-300" />
             {project.start_date && (
               <span>
-                {new Date(project.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                {new Date(project.start_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </span>
             )}
             {project.start_date && project.end_date && <span className="text-slate-300">→</span>}
             {project.end_date && (
               <span>
-                {new Date(project.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                {new Date(project.end_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </span>
             )}
           </div>
@@ -210,7 +210,7 @@ export default function ProjectCard({
               onClick={handleDeleteProject}
               disabled={isDeleting}
               className="p-1 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-50"
-              title="Delete project"
+              title="Projeyi sil"
             >
               {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
             </button>
@@ -242,7 +242,7 @@ export default function ProjectCard({
                     <textarea
                       value={noteContent}
                       onChange={(e) => setNoteContent(e.target.value)}
-                      placeholder="Quick private note..."
+                      placeholder="Hızlı özel not yazın..."
                       rows={2}
                       className="w-full bg-transparent text-xs text-slate-700 placeholder:text-slate-400 border-none outline-none resize-none"
                     />
@@ -276,7 +276,7 @@ export default function ProjectCard({
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => { if (window.confirm('Delete this note?')) deleteNote(); }}
+                        onClick={() => { if (window.confirm('Bu notu silmek istediğinize emin misiniz?')) deleteNote(); }}
                         disabled={isNoteSaving}
                         className="p-1 text-slate-400 hover:text-red-500 transition-colors"
                       >

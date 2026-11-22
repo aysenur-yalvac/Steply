@@ -123,11 +123,11 @@ export default function ProjectTaskList({
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <ListChecks className="w-4 h-4 text-indigo-500" />
-          Proje Gorevleri
+          Proje Görevleri
         </h3>
         {total > 0 && (
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 px-2.5 py-1 rounded-full">
-            {completed}/{total} Tamamlandi - {progress}%
+            {completed}/{total} Tamamlandı - {progress}%
           </span>
         )}
       </div>
@@ -153,7 +153,7 @@ export default function ProjectTaskList({
       <div className="flex flex-col gap-2 mb-6">
         {tasks.length === 0 && (
           <p className="text-sm text-slate-400 text-center py-4">
-            Henuz gorev yok.{canEdit ? " Asagidan yeni gorev ekle." : ""}
+            Henüz görev yok.{canEdit ? " Aşağıdan yeni görev ekleyebilirsiniz." : ""}
           </p>
         )}
         {tasks.map((task) => {
@@ -196,7 +196,7 @@ export default function ProjectTaskList({
                 </button>
 
                 <div className="flex flex-col gap-1.5 min-w-0">
-                  {/* Title + Sana Atandi badge */}
+                  {/* Title + Sana Atandı badge */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={[
                       "text-sm font-medium",
@@ -223,7 +223,7 @@ export default function ProjectTaskList({
                             {(assignedUser.full_name ?? "U")[0].toUpperCase()}
                           </span>
                           <span className="text-[11px] font-medium truncate max-w-[90px]">
-                            {assignedUser.full_name ?? "Atanan Uye"}
+                            {assignedUser.full_name ?? "Atanan Üye"}
                           </span>
                         </div>
                       )}
@@ -249,7 +249,7 @@ export default function ProjectTaskList({
                             ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/30 dark:border-emerald-700/40 dark:text-emerald-400"
                             : "bg-slate-100 border-slate-200 text-slate-600 dark:bg-slate-900/70 dark:border-slate-700/50 dark:text-slate-400",
                         ].join(" ")}>
-                          {completedSubtasks}/{totalSubtasks} alt gorev
+                          {completedSubtasks}/{totalSubtasks} alt görev
                         </span>
                       )}
                     </div>
@@ -271,7 +271,7 @@ export default function ProjectTaskList({
                       handleDelete(task);
                     }}
                     className="p-1.5 text-slate-400 hover:text-red-500 disabled:opacity-30 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
-                    title="Gorevi Sil"
+                    title="Görevi Sil"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

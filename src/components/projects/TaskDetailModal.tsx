@@ -56,7 +56,7 @@ export default function TaskDetailModal({
         toast.error(result.error);
       } else {
         onUpdate(result.task);
-        toast.success("Gorev guncellendi");
+        toast.success("Görev güncellendi");
         router.refresh();
       }
     } finally {
@@ -153,7 +153,7 @@ export default function TaskDetailModal({
             {/* Assigned To */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                <User className="w-4 h-4" /> Atanan Uye
+                <User className="w-4 h-4" /> Sorumlu Kişi
               </label>
               <select
                 value={assignedTo}
@@ -161,7 +161,7 @@ export default function TaskDetailModal({
                 onChange={(e) => setAssignedTo(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <option value="">Atanmamis</option>
+                <option value="">Atanmamış</option>
                 {assignableMembers.map(member => (
                   <option key={member.id} value={member.id}>
                     {member.full_name || (member as any).email}
@@ -170,7 +170,7 @@ export default function TaskDetailModal({
               </select>
               {!canAssignTask && (
                 <p className="text-[11px] text-amber-500 font-medium leading-snug">
-                  Gorev atama yetkisi sadece Proje Sahibi ve Ogretmenlere aittir.
+                  Görev atama yetkisi yalnızca Proje Sahibi ve Danışman Öğretmenlere aittir.
                 </p>
               )}
             </div>
@@ -184,7 +184,7 @@ export default function TaskDetailModal({
               disabled={isUpdating}
               className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
             >
-              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Degisiklikleri Kaydet"}
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Değişiklikleri Kaydet"}
             </button>
           </div>
 
@@ -192,10 +192,10 @@ export default function TaskDetailModal({
           <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
             <div className="flex items-center justify-between mb-4">
               <label className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                <ListTodo className="w-4 h-4 text-indigo-500" /> Alt Gorevler
+                <ListTodo className="w-4 h-4 text-indigo-500" /> Alt Görevler
               </label>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                {completedCount}/{subtasks.length} Tamamlandi
+                {completedCount}/{subtasks.length} Tamamlandı
               </span>
             </div>
 
@@ -204,7 +204,7 @@ export default function TaskDetailModal({
                 type="text"
                 value={newSubtask}
                 onChange={(e) => setNewSubtask(e.target.value)}
-                placeholder="Yeni alt gorev..."
+                placeholder="Yeni alt görev ekle..."
                 className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
@@ -245,7 +245,7 @@ export default function TaskDetailModal({
                 </div>
               ))}
               {subtasks.length === 0 && (
-                <p className="text-xs text-center text-slate-400 py-4">Henuz alt gorev yok.</p>
+                <p className="text-xs text-center text-slate-400 py-4">Henüz alt görev eklenmedi.</p>
               )}
             </div>
           </div>

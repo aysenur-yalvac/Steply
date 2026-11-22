@@ -246,10 +246,10 @@ export default function ProjectEditableContent({
         if (result && "error" in result) {
           toast.error(result.error);
         } else {
-          toast.success("Project details saved!");
+          toast.success("Proje detayları kaydedildi!");
         }
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Failed to save");
+        toast.error(err instanceof Error ? err.message : "Kaydedilemedi");
       }
     });
   };
@@ -375,11 +375,11 @@ export default function ProjectEditableContent({
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">About Project</h3>
           {isCompleted ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-sm font-medium border border-emerald-500/20 shrink-0 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-              <CheckCircle className="w-4 h-4" /> Completed
+              <CheckCircle className="w-4 h-4" /> Tamamlandı
             </div>
           ) : (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-medium border border-amber-500/20 shrink-0 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-              <Clock className="w-4 h-4" /> In Progress
+              <Clock className="w-4 h-4" /> Devam Ediyor
             </div>
           )}
         </div>

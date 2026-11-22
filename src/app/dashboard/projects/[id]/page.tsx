@@ -209,9 +209,9 @@ export default async function ProjectDetailPage({
                 {project.title}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Developed by{" "}
+                Geliştiren:{" "}
                 <span className="font-bold" style={{ color: "#7C3AFF" }}>
-                  {ownerName ?? "Must-b Academy Member"}
+                  {ownerName ?? "Must-b Academy Üyesi"}
                 </span>
                 .
               </p>
@@ -309,11 +309,11 @@ export default async function ProjectDetailPage({
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-bold text-slate-700">{review.reviewer_name}</span>
                                   {review.reviewer_role === 'teacher' && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 tracking-wide uppercase">Teacher</span>
+                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 tracking-wide uppercase">Öğretmen</span>
                                   )}
                                 </div>
                                 <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                                  {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                  {new Date(review.created_at).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric' })}
                                 </p>
                               </div>
                             </div>
@@ -327,7 +327,7 @@ export default async function ProjectDetailPage({
                                 <form action={deleteReviewAction}>
                                   <input type="hidden" name="id" value={review.id} />
                                   <input type="hidden" name="project_id" value={project.id} />
-                                  <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Delete Review">
+                                  <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Değerlendirmeyi Sil">
                                     <Trash2 className="w-4 h-4" />
                                   </button>
                                 </form>
@@ -342,19 +342,19 @@ export default async function ProjectDetailPage({
                   {isTeacher && (
                     <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
                       <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-dusty-rose" /> Evaluate Project
+                        <Star className="w-5 h-5 text-dusty-rose" /> Projeyi Değerlendir
                       </h3>
                       <form action={createReview} className="flex flex-col gap-5">
                         <input type="hidden" name="project_id" value={project.id} />
                         <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating (1-5)</label>
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Puan (1-5)</label>
                           <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
                         </div>
                         <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comment / Feedback</label>
-                          <textarea name="comment" rows={4} placeholder="Write your thoughts about the project..." className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Yorum ve Geri Bildirim</label>
+                          <textarea name="comment" rows={4} placeholder="Proje hakkındaki değerlendirmenizi yazın..." className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
                         </div>
-                        <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">Submit Review</button>
+                        <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">Değerlendirmeyi Gönder</button>
                       </form>
                     </div>
                   )}
@@ -366,15 +366,15 @@ export default async function ProjectDetailPage({
           {/* Right Sidebar (Status & Actions) */}
           <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
             <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Project Status</h3>
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Proje Durumu</h3>
               <div className="mb-4">
-                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"> Completed</span>}
-                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60"> In Review</span>}
-                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/60"> In Progress</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80"> To Do</span>}
+                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"> Tamamlandı</span>}
+                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60"> İncelemede</span>}
+                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/60"> Devam Ediyor</span>}
+                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80"> Yapılacaklar</span>}
               </div>
               
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Milestone Progress</h4>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">İlerleme Durumu</h4>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-2xl font-black text-slate-800 dark:text-slate-200">% {project.progress_percentage}</span>
               </div>

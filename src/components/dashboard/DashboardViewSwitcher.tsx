@@ -151,13 +151,13 @@ function FilterDropdown({
     <div className="w-64 bg-white dark:bg-slate-900 border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950/60">
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Filters</span>
+        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Filtreler</span>
         {total > 0 && (
           <button
             onClick={onClear}
             className="flex items-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700 transition-colors"
           >
-            <X className="w-3 h-3" /> Clear all
+            <X className="w-3 h-3" /> Temizle
           </button>
         )}
       </div>
@@ -165,7 +165,7 @@ function FilterDropdown({
       {/* Student search â€” teachers only */}
       {isTeacher && (
         <div className="px-4 pt-3 pb-2 border-b border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ã–ÄŸrenci</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Öğrenci</p>
           <input
             type="text"
             value={filters.studentSearch}
@@ -178,7 +178,7 @@ function FilterDropdown({
 
       {/* Status */}
       <div className="px-4 pt-3 pb-2">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Status</p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Durum</p>
         <div className="flex flex-col gap-1.5">
           {STATUS_OPTIONS.map((opt) => {
             const checked = filters.status.includes(opt);
@@ -215,7 +215,7 @@ function FilterDropdown({
 
       {/* Priority */}
       <div className="px-4 pt-2 pb-3">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Priority</p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Öncelik</p>
 
         <div className="flex flex-col gap-1.5">
           {PRIORITY_OPTIONS.map((opt) => {
@@ -255,7 +255,7 @@ function FilterDropdown({
         <>
           <div className="mx-4 my-1 border-t border-slate-100" />
           <div className="px-4 pt-2 pb-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tags</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Etiketler</p>
             <div className="flex flex-wrap gap-1.5">
               {allTags.map(tag => {
                 const active = filters.tags.includes(tag);
@@ -281,7 +281,7 @@ function FilterDropdown({
       {/* Footer: active count */}
       {total > 0 && (
         <div className="px-4 py-2.5 bg-violet-50 border-t border-violet-100 text-[11px] text-violet-600 font-semibold text-center dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-          {total} filter{total !== 1 ? "s" : ""} active
+          {total} filtre aktif
         </div>
       )}
     </div>
@@ -297,11 +297,11 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
   return (
     <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950`}>
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Project Name</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Proje Adı</span>
         {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ã–ÄŸrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">BitiÅŸ Tarihi</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
         <span />
       </div>
 
@@ -381,19 +381,19 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
       </AnimatePresence>
 
       <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 dark:bg-slate-950/50 flex items-center justify-between">
-        <span className="text-xs text-slate-400 font-medium">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
+        <span className="text-xs text-slate-400 font-medium">{projects.length} proje</span>
         <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
             
-            {projects.filter((p) => p.progress_percentage === 100).length} completed
+            {projects.filter((p) => p.progress_percentage === 100).length} tamamlandı
           </span>
           <span className="flex items-center gap-1.5">
             
-            {projects.filter((p) => p.progress_percentage > 0 && p.progress_percentage < 100).length} in review
+            {projects.filter((p) => p.progress_percentage > 0 && p.progress_percentage < 100).length} incelemede
           </span>
           <span className="flex items-center gap-1.5">
             
-            {projects.filter((p) => p.progress_percentage === 0).length} to do
+            {projects.filter((p) => p.progress_percentage === 0).length} yapılacak
           </span>
         </div>
       </div>

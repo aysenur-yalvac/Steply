@@ -107,7 +107,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
                     </div>
                     {user.steply_score !== undefined && (
                       <div className="shrink-0 text-[10px] font-bold px-2 py-1 rounded bg-slate-50 border border-slate-100 text-dusty-rose shadow-inner tracking-wider">
-                        SCORE: {user.steply_score}
+                        PUAN: {user.steply_score}
                       </div>
                     )}
                   </li>
@@ -117,7 +117,7 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
           ) : (
             <div className="p-6 text-center text-sm text-slate-400 flex flex-col items-center">
               <UserIcon className="w-8 h-8 text-slate-600 dark:text-slate-300 mb-2" />
-              <p>No users found matching "{query}"</p>
+              <p>"{query}" ile eşleşen kullanıcı bulunamadı</p>
             </div>
           )}
         </div>

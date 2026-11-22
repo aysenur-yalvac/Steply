@@ -49,7 +49,7 @@ export default function AutoJoinHandler({ token }: { token: string }) {
           onClick={() => router.push('/dashboard')}
           className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-xl transition-colors font-medium"
         >
-          Dashboard'a Dön
+          Panele Dön
         </button>
       </div>
     );

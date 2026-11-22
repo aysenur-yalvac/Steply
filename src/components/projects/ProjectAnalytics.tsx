@@ -65,9 +65,9 @@ export default function ProjectAnalytics({ projectId }: { projectId: string }) {
   }, {} as Record<string, number>);
 
   const pieData = [
-    { name: 'To Do', value: statusCounts['To Do'] || 0, color: '#f59e0b' },
-    { name: 'In Progress', value: statusCounts['In Progress'] || 0, color: '#3b82f6' },
-    { name: 'Completed', value: statusCounts['Completed'] || 0, color: '#10b981' }
+    { name: 'Yapılacak', value: statusCounts['To Do'] || statusCounts['todo'] || 0, color: '#f59e0b' },
+    { name: 'Devam Ediyor', value: statusCounts['In Progress'] || statusCounts['in_progress'] || 0, color: '#3b82f6' },
+    { name: 'Tamamlandı', value: statusCounts['Completed'] || statusCounts['completed'] || 0, color: '#10b981' }
   ].filter(d => d.value > 0);
 
   // 2. Team Contribution (Bar Chart)
@@ -87,7 +87,7 @@ export default function ProjectAnalytics({ projectId }: { projectId: string }) {
   const completedByDate = tasks
     .filter(t => t.status === 'Completed' && t.completed_at)
     .reduce((acc, t) => {
-      const date = new Date(t.completed_at).toLocaleDateString();
+      const date = new Date(t.completed_at).toLocaleDateString('tr-TR');
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -109,7 +109,7 @@ export default function ProjectAnalytics({ projectId }: { projectId: string }) {
         <div className="bg-[#1a2234] border border-slate-700 p-3 rounded-lg shadow-xl">
           <p className="text-slate-200 font-bold mb-1">{label || payload[0].name}</p>
           <p className="text-indigo-400 text-sm">
-            {payload[0].value} {payload[0].value === 1 ? 'task' : 'tasks'}
+            {payload[0].value} {'görev'}
           </p>
         </div>
       );

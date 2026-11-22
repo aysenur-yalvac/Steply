@@ -7,11 +7,11 @@ import LegalModal from "./LegalModal";
 type LegalSlug = "privacy" | "terms" | "kvkk" | "cookies" | "contact";
 
 const LINKS: { slug: LegalSlug; label: string; icon: React.ReactNode }[] = [
-  { slug: "privacy",  label: "Gizlilik Politikasi",   icon: <Shield className="w-3 h-3" /> },
-  { slug: "terms",    label: "Kullanim Kosullari",     icon: <FileText className="w-3 h-3" /> },
+  { slug: "privacy",  label: "Gizlilik Politikası",   icon: <Shield className="w-3 h-3" /> },
+  { slug: "terms",    label: "Kullanım Koşulları",     icon: <FileText className="w-3 h-3" /> },
   { slug: "kvkk",     label: "KVKK",                  icon: <Lock className="w-3 h-3" /> },
-  { slug: "cookies",  label: "Cerez Politikasi",       icon: <Cookie className="w-3 h-3" /> },
-  { slug: "contact",  label: "Iletisim",               icon: <Phone className="w-3 h-3" /> },
+  { slug: "cookies",  label: "Çerez Politikası",       icon: <Cookie className="w-3 h-3" /> },
+  { slug: "contact",  label: "İletişim",               icon: <Phone className="w-3 h-3" /> },
 ];
 
 export default function Footer() {

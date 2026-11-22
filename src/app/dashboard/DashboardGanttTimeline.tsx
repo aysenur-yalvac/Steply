@@ -97,7 +97,7 @@ export default function DashboardGanttTimeline({
             className="w-2 h-2 rounded-full animate-pulse"
             style={{ background: "#FF7F50", boxShadow: "0 0 6px #FF7F50" }}
           />
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Today</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Bugün</span>
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export default function DashboardGanttTimeline({
                 className="absolute text-[10px] font-semibold text-slate-600 dark:text-slate-300 -translate-x-1/2"
                 style={{ left: `${x}%` }}
               >
-                {m.toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
+                {m.toLocaleDateString("tr-TR", { month: "short", year: "2-digit" })}
               </span>
             );
           })}
@@ -255,9 +255,9 @@ export default function DashboardGanttTimeline({
                       {proj.start_date && proj.end_date && (
                         <span className="flex items-center gap-1">
                           <Calendar className="w-2.5 h-2.5" />
-                          {new Date(proj.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {new Date(proj.start_date).toLocaleDateString("tr-TR", { month: "short", day: "numeric" })}
                           {" → "}
-                          {new Date(proj.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {new Date(proj.end_date).toLocaleDateString("tr-TR", { month: "short", day: "numeric" })}
                         </span>
                       )}
                       {proj.github_link && (

@@ -129,7 +129,7 @@ const iconVariants = {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export const GooeySearchBar = ({
-  placeholder = "Search projects...",
+  placeholder = "Proje veya kullanıcı ara...",
 }: GooeySearchBarProps) => {
   const inputRef     = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -212,12 +212,12 @@ export const GooeySearchBar = ({
               overflow:     "hidden",
             }}
             role="listbox"
-            aria-label="Search results"
+            aria-label="Arama sonuçları"
           >
             {isLoading ? (
               <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, color: "#7C3AFF", fontSize: 13, fontWeight: 600 }}>
                 <LoadingIcon />
-                Searching…
+                Aranıyor…
               </div>
             ) : hasResults ? (
               <>
@@ -327,14 +327,14 @@ export const GooeySearchBar = ({
               role="button"
             >
               {step === 1 ? (
-                <span className="gsb-search-text">Search</span>
+                <span className="gsb-search-text">Ara</span>
               ) : (
                 <input
                   ref={inputRef}
                   type="text"
                   className="gsb-search-input"
                   placeholder={placeholder}
-                  aria-label="Search input"
+                  aria-label="Arama kutusu"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                 />

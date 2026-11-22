@@ -43,12 +43,12 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { label: "My Projects", href: "/dashboard",            icon: LayoutDashboard },
-  { label: "Analytics",   href: "/dashboard/analytics",  icon: BarChart2 },
-  { label: "Calendar",    href: "/dashboard/agenda",     icon: Calendar },
+  { label: "Projelerim", href: "/dashboard",            icon: LayoutDashboard },
+  { label: "Analitik", href: "/dashboard/analytics",  icon: BarChart2 },
+  { label: "Takvim & Ajanda", href: "/dashboard/agenda",     icon: Calendar },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
-  { label: "Messages",    href: "/dashboard/messages",   icon: MessageSquare },
-  { label: "Settings",    href: "/dashboard/settings",   icon: Settings },
+  { label: "Mesajlar", href: "/dashboard/messages",   icon: MessageSquare },
+  { label: "Ayarlar", href: "/dashboard/settings",   icon: Settings },
   { 
     label: "Çöp Kutusu", 
     href: "/dashboard/trash/projects",
@@ -258,7 +258,7 @@ function NavContent({
       <nav className={`flex-1 py-4 overflow-y-auto ${collapsed ? "px-2 flex flex-col items-center" : "px-3"}`}>
         {!collapsed && (
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-            Main Menu
+            Ana Menü
           </p>
         )}
         <div className={collapsed ? "flex flex-col items-center gap-2 w-full" : "flex flex-col gap-2 w-full"}>
@@ -367,7 +367,7 @@ function NavContent({
                 <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={28} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-violet-800 truncate">{userName || userEmail}</p>
-                  <p className="text-[10px] text-violet-500 capitalize">{role || "student"}</p>
+                  <p className="text-[10px] text-violet-500 capitalize">{role === "teacher" ? "Öğretmen" : (role === "admin" ? "Yönetici" : "Öğrenci")}</p>
                 </div>
                 <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
               </div>
@@ -473,7 +473,7 @@ function NavContent({
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
             >
               <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-              Sign Out
+              Çıkış Yap
             </button>
           </>
         )}

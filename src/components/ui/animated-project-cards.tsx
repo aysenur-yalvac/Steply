@@ -88,7 +88,7 @@ function AnimatedProjectCard({
 
   const handleUpdate = async (formData: FormData) => {
     if (localProgress === 100 && project.progress_percentage !== 100) {
-      toast.success("Congratulations! Flawless execution!", {
+      toast.success("Tebrikler! Proje başarıyla tamamlandı!", {
         icon: "🎉",
         style: { borderRadius: "16px", background: "#1a0a2e", color: "#e2e8f0", border: "1px solid #A020F0" },
       });
@@ -102,10 +102,10 @@ function AnimatedProjectCard({
     try {
       await addQuickNoteAction(project.id, noteContent);
       setIsEditingNote(false);
-      toast.success("Quick note saved!", {
+      toast.success("Hızlı not kaydedildi!", {
         style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(160,32,240,0.3)", fontSize: "13px", fontWeight: "bold" },
       });
-    } catch { toast.error("An error occurred"); }
+    } catch { toast.error("Bir hata oluştu"); }
     finally { setIsNoteSaving(false); }
   };
 
@@ -114,7 +114,7 @@ function AnimatedProjectCard({
     try {
       await deleteQuickNoteAction(project.id);
       setNoteContent(""); setIsEditingNote(true);
-      toast.success("Note cleared!", {
+      toast.success("Not silindi!", {
         style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(255,127,80,0.3)", fontSize: "13px", fontWeight: "bold" },
       });
     } catch { toast.error("An error occurred"); }
@@ -122,10 +122,10 @@ function AnimatedProjectCard({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this project? This action cannot be undone.")) return;
+    if (!window.confirm("Bu projeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
     setIsDeleting(true);
-    try { await deleteProjectAction(project.id); toast.success("Project deleted."); }
-    catch { toast.error("Failed to delete project"); setIsDeleting(false); }
+    try { await deleteProjectAction(project.id); toast.success("Proje silindi."); }
+    catch { toast.error("Proje silinemedi"); setIsDeleting(false); }
   };
 
   return (
@@ -172,11 +172,11 @@ function AnimatedProjectCard({
             <span className="text-xs font-extrabold" style={{ color: "#C97EFF" }}>{localProgress}%</span>
             {isCompleted ? (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "rgba(0,194,203,0.12)", border: "1px solid rgba(0,194,203,0.22)", color: "#00C2CB" }}>
-                <CheckCircle className="w-3 h-3" /> Completed
+                <CheckCircle className="w-3 h-3" /> Tamamlandı
               </span>
             ) : (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "rgba(255,127,80,0.10)", border: "1px solid rgba(255,127,80,0.20)", color: "#FF9A6C" }}>
-                <Clock className="w-3 h-3" /> In Progress
+                <Clock className="w-3 h-3" /> Devam Ediyor
               </span>
             )}
           </div>
@@ -194,7 +194,7 @@ function AnimatedProjectCard({
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.30)" }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.30)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
-              title="Delete Project"
+              title="Projeyi Sil"
             >
               {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
             </motion.button>
@@ -246,7 +246,7 @@ function AnimatedProjectCard({
                   >
                     <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     <span className="font-medium text-slate-400">
-                      {new Date(project.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {new Date(project.end_date).toLocaleDateString("tr-TR", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                   </div>
                 )}
