@@ -11,7 +11,7 @@ export default async function LoginPage({
     displayMessage = "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin.";
   } else if (resolved?.error === "oauth_failed") {
     displayMessage = "Giriş yapılırken bir sorun oluştu. Lütfen tekrar deneyin.";
-  } else if (resolved?.error) {
+  } else if (!displayMessage && resolved?.error) {
     displayMessage = resolved.error;
   }
 

@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   const formData = await request.formData()
   const email = String(formData.get('email'))
   const password = String(formData.get('password'))
+  const selectedRole = (formData.get('role') as string | null) || null
   const linkAccount = formData.get('link_account') as string | null
   const ownerId     = formData.get('owner_id')     as string | null
   const cookieStore = await cookies()
@@ -72,13 +73,39 @@ export async function POST(request: Request) {
   const resolvedOwnerId  = ownerId ?? (linkAccount === 'true' ? cookieOwnerId : null) ?? cookieOwnerId
   const resolvedLinkMode = linkAccount === 'true' || (!!cookieOwnerId && !!resolvedOwnerId)
 
+  // Role mismatch check: selected login tab vs actual DB role
+  if (selectedRole && data.user && !resolvedLinkMode) {
+    const admin = createAdminClient()
+    const { data: loginProfile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle()
+
+    const actualRole = (loginProfile as any)?.role || 'student'
+
+    if (selectedRole === 'student' && actualRole === 'teacher') {
+      await supabase.auth.signOut()
+      const errUrl = new URL('/auth/login', origin)
+      errUrl.searchParams.set('message', 'Bu e-posta adresi bir öğretmen hesabına kayıtlı. Lütfen Öğretmen sekmesinden giriş yapın.')
+      return NextResponse.redirect(errUrl.toString(), { status: 303 })
+    }
+
+    if (selectedRole === 'teacher' && actualRole !== 'teacher') {
+      await supabase.auth.signOut()
+      const errUrl = new URL('/auth/login', origin)
+      errUrl.searchParams.set('message', 'Bu e-posta adresi bir öğrenci hesabına kayıtlı. Lütfen Öğrenci sekmesinden giriş yapın.')
+      return NextResponse.redirect(errUrl.toString(), { status: 303 })
+    }
+  }
+
   // Link account: if owner requested linking, register new user under their linked_accounts
   // then switch back to the owner's session via magic link so the sidebar refreshes correctly
   if (resolvedLinkMode && resolvedOwnerId && data.user) {
     // Helper: build error redirect that keeps link_account=true so middleware
     // doesn't intercept the page (logged-in users are normally sent to /dashboard).
     const linkErrorUrl = (msg: string) =>
-      `${requestUrl.origin}/auth/login?link_account=true&owner_id=${resolvedOwnerId}&message=${encodeURIComponent(msg)}`
+      `${origin}/auth/login?link_account=true&owner_id=${resolvedOwnerId}&message=${encodeURIComponent(msg)}`
 
     try {
       const admin = createAdminClient()
@@ -100,7 +127,7 @@ export async function POST(request: Request) {
           admin.from('profiles').select('full_name, avatar_url').eq('id', resolvedOwnerId).maybeSingle(),
         ])
 
-        // Forward row: owner → linked
+        // Forward row: owner › linked
         const { error: fwdError } = await admin
           .from('linked_accounts')
           .insert({
@@ -116,7 +143,7 @@ export async function POST(request: Request) {
           return NextResponse.redirect(linkErrorUrl('Hesap bağlanamadı: ' + fwdError.message), { status: 303 })
         }
 
-        // Reverse row: linked → owner (so B can also see A in their switcher)
+        // Reverse row: linked › owner (so B can also see A in their switcher)
         const { data: revExisting } = await admin
           .from('linked_accounts')
           .select('id')

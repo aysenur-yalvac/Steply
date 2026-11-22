@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { classifyEmail } from "@/lib/email-classification";
+import { classifyEmail, isTeacherEmail } from "@/lib/email-classification";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { BackButton } from "@/components/ui/back-button";
@@ -245,6 +245,7 @@ export default function AnimatedCharactersLoginPage({
       const intent = isLogin ? "login" : "signup";
       const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
       callbackUrl.searchParams.set("intent", intent);
+      callbackUrl.searchParams.set("role", role);
       if (linkAccount) callbackUrl.searchParams.set("link_account", "true");
       if (ownerId) callbackUrl.searchParams.set("owner_id", ownerId);
 
@@ -645,53 +646,51 @@ export default function AnimatedCharactersLoginPage({
             </p>
           </div>
 
-          {/* Register: role selector */}
-          {!isLogin && (
-            <div className="mb-6">
-              <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5" style={{ color: "rgba(255,255,255,0.30)" }}>
-                Rolünüzü Seçin
-              </p>
-              <div className="grid grid-cols-2 gap-2.5">
-                {ROLES.map(({ value, label, desc, Icon, bar, labelColor }) => {
-                  const active = role === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setRole(value)}
-                      className="relative flex flex-col items-center gap-2 p-3.5 rounded-xl cursor-pointer transition-all duration-200 overflow-hidden text-center"
+          {/* Role selector for login and register */}
+          <div className="mb-6">
+            <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5" style={{ color: "rgba(255,255,255,0.30)" }}>
+              {isLogin ? "Giriş Türü" : "Rolünüzü Seçin"}
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {ROLES.map(({ value, label, desc, Icon, bar, labelColor }) => {
+                const active = role === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRole(value)}
+                    className="relative flex flex-col items-center gap-2 p-3.5 rounded-xl cursor-pointer transition-all duration-200 overflow-hidden text-center"
+                    style={{
+                      background:  active ? `${bar}14` : "rgba(255,255,255,0.03)",
+                      border:      active ? `1px solid ${bar}55` : "1px solid rgba(255,255,255,0.08)",
+                      boxShadow:   active ? `0 0 18px ${bar}1A` : "none",
+                    }}
+                  >
+                    {active && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle className="w-3.5 h-3.5" style={{ color: bar, filter: `drop-shadow(0 0 4px ${bar}99)` }} />
+                      </div>
+                    )}
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
                       style={{
-                        background:  active ? `${bar}14` : "rgba(255,255,255,0.03)",
-                        border:      active ? `1px solid ${bar}55` : "1px solid rgba(255,255,255,0.08)",
-                        boxShadow:   active ? `0 0 18px ${bar}1A` : "none",
+                        background: active ? `${bar}22` : "rgba(255,255,255,0.05)",
+                        border: `1px solid ${active ? `${bar}44` : "rgba(255,255,255,0.08)"}`,
                       }}
                     >
-                      {active && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle className="w-3.5 h-3.5" style={{ color: bar, filter: `drop-shadow(0 0 4px ${bar}99)` }} />
-                        </div>
-                      )}
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{
-                          background: active ? `${bar}22` : "rgba(255,255,255,0.05)",
-                          border: `1px solid ${active ? `${bar}44` : "rgba(255,255,255,0.08)"}`,
-                        }}
-                      >
-                        <Icon className="w-5 h-5" style={{ color: active ? labelColor : "rgba(255,255,255,0.28)" }} />
-                      </div>
-                      <span className="text-xs font-extrabold" style={{ color: active ? "#fff" : "rgba(255,255,255,0.38)" }}>
-                        {label}
-                      </span>
-                      <p className="text-[9px] leading-snug" style={{ color: active ? labelColor : "rgba(255,255,255,0.18)" }}>
-                        {desc}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+                      <Icon className="w-5 h-5" style={{ color: active ? labelColor : "rgba(255,255,255,0.28)" }} />
+                    </div>
+                    <span className="text-xs font-extrabold" style={{ color: active ? "#fff" : "rgba(255,255,255,0.38)" }}>
+                      {label}
+                    </span>
+                    <p className="text-[9px] leading-snug" style={{ color: active ? labelColor : "rgba(255,255,255,0.18)" }}>
+                      {desc}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* Form */}
           <form
@@ -699,7 +698,7 @@ export default function AnimatedCharactersLoginPage({
             method="post"
             className="flex flex-col gap-4"
           >
-            {!isLogin && <input type="hidden" name="role" value={role} />}
+            <input type="hidden" name="role" value={role} />
             {isLogin && linkAccount && ownerId && (
               <>
                 <input type="hidden" name="link_account" value="true" />
@@ -730,7 +729,7 @@ export default function AnimatedCharactersLoginPage({
               <input
                   name="email"
                   type="email"
-                  placeholder="ornek@ogrenci.edu.tr"
+                  placeholder={role === "teacher" ? "ornek@meb.k12.tr" : "ornek@ogrenci.edu.tr"}
                   required
                   autoComplete="email"
                   value={email}
@@ -740,9 +739,19 @@ export default function AnimatedCharactersLoginPage({
                   className="w-full px-4 py-3 rounded-xl text-sm placeholder:text-slate-600 dark:text-slate-300 outline-none transition-all"
                   style={INPUT_BASE}
                 />
-                {!isLogin && role === "teacher" && (
+                {role === "teacher" && (
                   <p className="text-xs text-amber-400 mt-1.5 flex items-center gap-1">
-                    <span>ℹ️</span> Öğretmenlerin @meb.k12.tr, @meb.gov.tr veya kurumsal e-posta kullanması zorunludur.
+                    <span>ℹ️</span> {isLogin ? "Öğretmen hesabı için kurumsal e-posta adresinizi kullanın." : "Öğretmenlerin @meb.k12.tr, @meb.gov.tr veya kurumsal e-posta kullanması zorunludur."}
+                  </p>
+                )}
+                {isLogin && email && email.includes('@') && role === 'student' && isTeacherEmail(email) && (
+                  <p className="text-xs text-amber-400 mt-1.5 flex items-center gap-1">
+                    <span>⚠️</span> Bu e-posta öğretmen hesabı gibi görünüyor. Öğretmen sekmesini seçin.
+                  </p>
+                )}
+                {isLogin && email && email.includes('@') && role === 'teacher' && !isTeacherEmail(email) && (
+                  <p className="text-xs text-amber-400 mt-1.5 flex items-center gap-1">
+                    <span>⚠️</span> Bu e-posta öğrenci hesabı için kayıtlıysa Öğrenci sekmesini seçin.
                   </p>
                 )}
             </div>

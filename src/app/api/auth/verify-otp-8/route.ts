@@ -44,35 +44,44 @@ export async function POST(request: Request) {
     user_metadata: { ...user.user_metadata, email_verified: true }
   });
 
-  // 4. Domain bazli profil otomasyonu
+  // 4. Rol belirleme — kullanıcının kayıt sırasında seçtiği rolü esas al
   let targetRoute = "/dashboard";
-  let role = "student";
 
-  const { data: profile } = await supabaseAdmin.from("profiles").select("role").eq("id", user.id).single();
-  role = profile?.role || "student";
+  // Öncelik: user_metadata.role (kayıt sırasında set edilir) → profiles.role → "student"
+  let role: string = user.user_metadata?.role || "student";
 
-  // SUNUCU TARAFLI SERT ROL KONTROLU
-  const isTeacher = require("@/lib/email-classification").isTeacherEmail(email);
-  
-  // HER ZAMAN KONTROL: Eger whitelist/kurumsal ise role zorunlu "teacher" olsun
-  if (isTeacher) {
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  // user_metadata'da rol yoksa profiles tablosuna bak
+  if (!user.user_metadata?.role && profile?.role) {
+    role = profile.role;
+  }
+
+  const { isTeacherEmail } = require("@/lib/email-classification");
+  const domainIsTeacher = isTeacherEmail(email);
+
+  // Güvenlik: Domain kurumsal/whitelist ise her durumda teacher yap
+  if (domainIsTeacher) {
     role = "teacher";
   }
 
-  if (role === "teacher" && !isTeacher) {
-    // Eger veri tabaninda ogretmen secilmis ama mail kurumsal degilse reddet
-    return NextResponse.json(
-      { error: "Geçerli bir kurumsal öğretmen e-posta adresi (@meb.k12.tr vb.) ile giriş yapmalısınız." },
-      { status: 403 }
-    );
+  // Güvenlik: Teacher rolü var ama domain kurumsal değilse öğrenciye indir
+  // (veri manipülasyonuna karşı koruma; normal akışta oluşmamalı)
+  if (role === "teacher" && !domainIsTeacher) {
+    console.warn(`[verify-otp-8] Kurumsal olmayan e-posta ${email} teacher rolündeydi, student'a düşürüldü.`);
+    role = "student";
   }
-  
-  // Her durumda statusu verified yap (Manuel onay kaldirildi)
+
+  // Profili onaylanan rolle güncelle
   const updates: Record<string, string> = { role };
   if (role === "teacher") {
     updates.teacher_status = "verified";
   }
-  
+
   await supabaseAdmin.from("profiles").update(updates).eq("id", user.id);
 
   if (role === "teacher") {
