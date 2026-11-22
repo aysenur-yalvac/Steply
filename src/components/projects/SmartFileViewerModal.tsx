@@ -112,7 +112,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
       setAnnotations((prev) => [...prev, res.data]);
       setStagedAnnotation(null);
       
-      // ANCAK KAYIT BAÅARILIYSA MODALI KAPAT:
+      // ANCAK KAYIT BAŞARILIYSA MODALI KAPAT:
       onClose();
     } catch (err: any) {
       toast.error("Kaydedilemedi", { position: "bottom-right" });

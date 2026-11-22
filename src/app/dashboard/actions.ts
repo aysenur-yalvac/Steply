@@ -28,7 +28,7 @@ export async function getTopProjectTypes(): Promise<string[]> {
 
 /**
  * Tracks usage of a project type: increments count if it exists, inserts if new.
- * Silent on failure â€” project creation must not be blocked by type tracking.
+ * Silent on failure — project creation must not be blocked by type tracking.
  */
 async function trackProjectType(platform: string): Promise<void> {
   if (!platform || platform === "General") return;
@@ -56,7 +56,7 @@ async function trackProjectType(platform: string): Promise<void> {
 }
 
 export async function createProject(formData: FormData): Promise<{ success: true; project?: any } | { success: false; error: string }> {
-  // Helper: safe serializable error message (defined first â€” used in all branches)
+  // Helper: safe serializable error message (defined first — used in all branches)
   function safeMsg(err: unknown): string {
     if (!err) return "Unknown error";
     if (typeof err === "object") {
@@ -75,11 +75,11 @@ export async function createProject(formData: FormData): Promise<{ success: true
     const { data: { user: u }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !u) {
       redirect("/auth/login");
-      return { success: false, error: "Oturum bulunamadÄ±." };
+      return { success: false, error: "Oturum bulunamadı." };
     }
     user = u;
   } catch (e) {
-    // redirect() throws internally in Next.js â€” re-throw so it works correctly
+    // redirect() throws internally in Next.js — re-throw so it works correctly
     throw e;
   }
 
@@ -97,11 +97,11 @@ export async function createProject(formData: FormData): Promise<{ success: true
   try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
 
   if (!title) {
-    return { success: false, error: "Proje baÅŸlÄ±ÄŸÄ± boÅŸ olamaz." };
+    return { success: false, error: "Proje başlığı boş olamaz." };
   }
 
   // Attempt 1: insert with priority + platform + tags columns
-  // (these columns may not exist in older DB schemas â€” the fallback handles that)
+  // (these columns may not exist in older DB schemas — the fallback handles that)
   const { error, data: newProject1 } = await supabase.from("projects").insert({
     student_id: user.id,
     title,
@@ -124,7 +124,7 @@ export async function createProject(formData: FormData): Promise<{ success: true
       (error as any).code === "42703";
 
     if (isMissingColumn) {
-      // priority/platform/tags columns not yet in DB schema â€”
+      // priority/platform/tags columns not yet in DB schema —
       // embed metadata into description as fallback, insert only core columns
       const augmentedDesc = [
         description,
@@ -152,10 +152,10 @@ export async function createProject(formData: FormData): Promise<{ success: true
     }
   }
 
-  // Track project type usage (non-blocking â€” silent on failure)
+  // Track project type usage (non-blocking — silent on failure)
   await trackProjectType(platform);
 
-  // Log weighted activity (10 pts for project creation) â€” non-blocking
+  // Log weighted activity (10 pts for project creation) — non-blocking
   recordUserActionAction('create_project').catch(() => {});
 
   revalidatePath("/dashboard");
@@ -233,7 +233,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Oturum bulunamadÄ±. LÃ¼tfen tekrar giriÅŸ yapÄ±n." };
+    if (!user) return { error: "Oturum bulunamadı. Lütfen tekrar giriş yapın." };
 
     const projectId   = formData.get("project_id") as string;
     const title       = (formData.get("title") as string)?.trim();
@@ -246,7 +246,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
     try {
       team_members = teamRaw ? JSON.parse(teamRaw) : undefined;
     } catch {
-      return { error: "GeÃ§ersiz Ã¼ye listesi formatÄ±." };
+      return { error: "Geçersiz üye listesi formatı." };
     }
 
     // Verify ownership using admin client to avoid RLS policy failures during select
@@ -257,9 +257,9 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
       .eq("id", projectId)
       .single();
 
-    if (selectError) return { error: `Proje sorgu hatasÄ±: ${selectError.message}` };
-    if (!existing) return { error: "Proje bulunamadÄ±." };
-    if (existing.student_id !== user.id) return { error: "Bu proje iÃ§in yetkiniz yok." };
+    if (selectError) return { error: `Proje sorgu hatası: ${selectError.message}` };
+    if (!existing) return { error: "Proje bulunamadı." };
+    if (existing.student_id !== user.id) return { error: "Bu proje için yetkiniz yok." };
 
     // Preserve any embedded metadata tags ([Priority: ...], [Platform: ...], etc.)
     const metaTags = ((existing.description ?? "").match(/\[[^\]]+\]/g) || []).join("\n");
@@ -277,7 +277,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
       .update(updatePayload)
       .eq("id", projectId);
 
-    if (updateError) return { error: `GÃ¼ncelleme hatasÄ±: ${updateError.message}` };
+    if (updateError) return { error: `Güncelleme hatası: ${updateError.message}` };
 
     // Sync project_members relational table when team changes
     if (team_members !== undefined) {
@@ -287,7 +287,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
         .eq("project_id", projectId);
 
       if (deleteError) {
-        return { error: `Ãœye silme hatasÄ±: ${deleteError.message} [${deleteError.code}]` };
+        return { error: `Üye silme hatası: ${deleteError.message} [${deleteError.code}]` };
       }
 
       if (team_members.length > 0) {
@@ -301,7 +301,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
           .insert(rows);
 
         if (insertError) {
-          return { error: `Ãœye ekleme hatasÄ±: ${insertError.message} [${insertError.code}]` };
+          return { error: `Üye ekleme hatası: ${insertError.message} [${insertError.code}]` };
         }
       }
     }
@@ -313,7 +313,7 @@ export async function updateProjectDetails(formData: FormData): Promise<{ succes
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[updateProjectDetails] UNCAUGHT EXCEPTION:", e);
-    return { error: `Beklenmedik bir sunucu hatasÄ±: ${msg}` };
+    return { error: `Beklenmedik bir sunucu hatası: ${msg}` };
   }
 }
 
@@ -343,7 +343,7 @@ export async function addProjectMemberAction(
 
   if (error) return { error: error.message };
 
-  // Notify the added member â€” wrapped so it never blocks the success response
+  // Notify the added member — wrapped so it never blocks the success response
   try {
     const { data: projectRow } = await admin
       .from("projects")
@@ -443,7 +443,7 @@ export async function toggleProjectPrivacyAction(projectId: string, isPrivate: b
 
   if (error) {
     if ((error as any).code === "42703" || error.message.toLowerCase().includes("is_private")) {
-      console.warn("is_private column not found â€” skipping privacy toggle.");
+      console.warn("is_private column not found — skipping privacy toggle.");
       return { success: false, columnMissing: true };
     }
     throw new Error(error.message);

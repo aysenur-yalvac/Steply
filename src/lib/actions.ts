@@ -38,7 +38,7 @@ export async function saveFileRecordAction(
 
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return { error: "Oturum bulunamadııÄ±. LÃ¼tfen tekrar giriÅŸ yapÄ±n." };
+    if (authError || !user) return { error: "Oturum bulunamadııı. Lütfen tekrar giriş yapın." };
 
     const admin = createAdminClient();
 
@@ -47,8 +47,8 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .single();
 
-    if (projectError) return { error: `DB Select HatasıÄ±: ${projectError.message} (Code: ${projectError.code})` };
-    if (!project) return { error: `Proje bulunamadıÄ± (projectId: ${projectId})` };
+    if (projectError) return { error: `DB Select Hatasıı: ${projectError.message} (Code: ${projectError.code})` };
+    if (!project) return { error: `Proje bulunamadıı (projectId: ${projectId})` };
 
     // Allow owner OR verified collaborator
     if (project.student_id !== user.id) {
@@ -58,7 +58,7 @@ export async function saveFileRecordAction(
         .eq("project_id", projectId)
         .eq("user_id", user.id)
         .maybeSingle();
-      if (!membership) return { error: "Bu proje iÃ§in yetkiniz yok." };
+      if (!membership) return { error: "Bu proje için yetkiniz yok." };
     }
 
     const { data: { publicUrl } } = admin.storage.from(BUCKET_ID).getPublicUrl(fileUrl);
@@ -81,8 +81,8 @@ export async function saveFileRecordAction(
       .eq("id", projectId)
       .select();
 
-    if (updateError) return { error: `DB Update HatasıÄ±: ${updateError.message} (Code: ${updateError.code})` };
-    if (!updatedRow || updatedRow.length === 0) return { error: "VeritabanÄ± gÃ¼ncellenmedi: Proje ID eÅŸleÅŸmedi." };
+    if (updateError) return { error: `DB Update Hatasıı: ${updateError.message} (Code: ${updateError.code})` };
+    if (!updatedRow || updatedRow.length === 0) return { error: "Veritabanı güncellenmedi: Proje ID eşleşmedi." };
 
     revalidatePath("/dashboard/projects");
     revalidatePath(`/dashboard/projects/${projectId}`);
@@ -98,7 +98,7 @@ export async function saveFileRecordAction(
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[saveFileRecord] UNCAUGHT EXCEPTION:", e);
-    return { error: `Beklenmedik bir sunucu hatasÄ± oluÅŸtu: ${msg}` };
+    return { error: `Beklenmedik bir sunucu hatası oluştu: ${msg}` };
   }
 }
 
@@ -351,7 +351,7 @@ export async function updateProfileAction(formData: FormData) {
 
   if (error) {
     // company/country/location/grade/school_number/school_email may not exist yet
-    // on this DB (pending migration) â€” retry with only the guaranteed-present
+    // on this DB (pending migration) — retry with only the guaranteed-present
     // core columns so the rest of the profile (incl. institution) still saves.
     if ((error as any).code === '42703') {
       const { error: coreError } = await supabase.from('profiles').update({
@@ -371,7 +371,7 @@ export async function updateProfileAction(formData: FormData) {
     }
   }
 
-  // university column may not exist if migration not yet applied â€” best-effort
+  // university column may not exist if migration not yet applied — best-effort
   if (university !== null) {
     await (supabase as any).from('profiles').update({ university }).eq('id', user.id);
   }
@@ -799,7 +799,7 @@ export async function addProjectNoteAction(
   if (!ctx) return { error: 'Unauthorized' };
 
   const trimmed = content.trim();
-  if (!trimmed) return { error: 'Not boÅŸ olamaz.' };
+  if (!trimmed) return { error: 'Not boş olamaz.' };
 
   const { data, error } = await ctx.admin
     .from('project_discussions')
@@ -819,7 +819,7 @@ export async function addProjectNoteAction(
 
   // Notify all other team members (fire-and-forget)
   try {
-    const senderName = profile?.full_name ?? 'Bir Ã¼ye';
+    const senderName = profile?.full_name ?? 'Bir üye';
 
     const [projectRow, memberRows] = await Promise.all([
       ctx.admin.from("projects").select('title, student_id').eq('id', projectId).single(),
@@ -839,7 +839,7 @@ export async function addProjectNoteAction(
         createNotificationAction(
           uid,
           'message',
-          `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaÅŸtÄ±.`,
+          `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaştı.`,
           trimmed.slice(0, 120),
           projectId,
         ),
@@ -979,7 +979,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
     if ((projectCount ?? 0) >= 1  && !current.has('first_project')) toAdd.push('first_project');
     if ((projectCount ?? 0) >= 10 && !current.has('prolific'))      toAdd.push('prolific');
 
-    // streak badge â€” need activity for 7 consecutive days ending today
+    // streak badge — need activity for 7 consecutive days ending today
     const last7: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(); d.setDate(d.getDate() - i);
@@ -993,7 +993,7 @@ async function awardBadgesInternal(userId: string, admin: ReturnType<typeof crea
     const activeDates = new Set((streakRows ?? []).map((r: any) => r.date as string));
     if (last7.every(d => activeDates.has(d)) && !current.has('streak_7')) toAdd.push('streak_7');
 
-    // ranking badges â€” only if total_score > 0
+    // ranking badges — only if total_score > 0
     const score = profile?.total_score ?? 0;
     if (score > 0) {
       const { count: higherGlobal } = await admin
@@ -1030,8 +1030,8 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
     });
 
     if (rpcErr) {
-      console.error('Puanlama HatasıÄ± (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
-      // RPC not yet deployed â€” manual fallback with weighted points
+      console.error('Puanlama Hatasıı (RPC):', rpcErr.message, { actionType, code: rpcErr.code });
+      // RPC not yet deployed — manual fallback with weighted points
       const POINTS: Record<ActionType, number> = {
         create_project: 10,
         complete_project: 20,
@@ -1066,10 +1066,10 @@ export async function recordUserActionAction(actionType: ActionType): Promise<vo
       }).eq('id', user.id);
     }
 
-    // Award badges â€” non-blocking
+    // Award badges — non-blocking
     awardBadgesInternal(user.id, admin).catch(() => {});
   } catch (e) {
-    console.error('Puanlama HatasıÄ± (exception):', e);
+    console.error('Puanlama Hatasıı (exception):', e);
   }
 }
 
@@ -1165,12 +1165,12 @@ export async function addLinkedAccountAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
   if (email.toLowerCase() === user.email?.toLowerCase())
-    return { error: 'Kendi hesabÄ±nÄ±zÄ± ekleyemezsiniz.' };
+    return { error: 'Kendi hesabınızı ekleyemezsiniz.' };
 
   const admin = createAdminClient();
 
   const { data: foundUserId, error: lookupErr } = await admin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() });
-  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadıÄ±.' };
+  if (lookupErr || !foundUserId) return { error: 'Bu e-posta adresine sahip bir hesap bulunamadıı.' };
 
   // Fetch both sides' enrichment data.
   const [{ data: authUser }, { data: profile }, { data: ownerAuthUser }, { data: ownerProfile }] = await Promise.all([
@@ -1184,7 +1184,7 @@ export async function addLinkedAccountAction(
   const linkedName    = (profile as any)?.full_name  ?? null;
   const linkedAvatar  = (profile as any)?.avatar_url ?? null;
 
-  // Forward row: current user â†’ target
+  // Forward row: current user → target
   const { data: existing } = await admin
     .from('linked_accounts')
     .select('id')
@@ -1211,7 +1211,7 @@ export async function addLinkedAccountAction(
     linkedId = inserted.id;
   }
 
-  // Reverse row: target â†’ current user (bidirectional so both sides see each other)
+  // Reverse row: target → current user (bidirectional so both sides see each other)
   const { data: revExisting } = await admin
     .from('linked_accounts')
     .select('id')
@@ -1258,13 +1258,13 @@ export async function removeLinkedAccountAction(
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row) return { error: 'BaÄŸlantÄ± bulunamadıÄ±.' };
+  if (!row) return { error: 'Bağlantı bulunamadıı.' };
 
   const ownerUserId  = user.id;            // A's uuid
   const ownerEmail   = user.email ?? '';   // A's email (fallback key for B's row)
   const targetUserId = row.linked_user_id; // B's uuid (may be null on legacy rows)
 
-  // Delete Aâ†’B (forward row)
+  // Delete A→B (forward row)
   const { error: fwdErr } = await admin
     .from('linked_accounts')
     .delete()
@@ -1272,7 +1272,7 @@ export async function removeLinkedAccountAction(
     .eq('linked_user_id', targetUserId);
   if (fwdErr) return { error: fwdErr.message };
 
-  // Delete Bâ†’A (reverse row).
+  // Delete B→A (reverse row).
   // Some legacy rows may have linked_user_id=null and only store A's email in the
   // `linked_email` column, so we match on either the uuid OR the stored email as fallback.
   if (targetUserId) {
@@ -1300,7 +1300,7 @@ export async function getLeaderboardAction(
     .limit(50);
 
   if (scope === 'turkey') {
-    query = (query as any).or('country.ilike.%tÃ¼rkiye%,country.ilike.%turkey%,country.ilike.%turkiye%');
+    query = (query as any).or('country.ilike.%türkiye%,country.ilike.%turkey%,country.ilike.%turkiye%');
   }
   if (scope === 'university' && userUniversity) {
     query = query.eq('university', userUniversity);
@@ -1335,7 +1335,7 @@ export async function followUserAction(
   if (!user) return { error: 'Unauthorized' };
   if (user.id === targetId) return { error: 'Cannot follow yourself' };
 
-  // Use admin client to bypass RLS â€” auth check already done above
+  // Use admin client to bypass RLS — auth check already done above
   const admin = createAdminClient();
   const { error } = await admin
     .from('follows')
@@ -1357,7 +1357,7 @@ export async function unfollowUserAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Unauthorized' };
 
-  // Use admin client to bypass RLS â€” auth check already done above
+  // Use admin client to bypass RLS — auth check already done above
   const admin = createAdminClient();
   const { error } = await admin
     .from('follows')

@@ -16,7 +16,7 @@ export default function CompleteProjectButton({ projectId, isCompletedInitial }:
         toast.error(result.error);
       } else {
         setIsCompleted(true);
-        toast.success('Proje baÅŸarÄ±yla tamamlandÄ±!');
+        toast.success('Proje başarıyla tamamlandı!');
       }
     });
   };
@@ -25,7 +25,7 @@ export default function CompleteProjectButton({ projectId, isCompletedInitial }:
     return (
       <div className="mt-4 flex items-center justify-center gap-2 text-emerald-700 text-sm font-semibold p-4 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm w-full">
         <Check className="w-5 h-5 text-emerald-600" />
-        Proje TamamlandÄ±
+        Proje Tamamlandı
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function CompleteProjectButton({ projectId, isCompletedInitial }:
       ) : (
         <Check className="w-5 h-5" strokeWidth={2.5} />
       )}
-      {isPending ? 'TamamlanÄ±yor...' : 'Projeyi Bitir'}
+      {isPending ? 'Tamamlanıyor...' : 'Projeyi Bitir'}
     </button>
   );
 }

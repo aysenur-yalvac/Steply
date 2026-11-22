@@ -56,13 +56,25 @@ type Project = {
 
 // â”€â”€ Priority badge helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PRIORITY_CLASSES: Record<string, { badge: string; dot: string }> = {
+  Low: { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: ""   },
+  Medium: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: ""  },
+  High: { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: ""   },
   Düşük: { badge: "bg-teal-50 text-teal-700 border-teal-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",     dot: ""   },
   Orta: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",  dot: ""  },
   Yüksek: { badge: "bg-rose-50 text-rose-700 border-rose-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",   dot: ""   },
 };
 
+const PRIORITY_LABELS: Record<string, string> = {
+  Low: "Düşük",
+  Medium: "Orta",
+  High: "Yüksek",
+  Düşük: "Düşük",
+  Orta: "Orta",
+  Yüksek: "Yüksek",
+};
+
 function getPriorityClasses(priority?: string | null) {
-  return PRIORITY_CLASSES[priority ?? ""] ?? PRIORITY_CLASSES["Medium"];
+  return PRIORITY_CLASSES[priority ?? ""] ?? PRIORITY_CLASSES["Medium"] ?? PRIORITY_CLASSES["Orta"] ?? { badge: "", dot: "" };
 }
 
 // Strip any bracketed metadata tags embedded in description (e.g. [Priority: High])
@@ -128,7 +140,7 @@ function KanbanCard({
   }, [hasUnsavedChanges]);
 
   const rawPriority        = getPriority(project);
-  const priorityLabel      = rawPriority ?? "Medium";
+  const priorityLabel      = PRIORITY_LABELS[rawPriority ?? "Medium"] ?? rawPriority ?? "Orta";
   const priorityClasses    = getPriorityClasses(rawPriority);
   const displayDescription = cleanDescription(project.description ?? "");
   const canAddNote         = currentUserId === project.student_id;
@@ -141,8 +153,8 @@ function KanbanCard({
     try {
       await addQuickNoteAction(project.id, noteContent);
       setIsEditingNote(false);
-      toast.success("Note saved!");
-    } catch { toast.error("An error occurred"); }
+      toast.success("Not kaydedildi!");
+    } catch { toast.error("Bir hata oluştu"); }
     finally { setIsNoteSaving(false); }
   };
 
@@ -152,19 +164,19 @@ function KanbanCard({
       await deleteQuickNoteAction(project.id);
       setNoteContent("");
       setIsEditingNote(true);
-      toast.success("Note cleared!");
-    } catch { toast.error("An error occurred"); }
+      toast.success("Not silindi!");
+    } catch { toast.error("Bir hata oluştu"); }
     finally { setIsNoteSaving(false); }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this project? This action cannot be undone.")) return;
+    if (!window.confirm("Bu projeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
     setIsDeleting(true);
     try {
       await deleteProjectAction(project.id);
-      toast.success("Project deleted.");
+      toast.success("Proje silindi.");
     } catch {
-      toast.error("Failed to delete project");
+      toast.error("Proje silinirken hata oluştu");
       setIsDeleting(false);
     }
   };
@@ -229,7 +241,7 @@ function KanbanCard({
               <span>{new Date(project.start_date).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
             )}
             {project.start_date && project.end_date && (
-              <span className="text-slate-300">â†’</span>
+              <span className="text-slate-300">→</span>
             )}
             {project.end_date && (
               <span>{new Date(project.end_date).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
@@ -282,14 +294,14 @@ function KanbanCard({
                     rel="noreferrer"
                     className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                   >
-                    <Github className="w-3.5 h-3.5" /> Repository
+                    <Github className="w-3.5 h-3.5" /> GitHub
                   </a>
                 )}
                 <Link
                   href={`/dashboard/projects/${project.id}`}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 >
-                  View Details
+                  Detayları Gör
                 </Link>
                 {currentUserId === project.student_id && (
                   <motion.button
@@ -343,7 +355,7 @@ function KanbanCard({
                                 onClick={() => setIsEditingNote(false)}
                                 className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
                               >
-                                Cancel
+                                İptal
                               </button>
                             )}
                             <button
@@ -352,7 +364,7 @@ function KanbanCard({
                               className="flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-lg bg-violet-600 text-white disabled:opacity-50 hover:bg-violet-700 transition-colors"
                             >
                               {isNoteSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                              Save
+                              Kaydet
                             </button>
                           </div>
                         </>

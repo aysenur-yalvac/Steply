@@ -41,6 +41,21 @@ type Filters = {
 const STATUS_OPTIONS  = ["To Do", "In Review", "Completed"] as const;
 const PRIORITY_OPTIONS = ["Low", "Medium", "High"]          as const;
 
+const STATUS_LABELS: Record<string, string> = {
+  "To Do": "Yapılacak",
+  "In Review": "İncelemede",
+  "Completed": "Tamamlandı",
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  Low: "Düşük",
+  Medium: "Orta",
+  High: "Yüksek",
+  Düşük: "Düşük",
+  Orta: "Orta",
+  Yüksek: "Yüksek",
+};
+
 const PRIORITY_CLASSES: Record<string, string> = {
   Low:    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
   Medium: "bg-orange-100 text-orange-700 border-orange-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80",
@@ -60,7 +75,7 @@ function projectStatus(p: Project): string {
 }
 
 // Mirror KanbanBoard's getPriority: column first, then [Priority: X] in description,
-// then "Medium" as display default â€” so filter always matches the visible badge.
+// then "Medium" as display default — so filter always matches the visible badge.
 function getEffectivePriority(p: Project): string {
   if (p.priority?.trim()) return p.priority.trim();
   const match = (p.description ?? "").match(/\[Priority:\s*([^\]]+)\]/i);
@@ -88,20 +103,20 @@ function StatusBadge({ progress }: { progress: number }) {
   if (progress === 100) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-        <CheckCircle className="w-3 h-3" /> Completed
+        <CheckCircle className="w-3 h-3" /> Tamamlandı
       </span>
     );
   }
   if (progress > 0) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-        <Clock className="w-3 h-3" /> In Review
+        <Clock className="w-3 h-3" /> İncelemede
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-      <Minus className="w-3 h-3" /> To Do
+      <Minus className="w-3 h-3" /> Yapılacak
     </span>
   );
 }
@@ -162,7 +177,7 @@ function FilterDropdown({
         )}
       </div>
 
-      {/* Student search â€” teachers only */}
+      {/* Student search — teachers only */}
       {isTeacher && (
         <div className="px-4 pt-3 pb-2 border-b border-slate-100">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Öğrenci</p>
@@ -170,7 +185,7 @@ function FilterDropdown({
             type="text"
             value={filters.studentSearch}
             onChange={e => onStudentSearch(e.target.value)}
-            placeholder="Ä°sme gÃ¶re araâ€¦"
+            placeholder="İsme göre ara…"
             className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-violet-400 focus:bg-white dark:bg-slate-900 transition-colors"
           />
         </div>
@@ -298,7 +313,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
     <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Proje Adı</span>
-        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ã–ÄŸrenci</span>}
+        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
@@ -332,13 +347,13 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                       {project.profiles.full_name}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-300">â€”</span>
+                    <span className="text-xs text-slate-300">—</span>
                   )}
                 </div>
               )}
               <div>
                 <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 ' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 ' : 'bg-violet-100 text-violet-700'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
-                  {projectStatus(project)}
+                  {STATUS_LABELS[projectStatus(project)] ?? projectStatus(project)}
                 </span>
               </div>
               <div>

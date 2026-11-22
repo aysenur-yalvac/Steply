@@ -268,7 +268,7 @@ export default function AnimatedCharactersLoginPage({
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
-  // Manually parse hash tokens and call setSession â€” onAuthStateChange receives
+  // Manually parse hash tokens and call setSession — onAuthStateChange receives
   // INITIAL_SESSION null because a fresh createClient() never auto-parses the hash.
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -415,7 +415,7 @@ export default function AnimatedCharactersLoginPage({
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
         <Loader2 className="w-10 h-10 text-violet-400 animate-spin mb-4" />
-        <p className="text-sm font-medium text-slate-300">Hedef hesaba geçiş yapılıyor, lütfen bekleyinâ€¦</p>
+        <p className="text-sm font-medium text-slate-300">Hedef hesaba geçiş yapılıyor, lütfen bekleyin…</p>
       </div>
     );
   }
@@ -440,7 +440,7 @@ export default function AnimatedCharactersLoginPage({
         <div className="relative z-20 flex items-end justify-center" style={{ height: "440px" }}>
           <div className="relative" style={{ width: "550px", height: "400px" }}>
 
-            {/* Purple tall rectangle â€” back layer */}
+            {/* Purple tall rectangle — back layer */}
             <div
               ref={purpleRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -479,7 +479,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Dark rectangle â€” middle layer */}
+            {/* Dark rectangle — middle layer */}
             <div
               ref={blackRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -521,7 +521,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Coral semi-circle â€” front left */}
+            {/* Coral semi-circle — front left */}
             <div
               ref={orangeRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -554,7 +554,7 @@ export default function AnimatedCharactersLoginPage({
               </div>
             </div>
 
-            {/* Yellow rounded rectangle â€” front right */}
+            {/* Yellow rounded rectangle — front right */}
             <div
               ref={yellowRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
@@ -619,7 +619,7 @@ export default function AnimatedCharactersLoginPage({
         className="flex flex-col overflow-y-auto"
         style={{ background: "#0B0E14" }}
       >
-        {/* Back button â€” top of form panel */}
+        {/* Back button — top of form panel */}
         <div className="px-8 pt-10 pb-0">
           <BackButton href="/" />
         </div>
@@ -780,7 +780,7 @@ export default function AnimatedCharactersLoginPage({
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Åifre</label>
+                <label className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>Şifre</label>
               </div>
               <div className="relative">
                 <input
@@ -824,7 +824,7 @@ export default function AnimatedCharactersLoginPage({
               </label>
               {isLogin && (
                 <a href="#" className="text-[11px] font-semibold transition-colors hover:text-purple-300" style={{ color: "#A78BFA" }}>
-                  Åifremi Unuttum
+                  Şifremi Unuttum
                 </a>
               )}
             </div>

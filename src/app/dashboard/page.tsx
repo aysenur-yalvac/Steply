@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "My Projects | Academy.Must-b",
+  title: "Projelerim | Must-b Academy",
 };
 import Link from 'next/link';
 
@@ -138,11 +138,11 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
           My Projects{' '}
           <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600 dark:text-slate-300">
-            {isTeacher ? 'Portfolio Overview' : 'All Projects'}
+            {isTeacher ? 'Portfolyo Genel Bakış' : 'Tüm Projeler'}
           </span>
         </p>
         <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
-          {isTeacher ? 'Portfolio Overview' : 'My Projects'}
+          {isTeacher ? 'Portfolyo Genel Bakış' : 'Projelerim'}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-4">
           {isTeacher
@@ -164,7 +164,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               <div className="p-1.5 rounded-lg bg-amber-100">
                 <AlertTriangle className="w-4 h-4 text-amber-600" strokeWidth={2} />
               </div>
-              <p className="text-sm font-bold text-amber-800">Upcoming Tasks — Act Now!</p>
+              <p className="text-sm font-bold text-amber-800">Yaklaşan Görevler — Hemen Harekete Geçin!</p>
             </div>
             <div className="flex flex-col gap-2">
               {upcomingTasks.map((task: any) => {
@@ -181,7 +181,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
                       <span className="flex-1 truncate">{task.title || task.task_title}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700 ' : 'bg-amber-100 text-amber-700 '} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
-                      {isToday ? 'Due Today!' : 'Due Tomorrow'}
+                      {isToday ? 'Bugün Teslim!' : 'Yarın Teslim'}
                     </span>
                   </div>
                 );
@@ -191,7 +191,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               href="/dashboard/agenda"
               className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
             >
-              View all agenda tasks →
+              Tüm ajanda görevlerini gör →
             </Link>
           </div>
         )}
@@ -211,15 +211,15 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
               <div className="flex justify-center mt-8">
                 <EmptyState
                   icon={FolderOpen}
-                  title="No active projects yet."
-                  description="Every great project starts with a single step. Let's build something amazing."
+                  title="Henüz aktif proje bulunmuyor."
+                  description="Her büyük başarı bir adımla başlar. Hemen yeni bir proje oluşturun ve çalışmaya başlayın."
                   action={
                     isStudent ? (
                       <Link
                         href="/dashboard/projects/new"
                         className="btn-aura inline-flex items-center gap-2 text-sm font-bold text-white px-6 py-3 rounded-xl"
                       >
-                        <Plus className="w-4 h-4" /> Start Your First Project
+                        <Plus className="w-4 h-4" /> İlk Projenizi Başlatın
                       </Link>
                     ) : null
                   }

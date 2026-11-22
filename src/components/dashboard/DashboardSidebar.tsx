@@ -109,7 +109,7 @@ function NavContent({
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
 
-  // Refresh accounts from server â€” called on mount and each time dropdown opens.
+  // Refresh accounts from server — called on mount and each time dropdown opens.
   async function refreshAccounts() {
     setIsLoadingAccounts(true);
     try {
@@ -119,7 +119,7 @@ function NavContent({
         setAccounts(data);
       }
     } catch {
-      // silent â€” keep stale list
+      // silent — keep stale list
     } finally {
       setIsLoadingAccounts(false);
     }
@@ -178,7 +178,7 @@ function NavContent({
     if (!switchTarget || isSwitching) return;
 
     if (!switchTarget.linked_user_id) {
-      setSwitchError("Bu hesap iÃ§in kullanÄ±cÄ± ID'si bulunamadÄ±. HesabÄ± silip tekrar ekleyin.");
+      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı. Hesabı silip tekrar ekleyin.");
       return;
     }
 
@@ -195,7 +195,7 @@ function NavContent({
       const data = await res.json();
 
       if (!res.ok || !data.url) {
-        setSwitchError(data.error ?? 'Hesap geÃ§iÅŸi baÅŸarÄ±sÄ±z oldu. Tekrar deneyin.');
+        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu. Tekrar deneyin.');
         setIsSwitching(false);
         return;
       }
@@ -207,7 +207,7 @@ function NavContent({
       window.location.href = data.url;
     } catch (e) {
       console.error('[switch-account] network error:', e);
-      setSwitchError('AÄŸ hatasÄ±. Ä°nternet baÄŸlantÄ±nÄ±zÄ± kontrol edin.');
+      setSwitchError('Ağ hatası. İnternet bağlantınızı kontrol edin.');
       setIsSwitching(false);
     }
   }
@@ -484,10 +484,10 @@ function NavContent({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap BaÄŸlantÄ±sÄ±nÄ± KaldÄ±r</h3>
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap Bağlantısını Kaldır</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-300">
                 <span className="font-semibold text-slate-700">{removeTarget.linked_name || removeTarget.linked_email}</span>{" "}
-                hesabÄ±nÄ±n baÄŸlantÄ±sÄ±nÄ± kaldÄ±rmak istediÄŸinize emin misiniz? Bu iÅŸlem her iki hesaptaki hÄ±zlÄ± geÃ§iÅŸ menÃ¼sÃ¼nden de bu hesabÄ± kaldÄ±racaktÄ±r.
+                hesabının bağlantısını kaldırmak istediğinize emin misiniz? Bu işlem her iki hesaptaki hızlı geçiş menüsünden de bu hesabı kaldıracaktır.
               </p>
             </div>
             <div className="flex gap-2">
@@ -497,7 +497,7 @@ function NavContent({
                 disabled={isRemoving}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
               >
-                VazgeÃ§
+                Vazgeç
               </button>
               <button
                 type="button"
@@ -505,7 +505,7 @@ function NavContent({
                 disabled={isRemoving}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-70"
               >
-                {isRemoving ? "KaldÄ±rÄ±lÄ±yor..." : "Evet, KaldÄ±r"}
+                {isRemoving ? "Kaldırılıyor..." : "Evet, Kaldır"}
               </button>
             </div>
           </div>
@@ -569,7 +569,7 @@ export default function DashboardSidebar(props: SidebarProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* Desktop sidebar â€” collapsible */}
+      {/* Desktop sidebar — collapsible */}
       
       {/* Desktop overlay when expanded */}
       <AnimatePresence>
