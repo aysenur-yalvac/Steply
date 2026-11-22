@@ -14,7 +14,7 @@ export default function Navbar() {
 
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
-  if (pathname.startsWith('/dashboard')) return null;
+  if (pathname.startsWith('/dashboard') || pathname === '/') return null;
 
   const closeMenus = () => setIsMenuOpen(false);
   const isUserProfilePage = pathname.startsWith('/user/');
@@ -101,3 +101,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
