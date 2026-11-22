@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { sendMessage, markMessagesAsRead } from './actions';
@@ -101,7 +101,7 @@ export default function ChatWindow({
       >
         {messages.length === 0 ? (
            <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
-             You haven't messaged yet. Type below to start a conversation.
+             Henüz mesaj yok. Bir konuşma başlatmak için aşağıya yazın.
            </div>
         ) : (
           messages.map((msg) => {
@@ -117,7 +117,7 @@ export default function ChatWindow({
                   >
                      <p className="whitespace-pre-wrap break-words text-[15px]">{msg.content}</p>
                      <span className={`block text-[10px] mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}>
-                       {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                       {new Date(msg.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                      </span>
                   </div>
                </div>
@@ -130,7 +130,7 @@ export default function ChatWindow({
       <div className="p-4 bg-slate-900/80 border-t border-slate-800 backdrop-blur-sm shrink-0">
          <form id="chat-form" action={handleSubmit} className="flex gap-2 items-end relative">
             <textarea name="content"
-              placeholder="Type your message..."
+              placeholder="Bir mesaj yazın..."
               className="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors resize-none placeholder-slate-500 min-h-[50px] max-h-[120px] dark:bg-slate-800 dark:text-white dark:border-slate-700"
               rows={1}
               required

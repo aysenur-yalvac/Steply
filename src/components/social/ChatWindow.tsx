@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, FolderRoot } from 'lucide-react';
@@ -160,7 +160,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
         setTimeout(scrollToBottom, 100);
       }
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error("Mesaj gönderilemedi");
       console.error(error);
     } finally {
       setIsSending(false);
@@ -212,7 +212,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
              <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200/60 flex flex-col items-center justify-center shadow-inner">
                <Send className="w-8 h-8 text-slate-400" />
              </div>
-             <p className="max-w-xs text-sm font-medium !text-slate-900 dark:text-slate-100">No messages yet. Say hi to start the conversation!</p>
+             <p className="max-w-xs text-sm font-medium !text-slate-900 dark:text-slate-100">Henüz mesaj yok. Sohbeti başlatmak için bir merhaba deyin!</p>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -260,7 +260,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60'
                       }`}
                     >
-                      <FolderRoot className="w-3.5 h-3.5" /> View Project
+                      <FolderRoot className="w-3.5 h-3.5" /> Projeyi Gör
                     </a>
                   )}
                   
@@ -280,7 +280,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
         {showMentionMenu && projects.length > 0 && (
           <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white/95 backdrop-blur-3xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
             <div className="px-4 py-3 text-xs font-bold text-sage-green border-b border-slate-100 bg-slate-50/50 uppercase tracking-widest">
-              Mention a project
+              Bir projeden bahset
             </div>
             <ul className="max-h-48 overflow-y-auto custom-scrollbar p-1">
               {projects.map(p => (
@@ -302,7 +302,7 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
             type="text"
             value={newMessage}
             onChange={handleInputChange}
-            placeholder="Type your message... (Use @ to tag a project)"
+            placeholder="Mesajınızı yazın... (Projeyi etiketlemek için @ kullanın)"
             className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             autoComplete="off"
           />

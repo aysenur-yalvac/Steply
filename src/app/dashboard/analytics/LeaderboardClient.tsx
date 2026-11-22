@@ -79,7 +79,7 @@ function LeaderboardTable({
               <Avatar src={entry.avatar_url} name={entry.full_name ?? "?"} size="sm" />
               <div className="min-w-0">
                 <p className={`text-sm truncate ${isMe ? "font-bold text-violet-700 dark:text-violet-400" : "text-slate-800 dark:!text-slate-100 font-semibold"}`}>
-                  {entry.full_name ?? "Anonymous"}
+                  {entry.full_name ?? "Anonim"}
                   {isMe && <span className="ml-1.5 text-[10px] font-bold bg-violet-200 text-violet-700 px-1.5 py-0.5 rounded-full">Sen</span>}
                 </p>
                 {entry.university && (
@@ -145,11 +145,11 @@ export default function LeaderboardClient({
           <BackButton href="/dashboard" variant="light" />
         </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
-          Analytics <span className="text-slate-300 mx-1">›</span>
-          <span className="text-slate-600 dark:text-slate-300">Leaderboard</span>
+          Analitik <span className="text-slate-300 mx-1">›</span>
+          <span className="text-slate-600 dark:text-slate-300">Liderlik Tablosu</span>
         </p>
         <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
-          Analytics
+          Analitik
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-5">
           Aktivite sıralaması ve rozet sistemi.

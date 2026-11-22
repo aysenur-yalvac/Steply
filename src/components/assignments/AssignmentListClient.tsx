@@ -45,12 +45,12 @@ export default function AssignmentListClient({
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
-    if (!confirm('Bu odev cop kutusuna tasinsin mi?')) return;
+    if (!confirm('Bu ödev çöp kutusuna taşınsın mı?')) return;
 
     const res = await softDeleteAssignmentAction(id);
 
     if (!res.success) {
-      alert(`SILME BASARISIZ (DB HATASI): ${res.error}`);
+      alert(`Silme başarısız (Veritabanı hatası): ${res.error}`);
       router.refresh();
     } else {
       setAssignmentsList(prev => prev.filter(a => a.id !== id));
@@ -104,11 +104,11 @@ export default function AssignmentListClient({
           <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
             <FileText className="w-10 h-10 text-slate-500" />
           </div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Henuz odev bulunmuyor</h3>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Henüz ödev bulunmuyor</h3>
           <p className="text-slate-600 dark:text-slate-400 max-w-sm">
             {isTeacher
-              ? "Ogrencileriniz icin yeni bir odev olusturarak baslayabilirsiniz."
-              : "Kayitli oldugunuz siniflara henuz odev atanmamis."}
+              ? "Öğrencileriniz için yeni bir ödev oluşturarak başlayabilirsiniz."
+              : "Kayıtlı olduğunuz sınıflara henüz ödev atanmamış."}
           </p>
         </div>
       ) : (
@@ -144,7 +144,7 @@ export default function AssignmentListClient({
                       )}
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
-                      {assignment.description || "Aciklama bulunmuyor."}
+                      {assignment.description || "Açıklama bulunmuyor."}
                     </p>
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function AssignmentListClient({
                         : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20"
                     }`}>
                       <Clock className="w-3.5 h-3.5" />
-                      {isExpired ? "Suresi Doldu" : "Devam Ediyor"}
+                      {isExpired ? "Süresi Doldu" : "Devam Ediyor"}
                     </span>
 
                     {isTeacher && (
@@ -175,7 +175,7 @@ export default function AssignmentListClient({
                             setEditingAssignment(assignment);
                           }}
                           className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:text-slate-400 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/50 rounded-lg transition-all"
-                          title="Odevi Duzenle"
+                          title="Ödevi Düzenle"
                         >
                           <Pencil className="w-5 h-5" />
                         </button>
@@ -183,7 +183,7 @@ export default function AssignmentListClient({
                           type="button"
                           onClick={(e) => handleDelete(e, assignment.id)}
                           className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/50 rounded-lg transition-all"
-                          title="Cop Kutusuna Tasi"
+                          title="Çöp Kutusuna Taşı"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>

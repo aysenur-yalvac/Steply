@@ -52,7 +52,7 @@ export default async function FavoritesPage() {
           <BackButton href="/dashboard" variant="light" />
         </div>
         <p className="text-xs font-semibold text-slate-400 mb-1">
-          Dashboard <span className="text-slate-300 mx-1">›</span>
+          Panel <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600 dark:text-slate-300">Favoriler</span>
         </p>
         <div className="flex items-center gap-3 mt-1">

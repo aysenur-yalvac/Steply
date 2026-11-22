@@ -218,7 +218,7 @@ function FilterDropdown({
                   )}
                 </div>
                 <span className={`${meta.color} flex items-center gap-1.5 text-sm font-medium`}>
-                  {meta.icon} {opt}
+                  {meta.icon} {STATUS_LABELS[opt] || opt}
                 </span>
               </label>
             );
@@ -257,7 +257,7 @@ function FilterDropdown({
                 </div>
                 <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
                   
-                  {opt}
+                  {PRIORITY_LABELS[opt] || opt}
                 </span>
               </label>
             );
@@ -314,8 +314,8 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
       <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Proje Adı</span>
         {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Durum</span>
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öncelik</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
         <span />
       </div>
@@ -363,7 +363,7 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                   const dot = PRIORITY_DOT[p]    ?? PRIORITY_DOT["Medium"];
                   return (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cls}`}>
-                       {p}
+                       {PRIORITY_LABELS[p] ?? p}
                     </span>
                   );
                 })()}
@@ -499,7 +499,7 @@ export default function DashboardViewSwitcher({
               <line x1="2" y1="8" x2="14" y2="8" />
               <line x1="2" y1="12" x2="14" y2="12" />
             </svg>
-            List
+            Liste
           </button>
         </div>
 
@@ -518,7 +518,7 @@ export default function DashboardViewSwitcher({
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
-              Filter
+              Filtrele
               {activeCount > 0 && (
                 <span className="ml-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-white dark:bg-slate-900 text-violet-700 text-[10px] font-black leading-none">
                   {activeCount}
@@ -556,7 +556,7 @@ export default function DashboardViewSwitcher({
                 className="btn-aura flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl shrink-0 active:scale-95 overflow-hidden"
               >
                 <Plus className="w-4 h-4" strokeWidth={2.5} />
-                New
+                Yeni Proje
               </Link>
             </>
           )}
@@ -574,8 +574,8 @@ export default function DashboardViewSwitcher({
             className="flex items-center gap-2 flex-wrap overflow-hidden"
           >
             {[
-              ...filters.status.map(v => ({ label: v, group: "status" as const })),
-              ...filters.priority.map(v => ({ label: v, group: "priority" as const })),
+              ...filters.status.map(v => ({ label: STATUS_LABELS[v] ?? v, group: "status" as const })),
+              ...filters.priority.map(v => ({ label: PRIORITY_LABELS[v] ?? v, group: "priority" as const })),
               ...filters.tags.map(v => ({ label: `#${v}`, group: "tags" as const, raw: v })),
               ...(filters.studentSearch.trim() ? [{ label: `ğŸ‘¤ ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
             ].map(({ label, group, ...rest }) => (
@@ -619,7 +619,7 @@ export default function DashboardViewSwitcher({
             className="flex flex-col items-center gap-3 py-16 text-slate-400"
           >
             <SlidersHorizontal className="w-8 h-8 opacity-30" />
-            <p className="text-sm font-medium">No projects match the active filters.</p>
+            <p className="text-sm font-medium">Aktif filtrelere uyan proje bulunamadı.</p>
             <button onClick={clearFilters} className="text-xs font-semibold text-violet-600 hover:underline">
               Clear filters
             </button>
@@ -663,10 +663,10 @@ export default function DashboardViewSwitcher({
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">
-                Collaborative Projects
+                Ortak Projeler
               </h2>
               <p className="text-xs text-slate-400 font-medium">
-                Projects you've been added to — you can view and edit them.
+                Dahil edildiğiniz projeler — görüntüleyebilir ve düzenleyebilirsiniz.
               </p>
             </div>
           </div>

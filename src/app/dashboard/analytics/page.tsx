@@ -1,4 +1,4 @@
-﻿import { Suspense } from 'react';
+import { Suspense } from 'react';
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { getLeaderboardAction, getUserActivitiesAction } from "@/lib/actions";
@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Analytics | Academy.Must-b",
+  title: "Analitik | Must-b Academy",
 };
 
 async function AnalyticsPageContent() {

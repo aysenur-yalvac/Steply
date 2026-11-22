@@ -1,9 +1,9 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { BackButton } from "@/components/ui/back-button";
 import TrashTabsClient from "@/components/dashboard/TrashTabsClient";
 
 export const metadata: Metadata = {
-  title: "Cop Kutusu | Academy.Must-b",
+  title: "Çöp Kutusu | Must-b Academy",
 };
 
 export default function TrashLayout({ children }: { children: React.ReactNode }) {
@@ -14,9 +14,9 @@ export default function TrashLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-4">
             <BackButton href="/dashboard" variant="light" />
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Cop Kutusu</h1>
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Çöp Kutusu</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Silinmis projeleriniz ve dosyalariniz burada yer alir.
+                Silinmiş projeleriniz ve dosyalarınız burada yer alır.
               </p>
             </div>
           </div>

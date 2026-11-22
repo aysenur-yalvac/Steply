@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -68,7 +68,7 @@ export default function NewProjectPage() {
   const handleSubmit = async (formData: FormData) => {
     const title = (formData.get('title') as string)?.trim();
     if (!title) {
-      toast.error('Project title is required.');
+      toast.error('Proje adı zorunludur.');
       return;
     }
 
@@ -84,13 +84,13 @@ export default function NewProjectPage() {
     try {
       const result = await createProject(formData);
       if (!result.success) {
-        toast.error(result.error || 'An error occurred');
+        toast.error(result.error || 'Bir hata oluştu');
         return;
       }
-      toast.success('Project created successfully!');
+      toast.success('Proje başarıyla oluşturuldu!');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.message || 'An error occurred');
+      toast.error(err.message || 'Bir hata oluştu');
     } finally {
       setIsPending(false);
     }
@@ -106,8 +106,8 @@ export default function NewProjectPage() {
             <Plus className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Start New Project</h1>
-            <p className="text-slate-500 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400">Take the first step towards your goals now.</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Yeni Proje Başlat</h1>
+            <p className="text-slate-500 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400">Hedeflerinize doğru ilk adımı şimdi atın.</p>
           </div>
         </div>
 
@@ -116,12 +116,12 @@ export default function NewProjectPage() {
             {/* Project Title */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                <Layout className="w-4 h-4 text-indigo-500" /> Project Title
+                <Layout className="w-4 h-4 text-indigo-500" /> Proje Adı
               </label>
               <input
                 name="title"
                 type="text"
-                placeholder="e.g.: Mobile App Development"
+                placeholder="Örn: Mobil Uygulama Geliştirme"
                 required
                 className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
@@ -130,11 +130,11 @@ export default function NewProjectPage() {
             {/* Description */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                <AlignLeft className="w-4 h-4 text-indigo-500" /> Details
+                <AlignLeft className="w-4 h-4 text-indigo-500" /> Açıklama
               </label>
               <textarea
                 name="description"
-                placeholder="Describe the purpose and goals of the project briefly..."
+                placeholder="Projenin amacını ve hedeflerini kısaca açıklayın..."
                 rows={4}
                 className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm resize-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
@@ -148,7 +148,7 @@ export default function NewProjectPage() {
               <div className="flex gap-2">
                 {PRIORITIES.map(({ value, activeClass }) => (
                   <button
-                    key={value}
+                    key={value === "Low" ? "Düşük" : value === "Medium" ? "Orta" : "Yüksek"}
                     type="button"
                     onClick={() => setPriority(value)}
                     className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
@@ -157,7 +157,7 @@ export default function NewProjectPage() {
                         : 'bg-white border-slate-200 text-slate-500 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    {value}
+                    {value === "Low" ? "Düşük" : value === "Medium" ? "Orta" : "Yüksek"}
                   </button>
                 ))}
               </div>
@@ -171,7 +171,7 @@ export default function NewProjectPage() {
               <input
                 name="platform"
                 type="text"
-                placeholder="e.g.: React Native, Next.js, REST API..."
+                placeholder="Örn: React Native, Next.js, REST API..."
                 className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
               />
             </div>
@@ -213,7 +213,7 @@ export default function NewProjectPage() {
             <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-indigo-50 border border-indigo-100 dark:bg-slate-800/80 dark:text-slate-300 dark:border dark:border-slate-700/70">
               <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
               <p className="text-sm text-indigo-600 dark:text-slate-300 leading-snug">
-                <span className="font-semibold">Progress is calculated automatically</span> based on completed milestones. You can add milestones after creating the project.
+                <span className="font-semibold">İlerleme otomatik olarak hesaplanır</span>; tamamlanan aşamalara göre güncellenir. Projeyi oluşturduktan sonra aşamalar ekleyebilirsiniz.
               </p>
             </div>
 
@@ -227,12 +227,12 @@ export default function NewProjectPage() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Preparing...
+                    Hazırlanıyor...
                   </>
                 ) : (
                   <>
                     <Plus className="w-5 h-5" />
-                    Create Project
+                    Proje Oluştur
                   </>
                 )}
               </button>

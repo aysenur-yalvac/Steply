@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -208,7 +208,7 @@ export default function ProjectTaskList({
                     </span>
                     {isAssignedToMe && (
                       <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 whitespace-nowrap">
-                        Sana Atandi
+                        Sana Atandı
                       </span>
                     )}
                   </div>
@@ -290,7 +290,7 @@ export default function ProjectTaskList({
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Yeni gorev ekle..."
+            placeholder="Yeni görev ekle..."
             maxLength={200}
             className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm placeholder-slate-400 focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 outline-none transition-all"
           />

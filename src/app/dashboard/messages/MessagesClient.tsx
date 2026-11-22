@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -258,11 +258,11 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
             ) : (
               conversations.length === 0 ? (
                 <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-sm mt-4">
-                  No active conversations.
+                  Henüz aktif bir konuşma yok.
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-3 mb-3 mt-2">Recent</h3>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-3 mb-3 mt-2">Son Konuşmalar</h3>
                   {conversations.map((conv) => (
                     <button
                       key={conv.other_user.id}
@@ -319,8 +319,8 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           ) : (
             <EmptyState
               icon={MessageSquare}
-              title="Your Messages"
-              description="Select a conversation or search for a user to start messaging."
+              title="Mesajlarınız"
+              description="Mesajlaşmaya başlamak için bir sohbet seçin veya bir kullanıcı arayın."
             />
           )}
         </div>

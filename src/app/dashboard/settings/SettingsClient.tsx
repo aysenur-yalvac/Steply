@@ -99,26 +99,26 @@ const NAV_ITEMS: {
 }[] = [
   {
     id: "profile",
-    label: "Profile",
-    description: "Name, email and public info",
+    label: "Profil Bilgileri",
+    description: "Ad soyad, e-posta ve genel bilgiler",
     icon: <User className="w-4 h-4" />,
   },
   {
     id: "security",
-    label: "Account Security",
-    description: "Password and login settings",
+    label: "Hesap Güvenliği",
+    description: "Şifre ve oturum ayarları",
     icon: <Lock className="w-4 h-4" />,
   },
   {
     id: "notifications",
-    label: "Notifications",
-    description: "Alerts and email preferences",
+    label: "Bildirim Tercihleri",
+    description: "Uyarılar ve e-posta tercihleri",
     icon: <Bell className="w-4 h-4" />,
   },
   {
     id: "preferences",
-    label: "Preferences",
-    description: "Privacy and display options",
+    label: "Görünüm ve Gizlilik",
+    description: "Gizlilik ve görüntüleme seçenekleri",
     icon: <Sliders className="w-4 h-4" />,
   },
   {
@@ -398,9 +398,9 @@ export default function SettingsClient({
     setPrivacyLoading(false);
     if (!res.success) {
       setIsPublic(prev);
-      toast.error("Failed to update privacy setting.");
+      toast.error("Gizlilik ayarı güncellenemedi.");
     } else {
-      toast.success(value ? "Profile set to Public." : "Profile set to Private.", {
+      toast.success(value ? "Profil herkese açık yapıldı." : "Profil gizli yapıldı.", {
         style: {
           borderRadius: "12px",
           background: "#0f1428",
@@ -429,8 +429,8 @@ export default function SettingsClient({
           <SettingsIcon className="w-6 h-6" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100">Settings</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your account and preferences.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100">Ayarlar</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Hesabınızı ve tercihlerinizi yönetin.</p>
         </div>
       </motion.div>
 
@@ -626,7 +626,7 @@ export default function SettingsClient({
 
                     {/* Full Name */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-fullname" className="text-sm font-medium text-slate-600 dark:text-slate-300">Full Name</label>
+                      <label htmlFor="s-fullname" className="text-sm font-medium text-slate-600 dark:text-slate-300">Ad Soyad</label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -634,7 +634,7 @@ export default function SettingsClient({
                           type="text"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          placeholder="Your full name"
+                          placeholder="Adınız ve soyadınız"
                           className={`${inputCls} pl-9`}
                         />
                       </div>
@@ -642,7 +642,7 @@ export default function SettingsClient({
 
                     {/* Email — read-only */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Email Address</label>
+                      <label className="text-sm font-medium text-slate-500 dark:text-slate-400">E-posta Adresi</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input type="email"
@@ -655,20 +655,20 @@ export default function SettingsClient({
 
                     {/* Bio */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-bio" className="text-sm font-medium text-slate-600 dark:text-slate-300">Bio</label>
+                      <label htmlFor="s-bio" className="text-sm font-medium text-slate-600 dark:text-slate-300">Biyografi</label>
                       <textarea
                         id="s-bio"
                         rows={3}
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        placeholder="Tell the world a little about yourself..."
+                        placeholder="Kendinizden kısaca bahsedin..."
                         className={`${inputCls} resize-none`}
                       />
                     </div>
 
                     {/* Company */}
                     <div className="space-y-1.5">
-                      <label htmlFor="s-company" className="text-sm font-medium text-slate-600 dark:text-slate-300">Company</label>
+                      <label htmlFor="s-company" className="text-sm font-medium text-slate-600 dark:text-slate-300">Şirket / Kurum</label>
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -676,7 +676,7 @@ export default function SettingsClient({
                           type="text"
                           value={company}
                           onChange={(e) => setCompany(e.target.value)}
-                          placeholder="Your company or org"
+                          placeholder="Şirketiniz veya kurumunuz"
                           className={`${inputCls} pl-9`}
                         />
                       </div>
@@ -808,7 +808,7 @@ export default function SettingsClient({
                     {/* Location — Country + City dropdowns */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label htmlFor="s-country" className="text-sm font-medium text-slate-600 dark:text-slate-300">Country</label>
+                        <label htmlFor="s-country" className="text-sm font-medium text-slate-600 dark:text-slate-300">Ülke</label>
                         <div className="relative">
                           <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                           <select
@@ -817,7 +817,7 @@ export default function SettingsClient({
                             onChange={(e) => { setCountryIso(e.target.value); setSelectedCity(""); }}
                             className={`${selectCls} pl-9`}
                           >
-                            <option value="">Select country...</option>
+                            <option value="">Ülke seçin...</option>
                             {Country.getAllCountries().map((c) => (
                               <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
                             ))}
@@ -825,7 +825,7 @@ export default function SettingsClient({
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="s-city" className="text-sm font-medium text-slate-600 dark:text-slate-300">City / Province</label>
+                        <label htmlFor="s-city" className="text-sm font-medium text-slate-600 dark:text-slate-300">Şehir / İl</label>
                         <select
                           id="s-city"
                           value={selectedCity}
@@ -833,7 +833,7 @@ export default function SettingsClient({
                           disabled={!countryIso}
                           className={selectCls}
                         >
-                          <option value="">{countryIso ? "Select province..." : "Select a country first"}</option>
+                          <option value="">{countryIso ? "Şehir seçin..." : "Önce bir ülke seçin"}</option>
                           {(State.getStatesOfCountry(countryIso) || []).map((state) => (
                             <option key={state.isoCode} value={state.name}>{state.name}</option>
                           ))}
@@ -843,12 +843,12 @@ export default function SettingsClient({
 
                     {/* Social links */}
                     <div className="space-y-3 pt-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Social Accounts</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Sosyal Medya Hesapları</p>
                       {([
                         { icon: <Github className="w-4 h-4" />, label: "GitHub", placeholder: "https://github.com/username", value: githubUrl, set: setGithubUrl },
                         { icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn", placeholder: "https://linkedin.com/in/username", value: linkedinUrl, set: setLinkedinUrl },
                         { icon: <Twitter className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/username", value: twitterUrl, set: setTwitterUrl },
-                        { icon: <Globe className="w-4 h-4" />, label: "Website", placeholder: "https://yourwebsite.com", value: websiteUrl, set: setWebsiteUrl },
+                        { icon: <Globe className="w-4 h-4" />, label: "Web Sitesi", placeholder: "https://yourwebsite.com", value: websiteUrl, set: setWebsiteUrl },
                       ]).map(({ icon, label, placeholder, value, set }) => (
                         <div key={label} className="space-y-1.5">
                           <label className="text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
@@ -900,7 +900,7 @@ export default function SettingsClient({
                           type={showNew ? "text" : "password"}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="At least 6 characters"
+                          placeholder="En az 6 karakter"
                           required
                           minLength={6}
                           className={`${inputCls} pr-11`}
@@ -909,7 +909,7 @@ export default function SettingsClient({
                           type="button"
                           onClick={() => setShowNew((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                          aria-label={showNew ? "Hide password" : "Show password"}
+                          aria-label={showNew ? "Şifreyi gizle" : "Şifreyi göster"}
                         >
                           {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -926,7 +926,7 @@ export default function SettingsClient({
                           type={showConfirm ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Repeat the password"
+                          placeholder="Şifrenizi tekrar girin"
                           required
                           minLength={6}
                           className={`${inputCls} pr-11`}
@@ -935,7 +935,7 @@ export default function SettingsClient({
                           type="button"
                           onClick={() => setShowConfirm((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                          aria-label={showConfirm ? "Hide password" : "Show password"}
+                          aria-label={showConfirm ? "Şifreyi gizle" : "Şifreyi göster"}
                         >
                           {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -954,7 +954,7 @@ export default function SettingsClient({
                         ) : (
                           <KeyRound className="w-4 h-4" strokeWidth={1.5} />
                         )}
-                        {pwLoading ? "Updating..." : "Update Password"}
+                        {pwLoading ? "Güncelleniyor..." : "Şifreyi Güncelle"}
                       </button>
                     </div>
                   </form>
@@ -965,8 +965,8 @@ export default function SettingsClient({
                   <div className="max-w-lg space-y-6">
                     {/* Section intro */}
                     <div>
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-100">Notification Preferences</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Manage how you receive alerts and updates.</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-100">Bildirim Tercihleri</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Uyarıları ve güncellemeleri nasıl alacağınızı yönetin.</p>
                     </div>
 
                     {/* Notification rows */}
@@ -977,8 +977,8 @@ export default function SettingsClient({
                       <NotifRow
                         icon={<MessageSquare className="w-4 h-4" />}
                         iconColor="text-violet-500"
-                        title="Project Invitations & Messages"
-                        description="Alerts for new collaboration invites and direct messages."
+                        title="Proje Davetleri ve Mesajlar"
+                        description="Yeni iş birliği davetleri ve doğrudan mesajlar için uyarılar."
                         checked={projectInvites}
                         onChange={setProjectInvites}
                         disabled={muteAll}
@@ -995,11 +995,11 @@ export default function SettingsClient({
                       <div className="flex items-start gap-3">
                         <ShieldCheck className="w-5 h-5 text-[#7C3AFF] mt-0.5 shrink-0" strokeWidth={1.5} />
                         <div>
-                          <p className="text-sm font-medium text-slate-700">Public Profile</p>
+                          <p className="text-sm font-medium text-slate-700">Herkese Açık Profil</p>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                             {isPublic
-                              ? "Anyone with your link can view your profile and active projects."
-                              : "Only you can see your profile. Others will see a private profile message."}
+                              ? "Bağlantınıza sahip olan herkes profilinizi ve aktif projelerinizi görebilir."
+                              : "Profilinizi yalnızca siz görebilirsiniz. Diğer kullanıcılar profilin gizli olduğunu görür."}
                           </p>
                         </div>
                       </div>

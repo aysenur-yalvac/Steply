@@ -35,7 +35,7 @@ export default function GlobalSearch() {
       </div>
       <input
         type="text"
-        placeholder="Search projects..."
+        placeholder="Projelerde ara..."
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         className="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:border-slate-300 border border-slate-200 rounded-2xl text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 text-sm placeholder-slate-400/80 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium"

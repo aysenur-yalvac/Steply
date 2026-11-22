@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -73,10 +73,10 @@ export default function ProfileForm({
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success('Profile updated successfully!', { icon: '✨' });
+        toast.success('Profil başarıyla güncellendi!', { icon: '✨' });
       }
     } catch(e) {
-      toast.error('An error occurred');
+      toast.error('Bir hata oluştu');
     } finally {
       setIsPending(false);
     }
@@ -90,7 +90,7 @@ export default function ProfileForm({
       {/* Avatar Selection */}
       <div className="flex flex-col gap-3 mb-2">
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-          <ImageIcon className="w-4 h-4 text-dusty-rose" /> Choose Avatar
+          <ImageIcon className="w-4 h-4 text-dusty-rose" /> Avatar Seç
         </label>
         <div className="bg-white p-4 rounded-2xl border border-slate-100">
           {/* First row: 5 avatars + More button */}
@@ -102,7 +102,7 @@ export default function ProfileForm({
               type="button"
               onClick={() => setExpanded(v => !v)}
               className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:border-[#7C3AFF] hover:text-[#7C3AFF] transition-all duration-200 shrink-0"
-              aria-label={expanded ? "Show less" : "Show more"}
+              aria-label={expanded ? "Daha az göster" : "Daha fazla göster"}
             >
               <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.25 }}>
                 <ChevronDown className="w-4 h-4" />
@@ -135,13 +135,13 @@ export default function ProfileForm({
       <div className="flex flex-col sm:flex-row gap-6">
         <div className="flex-1 flex flex-col gap-2">
           <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-             <User className="w-4 h-4 text-dusty-rose" /> Full Name
+             <User className="w-4 h-4 text-dusty-rose" /> Ad Soyad
           </label>
           <input 
             type="text" 
             name="full_name"
             defaultValue={profile?.full_name || ''}
-            placeholder="Your Name and Surname"
+            placeholder="Adınız ve Soyadınız"
             required
             minLength={2}
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
@@ -150,7 +150,7 @@ export default function ProfileForm({
 
         <div className="flex-[0.8] flex flex-col gap-2">
           <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-             <Mail className="w-4 h-4 text-dusty-rose" /> Registered Email
+             <Mail className="w-4 h-4 text-dusty-rose" /> Kayıtlı E-posta
           </label>
           <input 
             type="email" 
@@ -163,7 +163,7 @@ export default function ProfileForm({
 
       <div className="flex flex-col gap-2 relative z-0">
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-           <Phone className="w-4 h-4 text-dusty-rose" /> Phone Number
+           <Phone className="w-4 h-4 text-dusty-rose" /> Telefon Numarası
         </label>
         <input 
           type="tel" 
@@ -176,12 +176,12 @@ export default function ProfileForm({
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-           <FileText className="w-4 h-4 text-dusty-rose" /> Biography
+           <FileText className="w-4 h-4 text-dusty-rose" /> Biyografi
         </label>
         <textarea 
           name="bio"
           defaultValue={profile?.bio || ''}
-          placeholder="Tell us a little bit about yourself..."
+          placeholder="Kendinizden kısaca bahsedin..."
           rows={4}
           className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm resize-none"
         />
@@ -189,13 +189,13 @@ export default function ProfileForm({
 
       <div className="flex flex-col gap-2 relative z-0">
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-           <Landmark className="w-4 h-4 text-dusty-rose" /> School / Institution
+           <Landmark className="w-4 h-4 text-dusty-rose" /> Okul / Kurum
         </label>
         <input 
           type="text" 
           name="institution"
           defaultValue={profile?.institution || ''}
-          placeholder="Enter your school or institution..."
+          placeholder="Okul veya kurumunuzu girin..."
           className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
         />
       </div>
@@ -244,7 +244,7 @@ export default function ProfileForm({
 
         <div className="flex-1 flex flex-col gap-2">
           <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-             <Globe className="w-4 h-4 text-dusty-rose" /> Website URL
+             <Globe className="w-4 h-4 text-dusty-rose" /> Web Sitesi URL
           </label>
           <input
             type="url"
@@ -265,7 +265,7 @@ export default function ProfileForm({
           {isPending ? (
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <><Save className="w-5 h-5" /> Save Changes</>
+            <><Save className="w-5 h-5" /> Değişiklikleri Kaydet</>
           )}
         </button>
       </div>

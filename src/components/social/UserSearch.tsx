@@ -11,7 +11,7 @@ interface UserSearchProps {
   className?: string;
 }
 
-export default function UserSearch({ onSelectUser, placeholder = "Search by name or email...", className = "" }: UserSearchProps) {
+export default function UserSearch({ onSelectUser, placeholder = "İsim veya e-posta ile ara...", className = "" }: UserSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<UserSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,11 +83,11 @@ export default function UserSearch({ onSelectUser, placeholder = "Search by name
         <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50">
           {isLoading && results.length === 0 ? (
             <div className="p-5 text-center text-sm font-medium text-slate-400 flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-dusty-rose" /> Searching network...
+              <Loader2 className="w-4 h-4 animate-spin text-dusty-rose" /> Kullanıcılar aranıyor...
             </div>
           ) : results.length > 0 ? (
             <div className="py-2 max-h-72 overflow-y-auto custom-scrollbar">
-              <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-4 mb-2 mt-1">People</h3>
+              <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-4 mb-2 mt-1">Kişiler</h3>
               <ul>
                 {results.map((user) => (
                   <li

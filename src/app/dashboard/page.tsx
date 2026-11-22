@@ -135,7 +135,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
       {/* ── Page header ───────────────────────────────────────────────────── */}
       <div className="bg-transparent dark:bg-transparent border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
         <p className="text-xs font-semibold text-slate-400 mb-1">
-          My Projects{' '}
+          Projelerim{' '}
           <span className="text-slate-300 mx-1">›</span>
           <span className="text-slate-600 dark:text-slate-300">
             {isTeacher ? 'Portfolyo Genel Bakış' : 'Tüm Projeler'}
@@ -146,8 +146,8 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-4">
           {isTeacher
-            ? 'Monitor the latest milestones of all student projects.'
-            : 'Manage your active projects and keep your portfolio up to date.'}
+            ? 'Tüm öğrenci projelerinin son aşamalarını takip edin.'
+            : 'Aktif projelerinizi yönetin ve portfolyonuzu güncel tutun.'}
         </p>
         <div className="pb-5">
           <SocialWidget followers={followers} following={following} />

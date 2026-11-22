@@ -225,7 +225,7 @@ export const GooeySearchBar = ({
                 {results.projects.length > 0 && (
                   <div>
                     <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      Projects
+                      Projeler
                     </div>
                     {results.projects.map((item, i) => {
                                             return (
@@ -258,7 +258,7 @@ export const GooeySearchBar = ({
                       <div style={{ margin: "4px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }} />
                     )}
                     <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      People
+                      Kişiler
                     </div>
                     {results.users.map((u, i) => {
                       const initials = u.full_name
@@ -300,7 +300,7 @@ export const GooeySearchBar = ({
                 )}
               </>
             ) : (
-              <div className="gsb-dropdown-empty">No results found</div>
+              <div className="gsb-dropdown-empty">Sonuç bulunamadı</div>
             )}
           </motion.div>
         )}

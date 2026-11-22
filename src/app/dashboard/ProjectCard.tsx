@@ -88,7 +88,7 @@ export default function ProjectCard({
       setNoteContent('');
       setIsEditingNote(true);
       toast.success('Not silindi!');
-    } catch { toast.error('An error occurred'); }
+    } catch { toast.error('Bir hata oluştu'); }
     finally { setIsNoteSaving(false); }
   };
 
@@ -227,7 +227,7 @@ export default function ProjectCard({
             href={`/dashboard/projects/${project.id}`}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
           >
-            View Details
+            Detayları Gör
           </Link>
         </div>
 
@@ -252,7 +252,7 @@ export default function ProjectCard({
                           onClick={() => setIsEditingNote(false)}
                           className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
                         >
-                          Cancel
+                          İptal
                         </button>
                       )}
                       <button
@@ -261,7 +261,7 @@ export default function ProjectCard({
                         className="flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-lg bg-violet-600 text-white disabled:opacity-50 hover:bg-violet-700 transition-colors"
                       >
                         {isNoteSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                        Save
+                        Kaydet
                       </button>
                     </div>
                   </>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -455,7 +455,7 @@ function NavContent({
                 <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{userName || userEmail}</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-300 capitalize font-medium">{role || "student"}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-300 capitalize font-medium">{role === 'teacher' ? 'Öğretmen' : role === 'admin' ? 'Yönetici' : 'Öğrenci'}</p>
                 </div>
               </Link>
               <button
@@ -564,7 +564,7 @@ export default function DashboardSidebar(props: SidebarProps) {
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#0f172a] shadow-md border border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-950 transition-colors"
-        aria-label="Open menu"
+        aria-label="Menüyü aç"
       >
         <Menu className="w-5 h-5" />
       </button>
