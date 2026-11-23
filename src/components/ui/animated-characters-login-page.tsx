@@ -31,11 +31,12 @@ const Pupil = ({
   const pupilRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (window.matchMedia?.("(pointer: coarse)").matches) return;
     const handleMouseMove = (e: MouseEvent) => {
       setMouseX(e.clientX);
       setMouseY(e.clientY);
     };
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
@@ -95,11 +96,12 @@ const EyeBall = ({
   const eyeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (window.matchMedia?.("(pointer: coarse)").matches) return;
     const handleMouseMove = (e: MouseEvent) => {
       setMouseX(e.clientX);
       setMouseY(e.clientY);
     };
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
@@ -389,10 +391,11 @@ export default function AnimatedCharactersLoginPage({
   const yellowRef = useRef<HTMLDivElement>(null);
   const orangeRef = useRef<HTMLDivElement>(null);
 
-  // Mouse tracking
+  // Mouse tracking (desktop pointer only)
   useEffect(() => {
+    if (window.matchMedia?.("(pointer: coarse)").matches) return;
     const handler = (e: MouseEvent) => { setMouseX(e.clientX); setMouseY(e.clientY); };
-    window.addEventListener("mousemove", handler);
+    window.addEventListener("mousemove", handler, { passive: true });
     return () => window.removeEventListener("mousemove", handler);
   }, []);
 

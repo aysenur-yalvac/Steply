@@ -1,6 +1,6 @@
 export default function ProjectSkeleton() {
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-soft relative overflow-hidden">
+    <div className="bg-slate-900/40 md:backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-soft relative overflow-hidden">
       {/* Shimmer Line Overlay */}
       <div className="absolute inset-0 z-10 w-full h-full pointer-events-none animate-shimmer"></div>
       

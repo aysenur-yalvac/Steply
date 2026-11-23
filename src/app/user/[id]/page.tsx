@@ -123,7 +123,7 @@ export default async function PublicProfilePage({
 
         {/* ── Profile header ─────────────────────────────────────────────── */}
         <div
-          className="rounded-2xl sm:rounded-3xl p-5 sm:p-8 mb-6 shadow-xl bg-white/70 dark:bg-[#1a2234]/80 border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-xl transition-colors duration-200"
+          className="rounded-2xl sm:rounded-3xl p-5 sm:p-8 mb-6 shadow-xl bg-white dark:bg-[#1a2234] md:bg-white/70 md:dark:bg-[#1a2234]/80 border border-slate-200/80 dark:border-slate-700/60 md:backdrop-blur-xl transition-colors duration-200"
         >
           <div className="flex flex-col sm:flex-row items-start gap-6">
 

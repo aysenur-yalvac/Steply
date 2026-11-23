@@ -290,7 +290,7 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
       {/* Input */}
       <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative z-20 shrink-0">
         {showMentionMenu && projects.length > 0 && (
-          <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white/95 backdrop-blur-3xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
+          <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white dark:bg-slate-900 md:bg-white/95 md:backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
             <div className="px-4 py-3 text-xs font-bold text-sage-green border-b border-slate-100 bg-slate-50/50 uppercase tracking-widest">
               Bir projeden bahset
             </div>

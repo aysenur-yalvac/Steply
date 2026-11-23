@@ -136,7 +136,7 @@ export default function ProjectTabsWrapper({
         })}
       </div>
 
-      <div className="flex-1 w-full min-w-0 bg-white/40 dark:bg-[#1a2234]/70 border border-white/50 dark:border-slate-700/60 backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
+      <div className="flex-1 w-full min-w-0 bg-white/95 dark:bg-[#1a2234] md:bg-white/40 md:dark:bg-[#1a2234]/70 border border-slate-200/70 md:border-white/50 dark:border-slate-700/60 md:backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>

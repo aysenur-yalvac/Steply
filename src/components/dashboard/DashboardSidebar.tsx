@@ -620,7 +620,7 @@ export default function DashboardSidebar(props: SidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
-              className="fixed top-0 left-0 h-full w-[85vw] max-w-[320px] shadow-2xl z-[75] lg:hidden border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl"
+              className="fixed top-0 left-0 h-full w-[85vw] max-w-[320px] shadow-2xl z-[75] lg:hidden border-r border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0f172a]"
             >
               <button
                 onClick={() => setMobileOpen(false)}

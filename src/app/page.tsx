@@ -62,8 +62,8 @@ export default function Home() {
       {/* ── Arka Plan Parçacık ve Işık Animasyonları ── */}
       <NeuralNoise color={[0.48, 0.2, 0.88]} opacity={0.42} speed={0.0006} />
 
-      {/* Mor / Eflatun Süzülen Işık Küreleri */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      {/* Mor / Eflatun Süzülen Işık Küreleri (yalnızca masaüstünde GPU dostu) */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden hidden md:block">
         <motion.div
           animate={{
             scale: [1, 1.15, 1],
@@ -98,7 +98,7 @@ export default function Home() {
       <header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           scrolled
-            ? "bg-[#070B14]/90 backdrop-blur-xl border-b border-violet-500/20 shadow-lg shadow-black/40 py-3"
+            ? "bg-[#070B14]/95 md:bg-[#070B14]/90 md:backdrop-blur-xl border-b border-violet-500/20 shadow-lg shadow-black/40 py-3"
             : "bg-transparent py-5 border-b border-white/5"
         }`}
       >

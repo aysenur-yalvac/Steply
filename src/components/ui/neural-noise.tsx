@@ -1,11 +1,20 @@
 ﻿"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface NeuralNoiseProps {
   color?: [number, number, number];
   opacity?: number;
   speed?: number;
+}
+
+function shouldUseLightweightBackground(): boolean {
+  if (typeof window === "undefined") return true;
+  const isSmallScreen = window.innerWidth < 768;
+  const isTouchDevice = window.matchMedia?.("(pointer: coarse)").matches ?? false;
+  const prefersReducedMotion =
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+  return isSmallScreen || isTouchDevice || prefersReducedMotion;
 }
 
 export function NeuralNoise({
@@ -14,15 +23,32 @@ export function NeuralNoise({
   speed = 0.0006,
 }: NeuralNoiseProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [lightweight, setLightweight] = useState(true);
 
   useEffect(() => {
+    const evaluateMode = () => {
+      setLightweight(shouldUseLightweightBackground());
+    };
+    evaluateMode();
+    window.addEventListener("resize", evaluateMode);
+    return () => window.removeEventListener("resize", evaluateMode);
+  }, []);
+
+  useEffect(() => {
+    if (lightweight) return;
     const canvasEl = canvasRef.current;
     if (!canvasEl) return;
 
-    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, tX: window.innerWidth / 2, tY: window.innerHeight / 2 };
+    const pointer = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      tX: window.innerWidth / 2,
+      tY: window.innerHeight / 2,
+    };
     let gl: WebGLRenderingContext | null = null;
     let uniforms: Record<string, WebGLUniformLocation | null> = {};
-    let animationFrameId: number;
+    let animationFrameId: number | null = null;
+    let isDisposed = false;
 
     const vsSource = `
       precision mediump float;
@@ -121,7 +147,7 @@ export function NeuralNoise({
 
     function initShader() {
       if (!canvasEl) return null;
-      const context = (canvasEl.getContext("webgl") ||
+      const context = (canvasEl.getContext("webgl", { powerPreference: "low-power" }) ||
         canvasEl.getContext("experimental-webgl")) as WebGLRenderingContext | null;
       if (!context) return null;
 
@@ -152,9 +178,9 @@ export function NeuralNoise({
 
     function resizeCanvas() {
       if (!canvasEl || !gl) return;
-      const devicePixelRatio = Math.min(window.devicePixelRatio, 2);
-      canvasEl.width = window.innerWidth * devicePixelRatio;
-      canvasEl.height = window.innerHeight * devicePixelRatio;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvasEl.width = Math.floor(window.innerWidth * dpr);
+      canvasEl.height = Math.floor(window.innerHeight * dpr);
       if (uniforms.u_ratio) {
         gl.uniform1f(uniforms.u_ratio, canvasEl.width / canvasEl.height);
       }
@@ -166,17 +192,14 @@ export function NeuralNoise({
       pointer.tY = y;
     };
 
-    const pointermove = (e: PointerEvent) => updateMousePosition(e.clientX, e.clientY);
-    const touchmove = (e: TouchEvent) => {
-      if (e.targetTouches[0]) {
-        updateMousePosition(e.targetTouches[0].clientX, e.targetTouches[0].clientY);
-      }
+    const pointermove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      updateMousePosition(e.clientX, e.clientY);
     };
     const click = (e: MouseEvent) => updateMousePosition(e.clientX, e.clientY);
 
-    window.addEventListener("pointermove", pointermove);
-    window.addEventListener("touchmove", touchmove, { passive: true });
-    window.addEventListener("click", click);
+    window.addEventListener("pointermove", pointermove, { passive: true });
+    window.addEventListener("click", click, { passive: true });
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
@@ -184,8 +207,18 @@ export function NeuralNoise({
     if (uniforms.u_color) gl.uniform3f(uniforms.u_color, color[0], color[1], color[2]);
     if (uniforms.u_speed) gl.uniform1f(uniforms.u_speed, speed);
 
+    function stopLoop() {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    }
+
     function render() {
-      if (!gl) return;
+      if (!gl || isDisposed || document.visibilityState === "hidden") {
+        animationFrameId = null;
+        return;
+      }
       const currentTime = performance.now();
       pointer.x += (pointer.tX - pointer.x) * 0.2;
       pointer.y += (pointer.tY - pointer.y) * 0.2;
@@ -201,16 +234,41 @@ export function NeuralNoise({
       animationFrameId = requestAnimationFrame(render);
     }
 
-    render();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        stopLoop();
+      } else if (animationFrameId === null && !isDisposed) {
+        animationFrameId = requestAnimationFrame(render);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (document.visibilityState !== "hidden") {
+      render();
+    }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      isDisposed = true;
+      stopLoop();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("pointermove", pointermove);
-      window.removeEventListener("touchmove", touchmove);
       window.removeEventListener("click", click);
     };
-  }, [color, speed]);
+  }, [color, speed, lightweight]);
+
+  if (lightweight) {
+    return (
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-0 h-full w-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 60% at 50% 0%, rgba(124, 58, 237, 0.28) 0%, rgba(124, 58, 237, 0.10) 45%, transparent 75%), radial-gradient(ellipse 65% 50% at 85% 85%, rgba(124, 58, 237, 0.16) 0%, transparent 70%)",
+        }}
+      />
+    );
+  }
 
   return (
     <canvas

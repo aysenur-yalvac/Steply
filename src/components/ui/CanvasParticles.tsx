@@ -20,6 +20,13 @@ export default function CanvasParticles() {
   const animRef = useRef<number>(0);
 
   useEffect(() => {
+    if (
+      window.innerWidth < 768 ||
+      window.matchMedia?.("(pointer: coarse)").matches ||
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");

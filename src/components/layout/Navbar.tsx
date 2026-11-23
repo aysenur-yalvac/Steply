@@ -21,7 +21,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center sticky top-0 z-50 transition-colors duration-200 bg-white/80 dark:bg-[#0b0e14]/90 border-b border-slate-200/80 dark:border-purple-900/30 backdrop-blur-xl"
+      className="w-full py-4 px-6 md:px-12 flex flex-col md:flex-row md:justify-between md:items-center sticky top-0 z-50 transition-colors duration-200 bg-white/95 dark:bg-[#0b0e14]/95 md:bg-white/80 md:dark:bg-[#0b0e14]/90 border-b border-slate-200/80 dark:border-purple-900/30 md:backdrop-blur-xl"
     >
       {/* Brand + mobile toggle */}
       <div className="flex justify-between items-center w-full md:w-auto">

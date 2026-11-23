@@ -44,9 +44,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning className="overflow-x-hidden">
+    <html lang="tr" suppressHydrationWarning className="overflow-x-clip">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col overflow-x-hidden transition-colors duration-300`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-[100dvh] flex flex-col overflow-x-clip transition-colors duration-300`}
       >
         <ThemeProvider
           attribute="class"

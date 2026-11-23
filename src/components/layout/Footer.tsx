@@ -38,7 +38,7 @@ export default function Footer() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Altyapı:</span>
+            <span className="text-xs text-slate-500">Powered by</span>
             <a
               href="https://must-b.com"
               target="_blank"

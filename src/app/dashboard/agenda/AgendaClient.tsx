@@ -105,7 +105,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl shadow-violet-500/5">
+      <div className="bg-white dark:bg-slate-900 md:dark:bg-slate-900/80 md:backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl shadow-violet-500/5">
         
         <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-4 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
           <input 

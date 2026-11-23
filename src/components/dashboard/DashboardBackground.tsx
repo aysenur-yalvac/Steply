@@ -9,8 +9,15 @@ export default function DashboardBackground() {
     <div className="absolute inset-0 pointer-events-none z-[-10] overflow-hidden">
       <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#131927] transition-colors duration-300">
         
-        {/* LIGHT MODE BLOBS */}
-        <div className="absolute inset-0 opacity-100 dark:hidden pointer-events-none">
+        {/* MOBILE STATIC GRADIENT (zero GPU blur/animation) */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 md:hidden pointer-events-none opacity-80 dark:opacity-100"
+          style={{ background: "radial-gradient(ellipse 80% 45% at 85% 0%, rgba(124, 58, 237, 0.14) 0%, transparent 70%)" }}
+        />
+
+        {/* LIGHT MODE BLOBS (desktop only) */}
+        <div className="hidden md:block absolute inset-0 opacity-100 dark:hidden pointer-events-none">
           <div
             aria-hidden="true"
             className="absolute -top-40 -right-40 w-[580px] h-[580px] rounded-full opacity-[0.18] blur-3xl blob-spin-slow"
@@ -23,8 +30,8 @@ export default function DashboardBackground() {
           />
         </div>
 
-        {/* DARK MODE BLOBS */}
-        <div className="absolute inset-0 hidden dark:block pointer-events-none">
+        {/* DARK MODE BLOBS (desktop only) */}
+        <div className="absolute inset-0 hidden dark:md:block pointer-events-none">
           <div
             aria-hidden="true"
             className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-70 blur-3xl blob-spin-slow dark:bg-violet-600/20"

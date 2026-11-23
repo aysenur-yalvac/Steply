@@ -58,7 +58,7 @@ export default async function DashboardLayout({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex bg-[#f5f3ff] dark:bg-[#131927]"
+      className="fixed inset-0 h-[100dvh] z-[60] flex bg-[#f5f3ff] dark:bg-[#131927]"
     >
       <DashboardSidebar
         userName={profile?.full_name}
@@ -82,12 +82,12 @@ export default async function DashboardLayout({
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-clip relative z-10 flex flex-col">
           <div className="flex-1 min-w-0">
             {children}
           </div>
           <footer className="shrink-0 py-3 px-4 text-center text-xs text-slate-400 border-t border-slate-100/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/40 backdrop-blur-sm">
-            Altyapı:{' '}
+            Powered by{' '}
             <a
               href="https://must-b.com"
               target="_blank"
