@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_PATHS = [
   "/auth/login",
   "/auth/register",
-  "/auth/callback",
   "/auth/verify-email",
 ];
 const PROTECTED_PREFIX = "/dashboard";

@@ -120,7 +120,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     collaboratorProjects = collabData ?? [];
   }
 
-  // ── Real project comment counts (project_discussions + reviews) ──────────────
+  // ── Real teacher review counts (reviews table only) ──────────────────────────
   const allProjectIds = [
     ...new Set([
       ...projects.map((p: any) => p.id as string),
@@ -131,21 +131,12 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
   const commentCountMap: Record<string, number> = {};
   if (allProjectIds.length > 0) {
     const adminClient = createAdminClient();
-    const [discussionsRes, reviewsRes] = await Promise.all([
-      adminClient
-        .from('project_discussions')
-        .select('project_id')
-        .in('project_id', allProjectIds),
-      adminClient
-        .from('reviews')
-        .select('project_id')
-        .in('project_id', allProjectIds),
-    ]);
+    const { data: reviewRows } = await adminClient
+      .from('reviews')
+      .select('project_id')
+      .in('project_id', allProjectIds);
 
-    for (const row of discussionsRes.data ?? []) {
-      commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
-    }
-    for (const row of reviewsRes.data ?? []) {
+    for (const row of reviewRows ?? []) {
       commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
     }
   }

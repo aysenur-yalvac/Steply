@@ -263,11 +263,16 @@ export default function SettingsClient({
   const [privacyLoading, setPrivacyLoading] = useState(false);
 
   // Security
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSentMsg, setResetSentMsg] = useState<string | null>(null);
 
   // Notifications
   const [muteAll, setMuteAll] = useState(false);
@@ -364,29 +369,92 @@ export default function SettingsClient({
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
+    setPwError(null);
+
+    if (!currentPassword.trim()) {
+      const msg = "Lütfen mevcut şifrenizi girin.";
+      setPwError(msg);
+      toast.error(msg);
+      return;
+    }
     if (newPassword.length < 6) {
-      toast.error("Şifre en az 6 karakter olmalıdır.");
+      const msg = "Yeni şifre en az 6 karakter olmalıdır.";
+      setPwError(msg);
+      toast.error(msg);
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Şifreler eşleşmiyor.");
+      const msg = "Şifreler eşleşmiyor.";
+      setPwError(msg);
+      toast.error(msg);
       return;
     }
     setPwLoading(true);
     try {
       const supabase = createClient();
+
+      // 1. Mevcut şifreyi doğrula
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        const msg = "Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyin.";
+        setPwError(msg);
+        toast.error(msg);
+        return;
+      }
+
+      // 2. Yeni şifreyi güncelle
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) {
+        setPwError(error.message);
         toast.error(error.message);
       } else {
         toast.success("Şifreniz başarıyla güncellendi.");
+        setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        setShowCurrent(false);
         setShowNew(false);
         setShowConfirm(false);
+        setResetSentMsg(null);
       }
     } finally {
       setPwLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      toast.error("Kayıtlı e-posta adresi bulunamadı.");
+      return;
+    }
+    setResetSending(true);
+    setPwError(null);
+    setResetSentMsg(null);
+    try {
+      const supabase = createClient();
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_SITE_URL || "https://steply-app.vercel.app";
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (error) {
+        const msg = error.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
+        setPwError(msg);
+        toast.error(msg);
+      } else {
+        const msg =
+          "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
+        setResetSentMsg(msg);
+        toast.success(msg);
+      }
+    } finally {
+      setResetSending(false);
     }
   }
 
@@ -890,6 +958,57 @@ export default function SettingsClient({
                 {/* ── SECURITY ── */}
                 {activeTab === "security" && (
                   <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
+                    <div className="space-y-1.5">
+                      <label htmlFor="currentPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                        Mevcut Şifre
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="currentPassword"
+                          type={showCurrent ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => {
+                            setCurrentPassword(e.target.value);
+                            if (pwError) setPwError(null);
+                          }}
+                          placeholder="Mevcut şifrenizi girin"
+                          required
+                          className={`${inputCls} pr-11`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrent((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                          aria-label={showCurrent ? "Şifreyi gizle" : "Şifreyi göster"}
+                        >
+                          {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-end pt-0.5">
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={resetSending}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline disabled:opacity-50 transition-colors"
+                        >
+                          {resetSending && <Loader2 className="w-3 h-3 animate-spin" />}
+                          {resetSending ? "Gönderiliyor..." : "Şifremi unuttum"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {resetSentMsg && (
+                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-xs font-medium text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                        {resetSentMsg}
+                      </div>
+                    )}
+
+                    {pwError && (
+                      <div className="rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-xs font-medium text-rose-700 dark:text-rose-300 leading-relaxed">
+                        {pwError}
+                      </div>
+                    )}
+
                     <div className="space-y-1.5">
                       <label htmlFor="newPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         Yeni Şifre

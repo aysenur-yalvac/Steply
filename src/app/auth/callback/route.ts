@@ -9,16 +9,46 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = getSiteOrigin(request);
   const code = searchParams.get('code');
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type');
   const nextParam = searchParams.get('next');
   const next = (!nextParam || nextParam === '/') ? '/dashboard' : nextParam;
   const destination = next.startsWith('/') ? next : `/${next}`;
   const intent = searchParams.get('intent');
   const isLinkAccount = searchParams.get('link_account') === 'true';
+  const isPasswordRecovery = type === 'recovery' || destination.startsWith('/auth/reset-password');
+
+  // 0. Şifre sıfırlama veya e-posta OTP token_hash akışı
+  if (tokenHash && type) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as 'recovery' | 'email' | 'signup' | 'magiclink' | 'invite' | 'email_change',
+    });
+
+    if (!error) {
+      return NextResponse.redirect(
+        `${origin}${isPasswordRecovery ? '/auth/reset-password' : destination}`
+      );
+    }
+
+    if (isPasswordRecovery) {
+      return NextResponse.redirect(`${origin}/auth/reset-password?error=invalid_link`);
+    }
+  }
 
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
+
+    if (!error && isPasswordRecovery) {
+      return NextResponse.redirect(`${origin}/auth/reset-password`);
+    }
+
+    if (error && isPasswordRecovery) {
+      return NextResponse.redirect(`${origin}/auth/reset-password?error=invalid_link`);
+    }
+
     if (!error && data?.user?.email) {
       // 1. GİRİŞ KONTROLÜ (intent === 'login')
       // Kullanıcı Login sayfasından Google ile giriş yapmaya çalışmışsa ancak daha önce kayıtlı bir hesabı yoksa:
