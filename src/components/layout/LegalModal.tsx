@@ -221,7 +221,7 @@ export default function LegalModal({ slug, onClose }: LegalModalProps) {
           className="px-7 py-4 border-t flex items-center justify-between"
           style={{ borderColor: "rgba(255,255,255,0.06)" }}
         >
-          <span className="text-xs text-slate-600">Son güncelleme: Ağustos 2025</span>
+          <span className="text-xs text-slate-600">Son güncelleme: Kasım 2026</span>
           <a
             href="https://must-b.com"
             target="_blank"

@@ -678,27 +678,100 @@ async function assertProjectAccess(supabase: Awaited<ReturnType<typeof createCli
   return null;
 }
 
+async function notifyAndMessageTaskAssignee(
+  admin: ReturnType<typeof createAdminClient>,
+  assignerId: string,
+  assigneeId: string,
+  projectId: string,
+  taskTitle: string,
+): Promise<void> {
+  if (!assigneeId || assigneeId === assignerId) return;
+  try {
+    const [{ data: assigner }, { data: proj }] = await Promise.all([
+      admin.from('profiles').select('full_name').eq('id', assignerId).maybeSingle(),
+      admin.from('projects').select('title').eq('id', projectId).maybeSingle(),
+    ]);
+    const assignerName = assigner?.full_name || 'Bir kullanıcı';
+    const projectTitle = proj?.title || 'Proje';
+    const link = `/dashboard/projects/${projectId}`;
+
+    // 1. Insert notification into notifications table
+    const { error: notifErr } = await admin.from('notifications').insert({
+      user_id: assigneeId,
+      type: 'task',
+      title: 'Yeni Görev Atandı',
+      content: `${assignerName}, '${projectTitle}' projesinde size '${taskTitle}' görevini atadı.`,
+      link,
+      is_read: false,
+    });
+    if (notifErr) {
+      console.error('[notifyAndMessageTaskAssignee] notification error:', notifErr);
+    }
+
+    // 2. Send automatic message in messages table
+    const { error: msgErr } = await admin.from('messages').insert({
+      sender_id: assignerId,
+      receiver_id: assigneeId,
+      content: `📋 '${projectTitle}' projesinde size yeni bir görev atandı: '${taskTitle}'`,
+      is_read: false,
+      metadata: { mentioned_project_id: projectId },
+    });
+    if (msgErr) {
+      // Fallback without metadata if schema differs
+      await admin.from('messages').insert({
+        sender_id: assignerId,
+        receiver_id: assigneeId,
+        content: `📋 '${projectTitle}' projesinde size yeni bir görev atandı: '${taskTitle}'`,
+        is_read: false,
+      });
+    }
+  } catch (e) {
+    console.error('[notifyAndMessageTaskAssignee] Unexpected error:', e);
+  }
+}
+
 export async function addProjectTask(
   projectId: string,
   title: string,
+  assignedTo?: string | null,
 ): Promise<{ success: true; task: ProjectTask } | { error: string }> {
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
-    const { data, error } = await ctx.admin
+  const cleanTitle = title.trim();
+  const insertPayload: Record<string, unknown> = {
+    project_id: projectId,
+    title: cleanTitle,
+    is_completed: false,
+  };
+  if (assignedTo) {
+    insertPayload.assigned_to = assignedTo;
+  }
+  const { data, error } = await ctx.admin
     .from('project_tasks')
-    .insert({ project_id: projectId, title: title.trim(), is_completed: false })
+    .insert(insertPayload)
     .select()
     .single();
 
   if (error || !data) return { error: error?.message ?? 'Insert failed' };
 
   await recalculateProgress(ctx.admin, projectId);
-  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${title.trim()}`);
+  await logProjectActivity(ctx.admin, projectId, ctx.user.id, 'task_added', `Yeni görev eklendi: ${cleanTitle}`);
   const { data: projAdd } = await ctx.admin.from("projects").select('status').eq('id', projectId).single();
   if (projAdd?.status === 'todo') {
     await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
   }
+
+  if (data.assigned_to && data.assigned_to !== ctx.user.id) {
+    await notifyAndMessageTaskAssignee(
+      ctx.admin,
+      ctx.user.id,
+      data.assigned_to,
+      projectId,
+      cleanTitle,
+    );
+  }
+
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true, task: data as ProjectTask };
 }
@@ -2318,35 +2391,36 @@ export async function updateTaskAction(
 
   // --- Notifications Logic ---
   if (existingTask) {
-    const title = data.title || 'Bir gorev';
-    // Notification: Task assigned
+    const title = data.title || 'Bir görev';
+    // Notification + Automatic Message: Task assigned
     if (data.assigned_to && data.assigned_to !== existingTask.assigned_to && data.assigned_to !== ctx.user.id) {
-      // Find assigner's name
-      const { data: assigner } = await ctx.admin.from('profiles').select('full_name').eq('id', ctx.user.id).single();
-      const assignerName = assigner?.full_name || 'Bir kullanici';
-      await createNotificationAction(
+      await notifyAndMessageTaskAssignee(
+        ctx.admin,
+        ctx.user.id,
         data.assigned_to,
-        'task',
-        'Yeni Gorev Atandi',
-        `${assignerName} sana "${title}" gorevini atadi.`,
-        projectId
+        projectId,
+        title,
       );
     }
     // Notification: Task completed
     if (data.is_completed === true && existingTask.is_completed === false) {
-      const { data: proj } = await ctx.admin.from('projects').select('student_id').eq('id', projectId).single();
-      const ownerId = proj?.student_id;
-      const { data: completer } = await ctx.admin.from('profiles').select('full_name').eq('id', ctx.user.id).single();
-      const completerName = completer?.full_name || 'Bir kullanici';
-      
-      if (ownerId && ownerId !== ctx.user.id) {
-        await createNotificationAction(
-          ownerId,
-          'task',
-          'Gorev Tamamlandi',
-          `${completerName} "${title}" gorevini tamamladi.`,
-          projectId
-        );
+      try {
+        const { data: proj } = await ctx.admin.from('projects').select('student_id').eq('id', projectId).single();
+        const ownerId = proj?.student_id;
+        const { data: completer } = await ctx.admin.from('profiles').select('full_name').eq('id', ctx.user.id).single();
+        const completerName = completer?.full_name || 'Bir kullanıcı';
+        
+        if (ownerId && ownerId !== ctx.user.id) {
+          await createNotificationAction(
+            ownerId,
+            'task',
+            'Görev Tamamlandı',
+            `${completerName} "${title}" görevini tamamladı.`,
+            projectId
+          );
+        }
+      } catch (e) {
+        console.error('[updateTaskAction] task completed notification error:', e);
       }
     }
   }
