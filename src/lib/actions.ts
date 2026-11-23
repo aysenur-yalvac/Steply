@@ -521,6 +521,62 @@ export async function createNotificationAction(
   }
 }
 
+export async function reportContentAction(input: {
+  targetType: 'project' | 'profile';
+  targetId: string;
+  targetTitle: string;
+  reason: string;
+  details?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const admin = createAdminClient();
+
+    let reporterName = 'Bir kullanıcı';
+    if (user) {
+      const { data: reporter } = await admin
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .maybeSingle();
+      reporterName = reporter?.full_name || reporter?.email || user.email || 'Kayıtlı Kullanıcı';
+    }
+
+    const { data: admins } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin');
+
+    const link =
+      input.targetType === 'project'
+        ? `/dashboard/projects/${input.targetId}`
+        : `/user/${input.targetId}`;
+
+    const typeLabel = input.targetType === 'project' ? 'Proje' : 'Profil';
+    const detailText = input.details?.trim() ? ` — Açıklama: ${input.details.trim().slice(0, 220)}` : '';
+    const content = `${reporterName}, '${input.targetTitle}' (${typeLabel}) için '${input.reason}' nedeniyle ihlal bildiriminde bulundu.${detailText}`;
+
+    const adminIds = (admins ?? []).map((a: any) => a.id as string).filter(Boolean);
+    if (adminIds.length > 0) {
+      const rows = adminIds.map((adminId) => ({
+        user_id: adminId,
+        type: 'project',
+        title: `İçerik Bildirimi (${input.reason})`,
+        content,
+        link,
+        is_read: false,
+      }));
+      await admin.from('notifications').insert(rows);
+    }
+
+    return { success: true };
+  } catch (e: any) {
+    console.error('[reportContentAction] error:', e);
+    return { success: false, error: 'Bildirim gönderilirken bir hata oluştu.' };
+  }
+}
+
 export async function getNotificationsAction(): Promise<(Notification & { project_deleted?: boolean })[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

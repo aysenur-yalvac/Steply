@@ -8,6 +8,7 @@ import { Github, Linkedin, Globe, Twitter, Building2, FolderOpen, ShieldOff } fr
 import ProfileProjectsPanel from "@/components/profile/ProfileProjectsPanel";
 import FollowButton from "@/components/profile/FollowButton";
 import BlockButton from "@/components/profile/BlockButton";
+import ReportContentButton from "@/components/ui/ReportContentButton";
 import { sanitizeInstitution } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -133,14 +134,23 @@ export default async function PublicProfilePage({
                 <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
                   {profile.full_name ?? "Must-b Academy Üyesi"}
                 </h1>
-                {viewer && !isSelf && (
-                  <div className="flex items-center gap-1.5">
-                    <FollowButton
+                {!isSelf && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {viewer && (
+                      <>
+                        <FollowButton
+                          targetId={id}
+                          isFollowing={isFollowing}
+                          isFollowedByTarget={isFollowedByTarget}
+                        />
+                        <BlockButton targetId={id} isBlocked={isBlocked} />
+                      </>
+                    )}
+                    <ReportContentButton
+                      targetType="profile"
                       targetId={id}
-                      isFollowing={isFollowing}
-                      isFollowedByTarget={isFollowedByTarget}
+                      targetTitle={profile.full_name ?? "Must-b Academy Üyesi"}
                     />
-                    <BlockButton targetId={id} isBlocked={isBlocked} />
                   </div>
                 )}
               </div>

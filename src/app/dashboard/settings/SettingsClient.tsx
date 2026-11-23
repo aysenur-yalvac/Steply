@@ -40,28 +40,7 @@ import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import UniversityCombobox from "@/components/ui/UniversityCombobox";
 
-const ALL_AVATARS = [
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Leo&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Mia&backgroundColor=ffd5dc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Ryan&backgroundColor=c0aaf7",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Chloe&backgroundColor=d1f4cc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Wyatt&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Robert&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Mary&backgroundColor=ffd5dc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=William&backgroundColor=c0aaf7",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Patricia&backgroundColor=d1f4cc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Richard&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Luna&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=ffd5dc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Nova&backgroundColor=c0aaf7",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Orion&backgroundColor=d1f4cc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Stella&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Jasper&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Aurora&backgroundColor=ffd5dc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Kai&backgroundColor=c0aaf7",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Ember&backgroundColor=d1f4cc",
-  "https://api.dicebear.com/7.x/notionists/svg?seed=Atlas&backgroundColor=ffdfbf",
-];
+const ALL_AVATARS = Array.from({ length: 20 }, (_, i) => `/avatars/avatar-${i + 1}.svg`);
 const AVATAR_VISIBLE = 5;
 
 const GRADE_OPTIONS = ['Hazırlık', '1. Sınıf', '2. Sınıf', '3. Sınıf', '4. Sınıf', 'Mezun'];

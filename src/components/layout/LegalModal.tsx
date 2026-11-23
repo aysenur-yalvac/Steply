@@ -10,27 +10,27 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Gizlilik Politikası",
     sections: [
       {
-        body: "Bu Gizlilik Politikası, MUST-B Teknoloji A.Ş. tarafından işletilen Must-b Academy platformunun kullanıcı verilerini nasıl topladığını, işlediğini ve koruduğunu açıklamaktadır. Platformumuzu kullanarak bu politikayı kabul etmiş sayılırsınız."
+        body: "Bu Gizlilik Politikası, MUST-B Teknoloji A.Ş. tarafından işletilen Must-b Academy platformunun kullanıcı verilerini nasıl topladığını, işlediğini, sakladığını ve koruduğunu açıklamaktadır. Platformumuzu kullanarak bu politikayı kabul etmiş sayılırsınız."
       },
       {
         heading: "1. Toplanan Kişisel Veriler",
-        body: "Ad, soyad ve e-posta adresi; seçilen kullanıcı rolü (öğrenci / öğretmen) ve kurum bilgisi; platforma yüklenen proje, ödev ve belgeler; IP adresi, tarayıcı türü ve oturum bilgileri; gönüllü olarak paylaşılan biyografi, profil fotoğrafı ve bağlantı bilgileri."
+        body: "Ad soyad, e-posta adresi, şifrelenmiş parola özeti (hash), seçilen kullanıcı rolü (öğrenci / öğretmen), kurum/üniversite adı, sınıf bilgisi, okul numarası, kurumsal okul e-postası, telefon numarası, şehir/ülke, şirket/kurum bilgisi, biyografi, profil fotoğrafı, sosyal medya bağlantıları (GitHub, LinkedIn, X/Twitter, kişisel web sitesi), öğretmen hesapları için görev/doğrulama belgesi ve kurum/MEBBİS kodu; ayrıca platform içi proje, ödev, yüklenen dosyalar, tartışma notları, değerlendirmeler, mesaj içerikleri ile IP adresi ve oturum güvenliği kayıtları."
       },
       {
-        heading: "2. Verilerin İşlenme Amaçları",
-        body: "Kişisel verileriniz; hesap yönetimi ve kimlik doğrulama, platform hizmetlerinin sunulması ve iyileştirilmesi, kullanıcılar arası etkileşimlerin yönetilmesi, teknik destek sağlanması ve 6698 Sayılı KVKK ile ilgili mevzuattan doğan yükümlülüklerin yerine getirilmesi amacıyla işlenmektedir."
+        heading: "2. Verilerin İşlenme Amaçları ve Saklama Süresi",
+        body: "Kişisel verileriniz; hesap oluşturma, kimlik ve kurumsal rol doğrulama, akademik proje/ödev ve sınıf yönetimi, ekip içi mesajlaşma ve bildirim süreçlerinin yürütülmesi, teknik destek sağlanması ve 6698 sayılı KVKK ile 5651 sayılı Kanun'dan doğan yükümlülüklerin yerine getirilmesi amacıyla işlenir. Verileriniz hesabınız aktif olduğu sürece saklanır; hesabın silinmesi veya yasal başvuru hâlinde, mevzuatın zorunlu kıldığı yasal saklama süreleri dışındaki tüm veriler silinir, yok edilir veya anonimleştirilir."
       },
       {
-        heading: "3. Verilerin Aktarımı",
-        body: "Verileriniz, hizmet altyapımızı sağlayan Supabase (veritabanı ve kimlik doğrulama) ile Vercel (barındırma) platformlarına aktarılmaktadır. Bu aktarımlar KVKK'nın 9. maddesi ve Avrupa Birliği GDPR düzenlemeleri çerçevesinde gerçekleştirilmektedir. Ticari amaçla herhangi bir üçüncü tarafla veri paylaşımı yapılmamaktadır."
+        heading: "3. Yurt Dışı Veri Aktarımı (KVKK m.9)",
+        body: "Hizmetin teknik olarak sunulabilmesi amacıyla; veritabanı, kimlik doğrulama ve dosya depolama için Supabase, web uygulaması barındırma için Vercel ve yalnızca hesap güvenliği/doğrulama kodu (OTP) gibi işlemsel e-postaların iletilmesi için Resend altyapıları kullanılmaktadır. Bu aktarımlar, 6698 sayılı KVKK'nın 9. maddesi kapsamındaki uygun güvenceler ve açık rızanız doğrultusunda gerçekleştirilir. Ticari veya reklam amacıyla hiçbir üçüncü tarafla veri paylaşılmaz."
       },
       {
         heading: "4. Veri Güvenliği",
-        body: "Tüm veriler, PostgreSQL Row Level Security (RLS) politikaları ile korunmaktadır. Kullanıcı oturumları TLS 1.3 protokolü ile şifrelenmekte, depolanan şifreler bcrypt algoritması ile hashlenmektedir."
+        body: "Tüm veritabanı tabloları PostgreSQL Row Level Security (RLS) politikaları ile korunmaktadır. Kullanıcı oturumları TLS 1.3 protokolü ile şifrelenmekte, parolalar tek yönlü bcrypt algoritması ile hashlenerek saklanmaktadır."
       },
       {
         heading: "5. İletişim",
-        body: "Gizlilik politikamıza ilişkin sorularınız için: privacy@must-b.com"
+        body: "Gizlilik politikamıza ilişkin sorularınız ve talepleriniz için: kvkk@must-b.com | iletisim@must-b.com"
       }
     ]
   },
@@ -38,31 +38,31 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Kullanım Koşulları",
     sections: [
       {
-        body: "Bu Kullanım Koşulları, MUST-B Teknoloji A.Ş. tarafından sunulan Must-b Academy platformunu kullanmanıza ilişkin yasal çerçeveyi belirlemektedir. Platforma erişim sağlayarak bu koşulları kabul etmiş sayılırsınız."
+        body: "Bu Kullanım Koşulları, MUST-B Teknoloji A.Ş. tarafından sunulan Must-b Academy platformunu kullanmanıza ilişkin yasal çerçeveyi belirlemektedir. Platforma kayıt olarak veya erişim sağlayarak bu koşulları kabul etmiş sayılırsınız."
       },
       {
         heading: "1. Hizmetin Tanımı",
-        body: "Must-b Academy, öğrencilerin projelerini yönetmesine, öğretmenlerin ödev oluşturmasına ve eğitim süreçlerinin dijital ortamda takip edilmesine olanak tanıyan bir eğitim yönetim platformudur."
+        body: "Must-b Academy, öğrencilerin projelerini ve görevlerini yönetmesine, öğretmenlerin sınıf ve ödev oluşturmasına ve akademik iş birliği süreçlerinin dijital ortamda takip edilmesine olanak tanıyan ücretsiz bir eğitim yönetim platformudur."
       },
       {
         heading: "2. Hesap Sorumluluğu",
-        body: "Kullanıcı, hesabının güvenliğinden ve hesabı aracılığıyla gerçekleştirilen tüm işlemlerden münferiden sorumludur. Şüpheli bir erişim tespit edilmesi hâlinde derhal platform yönetimine bildirim yapılması zorunludur."
+        body: "Kullanıcı, hesabının güvenliğinden ve hesabı aracılığıyla gerçekleştirilen tüm işlemlerden münferiden sorumludur. Şüpheli bir erişim tespit edilmesi hâlinde derhal iletisim@must-b.com adresine bildirim yapılması zorunludur."
       },
       {
         heading: "3. Yasaklanan Kullanımlar",
-        body: "Başkalarına ait fikrî mülkiyet haklarının ihlali; spam, kötü amaçlı yazılım veya yanıltıcı içerik yayımı; diğer kullanıcılara yönelik taciz, tehdit veya ayrımcı davranışlar; platformun teknik altyapısına zarar verebilecek faaliyetler kesinlikle yasaktır."
+        body: "Başkalarına ait fikrî mülkiyet ve telif haklarının (5846 sayılı FSEK) ihlali; spam, kötü amaçlı yazılım veya yanıltıcı içerik yayımı; diğer kullanıcılara yönelik taciz, tehdit veya ayrımcı davranışlar; platformun teknik altyapısına zarar verebilecek faaliyetler kesinlikle yasaktır."
       },
       {
-        heading: "4. İçerik Sorumluluğu",
-        body: "Platforma yüklenen içeriklerden münhasıran içeriği yükleyen kullanıcı sorumludur. MUST-B Teknoloji A.Ş., kullanıcı içeriklerini önceden denetleme yükümlülüğü taşımamakla birlikte, mevzuata aykırı içerikleri kaldırma ve ilgili hesapları askıya alma hakkını saklı tutar."
+        heading: "4. İçerik Sorumluluğu ve Uyar-Kaldır İlkesi (5651 & 5846 Sayılı Kanunlar)",
+        body: "Platforma yüklenen proje, dosya, yorum ve mesaj içeriklerinden münhasıran içeriği yükleyen kullanıcı sorumludur. MUST-B Teknoloji A.Ş., 5651 sayılı Kanun kapsamında yer sağlayıcı konumundadır; proje ve profil sayfalarındaki 'İçeriği Bildir' butonu veya abuse@must-b.com adresi üzerinden iletilen hak ve hukuka aykırılık bildirimleri incelenerek ihlal tespit edilen içerikler yayından kaldırılır."
       },
       {
         heading: "5. Hesap Sonlandırma",
-        body: "Bu Kullanım Koşullarını ihlal eden hesaplar, önceden bildirim yapılmaksızın askıya alınabilir veya kalıcı olarak sonlandırılabilir."
+        body: "Bu Kullanım Koşullarını ihlal eden hesaplar, bildirim üzerine askıya alınabilir veya kalıcı olarak sonlandırılabilir."
       },
       {
         heading: "6. İletişim",
-        body: "Hukuki bildirimler ve şikayetler için: legal@must-b.com"
+        body: "Hukuki bildirimler, telif ve içerik şikayetleri için: abuse@must-b.com | iletisim@must-b.com"
       }
     ]
   },
@@ -73,24 +73,28 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
         body: "6698 Sayılı Kişisel Verilerin Korunması Kanunu'nun 10. maddesi ve Aydınlatma Yükümlülüğünün Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ kapsamında hazırlanmıştır."
       },
       {
-        heading: "Veri Sorumlusu",
-        body: "MUST-B Teknoloji Anonim Şirketi — Türkiye"
+        heading: "1. Veri Sorumlusu ve Yer Sağlayıcı",
+        body: "MUST-B Teknoloji A.Ş. — Türkiye | E-posta: kvkk@must-b.com | iletisim@must-b.com"
       },
       {
-        heading: "İşlenen Kişisel Veriler",
-        body: "Kimlik verileri (ad, soyad); iletişim verileri (e-posta adresi); kullanım verileri (IP adresi, oturum kayıtları, platform aktiviteleri); meslekî veriler (kurum adı, görev belgesi, MEBBİS kodu — yalnızca öğretmen kullanıcılar için); kullanıcı tarafından gönüllü olarak paylaşılan içerikler."
+        heading: "2. İşlenen Kişisel Veriler",
+        body: "Kimlik ve İletişim Verileri: Ad soyad, e-posta adresi, kurumsal okul e-postası, telefon numarası, şehir ve ülke bilgisi. Akademik ve Mesleki Veriler: Kullanıcı rolü (öğrenci / öğretmen), kurum/üniversite adı, sınıf bilgisi, okul numarası, şirket/kurum adı, öğretmen doğrulama belgesi ve kurum/MEBBİS kodu. Profil ve İçerik Verileri: Şifre özeti (hash), profil fotoğrafı, biyografi, sosyal medya bağlantıları (GitHub, LinkedIn, X/Twitter, web sitesi), platform içi oluşturulan projeler, yüklenen dosyalar, görevler, tartışma notları, değerlendirmeler ve kullanıcılar arası mesajlar. İşlem Güvenliği Verileri: IP adresi, oturum ve aktivite kayıtları."
       },
       {
-        heading: "İşlenme Amaçları ve Hukuki Dayanaklar",
-        body: "KVKK Madde 5/2-c (sözleşmenin ifası): Hizmetin sunulması ve hesap yönetimi. KVKK Madde 5/2-ç (hukuki yükümlülük): Vergi, güvenlik ve diğer yasal düzenlemeler kapsamındaki yükümlülükler. KVKK Madde 5/2-f (meşru menfaat): Platform güvenliğinin sağlanması ve hizmet kalitesinin iyileştirilmesi."
+        heading: "3. İşlenme Amaçları ve Hukuki Dayanaklar",
+        body: "KVKK Madde 5/2-c (sözleşmenin kurulması ve ifası): Üyelik kaydı, kimlik doğrulama, proje/sınıf/ödev yönetimi ve ekip içi iletişim hizmetlerinin sunulması. KVKK Madde 5/2-ç (hukuki yükümlülük): 5651 sayılı Kanun ve ilgili mevzuat kapsamındaki yer sağlayıcı ve bilgi güvenliği yükümlülüklerinin yerine getirilmesi. KVKK Madde 5/2-f (meşru menfaat): Platform güvenliğinin sağlanması ve kötüye kullanımın önlenmesi."
       },
       {
-        heading: "Veri Sahibinin Hakları (KVKK Madde 11)",
-        body: "Kişisel verilerinizin işlenip işlenmediğini öğrenme; işlenmiş ise buna ilişkin bilgi talep etme; işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme; yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri öğrenme; eksik veya yanlış işlenmiş ise düzeltilmesini isteme; silinmesini veya yok edilmesini isteme; otomatik sistemler vasıtasıyla aleyhinize bir sonucun ortaya çıkması hâlinde buna itiraz etme; zarara uğranılması hâlinde tazminat talep etme haklarına sahipsiniz."
+        heading: "4. Yurt Dışı Aktarım (KVKK Madde 9)",
+        body: "Kişisel verileriniz; bulut veritabanı ve dosya depolama hizmeti için Supabase, web uygulama sunucusu hizmeti için Vercel ve yalnızca hesap doğrulama (OTP) ile şifre sıfırlama gibi işlemsel e-postaların gönderimi için Resend altyapılarına, KVKK Madde 9 kapsamındaki güvenceler ve açık rızanız doğrultusunda aktarılmaktadır."
       },
       {
-        heading: "Başvuru Yöntemi",
-        body: "Yukarıdaki haklara ilişkin başvurularınızı yazılı olarak kvkk@must-b.com adresine iletebilirsiniz. Başvurunuz en geç 30 gün içinde sonuçlandırılacaktır."
+        heading: "5. Saklama Süreleri",
+        body: "Kişisel verileriniz, platform üzerindeki hesabınız aktif olduğu sürece işlenir ve saklanır. Hesabınızı silmeniz veya verilerinizin silinmesini talep etmeniz hâlinde, ilgili mevzuatın öngördüğü yasal saklama süreleri saklı kalmak kaydıyla kişisel verileriniz silinir, yok edilir veya anonim hale getirilir."
+      },
+      {
+        heading: "6. Veri Sahibinin Hakları (KVKK Madde 11) ve Başvuru",
+        body: "KVKK'nın 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, amacına uygun kullanılıp kullanılmadığını ve aktarıldığı üçüncü kişileri öğrenme, düzeltilmesini veya silinmesini/yok edilmesini isteme haklarına sahipsiniz. Başvurularınızı kvkk@must-b.com veya iletisim@must-b.com adresine iletebilirsiniz; başvurular en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
       }
     ]
   },
@@ -98,40 +102,40 @@ const LEGAL: Record<LegalSlug, { title: string; sections: { heading?: string; bo
     title: "Çerez (Cookie) Politikası",
     sections: [
       {
-        body: "Bu politika, Must-b Academy platformunun çerez kullanımını ve çerezler aracılığıyla gerçekleştirilen veri işleme faaliyetlerini açıklamaktadır."
+        body: "Bu politika, Must-b Academy platformunun çerez ve yerel depolama kullanımını açıklamaktadır."
       },
       {
-        heading: "Çerez Nedir?",
-        body: "Çerezler, web tarayıcınız tarafından cihazınıza yerleştirilen küçük metin dosyalarıdır. Platformumuzun işlevselliği, kişiselleştirme ve güvenlik amaçlarıyla kullanılmaktadır."
+        heading: "1. Çerez Nedir?",
+        body: "Çerezler, web tarayıcınız tarafından cihazınıza yerleştirilen küçük veri dosyalarıdır. Platformumuzda yalnızca hizmetin güvenli çalışması ve kullanıcı tercihlerinizin hatırlanması amacıyla kullanılmaktadır."
       },
       {
-        heading: "Kullandığımız Çerez Türleri",
-        body: "Zorunlu Çerezler: Kimlik doğrulama oturumu ve güvenlik tokenları (oturum süresi boyunca). Tercih Çerezleri: Tema, dil ve arayüz tercihleri (1 yıl). Analitik Çerezler: Anonimleştirilmiş kullanım istatistikleri (6 ay). Platform, üçüncü taraf reklam veya izleme çerezi kullanmamaktadır."
+        heading: "2. Kullandığımız Çerez Türleri",
+        body: "Zorunlu Oturum ve Güvenlik Çerezleri: Supabase kimlik doğrulama oturumunun sürdürülmesi ve yetkisiz erişimlerin engellenmesi için zorunludur (oturum süresi boyunca). İşlevsel Tercih Kayıtları: Aydınlık/karanlık tema tercihi ve arayüz görünüm ayarlarını hatırlar. Platformumuzda üçüncü taraf reklam, pazarlama, profilleme veya harici analitik izleme çerezi KULLANILMAMAKTADIR."
       },
       {
-        heading: "Çerezlerin Yönetimi",
-        body: "Tarayıcınızın ayarlar menüsünden çerezleri engelleyebilir veya silebilirsiniz. Zorunlu çerezlerin engellenmesi, oturum açma işlevinin çalışmamasına yol açabilir. Çerez yönetimine ilişkin sorularınız için: cookies@must-b.com"
+        heading: "3. Çerezlerin Yönetimi",
+        body: "Tarayıcınızın ayarlar menüsünden çerezleri dilediğiniz zaman silebilir veya engelleyebilirsiniz. Ancak zorunlu oturum çerezlerinin devre dışı bırakılması durumunda platforma giriş yapılması mümkün olmayabilir. Sorularınız için: kvkk@must-b.com"
       }
     ]
   },
   contact: {
-    title: "İletişim ve Haklar",
+    title: "İletişim ve Künye",
     sections: [
       {
-        heading: "MUST-B Teknoloji A.Ş.",
-        body: "Türkiye merkezli bir eğitim teknolojisi girişimidir. Must-b Academy platformu, MUST-B bünyesinde geliştirilmekte ve işletilmektedir."
+        heading: "Veri Sorumlusu ve Yer Sağlayıcı",
+        body: "MUST-B Teknoloji A.Ş. — Türkiye. Must-b Academy platformu, MUST-B Teknoloji A.Ş. bünyesinde geliştirilmekte ve işletilmektedir."
       },
       {
-        heading: "İletişim Kanalları",
-        body: "Genel İletişim: info@must-b.com | Kurumsal Web: https://must-b.com | Teknik Destek: support@must-b.com | Hukuki Bildirimler: legal@must-b.com | KVKK Başvuruları: kvkk@must-b.com | İçerik Kaldırma Talepleri: abuse@must-b.com | DMCA / Telif Hakkı: dmca@must-b.com"
+        heading: "Resmî İletişim ve Bildirim Kanalları",
+        body: "Genel İletişim ve Destek: iletisim@must-b.com | KVKK ve Veri Sahibi Başvuruları: kvkk@must-b.com | Telif Hakkı (5846 FSEK) ve İçerik İhlal Bildirimleri (5651): abuse@must-b.com | Kurumsal Web: https://must-b.com"
       },
       {
-        heading: "Yanıt Süreleri",
-        body: "Genel talepler: En fazla 3 iş günü. KVKK başvuruları: En fazla 30 gün (yasal yükümlülük). Acil güvenlik bildirimleri: 24 saat içinde ilk yanıt."
+        heading: "Yanıt ve İnceleme Süreleri",
+        body: "İçerik ve telif ihlali bildirimleri: 24-48 saat içinde incelenir. Genel destek talepleri: En fazla 3 iş günü. KVKK başvuruları: En geç 30 gün (6698 sayılı Kanun m.13 uyarınca)."
       },
       {
         heading: "Şikayet ve İtiraz",
-        body: "Kişisel veri işleme faaliyetlerimize itiraz etmek istemeniz hâlinde Kişisel Verileri Koruma Kurumu'na (KVKK) başvurma hakkınız saklıdır: www.kvkk.gov.tr"
+        body: "Platform üzerindeki herhangi bir proje veya profil içeriğini sayfa içerisindeki 'İçeriği Bildir' butonuyla doğrudan yönetici incelemesine gönderebilir veya abuse@must-b.com adresine iletebilirsiniz. Kişisel veri işleme faaliyetlerine ilişkin Kişisel Verileri Koruma Kurumu'na (www.kvkk.gov.tr) başvurma hakkınız saklıdır."
       }
     ]
   }

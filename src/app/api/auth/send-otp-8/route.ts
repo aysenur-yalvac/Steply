@@ -54,7 +54,7 @@ export async function POST(request: Request) {
             </div>
             <p style="color: #666; font-size: 14px;">Bu kod <strong>5 dakika</strong> boyunca geçerlidir.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="color: #999; font-size: 12px; text-align: center;">Bu e-postayı siz talep etmediyseniz, lütfen dikkate almayınız.<br/>MUST-B Teknoloji A.Ş.</p>
+            <p style="color: #999; font-size: 12px; text-align: center;">Bu e-postayı siz talep etmediyseniz, lütfen dikkate almayınız.<br/>Must-b Academy (MUST-B Teknoloji A.Ş.) — Destek: iletisim@must-b.com | Bu e-posta hesap güvenliğiniz için gönderilen işlemsel bir iletidir.</p>
           </div>
         `
       });

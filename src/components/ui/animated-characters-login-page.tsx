@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { BackButton } from "@/components/ui/back-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/utils/supabase/client";
+import LegalModal from "@/components/layout/LegalModal";
 
 // â”€â”€ Pupil (tracks mouse, no white eyeball) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface PupilProps {
@@ -315,6 +316,9 @@ export default function AnimatedCharactersLoginPage({
   const [resetSending, setResetSending] = useState(false);
   const [resetCooldown, setResetCooldown] = useState(0);
   const [resetFeedback, setResetFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [openLegalSlug, setOpenLegalSlug] = useState<"privacy" | "terms" | "kvkk" | "cookies" | "contact" | null>(null);
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
+  const [kvkkError, setKvkkError] = useState<string | null>(null);
 
   useEffect(() => {
     if (resetCooldown <= 0) return;
@@ -666,9 +670,9 @@ export default function AnimatedCharactersLoginPage({
 
         {/* Footer links */}
         <div className="relative z-20 flex items-center gap-8 text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
-          <a href="#" className="hover:text-white transition-colors">Gizlilik Politikası</a>
-          <a href="#" className="hover:text-white transition-colors">Kullanım Koşulları</a>
-          <a href="#" className="hover:text-white transition-colors">İletişim</a>
+          <button type="button" onClick={() => setOpenLegalSlug("privacy")} className="hover:text-white transition-colors">Gizlilik Politikası</button>
+          <button type="button" onClick={() => setOpenLegalSlug("terms")} className="hover:text-white transition-colors">Kullanım Koşulları</button>
+          <button type="button" onClick={() => setOpenLegalSlug("contact")} className="hover:text-white transition-colors">İletişim</button>
         </div>
 
         {/* Decorative glows */}
@@ -760,6 +764,14 @@ export default function AnimatedCharactersLoginPage({
           <form
             action={isLogin ? "/api/auth/login" : "/api/auth/register"}
             method="post"
+            onSubmit={(e) => {
+              if (!isLogin && !kvkkAccepted) {
+                e.preventDefault();
+                setKvkkError("Devam etmek için KVKK Aydınlatma Metni ve Kullanım Koşulları'nı onaylamanız gerekir.");
+                return;
+              }
+              setKvkkError(null);
+            }}
             className="flex flex-col gap-4"
           >
             <input type="hidden" name="role" value={role} />
@@ -955,6 +967,58 @@ export default function AnimatedCharactersLoginPage({
               </div>
             )}
 
+            {/* KVKK & Terms Consent (register only) */}
+            {!isLogin && (
+              <div className="flex flex-col gap-1.5 mt-1">
+                <div className="flex items-start gap-2.5 select-none">
+                  <Checkbox
+                    id="kvkkConsent"
+                    checked={kvkkAccepted}
+                    onCheckedChange={(v) => {
+                      const next = v === true;
+                      setKvkkAccepted(next);
+                      if (next) setKvkkError(null);
+                    }}
+                    className="mt-0.5 border-[#7C3AFF] data-[state=checked]:bg-[#7C3AFF] data-[state=checked]:border-[#7C3AFF] shrink-0"
+                  />
+                  <span className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.68)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenLegalSlug("kvkk")}
+                      className="font-semibold underline underline-offset-2 hover:text-purple-300 transition-colors"
+                      style={{ color: "#C97EFF" }}
+                    >
+                      KVKK Aydınlatma Metni
+                    </button>
+                    {"'ni okudum; "}
+                    <button
+                      type="button"
+                      onClick={() => setOpenLegalSlug("terms")}
+                      className="font-semibold underline underline-offset-2 hover:text-purple-300 transition-colors"
+                      style={{ color: "#C97EFF" }}
+                    >
+                      Kullanım Koşulları
+                    </button>
+                    {" ve "}
+                    <button
+                      type="button"
+                      onClick={() => setOpenLegalSlug("privacy")}
+                      className="font-semibold underline underline-offset-2 hover:text-purple-300 transition-colors"
+                      style={{ color: "#C97EFF" }}
+                    >
+                      Gizlilik Politikası
+                    </button>
+                    {"'nı kabul ediyorum."}
+                  </span>
+                </div>
+                {kvkkError && (
+                  <p className="text-xs font-semibold text-rose-400 bg-rose-500/15 border border-rose-500/35 rounded-xl px-3 py-2 leading-snug">
+                    {kvkkError}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
@@ -1012,6 +1076,9 @@ export default function AnimatedCharactersLoginPage({
         </div>
         </div>
       </div>
+      {openLegalSlug && (
+        <LegalModal slug={openLegalSlug} onClose={() => setOpenLegalSlug(null)} />
+      )}
     </div>
   );
 }
