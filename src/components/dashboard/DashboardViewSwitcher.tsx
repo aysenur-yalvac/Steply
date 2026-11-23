@@ -164,7 +164,7 @@ function FilterDropdown({
   };
 
   return (
-    <div className="w-full max-w-full md:w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <div className="w-full md:w-80 md:min-w-[320px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950/60">
         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Filtreler</span>
@@ -475,8 +475,8 @@ export default function DashboardViewSwitcher({
 
   return (
     <>
-      {/* â”€â”€ Controls row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+      {/* ── Controls row ─────────────────────────────────────────────────── */}
+      <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         {/* View tabs */}
         <div className="grid grid-cols-2 sm:flex items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-full sm:w-auto">
           <button
@@ -538,7 +538,7 @@ export default function DashboardViewSwitcher({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.1, ease: "easeOut" }}
-                  className="absolute top-[calc(100%+8px)] left-0 right-0 w-full max-w-full md:left-auto md:right-0 md:w-72 z-[9999]"
+                  className="absolute left-0 right-0 top-full mt-2 w-full md:left-auto md:right-0 md:w-80 md:min-w-[320px] z-50"
                 >
                   <FilterDropdown
                     filters={filters}
