@@ -8,8 +8,8 @@ export async function POST(request: Request) {
   const origin = getSiteOrigin(request)
   const requestUrl = new URL(request.url)
   const formData = await request.formData()
-  const email = String(formData.get('email'))
-  const password = String(formData.get('password'))
+  const email = String(formData.get('email') || '').trim()
+  const password = String(formData.get('password') || '')
   const selectedRole = (formData.get('role') as string | null) || null
   const linkAccount = formData.get('link_account') as string | null
   const ownerId     = formData.get('owner_id')     as string | null
@@ -33,6 +33,55 @@ export async function POST(request: Request) {
       },
     }
   )
+
+  // 0. Şifre kontrolünden önce girilen e-posta adresinin sistemde kayıtlı olup olmadığını kontrol et
+  if (email) {
+    let emailExists: boolean | null = null
+    try {
+      if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const admin = createAdminClient()
+        const { data: profileRow } = await admin
+          .from('profiles')
+          .select('id')
+          .ilike('email', email)
+          .maybeSingle()
+
+        if (profileRow) {
+          emailExists = true
+        } else {
+          // Ayrıca auth.users içinde kontrol et
+          const { data: usersData, error: listErr } = await admin.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000,
+          })
+          if (!listErr && usersData?.users) {
+            const lowerEmail = email.toLowerCase()
+            emailExists = usersData.users.some(
+              (u) => (u.email || '').toLowerCase() === lowerEmail
+            )
+          }
+        }
+      } else {
+        const { data: profileRow, error: profErr } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', email)
+          .maybeSingle()
+        if (!profErr) {
+          emailExists = !!profileRow
+        }
+      }
+    } catch (checkErr) {
+      console.error('[login] email existence check error:', checkErr)
+    }
+
+    if (emailExists === false) {
+      return NextResponse.redirect(
+        `${origin}/auth/register?error=Bu+e-posta+ile+kayıtlı+hesap+bulunamadı.+Lütfen+kayıt+olun.`,
+        { status: 303 }
+      )
+    }
+  }
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,

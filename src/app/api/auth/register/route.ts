@@ -62,8 +62,29 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    const rawMsg = error.message || "";
+    const lowerMsg = rawMsg.toLowerCase();
+    const lowerCode = ((error as any).code || "").toLowerCase();
+    let trError = rawMsg;
+
+    if (lowerMsg.includes("already registered") || lowerMsg.includes("user already registered")) {
+      trError = "Bu e-posta adresi zaten kayıtlı.";
+    } else if (lowerMsg.includes("password should be")) {
+      trError = "Şifre en az 6 karakter olmalıdır.";
+    } else if (
+      lowerMsg.includes("for security purposes, you can only request this after") ||
+      lowerMsg.includes("for security purposes") ||
+      lowerMsg.includes("rate limit") ||
+      lowerMsg.includes("over_email_send_rate_limit") ||
+      lowerMsg.includes("too many requests") ||
+      lowerCode === "over_email_send_rate_limit" ||
+      (error as any).status === 429
+    ) {
+      trError = "Güvenlik nedeniyle lütfen 1 dakika bekleyip tekrar deneyin.";
+    }
+
     return NextResponse.redirect(
-      `${origin}/auth/register?error=${encodeURIComponent(error.message.includes('already registered') || error.message.includes('User already registered') ? 'Bu e-posta adresi zaten kayıtlı.' : (error.message.includes('Password should be') ? 'Şifre en az 6 karakter olmalıdır.' : error.message))}`,
+      `${origin}/auth/register?error=${encodeURIComponent(trError)}`,
       { status: 303 }
     );
   }

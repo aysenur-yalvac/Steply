@@ -341,6 +341,26 @@ export default function AnimatedCharactersLoginPage({
     setResetSending(true);
     setResetFeedback(null);
     try {
+      // 1. Önce sunucu tarafında e-posta adresinin sistemde kayıtlı olup olmadığını kontrol et
+      try {
+        const checkRes = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmedEmail }),
+        });
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (checkData && checkData.exists === false) {
+            const notFoundMsg = "Bu e-posta adresine ait bir kayıt bulunmamaktadır.";
+            setResetFeedback({ type: "error", text: notFoundMsg });
+            toast.error(notFoundMsg);
+            return;
+          }
+        }
+      } catch (checkErr) {
+        console.error("[forgot-password] check-email error:", checkErr);
+      }
+
       const supabase = createClient();
       const origin =
         typeof window !== "undefined"

@@ -156,5 +156,20 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`);
+  // c) Eğer token_hash ve code yoksa (veya zaten tüketildiyse) ama aktif oturum (getUser()) oluşmuşsa hata verme, doğrudan /dashboard'a yönlendir
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      return NextResponse.redirect(
+        `${origin}${isPasswordRecovery ? '/auth/reset-password' : '/dashboard'}`
+      );
+    }
+  } catch (sessionErr) {
+    console.error('[Auth Callback] Active session check error:', sessionErr);
+  }
+
+  return NextResponse.redirect(
+    `${origin}/auth/login?error=Doğrulama+işlemi+başarısız+oldu.+Lütfen+giriş+yapın.`
+  );
 }
