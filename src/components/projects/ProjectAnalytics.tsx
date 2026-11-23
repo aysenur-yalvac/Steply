@@ -33,13 +33,13 @@ export default function ProjectAnalytics({ projectId }: { projectId: string }) {
         memberMap.set(ownerRes.data.student_id, (ownerRes.data.profiles as any)?.full_name || 'Owner');
       }
       fetchedMembers.forEach(m => {
-        memberMap.set(m.user_id, (m.profiles as any)?.full_name || 'Unknown');
+        memberMap.set(m.user_id, (m.profiles as any)?.full_name || 'Bilinmeyen');
       });
 
       // Add names to tasks
       const enrichedTasks = fetchedTasks.map(t => ({
         ...t,
-        assignee_name: t.assignee_id ? (memberMap.get(t.assignee_id) || 'Unknown') : 'Unassigned'
+        assignee_name: t.assignee_id ? (memberMap.get(t.assignee_id) || 'Bilinmeyen') : 'Atanmamış'
       }));
 
       setTasks(enrichedTasks);

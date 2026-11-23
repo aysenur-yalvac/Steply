@@ -37,7 +37,7 @@ function LinkCompleteContent() {
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center space-y-4">
           <p className="text-sm text-red-600">{error}</p>
           <a href="/dashboard" className="text-sm text-violet-600 hover:underline">
-            Dashboard'a git
+            Panele Git
           </a>
         </div>
       </div>

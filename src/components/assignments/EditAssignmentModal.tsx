@@ -56,7 +56,7 @@ export default function EditAssignmentModal({
     setLoading(false);
 
     if (!res.success) {
-      alert(`GUNCELLEME HATASI: ${res.error}`);
+      alert(`Güncelleme hatası: ${res.error}`);
       return;
     }
 

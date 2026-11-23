@@ -9,7 +9,7 @@ import StudentClasses from './StudentClasses';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sınıflarım | Academy.Must-b',
+  title: 'Sınıflarım | Must-b Academy',
 };
 
 export default async function ClassesPage() {

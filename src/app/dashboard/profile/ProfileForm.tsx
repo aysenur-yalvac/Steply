@@ -40,7 +40,7 @@ function AvatarButton({ avatar, selected, onSelect }: { avatar: string; selected
       className="relative w-12 h-12 rounded-full shrink-0 transition-transform duration-200 hover:scale-110 focus-visible:outline-none"
       style={selected ? { boxShadow: "0 0 0 3px #7C3AFF" } : {}}
     >
-      <img src={avatar} alt="Avatar option" className="w-full h-full object-cover rounded-full bg-white" />
+      <img src={avatar} alt="Avatar seçeneği" className="w-full h-full object-cover rounded-full bg-white" />
       {selected && (
         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#7C3AFF]/30">
           <Check className="w-4 h-4 text-white drop-shadow" strokeWidth={3} />
@@ -209,7 +209,7 @@ export default function ProfileForm({
             type="url"
             name="github_url"
             defaultValue={profile?.github_url || ''}
-            placeholder="https://github.com/username"
+            placeholder="https://github.com/kullaniciadi"
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
@@ -222,7 +222,7 @@ export default function ProfileForm({
             type="url"
             name="linkedin_url"
             defaultValue={profile?.linkedin_url || ''}
-            placeholder="https://linkedin.com/in/username"
+            placeholder="https://linkedin.com/in/kullaniciadi"
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
@@ -237,7 +237,7 @@ export default function ProfileForm({
             type="url"
             name="twitter_url"
             defaultValue={profile?.twitter_url || ''}
-            placeholder="https://x.com/username"
+            placeholder="https://x.com/kullaniciadi"
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>
@@ -250,7 +250,7 @@ export default function ProfileForm({
             type="url"
             name="website_url"
             defaultValue={profile?.website_url || ''}
-            placeholder="https://yourwebsite.com"
+            placeholder="https://websiteniz.com"
             className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
           />
         </div>

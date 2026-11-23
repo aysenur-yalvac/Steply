@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { downloadFileFromUrl } from '@/lib/download';
 import React, { useState, useRef, useOptimistic, startTransition } from 'react';
@@ -107,7 +107,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         });
 
       if (storageError) {
-        toast.error(`Storage Upload Hatası: ${storageError.message}`);
+        toast.error(`Dosya Yükleme Hatası: ${storageError.message}`);
         return;
       }
 
@@ -190,9 +190,9 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
 
 
   const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return '0 Bayt';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Bayt', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
@@ -216,7 +216,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-snug">
-              Project Files
+              Proje Dosyaları
             </h3>
             <p className="text-xs text-slate-400 font-medium">
               Proje dokümanları, ekler ve yüklemeler

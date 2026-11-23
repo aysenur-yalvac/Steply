@@ -262,13 +262,13 @@ export default function ProjectEditableContent({
     try {
       const result = await toggleProjectPrivacyAction(project.id, next);
       if (result && (result as any).columnMissing) {
-        toast.error("Privacy feature requires a DB migration. Contact your admin.");
+        toast.error("Gizlilik özelliği için veritabanı güncellemesi gerekiyor. Yöneticinizle iletişime geçin.");
         setIsPrivate(!next);
       } else {
-        toast.success(next ? "Project is now private." : "Project is now public.");
+        toast.success(next ? "Proje artık özel." : "Proje artık herkese açık.");
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to update privacy.");
+      toast.error(err instanceof Error ? err.message : "Gizlilik ayarı güncellenemedi.");
       setIsPrivate(!next);
     } finally {
       setIsPrivacyPending(false);
@@ -325,9 +325,9 @@ export default function ProjectEditableContent({
     if ("error" in result) {
       // Roll back optimistic update
       setTeamMembers((prev) => prev.filter((m) => m.id !== normalized.id));
-      toast.error(`Failed to add member: ${result.error}`);
+      toast.error(`Üye eklenemedi: ${result.error}`);
     } else {
-      toast.success(`${normalized.full_name} added to team!`);
+      toast.success(`${normalized.full_name} ekibe eklendi!`);
       router.refresh();
     }
   };
@@ -359,7 +359,7 @@ export default function ProjectEditableContent({
       // Roll back
       const restored = initialTeamMembers.find((m) => m.id === id);
       if (restored) setTeamMembers((prev) => [...prev, restored]);
-      toast.error(`Failed to remove member: ${result.error}`);
+      toast.error(`Üye çıkarılamadı: ${result.error}`);
     } else {
       router.refresh();
     }
@@ -372,7 +372,7 @@ export default function ProjectEditableContent({
 
         {/* Header: label + status badge */}
         <div className="flex justify-between items-center mb-5 gap-4">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">About Project</h3>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">Proje Hakkında</h3>
           {isCompleted ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-sm font-medium border border-emerald-500/20 shrink-0 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               <CheckCircle className="w-4 h-4" /> Tamamlandı
@@ -402,14 +402,14 @@ export default function ProjectEditableContent({
                 <button
                   onClick={() => setEditingTitle(false)}
                   className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                  title="Apply"
+                  title="Uygula"
                 >
                   <Check className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setTitle(project.title); setEditingTitle(false); }}
                   className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
-                  title="Cancel"
+                  title="İptal"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -419,7 +419,7 @@ export default function ProjectEditableContent({
                 <span className="text-base font-semibold text-slate-600 dark:text-slate-300 truncate">{title}</span>
                 <button
                   onClick={() => setEditingTitle(true)}
-                  title="Edit title"
+                  title="Başlığı düzenle"
                   className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-500 rounded-lg transition-all"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -445,13 +445,13 @@ export default function ProjectEditableContent({
                   onClick={() => { setDescription(project.cleanedDescription); setEditingDesc(false); }}
                   className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
                 >
-                  Cancel
+                  İptal
                 </button>
                 <button
                   onClick={() => setEditingDesc(false)}
                   className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 rounded-lg hover:bg-slate-200 transition-colors"
                 >
-                  <Check className="w-3.5 h-3.5" /> Apply
+                  <Check className="w-3.5 h-3.5" /> Uygula
                 </button>
               </div>
             </div>
@@ -461,11 +461,11 @@ export default function ProjectEditableContent({
               onClick={() => canEdit && setEditingDesc(true)}
             >
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pr-14">
-                {description || "No description has been entered for this project yet."}
+                {description || "Bu proje için henüz bir açıklama girilmedi."}
               </p>
               {canEdit && (
                 <span className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center gap-1 text-xs text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200">
-                  <Pencil className="w-3 h-3" /> Edit
+                  <Pencil className="w-3 h-3" /> Düzenle
                 </span>
               )}
             </div>
@@ -481,7 +481,7 @@ export default function ProjectEditableContent({
               rel="noreferrer"
               className="flex items-center gap-2 text-dusty-rose hover:text-rose-600 transition-colors font-bold text-sm"
             >
-              <Github className="w-4 h-4 shrink-0" /> GitHub Repository
+              <Github className="w-4 h-4 shrink-0" /> GitHub Deposu
             </a>
           )}
           {/* Start date */}
@@ -520,12 +520,12 @@ export default function ProjectEditableContent({
                 )}
                 <div>
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {isPrivate ? "Private Project" : "Public Project"}
+                    {isPrivate ? "Özel Proje" : "Herkese Açık Proje"}
                   </p>
                   <p className="text-xs text-slate-400">
                     {isPrivate
-                      ? "Only teachers and you can view this project."
-                      : "Everyone with the link can view this project."}
+                      ? "Bu projeyi yalnızca öğretmenler ve siz görebilirsiniz."
+                      : "Bağlantıya sahip herkes bu projeyi görebilir."}
                   </p>
                 </div>
               </div>
@@ -536,7 +536,7 @@ export default function ProjectEditableContent({
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
                   isPrivate ? "bg-[#7C3AFF]" : "bg-slate-200"
                 }`}
-                title={isPrivate ? "Make public" : "Make private"}
+                title={isPrivate ? "Herkese Açık Yap" : "Özel Yap"}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
@@ -563,12 +563,12 @@ export default function ProjectEditableContent({
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
+                  Kaydediliyor...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {isDirty ? "Save Changes" : "No unsaved changes"}
+                  {isDirty ? "Değişiklikleri Kaydet" : "Kaydedilmemiş değişiklik yok"}
                 </>
               )}
             </button>
@@ -576,11 +576,11 @@ export default function ProjectEditableContent({
         )}
       </div>
 
-      {/* ── Team Members card ────────────────────────────────────────────── */}
+      {/* ── Ekip Üyeleri card ────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] _12px_30px_rgba(0,0,0,0.7)]/80 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-500" /> Team Members
+            <Users className="w-4 h-4 text-indigo-500" /> Ekip Üyeleri
           </h3>
           {isOwner && (
             <button
@@ -588,7 +588,7 @@ export default function ProjectEditableContent({
               onClick={() => setShowMemberPanel((v) => !v)}
               className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
             >
-              <UserPlus className="w-3.5 h-3.5" /> Add Member
+              <UserPlus className="w-3.5 h-3.5" /> Üye Ekle
             </button>
           )}
         </div>
@@ -598,17 +598,17 @@ export default function ProjectEditableContent({
           <MemberRow
             member={{
               id: project.student_id ?? "",
-              full_name: project.profiles?.full_name || "Project Owner",
+              full_name: project.profiles?.full_name || "Proje Sahibi",
               avatar_url: project.profiles?.avatar_url,
             }}
-            roleLabel="Owner"
+            roleLabel="Proje Sahibi"
             roleColor="text-[#7C3AFF] font-bold uppercase tracking-wide text-[11px]"
           />
           {teamMembers.map((m) => (
             <MemberRow
               key={m.id}
               member={m}
-              roleLabel={m.role ? (m.role.charAt(0).toUpperCase() + m.role.slice(1)) : "Member"}
+              roleLabel={m.role === "teacher" ? "Öğretmen" : m.role === "student" ? "Öğrenci" : m.role === "admin" ? "Yönetici" : "Üye"}
               onRemove={isOwner && m.id !== currentUserId ? () => removeMember(m.id) : undefined}
               onLeave={!isOwner && m.id === currentUserId ? () => setShowLeaveModal(true) : undefined}
             />

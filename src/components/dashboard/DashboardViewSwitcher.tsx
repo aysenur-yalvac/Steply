@@ -25,6 +25,7 @@ type Project = {
   progress_percentage: number;
   status?: string;
   tags?: string[];
+  comment_count?: number;
   profiles?: { full_name: string; avatar_url?: string | null } | null;
 };
 
@@ -574,10 +575,10 @@ export default function DashboardViewSwitcher({
             className="flex items-center gap-2 flex-wrap overflow-hidden"
           >
             {[
-              ...filters.status.map(v => ({ label: STATUS_LABELS[v] ?? v, group: "status" as const })),
-              ...filters.priority.map(v => ({ label: PRIORITY_LABELS[v] ?? v, group: "priority" as const })),
+              ...filters.status.map(v => ({ label: STATUS_LABELS[v] ?? v, group: "status" as const, raw: v })),
+              ...filters.priority.map(v => ({ label: PRIORITY_LABELS[v] ?? v, group: "priority" as const, raw: v })),
               ...filters.tags.map(v => ({ label: `#${v}`, group: "tags" as const, raw: v })),
-              ...(filters.studentSearch.trim() ? [{ label: `ğŸ‘¤ ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
+              ...(filters.studentSearch.trim() ? [{ label: `👤 ${filters.studentSearch.trim()}`, group: "studentSearch" as const }] : []),
             ].map(({ label, group, ...rest }) => (
               <motion.span
                 key={label}
@@ -603,7 +604,7 @@ export default function DashboardViewSwitcher({
               onClick={clearFilters}
               className="text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"
             >
-              Clear all
+              Tümünü temizle
             </button>
           </motion.div>
         )}
@@ -621,7 +622,7 @@ export default function DashboardViewSwitcher({
             <SlidersHorizontal className="w-8 h-8 opacity-30" />
             <p className="text-sm font-medium">Aktif filtrelere uyan proje bulunamadı.</p>
             <button onClick={clearFilters} className="text-xs font-semibold text-violet-600 hover:underline">
-              Clear filters
+              Filtreleri temizle
             </button>
           </motion.div>
         )}
@@ -688,7 +689,6 @@ export default function DashboardViewSwitcher({
                         project={p}
                         isTeacher={isTeacher}
                         currentUserId={currentUserId}
-                        isFavorited={false}
                         isCollaborator
                       />
                     ))}

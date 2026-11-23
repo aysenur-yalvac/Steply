@@ -8,7 +8,7 @@ export async function updateProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: 'You must be logged in.' };
+    return { error: 'Giriş yapmanız gerekiyor.' };
   }
 
   const userId = formData.get('id') as string;
@@ -19,7 +19,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   if (!fullName || fullName.trim().length < 2) {
-    return { error: 'Please enter a valid full name.' };
+    return { error: 'Lütfen geçerli bir ad soyad girin.' };
   }
 
   const { error } = await supabase

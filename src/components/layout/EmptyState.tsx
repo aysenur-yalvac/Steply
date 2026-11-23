@@ -148,12 +148,12 @@ export default function EmptyState({ icon: Icon, title, description, action }: E
 
       {/* ── Headline ────────────────────────────────────────────────────── */}
       <h3 className="relative z-10 text-2xl font-extrabold text-white mb-2 text-center tracking-tight">
-        Henüz İçerik{" "}
+        Henüz içerik{" "}
         <span
           className="bg-clip-text text-transparent"
           style={{ backgroundImage: "linear-gradient(135deg, #A020F0 0%, #7C3AFF 50%, #FF7F50 100%)" }}
         >
-          Canvas
+          yok
         </span>
       </h3>
 

@@ -69,7 +69,7 @@ export default function Navbar() {
                     className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-4"
                     onClick={closeMenus}
                   >
-                    Dashboard
+                    Panel
                   </Link>
                 </div>
               ) : (
@@ -80,7 +80,7 @@ export default function Navbar() {
                       onClick={closeMenus}
                       className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5"
                     >
-                      Log In
+                      Giriş Yap
                     </Link>
                   )}
                   {!pathname.startsWith('/auth') && (
@@ -89,7 +89,7 @@ export default function Navbar() {
                       onClick={closeMenus}
                       className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95"
                     >
-                      Sign Up
+                      Kayıt Ol
                     </Link>
                   )}
                 </div>

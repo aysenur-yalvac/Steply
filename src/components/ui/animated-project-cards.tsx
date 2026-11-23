@@ -117,7 +117,7 @@ function AnimatedProjectCard({
       toast.success("Not silindi!", {
         style: { borderRadius: "12px", background: "#0f1428", color: "#e2e8f0", border: "1px solid rgba(255,127,80,0.3)", fontSize: "13px", fontWeight: "bold" },
       });
-    } catch { toast.error("An error occurred"); }
+    } catch { toast.error("Bir hata oluştu"); }
     finally { setIsNoteSaving(false); }
   };
 
@@ -261,7 +261,7 @@ function AnimatedProjectCard({
                     onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,127,80,0.14)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,127,80,0.08)")}
                   >
-                    <Github className="w-3.5 h-3.5" /> Repository
+                    <Github className="w-3.5 h-3.5" /> Depo
                   </a>
                 )}
               </motion.div>
@@ -269,7 +269,7 @@ function AnimatedProjectCard({
               {/* Progress bar + slider */}
               <motion.div variants={childVariants} className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">Progress</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">İlerleme</span>
                   <span className="text-xs font-extrabold" style={{ color: "#C97EFF" }}>{localProgress}%</span>
                 </div>
 
@@ -315,7 +315,7 @@ function AnimatedProjectCard({
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(124,58,255,0.38)")}
                         onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(124,58,255,0.22)")}
                       >
-                        Update
+                        Güncelle
                       </button>
                     </form>
                   ) : <div className="flex-1" />}
@@ -328,7 +328,7 @@ function AnimatedProjectCard({
                     onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(124,58,255,0.22)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(124,58,255,0.12)")}
                   >
-                    View Details
+                    Detayları Gör
                   </a>
                 </div>
               </motion.div>
@@ -351,14 +351,14 @@ function AnimatedProjectCard({
                           <textarea
                             value={noteContent}
                             onChange={(e) => setNoteContent(e.target.value)}
-                            placeholder="Quick private note..."
+                            placeholder="Hızlı özel not yazın..."
                             rows={1}
                             className="w-full bg-transparent border-none p-1.5 focus:ring-0 resize-y text-xs text-slate-300 font-medium placeholder:text-slate-600 dark:text-slate-300 min-h-[36px] outline-none"
                           />
                           <div className="flex justify-end gap-2 items-center">
                             {initialTeacherNote && (
                               <button onClick={() => setIsEditingNote(false)} className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-300 transition-colors">
-                                Cancel
+                                İptal
                               </button>
                             )}
                             <button
@@ -367,7 +367,7 @@ function AnimatedProjectCard({
                               className="px-4 py-2 text-white text-xs font-bold rounded-xl shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-all"
                               style={{ background: "rgba(124,58,255,0.80)" }}
                             >
-                              {isNoteSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
+                              {isNoteSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Kaydet
                             </button>
                           </div>
                         </>
@@ -375,13 +375,13 @@ function AnimatedProjectCard({
                         <div className="flex justify-between items-start gap-4 p-1">
                           <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap">{noteContent}</p>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <button onClick={() => setIsEditingNote(true)} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-white transition-colors" title="Edit Note">
+                            <button onClick={() => setIsEditingNote(true)} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-white transition-colors" title="Notu Düzenle">
                               <Edit3 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => { if (window.confirm("Delete this note?")) deleteNote(); }}
+                              onClick={() => { if (window.confirm("Bu notu silmek istediğinize emin misiniz?")) deleteNote(); }}
                               disabled={isNoteSaving}
-                              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-400 transition-colors" title="Delete Note"
+                              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-400 transition-colors" title="Notu Sil"
                             >
                               {isNoteSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                             </button>

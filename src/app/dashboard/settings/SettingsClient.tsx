@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -845,10 +845,10 @@ export default function SettingsClient({
                     <div className="space-y-3 pt-1">
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Sosyal Medya Hesapları</p>
                       {([
-                        { icon: <Github className="w-4 h-4" />, label: "GitHub", placeholder: "https://github.com/username", value: githubUrl, set: setGithubUrl },
-                        { icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn", placeholder: "https://linkedin.com/in/username", value: linkedinUrl, set: setLinkedinUrl },
-                        { icon: <Twitter className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/username", value: twitterUrl, set: setTwitterUrl },
-                        { icon: <Globe className="w-4 h-4" />, label: "Web Sitesi", placeholder: "https://yourwebsite.com", value: websiteUrl, set: setWebsiteUrl },
+                        { icon: <Github className="w-4 h-4" />, label: "GitHub", placeholder: "https://github.com/kullaniciadi", value: githubUrl, set: setGithubUrl },
+                        { icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn", placeholder: "https://linkedin.com/in/kullaniciadi", value: linkedinUrl, set: setLinkedinUrl },
+                        { icon: <Twitter className="w-4 h-4" />, label: "X / Twitter", placeholder: "https://x.com/kullaniciadi", value: twitterUrl, set: setTwitterUrl },
+                        { icon: <Globe className="w-4 h-4" />, label: "Web Sitesi", placeholder: "https://websiteniz.com", value: websiteUrl, set: setWebsiteUrl },
                       ]).map(({ icon, label, placeholder, value, set }) => (
                         <div key={label} className="space-y-1.5">
                           <label className="text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
@@ -892,7 +892,7 @@ export default function SettingsClient({
                   <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
                     <div className="space-y-1.5">
                       <label htmlFor="newPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        New Password
+                        Yeni Şifre
                       </label>
                       <div className="relative">
                         <input
@@ -918,7 +918,7 @@ export default function SettingsClient({
 
                     <div className="space-y-1.5">
                       <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        Confirm New Password
+                        Yeni Şifreyi Onayla
                       </label>
                       <div className="relative">
                         <input
@@ -1043,7 +1043,7 @@ export default function SettingsClient({
                               className="w-9 h-9 text-sm shrink-0"
                             />
                             <span className="flex-1 text-sm font-semibold text-slate-700 truncate">
-                              {u.full_name ?? "Must-b Academy Member"}
+                              {u.full_name ?? "Must-b Academy Üyesi"}
                             </span>
                             <button
                               disabled={unblocking === u.id}

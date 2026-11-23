@@ -66,7 +66,7 @@ export default function SocialAuthRow({ mode = "login" }: { mode?: "login" | "re
 
       if (error) {
         console.error("Supabase OAuth Hatasi:", error);
-        alert(`Giris Hatasi: ${error.message}`);
+        alert(`Giriş hatası: ${error.message}`);
       } else {
         console.log("OAuth yonlendirmesi basarili:", data);
       }

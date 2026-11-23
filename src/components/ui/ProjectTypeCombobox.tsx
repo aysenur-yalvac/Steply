@@ -129,7 +129,7 @@ export default function ProjectTypeCombobox({
               <div className="w-6 h-6 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center shrink-0">
                 <Plus className="w-3.5 h-3.5 text-violet-600" />
               </div>
-              Add &ldquo;{value.trim()}&rdquo; as new type
+              &ldquo;{value.trim()}&rdquo; yeni tür olarak ekle
             </button>
           )}
         </div>

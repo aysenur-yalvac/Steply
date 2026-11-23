@@ -108,7 +108,7 @@ export default async function PublicProfilePage({
     { url: profile.github_url,   icon: <Github   className="w-4 h-4" />, label: "GitHub"   },
     { url: profile.linkedin_url, icon: <Linkedin className="w-4 h-4" />, label: "LinkedIn" },
     { url: (profile as any).twitter_url, icon: <Twitter className="w-4 h-4" />, label: "Twitter" },
-    { url: (profile as any).website_url, icon: <Globe   className="w-4 h-4" />, label: "Website" },
+    { url: (profile as any).website_url, icon: <Globe   className="w-4 h-4" />, label: "Web Sitesi" },
   ].filter((l) => !!l.url);
 
   return (
@@ -137,7 +137,7 @@ export default async function PublicProfilePage({
               />
               {profile.role && (
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#7C3AFF] text-white shadow-md uppercase tracking-wider">
-                  {profile.role}
+                  {profile.role === 'teacher' ? 'ÖĞRETMEN' : profile.role === 'admin' ? 'YÖNETİCİ' : 'ÖĞRENCİ'}
                 </span>
               )}
             </div>
@@ -146,7 +146,7 @@ export default async function PublicProfilePage({
             <div className="flex-1 min-w-0 pt-1">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
-                  {profile.full_name ?? "Must-b Academy Member"}
+                  {profile.full_name ?? "Must-b Academy Üyesi"}
                 </h1>
                 {viewer && !isSelf && (
                   <div className="flex items-center gap-1.5">
@@ -165,7 +165,7 @@ export default async function PublicProfilePage({
                 <div className="mt-3 flex items-start gap-2 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
                   <ShieldOff className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    This profile is private. You can only see the name and avatar.
+                    Bu profil gizlidir. Yalnızca ad ve avatar görülebilir.
                   </p>
                 </div>
               )}
@@ -218,10 +218,10 @@ export default async function PublicProfilePage({
               </div>
               <div>
                 <h2 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
-                  Public Projects
+                  Herkese Açık Projeler
                 </h2>
                 <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">
-                  {projects.length} project{projects.length !== 1 ? "s" : ""} · publicly visible
+                  {projects.length} proje · herkese açık
                 </p>
               </div>
             </div>
@@ -232,7 +232,7 @@ export default async function PublicProfilePage({
                 <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm">
                   <FolderOpen className="w-7 h-7 text-slate-300 dark:text-slate-600" />
                 </div>
-                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">No public projects yet.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Henüz herkese açık proje yok.</p>
               </div>
             ) : (
               <ProfileProjectsPanel

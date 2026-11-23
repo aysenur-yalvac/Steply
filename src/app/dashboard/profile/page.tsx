@@ -22,7 +22,7 @@ export default async function ProfilePage() {
     .single();
 
   if (!profile) {
-    return <div className="p-8 text-center text-red-400">Profile information not found.</div>;
+    return <div className="p-8 text-center text-red-400">Profil bilgileri bulunamadı.</div>;
   }
 
   const activities = await getUserActivitiesAction(user.id);
@@ -31,7 +31,7 @@ export default async function ProfilePage() {
     { href: profile.github_url,   icon: <Github   className="w-4 h-4" />, label: 'GitHub'    },
     { href: profile.linkedin_url, icon: <Linkedin  className="w-4 h-4" />, label: 'LinkedIn'  },
     { href: profile.twitter_url,  icon: <Twitter   className="w-4 h-4" />, label: 'X / Twitter' },
-    { href: profile.website_url,  icon: <Globe     className="w-4 h-4" />, label: 'Website'   },
+    { href: profile.website_url,  icon: <Globe     className="w-4 h-4" />, label: 'Web Sitesi'   },
   ].filter((s) => s.href);
 
   const badges: string[] = (profile as any).badges ?? [];
@@ -47,7 +47,7 @@ export default async function ProfilePage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#7C3AFF] text-white text-sm font-semibold shadow-md shadow-violet-500/20 hover:brightness-110 active:scale-95 transition-all"
           >
             <Pencil className="w-4 h-4" strokeWidth={2} />
-            Edit Profile
+            Profili Düzenle
           </Link>
         </div>
 
@@ -74,7 +74,7 @@ export default async function ProfilePage() {
                   {badges.length > 0 && <BadgeDisplay badges={badges} size="sm" />}
                 </div>
                 <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
-                  {profile.role === 'teacher' ? 'Teacher' : 'Student'}
+                  {profile.role === 'teacher' ? 'Öğretmen' : 'Öğrenci'}
                 </span>
                 {(profile as any).total_score > 0 && (
                   <span className="ml-2 inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-900 shadow-sm shadow-amber-200/60 dark:bg-none">

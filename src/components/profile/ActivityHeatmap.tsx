@@ -16,8 +16,8 @@ function getLevel(count: number) {
   return LEVELS.find(l => count >= l.min && count <= l.max) ?? LEVELS[0];
 }
 
-const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const DAY_LABELS  = ["","Mon","","Wed","","Fri",""];
+const MONTH_NAMES = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+const DAY_LABELS  = ["","Pzt","","Çar","","Cum",""];
 
 interface Props { activities: ActivityDay[] }
 
@@ -77,14 +77,14 @@ export default function ActivityHeatmap({ activities }: Props) {
     <div className="space-y-2 select-none">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-700">Activity</p>
+        <p className="text-sm font-bold text-slate-700">Aktivite</p>
         <div className="flex items-center gap-4 text-xs text-slate-400">
           {streak > 0 && (
             <span className="flex items-center gap-1 font-semibold text-orange-500">
-              🔥 {streak}-day streak
+              🔥 {streak} günlük seri
             </span>
           )}
-          <span>{totalCount} activities this year</span>
+          <span>Bu yıl {totalCount} aktivite</span>
         </div>
       </div>
 
@@ -124,8 +124,8 @@ export default function ActivityHeatmap({ activities }: Props) {
                   const level = getLevel(cell.count);
                   const dateLabel = new Date(cell.date).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" });
                   const tip = cell.count === 0
-                    ? `No activity — ${dateLabel}`
-                    : `${cell.count} action${cell.count !== 1 ? "s" : ""} — ${dateLabel}`;
+                    ? `Aktivite yok — ${dateLabel}`
+                    : `${cell.count} işlem — ${dateLabel}`;
                   return (
                     <div
                       key={di}
@@ -157,11 +157,11 @@ export default function ActivityHeatmap({ activities }: Props) {
 
       {/* Legend */}
       <div className="flex items-center gap-1 justify-end text-[10px] text-slate-400">
-        <span>Less</span>
+        <span>Az</span>
         {LEVELS.map((l, i) => (
           <div key={i} style={{ width: CELL, height: CELL }} className={`rounded-[2px] ${l.cls}`} />
         ))}
-        <span>More</span>
+        <span>Çok</span>
       </div>
     </div>
   );

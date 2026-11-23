@@ -21,14 +21,14 @@ const AURA = [
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS = {
-  approved:  { label: "Approved",          color: "#22C55E", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.28)"  },
-  review:    { label: "Under Review",      color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.28)" },
-  changes:   { label: "Changes Requested", color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.28)"  },
-  submitted: { label: "New Submission",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
+  approved:  { label: "Onaylandı",          color: "#22C55E", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.28)"  },
+  review:    { label: "İncelemede",      color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.28)" },
+  changes:   { label: "Revize İstendi", color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.28)"  },
+  submitted: { label: "Yeni Teslim",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
 } as const;
 
 // ── Approval stages ───────────────────────────────────────────────────────────
-const STAGES = ["Submitted", "Review", "Grade", "Finalized"];
+const STAGES = ["Teslim", "İnceleme", "Puan", "Onaylandı"];
 
 function stageFromStatus(status: ProjectStatus): number {
   switch (status) {
@@ -40,11 +40,11 @@ function stageFromStatus(status: ProjectStatus): number {
 }
 
 const LAST_ACTIONS = [
-  "Teacher graded 1d ago",
-  "Teacher graded 2d ago",
-  "Submitted 3h ago",
-  "Finalized 4d ago",
-  "Changes requested 1d ago",
+  "Öğretmen 1g önce puanladı",
+  "Öğretmen 2g önce puanladı",
+  "3s önce teslim edildi",
+  "4g önce tamamlandı",
+  "1g önce revize istendi",
 ];
 
 // Icons for the 5 demo projects
@@ -55,16 +55,16 @@ const DEMO_PROJECTS = PROJECTS_DATA.slice(0, 5);
 
 // ── Teacher feedback (static demo) ───────────────────────────────────────────
 const FEEDBACK = [
-  { id: 1, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "OOP Not Hesaplayıcı",   rating: 5,    comment: "Encapsulation mükemmel uygulanmış. CRUD işlemleri temiz ve test edilmiş. Onaylıyorum.", color: AURA[0] },
-  { id: 2, avatar: "DL", teacher: "Dr. Lee",      tag: "Teacher Note",   project: "Kütüphane Otomasyonu",  rating: null, comment: "Enum kullanımı doğru ama tarih farkı hesabında edge case hatası var. Lütfen düzeltin.", color: AURA[3] },
-  { id: 3, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor Review",  project: "Personel Takip Sistemi",rating: 5,    comment: "Interface kullanımı çok başarılı. Loglama yapısı da kurumsal standartlarda. Final.", color: AURA[2] },
-  { id: 4, avatar: "DM", teacher: "Dr. Martinez", tag: "Teacher Note",   project: "Geometrik Form Aracı",  rating: null, comment: "Polymorphism doğru kurulmuş. Virtual method override'ları gözden geçirilmeli.", color: AURA[1] },
+  { id: 1, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor İncelemesi",  project: "OOP Not Hesaplayıcı",   rating: 5,    comment: "Encapsulation mükemmel uygulanmış. CRUD işlemleri temiz ve test edilmiş. Onaylıyorum.", color: AURA[0] },
+  { id: 2, avatar: "DL", teacher: "Dr. Lee",      tag: "Öğretmen Notu",   project: "Kütüphane Otomasyonu",  rating: null, comment: "Enum kullanımı doğru ama tarih farkı hesabında edge case hatası var. Lütfen düzeltin.", color: AURA[3] },
+  { id: 3, avatar: "PC", teacher: "Prof. Chen",   tag: "Mentor İncelemesi",  project: "Personel Takip Sistemi",rating: 5,    comment: "Interface kullanımı çok başarılı. Loglama yapısı da kurumsal standartlarda. Final.", color: AURA[2] },
+  { id: 4, avatar: "DM", teacher: "Dr. Martinez", tag: "Öğretmen Notu",   project: "Geometrik Form Aracı",  rating: null, comment: "Polymorphism doğru kurulmuş. Virtual method override'ları gözden geçirilmeli.", color: AURA[1] },
 ];
 
 const REQUESTS = [
-  { id: 1, student: "Cem D.",   project: "Kütüphane Otomasyonu",  milestone: "Enum & Date Logic",   time: "1d ago",  color: AURA[4] },
-  { id: 2, student: "Kerem A.", project: "Geometrik Form Aracı",  milestone: "Polymorphism Module", time: "3h ago",  color: AURA[1] },
-  { id: 3, student: "Sara M.",  project: "Sipariş Yönetimi",      milestone: "Inheritance Layer",   time: "5h ago",  color: AURA[3] },
+  { id: 1, student: "Cem D.",   project: "Kütüphane Otomasyonu",  milestone: "Enum & Date Logic",   time: "1g önce",  color: AURA[4] },
+  { id: 2, student: "Kerem A.", project: "Geometrik Form Aracı",  milestone: "Polymorphism Module", time: "3s önce",  color: AURA[1] },
+  { id: 3, student: "Sara M.",  project: "Sipariş Yönetimi",      milestone: "Inheritance Layer",   time: "5s önce",  color: AURA[3] },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -154,15 +154,15 @@ export default function LiveDemo() {
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(0,194,203,0.55)" }} />
           </div>
           <Shield className="w-4 h-4" style={{ color: "#A020F0" }} />
-          <span className="text-sm font-bold text-white tracking-wide">Academic Review Board</span>
+          <span className="text-sm font-bold text-white tracking-wide">Akademik Değerlendirme Panosu</span>
           <div className="ml-auto flex items-center gap-2">
             <span className="text-[10px] font-bold px-2 py-1 rounded-md"
               style={{ color: "#22C55E", background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.22)" }}>
-              18 Approved
+              18 Onaylı
             </span>
             <span className="text-[10px] font-bold px-2 py-1 rounded-md"
               style={{ color: "#F59E0B", background: "rgba(245,158,11,0.10)", border: "1px solid rgba(245,158,11,0.22)" }}>
-              32 Pending
+              32 Bekleyen
             </span>
           </div>
         </div>
@@ -172,9 +172,9 @@ export default function LiveDemo() {
           className="px-5 py-2 grid shrink-0"
           style={{ gridTemplateColumns: "1fr auto auto", gap: "1rem", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
         >
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300">Project / Student</span>
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden sm:block">Status · Grade</span>
-          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden md:block">Last Action</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300">Proje / Öğrenci</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden sm:block">Durum · Not</span>
+          <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 dark:text-slate-300 hidden md:block">Son İşlem</span>
         </div>
 
         {/* Project rows — first 5 only */}
@@ -220,7 +220,7 @@ export default function LiveDemo() {
                     )}
                   </div>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight mb-1">
-                    Student: {proj.studentName}
+                    Öğrenci: {proj.studentName}
                   </span>
                   <ApprovalProgress stage={stage} color={color} />
                 </div>
@@ -232,7 +232,7 @@ export default function LiveDemo() {
                     className="text-[10px] font-bold"
                     style={{ color: proj.grade === "Pending" ? "rgba(255,255,255,0.22)" : color.label }}
                   >
-                    {proj.grade}
+                    {proj.grade === "Pending" ? "Beklemede" : proj.grade}
                   </span>
                   <span className="text-[9px] text-slate-600 dark:text-slate-300 hidden md:block">{LAST_ACTIONS[idx]}</span>
                 </div>
@@ -268,7 +268,7 @@ export default function LiveDemo() {
           className="px-5 py-2.5 flex items-center gap-4 flex-wrap shrink-0"
           style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
         >
-          <span className="text-[9px] text-slate-600 dark:text-slate-300 font-medium uppercase tracking-widest">STAGES:</span>
+          <span className="text-[9px] text-slate-600 dark:text-slate-300 font-medium uppercase tracking-widest">AŞAMALAR:</span>
           {STAGES.map((s, i) => (
             <div key={i} className="flex items-center gap-1.5">
               <div className="w-4 h-1 rounded-full"
@@ -283,7 +283,7 @@ export default function LiveDemo() {
       <div className="hidden lg:block w-px self-stretch" style={{ background: "rgba(255,255,255,0.05)" }} />
 
       {/* ════════════════════════════════════════════════════════════════════
-          RIGHT — Teacher Feedback & Review Requests
+          RIGHT — Teacher Feedback & İnceleme Talepleri
       ════════════════════════════════════════════════════════════════════ */}
       <div className="hidden lg:flex w-72 shrink-0 flex-col">
 
@@ -292,7 +292,7 @@ export default function LiveDemo() {
           className="px-4 py-3.5 shrink-0"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
         >
-          <span className="text-sm font-bold text-white">Teacher Feedback &amp; Requests</span>
+          <span className="text-sm font-bold text-white">Öğretmen Geri Bildirimleri ve Talepler</span>
         </div>
 
         {/* Tabs */}
@@ -307,9 +307,9 @@ export default function LiveDemo() {
               className="pb-2.5 pt-2 px-1 text-[11px] font-bold transition-colors relative"
               style={{ color: activeTab === tab ? "#C97EFF" : "rgba(255,255,255,0.32)" }}
             >
-              {tab === "feedback" ? "Mentor Reviews" : (
+              {tab === "feedback" ? "Mentor Değerlendirmeleri" : (
                 <span className="flex items-center gap-1.5">
-                  Review Requests
+                  İnceleme Talepleri
                   <span
                     className="w-3.5 h-3.5 rounded-full text-[8px] font-black flex items-center justify-center text-white"
                     style={{ background: "#A020F0" }}
@@ -376,7 +376,7 @@ export default function LiveDemo() {
               </motion.div>
             )}
 
-            {/* ── Review Requests ── */}
+            {/* ── İnceleme Talepleri ── */}
             {activeTab === "requests" && (
               <motion.div
                 key="requests"
@@ -407,7 +407,7 @@ export default function LiveDemo() {
                         <span className="text-[9px] text-slate-600 dark:text-slate-300 shrink-0">{req.time}</span>
                       </div>
                       <p className="text-[10px] text-slate-400 leading-snug">
-                        Requests review for{" "}
+                        İnceleme talep ediyor:{" "}
                         <span className="font-bold" style={{ color: req.color.label }}>{req.milestone}</span>
                       </p>
                       <p className="text-[9px] text-slate-600 dark:text-slate-300 mt-0.5">{req.project}</p>
@@ -433,7 +433,7 @@ export default function LiveDemo() {
           </div>
           <input
             type="text"
-            placeholder="Leave teacher note..."
+            placeholder="Öğretmen notu ekleyin..."
             className="flex-1 bg-transparent text-xs text-slate-300 placeholder:text-slate-600 dark:text-slate-300 outline-none"
           />
           <button

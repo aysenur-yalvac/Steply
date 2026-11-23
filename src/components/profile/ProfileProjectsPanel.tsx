@@ -92,7 +92,7 @@ function ProfileProjectCard({
         <div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Progress
+              İlerleme
             </span>
             <span className="text-xs font-extrabold text-violet-600">
               {project.progress_percentage}%
@@ -122,7 +122,9 @@ function EmptySlot({ label }: { label: string }) {
       <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
         <FolderOpen className="w-6 h-6 text-slate-300" />
       </div>
-      <p className="text-sm text-slate-400 font-medium">No {label} projects</p>
+      <p className="text-sm text-slate-400 font-medium">
+        {label === "completed" ? "Tamamlanan proje yok" : label === "in-progress" ? "Devam eden proje yok" : `Henüz ${label} proje yok`}
+      </p>
     </div>
   );
 }
@@ -314,7 +316,7 @@ export default function ProfileProjectsPanel({
                   <FolderOpen className="w-6 h-6 text-slate-300" />
                 </div>
                 <p className="text-sm text-slate-400 font-medium">
-                  No {filter === "completed" ? "completed" : "in-progress"} projects found.
+                  {filter === "completed" ? "Tamamlanan proje bulunamadı." : "Devam eden proje bulunamadı."}
                 </p>
               </div>
             )}

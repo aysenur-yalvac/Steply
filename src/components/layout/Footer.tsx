@@ -38,7 +38,7 @@ export default function Footer() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Powered by</span>
+            <span className="text-xs text-slate-500">Altyapı:</span>
             <a
               href="https://must-b.com"
               target="_blank"
@@ -53,7 +53,7 @@ export default function Footer() {
               MUST-B
             </a>
             <span className="text-slate-600 text-xs hidden sm:inline">•</span>
-            <span className="text-slate-500 text-xs hidden sm:inline">Must-b Academy Platform &copy; {new Date().getFullYear()}</span>
+            <span className="text-slate-500 text-xs hidden sm:inline">Must-b Academy Platformu &copy; {new Date().getFullYear()}</span>
           </div>
 
           {/* Legal links */}

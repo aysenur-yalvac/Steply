@@ -1,15 +1,14 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import {
   Github, Calendar, CheckCircle, Clock,
-  MessageSquarePlus, Loader2, Trash2, Save, Edit3, Users, Flag,
+  MessageSquarePlus, MessageCircle, Loader2, Trash2, Save, Edit3, Users, Flag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { deleteProjectAction } from './actions';
 import { addQuickNoteAction, deleteQuickNoteAction } from '@/lib/actions';
-import FavoriteHeart from '@/components/ui/FavoriteHeart';
 
 import toast from 'react-hot-toast';
 
@@ -40,13 +39,13 @@ type Project = {
   progress_percentage: number;
   status?: string;
   tags?: string[];
+  comment_count?: number;
   profiles?: { full_name: string; avatar_url?: string | null };
 };
 
 export default function ProjectCard({
   project,
   isTeacher,
-  isFavorited: initialIsFavorited = false,
   teacherNote: initialTeacherNote = '',
   teacherNameForNote,
   currentUserId,
@@ -54,14 +53,12 @@ export default function ProjectCard({
 }: {
   project: Project;
   isTeacher?: boolean;
-  isFavorited?: boolean;
   teacherNote?: string;
   teacherNameForNote?: string;
   currentUserId?: string;
   isCollaborator?: boolean;
 }) {
-  const showFavoriteHeart = currentUserId !== project.student_id;
-  const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
+    const [noteContent,   setNoteContent]   = useState(initialTeacherNote);
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
@@ -186,11 +183,14 @@ export default function ProjectCard({
           </div>
         )}
 
-        {/* Footer: watch + github + delete */}
+        {/* Footer: comments (only if > 0) + github + delete */}
         <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2">
-            {showFavoriteHeart && (
-              <FavoriteHeart projectId={project.id} initialFavorited={initialIsFavorited} size="sm" />
+            {(project.comment_count ?? 0) > 0 && (
+              <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <MessageCircle className="w-3.5 h-3.5" />
+                {project.comment_count}
+              </span>
             )}
 
             {project.github_link && (

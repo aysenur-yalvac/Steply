@@ -32,9 +32,9 @@ export default async function TeacherVerificationsPage() {
   };
 
   const statusLabel = (status: string | null) => {
-    if (status === "verified") return "Onaylandi";
+    if (status === "verified") return "Onaylandı";
     if (status === "pending") return "Beklemede";
-    return "Dogrulanmadi";
+    return "Doğrulanmadı";
   };
 
   return (
@@ -45,8 +45,8 @@ export default async function TeacherVerificationsPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-extrabold text-white">Ogretmen Dogrulama</h1>
-          <p className="text-slate-400 text-sm mt-0.5">Bekleyen ogretmen hesaplari</p>
+          <h1 className="text-2xl font-extrabold text-white">Öğretmen Doğrulama</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Bekleyen öğretmen hesapları</p>
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export default async function TeacherVerificationsPage() {
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
           { label: "Beklemede", count: pendingTeachers?.filter(t => t.teacher_status === "pending").length ?? 0, color: "#FBBF24" },
-          { label: "Onaylandi", count: pendingTeachers?.filter(t => t.teacher_status === "verified").length ?? 0, color: "#34D399" },
+          { label: "Onaylandı", count: pendingTeachers?.filter(t => t.teacher_status === "verified").length ?? 0, color: "#34D399" },
           { label: "Toplam", count: pendingTeachers?.length ?? 0, color: "#A020F0" },
         ].map(({ label, count, color }) => (
           <div key={label} className="rounded-2xl p-5"
@@ -70,7 +70,7 @@ export default async function TeacherVerificationsPage() {
         <table className="w-full">
           <thead>
             <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              {["Ogretmen", "Kurum", "Kurum Kodu", "Durum", "Belge", "Islemler"].map(h => (
+              {["Öğretmen", "Kurum", "Kurum Kodu", "Durum", "Belge", "İşlemler"].map(h => (
                 <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
@@ -79,7 +79,7 @@ export default async function TeacherVerificationsPage() {
             {(!pendingTeachers || pendingTeachers.length === 0) && (
               <tr>
                 <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
-                  Bekleyen ogretmen hesabi yok
+                  Bekleyen öğretmen hesabı yok
                 </td>
               </tr>
             )}
@@ -110,7 +110,7 @@ export default async function TeacherVerificationsPage() {
                     <a href={teacher.verification_doc_url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
                       <FileText className="w-3 h-3" />
-                      Belgey Goruntule
+                      Belgeyi Görüntüle
                     </a>
                   ) : <span className="text-slate-600 text-xs">—</span>}
                 </td>

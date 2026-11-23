@@ -31,7 +31,7 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     today.setHours(0, 0, 0, 0);
     const pastDue = tasks.find(t => !t.is_completed && new Date(t.due_date) < today);
     if (pastDue) {
-      toast("Still in progress... You can do it! ✨", {
+      toast("Hâlâ devam eden görevlerin var... Başarabilirsin! ✨", {
         icon: '💡',
         duration: 5000,
         style: { borderRadius: '12px', background: '#fcfaf6', color: '#1e293b', border: '1px solid #f59e0b', fontWeight: 'bold' }

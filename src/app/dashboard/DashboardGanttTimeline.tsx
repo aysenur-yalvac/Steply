@@ -90,7 +90,7 @@ export default function DashboardGanttTimeline({
         </div>
         <TrendingUp className="w-4 h-4" style={{ color: "#A020F0" }} />
         <span className="text-xs font-bold text-slate-300 tracking-wide">
-          {isTeacher ? "Portfolio Overview — Timeline" : "Your Projects — Timeline"}
+          {isTeacher ? "Portfolyo Genel Bakış — Zaman Çizelgesi" : "Projeleriniz — Zaman Çizelgesi"}
         </span>
         <div className="ml-auto flex items-center gap-1.5">
           <div
@@ -267,7 +267,7 @@ export default function DashboardGanttTimeline({
                       )}
                     </div>
                     <div className="text-[9px] font-bold tracking-wide" style={{ color: color.label }}>
-                      Click to open project →
+                      Projeyi açmak için tıklayın →
                     </div>
                   </motion.div>
                 )}
@@ -293,11 +293,11 @@ export default function DashboardGanttTimeline({
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-8 h-2 rounded-full opacity-60" style={{ background: "#A020F0" }} />
-          <span className="text-[9px] text-slate-500 dark:text-slate-400">Progress</span>
+          <span className="text-[9px] text-slate-500 dark:text-slate-400">İlerleme</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-px h-3.5 animate-pulse" style={{ background: "rgba(255,127,80,0.6)" }} />
-          <span className="text-[9px] text-slate-500 dark:text-slate-400">Today</span>
+          <span className="text-[9px] text-slate-500 dark:text-slate-400">Bugün</span>
         </div>
       </div>
     </div>

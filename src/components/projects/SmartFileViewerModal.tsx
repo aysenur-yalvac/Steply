@@ -149,7 +149,7 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
           <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
             <div>
               <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{file.name}</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Smart Preview & Annotation</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Akıllı Önizleme ve Not Alma</p>
             </div>
             <div className="flex items-center gap-2.5">
               <button

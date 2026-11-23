@@ -334,7 +334,7 @@ export async function addProjectMemberAction(
     .eq("id", projectId)
     .single();
 
-  if (!project) return { error: "Project not found." };
+  if (!project) return { error: "Proje bulunamadı." };
   if (project.student_id !== user.id) return { error: "Only the project owner can add members." };
 
   const { error } = await admin
@@ -383,7 +383,7 @@ export async function removeProjectMemberAction(
     .eq("id", projectId)
     .single();
 
-  if (!project) return { error: "Project not found." };
+  if (!project) return { error: "Proje bulunamadı." };
   const isOwner = project.student_id === user.id;
   const isSelfLeaving = userId === user.id;
 
@@ -426,7 +426,7 @@ export async function searchProfilesAction(
 export async function toggleProjectPrivacyAction(projectId: string, isPrivate: boolean) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
 
   const { data: project } = await supabase
     .from("projects")
@@ -434,7 +434,7 @@ export async function toggleProjectPrivacyAction(projectId: string, isPrivate: b
     .eq("id", projectId)
     .single();
 
-  if (!project || project.student_id !== user.id) throw new Error("Unauthorized");
+  if (!project || project.student_id !== user.id) throw new Error("Yetkisiz işlem");
 
   const { error } = await supabase
     .from("projects")
@@ -457,7 +457,7 @@ export async function toggleProjectPrivacyAction(projectId: string, isPrivate: b
 export async function deleteProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
 
   const admin = createAdminClient();
   const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).single();
@@ -465,7 +465,7 @@ export async function deleteProjectAction(projectId: string) {
 
   if (!isTeacher) {
     const { data: project } = await admin.from("projects").select("student_id").eq("id", projectId).single();
-    if (project?.student_id !== user.id) throw new Error("Unauthorized to delete this project.");
+    if (project?.student_id !== user.id) throw new Error("Bu projeyi silme yetkiniz yok.");
   }
 
   const { error } = await admin.from("projects").update({ deleted_at: new Date().toISOString() }).eq("id", projectId);
@@ -483,7 +483,7 @@ export async function deleteProjectAction(projectId: string) {
 export async function restoreProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
   const admin = createAdminClient();
   const { error } = await admin.from("projects").update({ deleted_at: null }).eq("id", projectId);
   if (error) throw new Error(error.message);
@@ -495,7 +495,7 @@ export async function restoreProjectAction(projectId: string) {
 export async function permanentDeleteProjectAction(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
   const admin = createAdminClient();
   const { error } = await admin.from("projects").delete().eq("id", projectId);
   if (error) throw new Error(error.message);
@@ -511,10 +511,10 @@ export async function softDeleteFileAction(projectId: string, fileUrl: string): 
     if (!user) return { success: false, error: "Unauthorized" };
     const admin = createAdminClient();
     const { data: project } = await admin.from("projects").select("student_id, files").eq("id", projectId).single();
-    if (!project) return { success: false, error: "Project not found." };
+    if (!project) return { success: false, error: "Proje bulunamadı." };
     const existingFiles = (project.files as any[]) || [];
     const fileToDelete = existingFiles.find((f: any) => f.url === fileUrl);
-    if (!fileToDelete) return { success: false, error: "File not found." };
+    if (!fileToDelete) return { success: false, error: "Dosya bulunamadı." };
     await admin.from("deleted_files").insert({ project_id: projectId, file_data: fileToDelete, deleted_by: user.id });
     const updatedFiles = existingFiles.filter((f: any) => f.url !== fileUrl);
     const { error } = await admin.from("projects").update({ files: updatedFiles }).eq("id", projectId);
@@ -531,10 +531,10 @@ export async function softDeleteFileAction(projectId: string, fileUrl: string): 
 export async function restoreFileAction(deletedFileId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
   const admin = createAdminClient();
   const { data: deletedFile } = await admin.from("deleted_files").select("*").eq("id", deletedFileId).single();
-  if (!deletedFile) throw new Error("Deleted file not found.");
+  if (!deletedFile) throw new Error("Silinmiş dosya bulunamadı.");
   const { data: project } = await admin.from("projects").select("files").eq("id", deletedFile.project_id).single();
   const existingFiles = (project?.files as any[]) || [];
   await admin.from("projects").update({ files: [...existingFiles, deletedFile.file_data] }).eq("id", deletedFile.project_id);
@@ -547,7 +547,7 @@ export async function restoreFileAction(deletedFileId: string) {
 export async function permanentDeleteFileAction(deletedFileId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Yetkisiz işlem");
   const admin = createAdminClient();
   const { error } = await admin.from("deleted_files").delete().eq("id", deletedFileId);
   if (error) throw new Error(error.message);

@@ -89,7 +89,7 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
               onClick={() => removeTag(tag)}
               disabled={saving}
               className="ml-0.5 rounded-full opacity-50 hover:opacity-100 transition-opacity disabled:opacity-30"
-              aria-label={`Remove ${tag}`}
+              aria-label={`${tag} etiketini kaldır`}
             >
               <X className="w-3 h-3" />
             </button>

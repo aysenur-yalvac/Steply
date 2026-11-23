@@ -125,7 +125,7 @@ export default async function ProjectDetailPage({
         const p = profileMap.get(uid);
         return {
           id:         uid,
-          full_name:  p?.full_name  ?? 'Unknown',
+          full_name:  p?.full_name  ?? 'Bilinmeyen Kullanıcı',
           avatar_url: p?.avatar_url ?? null,
           role:       p?.role       ?? null,
         };
@@ -165,7 +165,7 @@ export default async function ProjectDetailPage({
     const revMap = new Map(reviewerProfiles?.map((p) => [p.id, p]) ?? []);
     reviews = rawReviews.map((r) => ({
       ...r,
-      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Must-b Academy Member',
+      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Must-b Academy Üyesi',
       reviewer_role:   revMap.get(r.reviewer_id)?.role       ?? null,
       reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url ?? null,
     }));

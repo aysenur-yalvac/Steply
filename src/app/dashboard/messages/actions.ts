@@ -9,7 +9,7 @@ export async function sendMessage(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: 'You must be logged in.' };
+    return { error: 'Giriş yapmanız gerekiyor.' };
   }
 
   const receiverId = formData.get('receiver_id') as string;
@@ -43,7 +43,7 @@ export async function sendMessage(formData: FormData) {
     await createNotificationAction(
       receiverId,
       'message',
-      `New message from ${senderName}`,
+      `${senderName} kişisinden yeni mesaj`,
       content.trim().slice(0, 120),
       user.id,
     );

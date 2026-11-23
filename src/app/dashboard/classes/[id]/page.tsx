@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Sınıf Detayı | Academy.Must-b",
+  title: "Sınıf Detayı | Must-b Academy",
   description: "Sınıf ödevleri ve katılımcıları",
 };
 

@@ -92,7 +92,7 @@ const LoadingIcon = () => (
     className="gsb-loading-icon"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 256 256"
-    aria-label="Loading"
+    aria-label="Yükleniyor"
     role="status"
   >
     <rect width="256" height="256" fill="none" />

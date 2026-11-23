@@ -9,20 +9,20 @@ import type { ProjectStatus } from "@/data/projects";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  approved:  { label: "Approved",          color: "#22C55E", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.28)"  },
-  review:    { label: "Under Review",      color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.28)" },
-  changes:   { label: "Changes Requested", color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.28)"  },
-  submitted: { label: "New Submission",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
+  approved:  { label: "Onaylandı",          color: "#22C55E", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.28)"  },
+  review:    { label: "İncelemede",      color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.28)" },
+  changes:   { label: "Revize İstendi", color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.28)"  },
+  submitted: { label: "Yeni Teslim",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
 } as const;
 
 type FilterKey = "all" | ProjectStatus;
 
 const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "all",       label: "All Projects"       },
-  { key: "approved",  label: "Approved"            },
-  { key: "review",    label: "Under Review"        },
-  { key: "changes",   label: "Changes Requested"  },
-  { key: "submitted", label: "New Submission"      },
+  { key: "all",       label: "Tüm Projeler"       },
+  { key: "approved",  label: "Onaylandı"            },
+  { key: "review",    label: "İncelemede"        },
+  { key: "changes",   label: "Revize İstendi"  },
+  { key: "submitted", label: "Yeni Teslim"      },
 ];
 
 const AURA_COLORS = ["#A020F0", "#FF7F50", "#7C3AFF", "#FF4F8B", "#00C2CB"];
@@ -248,7 +248,7 @@ export default function AllProjectsPage() {
                       className="text-[12px] font-bold"
                       style={{ color: proj.grade === "Pending" ? "rgba(255,255,255,0.20)" : accentColor }}
                     >
-                      {proj.grade}
+                      {proj.grade === "Pending" ? "Beklemede" : proj.grade}
                     </span>
                   </div>
                 </motion.div>
@@ -259,7 +259,7 @@ export default function AllProjectsPage() {
 
         {/* Footer note */}
         <div className="mt-6 text-center text-[11px] text-slate-700">
-          C# Windows Forms · OOP Principles · Academic Supervision Platform
+          C# Windows Forms · OOP Prensipleri · Akademik Denetim Platformu
           <span className="mx-2">·</span>
           <a href="https://must-b.com" target="_blank" rel="noopener noreferrer"
             className="hover:text-slate-500 transition-colors"

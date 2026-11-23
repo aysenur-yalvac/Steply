@@ -86,16 +86,6 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     ? await getFollowDataAction(user.id)
     : { followers: [], following: [] };
 
-  // ── Favorited project IDs (for heart buttons on non-owned cards) ─────────────
-  let favoritedIds = new Set<string>();
-  if (user?.id) {
-    const { data: favData } = await supabase
-      .from('project_favorites')
-      .select('project_id')
-      .eq('user_id', user.id);
-    favoritedIds = new Set((favData ?? []).map((r: any) => r.project_id as string));
-  }
-
   // ── Upcoming agenda tasks (due within 24h, not completed) ────────────────────
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -129,6 +119,45 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
       .order('created_at', { ascending: false });
     collaboratorProjects = collabData ?? [];
   }
+
+  // ── Real project comment counts (project_discussions + reviews) ──────────────
+  const allProjectIds = [
+    ...new Set([
+      ...projects.map((p: any) => p.id as string),
+      ...collaboratorProjects.map((p: any) => p.id as string),
+    ]),
+  ];
+
+  const commentCountMap: Record<string, number> = {};
+  if (allProjectIds.length > 0) {
+    const adminClient = createAdminClient();
+    const [discussionsRes, reviewsRes] = await Promise.all([
+      adminClient
+        .from('project_discussions')
+        .select('project_id')
+        .in('project_id', allProjectIds),
+      adminClient
+        .from('reviews')
+        .select('project_id')
+        .in('project_id', allProjectIds),
+    ]);
+
+    for (const row of discussionsRes.data ?? []) {
+      commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
+    }
+    for (const row of reviewsRes.data ?? []) {
+      commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
+    }
+  }
+
+  projects = projects.map((p: any) => ({
+    ...p,
+    comment_count: commentCountMap[p.id] ?? 0,
+  }));
+  collaboratorProjects = collaboratorProjects.map((p: any) => ({
+    ...p,
+    comment_count: commentCountMap[p.id] ?? 0,
+  }));
 
   return (
     <div className="flex flex-col min-h-full">

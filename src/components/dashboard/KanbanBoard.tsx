@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,6 +51,7 @@ type Project = {
   progress_percentage: number;
   status?: string;
   tags?: string[];
+  comment_count?: number;
   profiles?: { full_name: string; avatar_url?: string | null } | null;
 };
 
@@ -144,8 +145,7 @@ function KanbanCard({
   const priorityClasses    = getPriorityClasses(rawPriority);
   const displayDescription = cleanDescription(project.description ?? "");
   const canAddNote         = currentUserId === project.student_id;
-  const idSum              = strHash(project.id);
-  const commentCount       = ((idSum >> 2) % 6) + 1;
+  const commentCount       = project.comment_count ?? 0;
   const studentName        = project.profiles?.full_name || "?";
 
   const saveNote = async () => {
@@ -252,10 +252,7 @@ function KanbanCard({
         {/* Footer: stats + expand toggle */}
         <div className="flex items-center justify-between mt-auto pt-1">
           <div className="flex items-center gap-3 text-sm text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5">
-              <MessageCircle className="w-4 h-4" />
-              {commentCount}
-            </span>
+            {commentCount > 0 && (<span className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4" />{commentCount}</span>)}
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}

@@ -229,7 +229,7 @@ function FollowModal({
                         onClick={onClose}
                         className="text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-700 transition-colors truncate block"
                       >
-                        {u.full_name ?? "Must-b Academy Member"}
+                        {u.full_name ?? "Must-b Academy Üyesi"}
                       </Link>
                       {isMutual && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-500 mt-0.5">

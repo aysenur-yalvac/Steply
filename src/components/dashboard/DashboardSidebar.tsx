@@ -45,7 +45,7 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { label: "Projelerim", href: "/dashboard",            icon: LayoutDashboard },
   { label: "Analitik", href: "/dashboard/analytics",  icon: BarChart2 },
-  { label: "Takvim & Ajanda", href: "/dashboard/agenda",     icon: Calendar },
+  { label: "Ajanda", href: "/dashboard/agenda",     icon: Calendar },
   { label: "Okulum",      href: "/dashboard/school",     icon: School },
   { label: "Mesajlar", href: "/dashboard/messages",   icon: MessageSquare },
   { label: "Ayarlar", href: "/dashboard/settings",   icon: Settings },
