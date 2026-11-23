@@ -15,6 +15,7 @@ import EmptyState from '@/components/layout/EmptyState';
 import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
 import ProjectCard from '@/app/dashboard/ProjectCard';
 import SocialWidget from '@/components/dashboard/SocialWidget';
+import PendingInvitesSection, { type PendingProjectInvite } from '@/components/dashboard/PendingInvitesSection';
 import { getFollowDataAction } from '@/lib/actions';
 
 async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> }) {
@@ -101,23 +102,62 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     .gte('due_date', todayStr)
     .order('due_date', { ascending: true });
 
-  // ── Collaborator projects: projects where user is in project_members but NOT owner ──
+  // ── Collaborator projects (accepted) & Pending project invites ──
   let collaboratorProjects: any[] = [];
-  const { data: membershipRows } = await supabase
-    .from('project_members')
-    .select('project_id')
-    .eq('user_id', user?.id);
+  let pendingInvites: PendingProjectInvite[] = [];
+  const adminForMembers = createAdminClient();
+  const { data: membershipRows } = user?.id
+    ? await adminForMembers
+        .from('project_members')
+        .select('project_id, status')
+        .eq('user_id', user.id)
+    : { data: [] };
 
-  const collabProjectIds = (membershipRows ?? []).map((r: any) => r.project_id as string);
+  const acceptedCollabIds = (membershipRows ?? [])
+    .filter((r: any) => r.status !== 'pending')
+    .map((r: any) => r.project_id as string);
+  const pendingInviteIds = (membershipRows ?? [])
+    .filter((r: any) => r.status === 'pending')
+    .map((r: any) => r.project_id as string);
 
-  if (collabProjectIds.length > 0) {
-    const { data: collabData } = await supabase
+  if (acceptedCollabIds.length > 0) {
+    const { data: collabData } = await adminForMembers
       .from('projects')
       .select('*, profiles!student_id(full_name, avatar_url)')
-      .in('id', collabProjectIds)
+      .in('id', acceptedCollabIds)
+      .is('deleted_at', null)
       .neq('student_id', user?.id)
       .order('created_at', { ascending: false });
     collaboratorProjects = collabData ?? [];
+  }
+
+  if (pendingInviteIds.length > 0) {
+    const { data: invitedProjects } = await adminForMembers
+      .from('projects')
+      .select('id, title, description, student_id')
+      .in('id', pendingInviteIds)
+      .is('deleted_at', null)
+      .neq('student_id', user?.id)
+      .order('created_at', { ascending: false });
+
+    if (invitedProjects && invitedProjects.length > 0) {
+      const ownerIds = [...new Set(invitedProjects.map((p: any) => p.student_id).filter(Boolean))];
+      const { data: ownerProfiles } = ownerIds.length > 0
+        ? await adminForMembers.from('profiles').select('id, full_name, avatar_url').in('id', ownerIds)
+        : { data: [] };
+      const ownerMap = new Map((ownerProfiles ?? []).map((p: any) => [p.id, p]));
+
+      pendingInvites = invitedProjects.map((p: any) => {
+        const owner = ownerMap.get(p.student_id);
+        return {
+          projectId: p.id,
+          projectTitle: p.title,
+          projectDescription: p.description ?? null,
+          inviterName: owner?.full_name || 'Must-b Academy Üyesi',
+          inviterAvatar: owner?.avatar_url ?? null,
+        };
+      });
+    }
   }
 
   // ── Real teacher review counts (reviews table only) ──────────────────────────
@@ -176,6 +216,11 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-5 sm:gap-6 min-w-0">
+
+        {/* ── Davet Edildiğiniz Projeler ────────────────────────────────────── */}
+        {pendingInvites.length > 0 && (
+          <PendingInvitesSection initialInvites={pendingInvites} />
+        )}
 
         {/* ── Upcoming Tasks Banner ─────────────────────────────────────────── */}
         {isStudent && upcomingTasks && upcomingTasks.length > 0 && (

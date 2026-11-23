@@ -323,46 +323,152 @@ export async function addProjectMemberAction(
 ): Promise<{ success: true } | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
+  if (!user) return { error: "Yetkisiz işlem" };
 
   const admin = createAdminClient();
 
   // Only the project owner can add members
   const { data: project } = await admin
     .from("projects")
-    .select("student_id")
+    .select("student_id, title")
     .eq("id", projectId)
     .single();
 
   if (!project) return { error: "Proje bulunamadı." };
-  if (project.student_id !== user.id) return { error: "Only the project owner can add members." };
+  if (project.student_id !== user.id) return { error: "Yalnızca proje sahibi ekip üyesi davet edebilir." };
 
   const { error } = await admin
     .from("project_members")
-    .upsert({ project_id: projectId, user_id: userId, role: "member" }, { onConflict: "project_id,user_id" });
+    .upsert(
+      { project_id: projectId, user_id: userId, role: "member", status: "pending" },
+      { onConflict: "project_id,user_id" }
+    );
 
   if (error) return { error: error.message };
 
-  // Notify the added member — wrapped so it never blocks the success response
+  // Notify the invited member — wrapped so it never blocks the success response
   try {
-    const { data: projectRow } = await admin
-      .from("projects")
-      .select("title, profiles!student_id(full_name)")
-      .eq("id", projectId)
-      .single();
-    const projectTitle = (projectRow as any)?.title ?? "a project";
-    const ownerName = (projectRow as any)?.profiles?.full_name ?? "A user";
+    const { data: ownerProfile } = await admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const projectTitle = project.title || "Proje";
+    const inviterName = ownerProfile?.full_name || "Bir kullanıcı";
+
     await createNotificationAction(
       userId,
-      'project',
+      'project_invite',
       'Yeni Proje Daveti',
-      `${ownerName} sizi "${projectTitle}" projesine ekledi.`,
-      projectId,
+      `${inviterName} sizi '${projectTitle}' projesine ekip üyesi olarak davet etti.`,
+      `/dashboard?invite=${projectId}#project-invites`,
     );
   } catch (e) {
     console.error('[addProjectMemberAction] Notification error:', e);
   }
 
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
+export async function acceptProjectInviteAction(
+  projectId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Yetkisiz işlem" };
+
+  const admin = createAdminClient();
+
+  const { data: membership } = await admin
+    .from("project_members")
+    .select("id, status")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!membership) return { error: "Proje daveti bulunamadı." };
+
+  const { error } = await admin
+    .from("project_members")
+    .update({ status: "accepted" })
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  // Mark invite notification as read
+  try {
+    await admin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", user.id)
+      .eq("type", "project_invite")
+      .ilike("link", `%${projectId}%`);
+  } catch (e) {
+    console.error("[acceptProjectInviteAction] Mark read error:", e);
+  }
+
+  // Notify the project owner that the invite was accepted
+  try {
+    const [projectRes, userProfileRes] = await Promise.all([
+      admin.from("projects").select("title, student_id").eq("id", projectId).single(),
+      admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+    ]);
+    const ownerId = projectRes.data?.student_id;
+    const projectTitle = projectRes.data?.title || "Proje";
+    const userName = userProfileRes.data?.full_name || "Bir kullanıcı";
+
+    if (ownerId && ownerId !== user.id) {
+      await createNotificationAction(
+        ownerId,
+        "project",
+        "Proje Daveti Kabul Edildi",
+        `${userName}, '${projectTitle}' proje davetinizi kabul etti.`,
+        `/dashboard/projects/${projectId}`,
+      );
+    }
+  } catch (e) {
+    console.error("[acceptProjectInviteAction] Owner notify error:", e);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { success: true };
+}
+
+export async function declineProjectInviteAction(
+  projectId: string,
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Yetkisiz işlem" };
+
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .eq("status", "pending");
+
+  if (error) return { error: error.message };
+
+  try {
+    await admin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", user.id)
+      .eq("type", "project_invite")
+      .ilike("link", `%${projectId}%`);
+  } catch (e) {
+    console.error("[declineProjectInviteAction] Mark read error:", e);
+  }
+
+  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
@@ -373,7 +479,7 @@ export async function removeProjectMemberAction(
 ): Promise<{ success: true } | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
+  if (!user) return { error: "Yetkisiz işlem" };
 
   const admin = createAdminClient();
 
@@ -388,7 +494,7 @@ export async function removeProjectMemberAction(
   const isSelfLeaving = userId === user.id;
 
   if (!isOwner && !isSelfLeaving) {
-    return { error: "Only the project owner can remove members." };
+    return { error: "Yalnızca proje sahibi üyeleri çıkarabilir." };
   }
 
   const { error } = await admin
@@ -399,6 +505,16 @@ export async function removeProjectMemberAction(
 
   if (error) return { error: error.message };
 
+  try {
+    await admin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("type", "project_invite")
+      .ilike("link", `%${projectId}%`);
+  } catch {}
+
+  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }

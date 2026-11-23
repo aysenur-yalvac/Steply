@@ -57,6 +57,7 @@ export async function saveFileRecordAction(
         .select("id")
         .eq("project_id", projectId)
         .eq("user_id", user.id)
+        .neq("status", "pending")
         .maybeSingle();
       if (!membership) return { error: "Bu proje için yetkiniz yok." };
     }
@@ -136,6 +137,7 @@ async function verifyProjectFileAccess(
       .select('id')
       .eq('project_id', projectId)
       .eq('user_id', userId)
+      .neq('status', 'pending')
       .maybeSingle();
 
     if (isMember) {
@@ -487,19 +489,24 @@ export type Notification = {
 
 export async function createNotificationAction(
   userId: string,
-  type: Notification['type'],
+  type: Notification['type'] | 'project_invite',
   title: string,
   body?: string,
   relatedId?: string,
 ): Promise<void> {
   try {
     const admin = createAdminClient();
+    const link = relatedId
+      ? relatedId.startsWith('/')
+        ? relatedId
+        : `/dashboard/projects/${relatedId}`
+      : '/dashboard';
     const { error } = await admin.from('notifications').insert({
       user_id: userId,
       type,
       title,
-      body: body || null,
-      related_id: relatedId || null,
+      content: body || null,
+      link,
     });
     if (error) {
       console.error('[createNotificationAction] DB insert error:', error.message, error.code, { userId, type, title });
@@ -664,7 +671,7 @@ async function assertProjectAccess(supabase: Awaited<ReturnType<typeof createCli
   const { data: project } = await admin.from("projects").select('student_id').eq('id', projectId).single();
   if (!project) return null;
   if (project.student_id === user.id) return { user, admin, role: 'owner' as const };
-  const { data: membership } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
+  const { data: membership } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).neq('status', 'pending').maybeSingle();
   if (membership) return { user, admin, role: 'collaborator' as const };
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle();
   if (profile?.role === 'teacher') return { user, admin, role: 'teacher' as const };
@@ -2108,7 +2115,7 @@ export async function bulkRestoreFilesAction(filesToRestore: {projectId: string,
     
     // Auth check
     if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
+      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).neq('status', 'pending').maybeSingle();
       if (!isMember) continue;
     }
 
@@ -2139,7 +2146,7 @@ export async function bulkPermanentDeleteFilesAction(filesToDelete: {projectId: 
     if (!project) continue;
     
     if (project.student_id !== user.id) {
-      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).maybeSingle();
+      const { data: isMember } = await admin.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).neq('status', 'pending').maybeSingle();
       if (!isMember) continue;
     }
 

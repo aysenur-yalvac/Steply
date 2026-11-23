@@ -2,14 +2,19 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, MessageSquare, CheckCheck, X, Loader2 } from "lucide-react";
+import { Bell, MessageSquare, CheckCheck, X, Loader2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   getUserNotificationsAndMessagesAction,
   markAllNotificationsAndMessagesReadAction,
   AppNotificationItem
 } from "@/lib/social-actions";
+import {
+  acceptProjectInviteAction,
+  declineProjectInviteAction,
+} from "@/app/dashboard/actions";
 import { createClient } from "@/utils/supabase/client";
+import toast from "react-hot-toast";
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -32,6 +37,7 @@ export default function NotificationBell({
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [inviteActionId, setInviteActionId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -127,6 +133,45 @@ export default function NotificationBell({
     }
   };
 
+  const handleInviteDecision = async (
+    e: React.MouseEvent,
+    item: AppNotificationItem,
+    decision: "accept" | "decline"
+  ) => {
+    e.stopPropagation();
+    const projectId = item.pendingProjectId;
+    if (!projectId || inviteActionId) return;
+
+    setInviteActionId(projectId);
+    try {
+      const res =
+        decision === "accept"
+          ? await acceptProjectInviteAction(projectId)
+          : await declineProjectInviteAction(projectId);
+
+      if ("error" in res) {
+        toast.error(res.error || "İşlem başarısız oldu.");
+      } else {
+        toast.success(
+          decision === "accept"
+            ? "Proje daveti kabul edildi!"
+            : "Proje daveti reddedildi."
+        );
+        setItems((prev) =>
+          prev.map((i) =>
+            i.pendingProjectId === projectId
+              ? { ...i, is_read: true, pendingProjectId: null }
+              : i
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+        router.refresh();
+      }
+    } finally {
+      setInviteActionId(null);
+    }
+  };
+
   return (
     <div className="relative" ref={panelRef}>
       {/* Bell Button */}
@@ -201,12 +246,20 @@ export default function NotificationBell({
                 </div>
               ) : (
                 items.map((item) => (
-                  <button
+                  <div
                     key={item.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleItemClick(item)}
-                    className={`w-full flex items-start gap-3.5 px-4 py-3 text-left transition-colors ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleItemClick(item);
+                      }
+                    }}
+                    className={`w-full flex items-start gap-3.5 px-4 py-3 text-left transition-colors cursor-pointer ${
                       item.is_read
-                        ? "opacity-70 hover:bg-slate-50 dark:hover:bg-slate-850 dark:hover:bg-slate-800/40"
+                        ? "opacity-75 hover:bg-slate-50 dark:hover:bg-slate-800/40"
                         : "bg-violet-50/50 dark:bg-violet-950/20 hover:bg-violet-50 dark:hover:bg-violet-950/30"
                     }`}
                   >
@@ -241,6 +294,32 @@ export default function NotificationBell({
                           {item.body}
                         </p>
                       )}
+                      {item.pendingProjectId && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            type="button"
+                            disabled={inviteActionId === item.pendingProjectId}
+                            onClick={(e) => handleInviteDecision(e, item, "accept")}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-bold transition-colors disabled:opacity-50"
+                          >
+                            {inviteActionId === item.pendingProjectId ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
+                            Kabul Et
+                          </button>
+                          <button
+                            type="button"
+                            disabled={inviteActionId === item.pendingProjectId}
+                            onClick={(e) => handleInviteDecision(e, item, "decline")}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-200 text-[11px] font-semibold border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-50"
+                          >
+                            <X className="w-3 h-3" />
+                            Reddet
+                          </button>
+                        </div>
+                      )}
                       <p className="text-[10px] text-slate-400 mt-1">
                         {timeAgo(item.created_at)}
                       </p>
@@ -250,7 +329,7 @@ export default function NotificationBell({
                     {!item.is_read && (
                       <span className="w-2 h-2 rounded-full bg-violet-600 shrink-0 mt-2" />
                     )}
-                  </button>
+                  </div>
                 ))
               )}
             </div>

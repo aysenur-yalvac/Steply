@@ -24,7 +24,7 @@ import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type Member = { id: string; full_name: string; avatar_url?: string | null; role?: string | null };
+type Member = { id: string; full_name: string; avatar_url?: string | null; role?: string | null; status?: string | null };
 
 interface Props {
   project: {
@@ -52,21 +52,32 @@ function MemberRow({
   member,
   roleLabel,
   roleColor,
+  isPending = false,
   onRemove,
   onLeave,
 }: {
-  member: { id: string; full_name: string; avatar_url?: string | null } | Member;
+  member: { id: string; full_name: string; avatar_url?: string | null; status?: string | null } | Member;
   roleLabel: string;
   roleColor?: string;
+  isPending?: boolean;
   onRemove?: () => void;
   onLeave?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 px-2 py-2 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 rounded-xl transition-colors group">
+    <div className="flex items-center gap-3 px-2 py-2 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 rounded-xl transition-colors group flex-wrap sm:flex-nowrap">
       <Avatar src={member.avatar_url} name={member.full_name} size="sm" />
-      <div className="flex-1 min-w-0 flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 dark:text-zinc-200 truncate">{member.full_name}</p>
-        <p className={`text-xs font-medium ${roleColor ?? "text-slate-400 dark:text-zinc-500"}`}>{roleLabel}</p>
+      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{member.full_name}</p>
+          {isPending && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60 shrink-0">
+              <Clock className="w-2.5 h-2.5" /> Bekleniyor...
+            </span>
+          )}
+        </div>
+        {!isPending && (
+          <p className={`text-xs font-medium shrink-0 ${roleColor ?? "text-slate-400 dark:text-zinc-500"}`}>{roleLabel}</p>
+        )}
       </div>
       {onLeave && (
         <button
@@ -78,13 +89,25 @@ function MemberRow({
         </button>
       )}
       {onRemove && (
-        <button
-          onClick={onRemove}
-          title="Kaldır"
-          className="p-1 text-slate-300 hover:text-red-400 transition-colors rounded-lg ml-2 shrink-0"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        isPending ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            title="Daveti İptal Et"
+            className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2.5 py-1 rounded-lg border border-rose-200/70 dark:border-rose-900/50 transition-colors shrink-0"
+          >
+            Daveti İptal Et
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onRemove}
+            title="Kaldır"
+            className="p-1 text-slate-300 hover:text-red-400 transition-colors rounded-lg ml-2 shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )
       )}
     </div>
   );
@@ -310,6 +333,7 @@ export default function ProjectEditableContent({
       full_name:  toAdd.full_name,
       avatar_url: toAdd.avatar_url ?? null,
       role:       toAdd.role       ?? null,
+      status:     "pending",
     };
 
     // Optimistic update
@@ -327,7 +351,7 @@ export default function ProjectEditableContent({
       setTeamMembers((prev) => prev.filter((m) => m.id !== normalized.id));
       toast.error(`Üye eklenemedi: ${result.error}`);
     } else {
-      toast.success(`${normalized.full_name} ekibe eklendi!`);
+      toast.success(`${normalized.full_name} kullanıcısına proje daveti gönderildi!`);
       router.refresh();
     }
   };
@@ -608,9 +632,10 @@ export default function ProjectEditableContent({
             <MemberRow
               key={m.id}
               member={m}
+              isPending={m.status === "pending"}
               roleLabel={m.role === "teacher" ? "Öğretmen" : m.role === "student" ? "Öğrenci" : m.role === "admin" ? "Yönetici" : "Üye"}
               onRemove={isOwner && m.id !== currentUserId ? () => removeMember(m.id) : undefined}
-              onLeave={!isOwner && m.id === currentUserId ? () => setShowLeaveModal(true) : undefined}
+              onLeave={!isOwner && m.id === currentUserId && m.status !== "pending" ? () => setShowLeaveModal(true) : undefined}
             />
           ))}
         </div>

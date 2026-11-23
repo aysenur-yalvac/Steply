@@ -322,6 +322,7 @@ export type AppNotificationItem = {
   sender_name?: string | null;
   created_at: string;
   link: string;
+  pendingProjectId?: string | null;
 };
 
 export async function getUserNotificationsAndMessagesAction(): Promise<{
@@ -384,29 +385,51 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
 
     // 2. Fetch notifications from notifications table if it exists
     try {
-      const { data: notifs } = await client
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const [{ data: notifs }, { data: pendingMemberships }] = await Promise.all([
+        client
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+        client
+          .from('project_members')
+          .select('project_id')
+          .eq('user_id', user.id)
+          .eq('status', 'pending'),
+      ]);
+
+      const pendingProjectIdSet = new Set(
+        (pendingMemberships ?? []).map((r: any) => r.project_id as string)
+      );
 
       if (notifs) {
         for (const n of notifs) {
-          let link = '/dashboard';
-          if (n.related_id) {
+          let link = n.link || '/dashboard';
+          if (!n.link && n.related_id) {
             link = `/dashboard/projects/${n.related_id}`;
           }
+
+          let pendingProjectId: string | null = null;
+          if (n.type === 'project_invite') {
+            const match = typeof link === 'string' ? link.match(/[?&]invite=([0-9a-f-]+)/i) : null;
+            const candidateId = match?.[1] || n.related_id || null;
+            if (candidateId && pendingProjectIdSet.has(candidateId)) {
+              pendingProjectId = candidateId;
+            }
+          }
+
           items.push({
             id: `notif-${n.id}`,
             type: 'notification',
             title: n.title || 'Yeni bildirim',
-            body: n.body || '',
+            body: n.content || n.body || '',
             is_read: Boolean(n.is_read),
             sender_avatar: null,
             sender_name: null,
             created_at: n.created_at,
             link,
+            pendingProjectId,
           });
         }
       }

@@ -93,6 +93,7 @@ export default async function ProjectDetailPage({
         .select('id')
         .eq('project_id', projectId)
         .eq('user_id', user.id)
+        .neq('status', 'pending')
         .maybeSingle();
       const isTeamMember = jsonTeamIds.includes(user.id) || !!memberRow;
       if (!isTeamMember) notFound();
@@ -102,16 +103,17 @@ export default async function ProjectDetailPage({
   // ── Team members — two-step fetch (project_members → profiles) ──────────────
   // NOTE: project_members.user_id FK references auth.users, NOT profiles, so
   // PostgREST cannot resolve profiles!user_id — we fetch separately instead.
-  type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null };
-  let teamMembers: TeamMember[] = [];
+  type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null; status?: string | null };
+  let allTeamMembers: TeamMember[] = [];
 
   const { data: memberRows } = await admin
     .from('project_members')
-    .select('user_id')
+    .select('user_id, status')
     .eq('project_id', projectId);
 
   if (memberRows && memberRows.length > 0) {
     const userIds = memberRows.map((r: any) => r.user_id as string);
+    const statusMap = new Map(memberRows.map((r: any) => [r.user_id as string, (r.status as string) ?? 'accepted']));
 
     const { data: profileRows } = await admin
       .from('profiles')
@@ -120,7 +122,7 @@ export default async function ProjectDetailPage({
 
     const profileMap = new Map((profileRows ?? []).map((p: any) => [p.id, p]));
 
-    teamMembers = userIds
+    allTeamMembers = userIds
       .map((uid) => {
         const p = profileMap.get(uid);
         return {
@@ -128,13 +130,18 @@ export default async function ProjectDetailPage({
           full_name:  p?.full_name  ?? 'Bilinmeyen Kullanıcı',
           avatar_url: p?.avatar_url ?? null,
           role:       p?.role       ?? null,
+          status:     statusMap.get(uid) ?? 'accepted',
         };
       })
       .filter((m) => m.id);
   }
 
-  // Whether the current viewer is a collaborator (in project_members but not owner)
-  const isCollaborator = !isOwner && teamMembers.some((m) => m.id === user.id);
+  const acceptedTeamMembers = allTeamMembers.filter((m) => m.status !== 'pending');
+  // Owner sees pending invites with "Bekleniyor..." badge; non-owners see accepted members only
+  const teamMembers = isOwner ? allTeamMembers : acceptedTeamMembers;
+
+  // Whether the current viewer is an accepted collaborator (in project_members with status !== 'pending')
+  const isCollaborator = !isOwner && acceptedTeamMembers.some((m) => m.id === user.id);
 
   // ── Reviews ───────────────────────────────────────────────────────────────────
   type Review = {

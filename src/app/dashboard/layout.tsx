@@ -47,11 +47,19 @@ export default async function DashboardLayout({
   try {
     const { data: notifData } = await supabase
       .from('notifications')
-      .select('id, type, title, body, is_read, related_id, created_at')
+      .select('id, type, title, content, link, is_read, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(30);
-    notifications = (notifData || []) as Notification[];
+    notifications = ((notifData || []) as any[]).map((n) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      body: n.content ?? null,
+      is_read: Boolean(n.is_read),
+      related_id: n.link ?? null,
+      created_at: n.created_at,
+    })) as Notification[];
   } catch {
     // notifications table not yet applied — silently degrade
   }

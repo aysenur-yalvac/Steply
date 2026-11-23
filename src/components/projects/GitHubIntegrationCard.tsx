@@ -66,38 +66,84 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   const payloadUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost'}/api/webhooks/github?projectId=${projectId}`;
 
   const modalContent = showSettings ? (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] rounded-2xl shadow-2xl p-6">
-        <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-zinc-800 pb-4">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2">
-            <Settings className="w-5 h-5" /> GitHub Ayarları
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] rounded-2xl shadow-2xl p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-5 sm:mb-6 border-b border-slate-100 dark:border-zinc-800 pb-4">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Settings className="w-5 h-5" /> GitHub Depo Bağlantısı
           </h3>
-          <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-zinc-200 transition-colors p-2 bg-slate-50 dark:bg-zinc-800 rounded-full">
+          <button
+            onClick={() => setShowSettings(false)}
+            aria-label="Kapat"
+            className="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-zinc-200 transition-colors p-2 bg-slate-50 dark:bg-zinc-800 rounded-full min-w-[40px] min-h-[40px] flex items-center justify-center"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {!repo ? (
-          <div className="max-w-md mx-auto py-8">
-            <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-zinc-400 mb-6 text-center">
-              Projenize GitHub deposunu bağlayarak commit'lerin otomatik senkronize olmasını sağlayın.
-            </p>
+          <div className="max-w-xl mx-auto py-2 sm:py-4 space-y-5">
+            {/* Adım Adım Türkçe Rehber Kutusu */}
+            <div className="rounded-2xl bg-violet-50/70 dark:bg-slate-900/80 border border-violet-200/70 dark:border-violet-800/40 p-4 sm:p-5 space-y-3 text-left">
+              <h4 className="text-sm font-bold text-violet-900 dark:text-violet-200 flex items-center gap-2">
+                <Github className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                Adım Adım GitHub Depo Bağlama Rehberi
+              </h4>
+              <ol className="space-y-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <li>
+                  <strong className="text-slate-900 dark:text-white">Adım 1:</strong>{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800 text-violet-700 dark:text-violet-300 font-mono text-[11px] sm:text-xs">github.com</code>{" "}
+                  hesabınıza giriş yapıp projenize ait depoyu (repository) açın.
+                </li>
+                <li>
+                  <strong className="text-slate-900 dark:text-white">Adım 2:</strong>{" "}
+                  Tarayıcının üst adres çubuğundaki depo bağlantısını kopyalayın{" "}
+                  <em className="text-slate-500 dark:text-slate-400">
+                    (Örn: <code className="px-1 py-0.5 rounded bg-white/80 dark:bg-slate-800 font-mono text-[11px] not-italic break-all">https://github.com/kullanici-adi/proje-adi</code>)
+                  </em>.
+                </li>
+                <li>
+                  <strong className="text-slate-900 dark:text-white">Adım 3:</strong>{" "}
+                  Kopyaladığınız bağlantıyı aşağıdaki alana yapıştırıp{" "}
+                  <strong className="text-slate-900 dark:text-white">Kaydet</strong> butonuna basın.
+                </li>
+              </ol>
+              <div className="pt-2.5 border-t border-violet-200/60 dark:border-slate-700/70 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong className="text-violet-800 dark:text-violet-300">Otomatik Güncelleme (İsteğe Bağlı):</strong>{" "}
+                Kod değişikliklerinizin (<code className="font-mono text-[11px]">commit</code>) projeye otomatik yansıması için GitHub deponuzda{" "}
+                <strong className="text-slate-800 dark:text-slate-100">Settings → Webhooks → Add webhook</strong>{" "}
+                menüsüne girip Payload URL kısmına{" "}
+                <code className="px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800 text-violet-700 dark:text-violet-300 font-mono text-[11px] break-all">
+                  https://steply-app.vercel.app/api/webhooks/github
+                </code>{" "}
+                adresini ve Content type olarak{" "}
+                <code className="px-1 py-0.5 rounded bg-white/80 dark:bg-slate-800 font-mono text-[11px]">application/json</code>{" "}
+                seçeneğini ekleyin.
+              </div>
+            </div>
+
             <form onSubmit={handleConnect} className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Repository URL</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
+                  GitHub Depo Bağlantısı (Repository URL)
+                </label>
                 <input
                   type="url"
-                  placeholder="https://github.com/kullanici/repo"
+                  placeholder="https://github.com/kullanici-adi/proje-adi"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-slate-100 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 bg-white dark:bg-zinc-950 border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 bg-white dark:bg-zinc-950 border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-              <button type="submit" disabled={loading} className="w-full py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-slate-800 dark:hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm">
-                {loading ? 'Bağlanıyor...' : 'Depoyu Bağla'}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full min-h-[44px] py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {loading ? 'Kaydediliyor...' : 'Kaydet'}
               </button>
-              {error && <p className="text-red-500 text-xs text-center mt-2 font-medium bg-red-50 dark:bg-red-900/30 p-2 rounded-lg">{error}</p>}
+              {error && <p className="text-red-500 text-xs text-center mt-2 font-medium bg-red-50 dark:bg-red-900/30 p-2.5 rounded-lg">{error}</p>}
             </form>
           </div>
         ) : (

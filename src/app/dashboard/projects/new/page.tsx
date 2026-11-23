@@ -97,21 +97,21 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0b0f17] p-6 sm:p-10 flex flex-col items-center justify-center">
-      <div className="w-full  max-w-xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500">
-        {/* Header */}
+    <div className="min-h-full w-full bg-transparent p-4 sm:p-6 md:p-10 flex flex-col items-center justify-center">
+      <div className="w-full max-w-xl space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Header — doğrudan temiz sayfa arka planı üzerinde */}
         <div className="flex items-center gap-3">
           <BackButton href="/dashboard" variant="light" />
-          <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
-            <Plus className="w-7 h-7" />
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shrink-0">
+            <Plus className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Yeni Proje Başlat</h1>
-            <p className="text-slate-500 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400">Hedeflerinize doğru ilk adımı şimdi atın.</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">Yeni Proje Başlat</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Hedeflerinize doğru ilk adımı şimdi atın.</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-8 sm:p-10 w-full relative z-10">
+        <div className="bg-white dark:bg-[#1a2234] border border-slate-200/80 dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100 rounded-[2rem] p-5 sm:p-8 md:p-10 w-full relative z-10">
           <form action={handleSubmit} className="space-y-6">
             {/* Project Title */}
             <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function NewProjectPage() {
                 type="text"
                 placeholder="Örn: Mobil Uygulama Geliştirme"
                 required
-                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 dark:focus:border-purple-500 transition-all shadow-sm"
               />
             </div>
 
@@ -136,7 +136,7 @@ export default function NewProjectPage() {
                 name="description"
                 placeholder="Projenin amacını ve hedeflerini kısaca açıklayın..."
                 rows={4}
-                className="w-full  px-5 py-4 rounded-2xl bg-white dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-[#0f172a] dark:bg-slate-900/70 dark:backdrop-blur-lg dark:border dark:border-slate-800 dark:shadow-2xl dark:text-slate-100 dark:border-slate-800 border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all shadow-sm resize-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 focus:dark:border-purple-500"
+                className="w-full px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 dark:focus:border-purple-500 transition-all shadow-sm resize-none"
               />
             </div>
 
