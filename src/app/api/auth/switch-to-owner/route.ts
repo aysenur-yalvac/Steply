@@ -21,34 +21,34 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Verify the link exists in the DB — the row was written by the login route
-  // immediately before this call, so we trust the DB as the source of truth.
-  const { data: link, error: linkError } = await admin
-    .from('linked_accounts')
-    .select('id')
-    .eq('owner_user_id', owner_id)
-    .eq('linked_user_id', linked_uid)
-    .maybeSingle()
+  // Parallel lookup: verify link + fetch owner user email simultaneously
+  const [linkRes, ownerRes] = await Promise.all([
+    admin
+      .from('linked_accounts')
+      .select('id')
+      .eq('owner_user_id', owner_id)
+      .eq('linked_user_id', linked_uid)
+      .maybeSingle(),
+    admin.auth.admin.getUserById(owner_id),
+  ])
 
-  if (linkError) {
-    console.error('[switch-to-owner] DB error:', linkError)
-    return NextResponse.json({ error: 'Database error: ' + linkError.message }, { status: 500 })
+  if (linkRes.error) {
+    console.error('[switch-to-owner] DB error:', linkRes.error)
+    return NextResponse.json({ error: 'Database error: ' + linkRes.error.message }, { status: 500 })
   }
 
-  if (!link) {
+  if (!linkRes.data) {
     return NextResponse.json({ error: 'Link not found. The account may not have been saved correctly.' }, { status: 403 })
   }
 
-  // Fetch owner's email to generate magic link
-  const { data: ownerUser, error: ownerError } = await admin.auth.admin.getUserById(owner_id)
-  if (ownerError || !ownerUser?.user?.email) {
-    console.error('[switch-to-owner] owner lookup error:', ownerError)
+  if (ownerRes.error || !ownerRes.data?.user?.email) {
+    console.error('[switch-to-owner] owner lookup error:', ownerRes.error)
     return NextResponse.json({ error: 'Owner account not found' }, { status: 404 })
   }
 
   const { data: linkData, error: genError } = await admin.auth.admin.generateLink({
     type: 'magiclink',
-    email: ownerUser.user.email,
+    email: ownerRes.data.user.email,
     options: { redirectTo: `${origin}/dashboard` },
   })
 

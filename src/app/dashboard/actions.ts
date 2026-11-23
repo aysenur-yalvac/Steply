@@ -161,7 +161,6 @@ export async function createProject(formData: FormData): Promise<{ success: true
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/analytics");
-  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -180,9 +179,9 @@ export async function updateProgress(formData: FormData) {
   }
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/analytics");
-  revalidatePath('/', 'layout');
 }
 
 export async function createReview(formData: FormData) {

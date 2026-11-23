@@ -7,21 +7,20 @@ import { getSiteOrigin } from '@/lib/site-url'
 export async function POST(request: NextRequest) {
   const origin = getSiteOrigin(request)
 
-  // Parse body
-  let linked_user_id: string | undefined
-  try {
-    const body = await request.json()
-    linked_user_id = body.linked_user_id
-  } catch {
+  // Parse body & read cookies in parallel
+  const [bodyResult, cookieStore] = await Promise.all([
+    request.json().catch(() => null),
+    cookies(),
+  ])
+
+  const linked_user_id: string | undefined = bodyResult?.linked_user_id
+  if (!bodyResult) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
-
   if (!linked_user_id) {
     return NextResponse.json({ error: 'linked_user_id is required' }, { status: 400 })
   }
 
-  // Verify the requesting user's session
-  const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -40,43 +39,47 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Verify the target belongs to the same cluster
-  // 1. Find the root owner for the current user
-  const { data: asLinked } = await admin
-    .from('linked_accounts')
-    .select('owner_user_id')
-    .eq('linked_user_id', user.id)
-    .maybeSingle()
-    
-  const rootOwnerId = asLinked?.owner_user_id || user.id;
-
-  let targetEmail = null;
-
-  // Case A: Target is the root owner itself
-  if (linked_user_id === rootOwnerId) {
-    const { data: ownerProfile } = await admin
+  // Parallel lookup: check if current user is linked + fetch direct link or target profile
+  const [asLinkedRes, directLinkRes, targetProfileRes] = await Promise.all([
+    admin
+      .from('linked_accounts')
+      .select('owner_user_id')
+      .eq('linked_user_id', user.id)
+      .maybeSingle(),
+    admin
+      .from('linked_accounts')
+      .select('id, linked_email')
+      .eq('owner_user_id', user.id)
+      .eq('linked_user_id', linked_user_id)
+      .maybeSingle(),
+    admin
       .from('profiles')
       .select('email')
-      .eq('id', rootOwnerId)
-      .maybeSingle()
-    if (ownerProfile) targetEmail = ownerProfile.email;
+      .eq('id', linked_user_id)
+      .maybeSingle(),
+  ])
+
+  const rootOwnerId = asLinkedRes.data?.owner_user_id || user.id
+  let targetEmail: string | null = null
+
+  if (linked_user_id === rootOwnerId) {
+    targetEmail = targetProfileRes.data?.email ?? null
+  } else if (rootOwnerId === user.id && directLinkRes.data?.linked_email) {
+    targetEmail = directLinkRes.data.linked_email
   } else {
-    // Case B: Target is a child of the root owner
     const { data: link } = await admin
       .from('linked_accounts')
       .select('id, linked_email')
       .eq('owner_user_id', rootOwnerId)
       .eq('linked_user_id', linked_user_id)
       .maybeSingle()
-      
-    if (link) targetEmail = link.linked_email;
+    if (link) targetEmail = link.linked_email
   }
 
   if (!targetEmail) {
     return NextResponse.json({ error: 'Account not linked to your profile or email not found' }, { status: 403 })
   }
 
-  // Generate a one-time magic link for the target account (no email is sent)
   const { data: linkData, error: genError } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: targetEmail,

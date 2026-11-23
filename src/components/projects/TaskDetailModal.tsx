@@ -49,16 +49,22 @@ export default function TaskDetailModal({
   const canAssignTask = isOwner || isTeacher;
 
   const handleUpdate = async (updates: Partial<ProjectTask>) => {
+    const previousTask = { ...task };
+    const optimisticTask: ProjectTask = { ...task, ...updates };
+    onUpdate(optimisticTask);
     setIsUpdating(true);
     try {
       const result = await updateTaskAction(task.id, projectId, updates);
       if ("error" in result) {
+        onUpdate(previousTask);
         toast.error(result.error);
       } else {
         onUpdate(result.task);
         toast.success("Görev güncellendi");
-        router.refresh();
       }
+    } catch {
+      onUpdate(previousTask);
+      toast.error("Görev güncellenemedi");
     } finally {
       setIsUpdating(false);
     }

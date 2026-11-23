@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { getCachedUser, getCachedProfile } from "@/lib/auth-cache";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
@@ -18,13 +19,27 @@ export default async function PublicProfilePage({
 }) {
   const { id } = await params;
   const admin = createAdminClient();
+  const supabase = await createClient();
 
-  // Minimal, safe select — only columns guaranteed to exist
-  const { data: profile, error: profileError } = await admin
-    .from("profiles")
-    .select("id, full_name, avatar_url, is_public, bio, role, github_url, linkedin_url, institution")
-    .eq("id", id)
-    .single();
+  // Round 1: Parallelize target profile, current viewer, and public projects
+  const [
+    { data: profile, error: profileError },
+    viewer,
+    { data: rawPublicProjects },
+  ] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("id, full_name, avatar_url, is_public, bio, role, github_url, linkedin_url, institution")
+      .eq("id", id)
+      .single(),
+    getCachedUser(),
+    admin
+      .from("projects")
+      .select("id, title, description, progress_percentage")
+      .eq("student_id", id)
+      .eq("is_private", false)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (profileError) {
     console.error(`[DEBUG] Profile fetch error for ID ${id}:`, profileError.message);
@@ -35,54 +50,34 @@ export default async function PublicProfilePage({
     notFound();
   }
 
-  // Who is viewing?
-  const supabase = await createClient();
-  const { data: { user: viewer } } = await supabase.auth.getUser();
   const isSelf = viewer?.id === id;
 
-  // Is the viewer a teacher? (needed for ProfileProjectsPanel)
+  // Round 2: Parallelize viewer role, favorites, and follow/block checks
   let isViewerTeacher = false;
-  if (viewer) {
-    const { data: viewerProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', viewer.id)
-      .single();
-    isViewerTeacher = viewerProfile?.role === 'teacher';
-  }
-
-  // Favorites: any logged-in visitor can favorite projects
   let viewerFavoritedIds: string[] = [];
-  if (viewer && !isSelf) {
-    const { data: favs } = await supabase
-      .from('project_favorites')
-      .select('project_id')
-      .eq('user_id', viewer.id);
-    viewerFavoritedIds = (favs ?? []).map((r: any) => r.project_id as string);
-  }
-
-  // Follow + block state
   let isFollowing = false;
   let isFollowedByTarget = false;
   let isBlocked = false;
-  if (viewer && !isSelf) {
-    const [fwdRes, revRes, blockRes] = await Promise.all([
-      supabase
-        .from('follows')
-        .select('follower_id', { count: 'exact', head: true })
-        .eq('follower_id', viewer.id)
-        .eq('following_id', id),
-      supabase
-        .from('follows')
-        .select('follower_id', { count: 'exact', head: true })
-        .eq('follower_id', id)
-        .eq('following_id', viewer.id),
-      supabase
-        .from('blocks')
-        .select('blocker_id', { count: 'exact', head: true })
-        .eq('blocker_id', viewer.id)
-        .eq('blocked_id', id),
+
+  if (viewer) {
+    const [viewerProfile, favsRes, fwdRes, revRes, blockRes] = await Promise.all([
+      getCachedProfile(),
+      !isSelf
+        ? supabase.from('project_favorites').select('project_id').eq('user_id', viewer.id)
+        : Promise.resolve({ data: [] as any[] }),
+      !isSelf
+        ? supabase.from('follows').select('follower_id', { count: 'exact', head: true }).eq('follower_id', viewer.id).eq('following_id', id)
+        : Promise.resolve({ count: 0 }),
+      !isSelf
+        ? supabase.from('follows').select('follower_id', { count: 'exact', head: true }).eq('follower_id', id).eq('following_id', viewer.id)
+        : Promise.resolve({ count: 0 }),
+      !isSelf
+        ? supabase.from('blocks').select('blocker_id', { count: 'exact', head: true }).eq('blocker_id', viewer.id).eq('blocked_id', id)
+        : Promise.resolve({ count: 0 }),
     ]);
+
+    isViewerTeacher = viewerProfile?.role === 'teacher';
+    viewerFavoritedIds = (favsRes.data ?? []).map((r: any) => r.project_id as string);
     isFollowing = (fwdRes.count ?? 0) > 0;
     isFollowedByTarget = (revRes.count ?? 0) > 0;
     isBlocked = (blockRes.count ?? 0) > 0;
@@ -91,18 +86,8 @@ export default async function PublicProfilePage({
   // is_public: true → public, false → private, null → treat as public
   const isPrivate = profile.is_public === false;
 
-  console.log(`[DEBUG] Profile ${id} | is_public=${profile.is_public} | isSelf=${isSelf}`);
-
-  // Fetch public projects — only when profile is public or viewer is owner
-  const projects = (!isPrivate || isSelf)
-    ? (await admin
-        .from("projects")
-        .select("id, title, description, progress_percentage")
-        .eq("student_id", id)
-        .eq("is_private", false)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => data ?? []))
-    : [];
+  // Show public projects only when profile is public or viewer is owner
+  const projects = (!isPrivate || isSelf) ? (rawPublicProjects ?? []) : [];
 
   const socialLinks = [
     { url: profile.github_url,   icon: <Github   className="w-4 h-4" />, label: "GitHub"   },

@@ -139,12 +139,12 @@ export default function ProjectTabsWrapper({
       <div className="flex-1 w-full min-w-0 bg-white/95 dark:bg-[#1a2234] md:bg-white/40 md:dark:bg-[#1a2234]/70 border border-slate-200/70 md:border-white/50 dark:border-slate-700/60 md:backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div key="overview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
               {overviewContent}
             </motion.div>
           )}
           {activeTab === 'milestones' && (
-            <motion.div key="milestones" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div key="milestones" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
               {React.isValidElement(milestonesContent)
                 ? React.cloneElement(milestonesContent as any, {
                     tasks,
@@ -155,17 +155,17 @@ export default function ProjectTabsWrapper({
             </motion.div>
           )}
           {activeTab === 'files' && (
-            <motion.div key="files" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div key="files" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
               {filesContent}
             </motion.div>
           )}
           {activeTab === 'notes' && showNotesTab && (
             <motion.div
               key="notes"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.1 }}
             >
               {notesContent}
             </motion.div>
@@ -174,10 +174,10 @@ export default function ProjectTabsWrapper({
           {activeTab === 'analytics' && (
             <motion.div
               key="analytics"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.1 }}
             >
               <ProjectAnalyticsView tasks={tasks} members={teamMembers} />
             </motion.div>

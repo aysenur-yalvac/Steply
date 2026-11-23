@@ -224,10 +224,10 @@ export default function ProfileProjectsPanel({
           /* Two-column layout mirroring Kanban board */
           <motion.div
             key="all"
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.1 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
           >
             {/* Completed column */}
@@ -243,15 +243,15 @@ export default function ProfileProjectsPanel({
                 className="flex flex-col gap-4"
                 initial="hidden"
                 animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } }}
+                variants={{ visible: { transition: { staggerChildren: 0.02, delayChildren: 0 } } }}
               >
                 {completed.length > 0
                   ? completed.map((p) => (
                       <motion.div
                         key={p.id}
                         variants={{
-                          hidden:   { opacity: 0, y: 18, scale: 0.97 },
-                          visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
+                          hidden:   { opacity: 0, y: 8 },
+                          visible:  { opacity: 1, y: 0, transition: { duration: 0.12 } },
                         }}
                       >
                         <ProfileProjectCard project={p} isTeacher={isTeacher} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
@@ -275,15 +275,15 @@ export default function ProfileProjectsPanel({
                 className="flex flex-col gap-4"
                 initial="hidden"
                 animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } }}
+                variants={{ visible: { transition: { staggerChildren: 0.02, delayChildren: 0 } } }}
               >
                 {inProgress.length > 0
                   ? inProgress.map((p) => (
                       <motion.div
                         key={p.id}
                         variants={{
-                          hidden:   { opacity: 0, y: 18, scale: 0.97 },
-                          visible:  { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
+                          hidden:   { opacity: 0, y: 8 },
+                          visible:  { opacity: 1, y: 0, transition: { duration: 0.12 } },
                         }}
                       >
                         <ProfileProjectCard project={p} isTeacher={isTeacher} isFavorited={initialFavoritedIds.includes(p.id)} showFavorite={showFavorite} />
@@ -299,10 +299,10 @@ export default function ProfileProjectsPanel({
           /* Single filtered grid */
           <motion.div
             key={filter}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.1 }}
           >
             {filteredSingle.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

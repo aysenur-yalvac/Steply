@@ -9,8 +9,20 @@ const PUBLIC_PATHS = [
 const PROTECTED_PREFIX = "/dashboard";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
+
+  // Fast-path: do not block static assets or Next.js internal prefetches on public routes
+  const isProtected = pathname.startsWith(PROTECTED_PREFIX);
+  const isAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isPrefetch =
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch";
+
+  if (!isProtected && !isAuthPage) {
+    return NextResponse.next({ request });
+  }
+
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -36,7 +48,7 @@ export async function updateSession(request: NextRequest) {
     const result = await Promise.race([
       supabase.auth.getSession(),
       new Promise<{ data: { session: null } }>((resolve) =>
-        setTimeout(() => resolve({ data: { session: null } }), 4500)
+        setTimeout(() => resolve({ data: { session: null } }), 3500)
       ),
     ]);
     session = (result as any).data?.session ?? null;
@@ -45,15 +57,13 @@ export async function updateSession(request: NextRequest) {
   }
 
   const user = session?.user ?? null;
-  const isProtected = pathname.startsWith(PROTECTED_PREFIX);
-  const isAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  // GUVENLIK KILIDI: OTP Duvari (Zero Bypass)
+  // OTP Duvari (Zero Bypass) — no redundant DB queries on standard navigations
   if (isProtected) {
-    // 1. Oturum yok VEYA e-posta dogrulanmamissa (8 haneli OTP asilmamissa) ANINDA geri yolla
     const isVerified = user && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true);
-    
+
     if (!isVerified) {
+      if (isPrefetch) return supabaseResponse;
       if (pathname !== "/auth/verify-email") {
         const url = request.nextUrl.clone();
         url.pathname = "/auth/verify-email";
@@ -62,17 +72,20 @@ export async function updateSession(request: NextRequest) {
         if (userRole) url.searchParams.set("role", userRole);
         return NextResponse.redirect(url);
       }
-    } else {
-      // 2. Rol bazli panel erisim kontrolu
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
+    } else if (pathname.startsWith("/dashboard/teacher") || pathname.startsWith("/dashboard/admin")) {
+      // Only query role from DB when entering teacher/admin restricted paths
+      const metaRole = user.user_metadata?.role || user.app_metadata?.role;
+      let dbRole = metaRole;
+      if (!dbRole || dbRole === "student") {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        dbRole = profile?.role || "student";
+      }
 
-      const dbRole = profile?.role || "student";
-
-      if (dbRole === "student" && (pathname.startsWith("/dashboard/teacher") || pathname.startsWith("/dashboard/admin"))) {
+      if (dbRole === "student") {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard/student";
         return NextResponse.redirect(url);
@@ -81,7 +94,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Auth sayfasinda oturumu acik, onayi tamamlanmis kullanici -> dashboard
-  if (user && isAuthPage && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true)) {
+  if (user && isAuthPage && !isPrefetch && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true)) {
     if (request.nextUrl.searchParams.get("link_account") === "true") {
       return supabaseResponse;
     }

@@ -64,17 +64,31 @@ export default function ProjectTaskList({
     e.preventDefault();
     const title = newTitle.trim();
     if (!title) return;
+    const tempId = `temp-${Date.now()}`;
+    const optimisticTask: ProjectTask = {
+      id: tempId,
+      project_id: projectId,
+      title,
+      is_completed: false,
+      created_at: new Date().toISOString(),
+    };
+    setNewTitle("");
+    updateTasks((prev) => [...prev, optimisticTask]);
+    inputRef.current?.focus();
     setIsAdding(true);
     try {
       const result = await addProjectTask(projectId, title);
       if ("error" in result) {
+        updateTasks((prev) => prev.filter((t) => t.id !== tempId));
+        setNewTitle(title);
         toast.error(result.error);
       } else {
-        updateTasks((prev) => [...prev, result.task]);
-        setNewTitle("");
-        inputRef.current?.focus();
-        router.refresh();
+        updateTasks((prev) => prev.map((t) => (t.id === tempId ? result.task : t)));
       }
+    } catch {
+      updateTasks((prev) => prev.filter((t) => t.id !== tempId));
+      setNewTitle(title);
+      toast.error("Görev eklenemedi");
     } finally {
       setIsAdding(false);
     }

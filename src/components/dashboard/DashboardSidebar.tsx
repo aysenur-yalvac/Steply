@@ -218,7 +218,7 @@ function NavContent({
       <div className={`border-b border-slate-100 dark:border-slate-800/80 ${collapsed ? "flex flex-col items-center gap-3 py-4 px-2" : "px-5 py-5"}`}>
         {collapsed ? (
           <>
-            <Link href="/dashboard" onClick={onClose} className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
+            <Link href="/dashboard" prefetch={true} onClick={onClose} className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity">
               <img src="/marka/logo.png" alt="Must-b Academy" className="w-10 h-10 object-contain dark:hidden" /><img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-10 h-10 object-cover rounded-lg hidden dark:block" />
             </Link>
             {onToggleExpand && (
@@ -234,7 +234,7 @@ function NavContent({
           </>
         ) : (
           <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity" onClick={onClose}>
+            <Link href="/dashboard" prefetch={true} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity" onClick={onClose}>
               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                 <img src="/marka/logo.png" alt="Must-b Academy" className="w-9 h-9 object-contain dark:hidden" /><img src="/marka/logo-dark.png" alt="Must-b Academy" className="w-9 h-9 object-cover rounded-md hidden dark:block" />
               </div>
@@ -321,14 +321,14 @@ function NavContent({
               const isMessages = href === '/dashboard/messages' || label.toLowerCase().includes('message');
               
               return collapsed ? (
-                <Link key={label} href={href} onClick={onClose} title={label} className={`relative w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
+                <Link key={label} href={href} prefetch={true} onClick={onClose} title={label} className={`relative w-10 h-10 flex items-center justify-center rounded-xl mx-auto transition-all duration-150 border ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"}`}>
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-5 h-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
                     {isMessages && <UnreadMessagesBadge collapsed={true} />}
                   </div>
                 </Link>
               ) : (
-                <Link key={label} href={href} onClick={onClose} className={`relative w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 border group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white"}`}>
+                <Link key={label} href={href} prefetch={true} onClick={onClose} className={`relative w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 border group ${isActive ? "bg-violet-600 text-white shadow-md shadow-violet-200 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600" : "text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white"}`}>
                   <div className="flex items-center gap-3">
                     <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white"}`} strokeWidth={isActive ? 2 : 1.5} />
                     <span>{label}</span>
@@ -449,6 +449,7 @@ function NavContent({
             <div className="flex items-center gap-1 mb-1">
               <Link
                 href="/dashboard/profile"
+                prefetch={true}
                 onClick={onClose}
                 className="flex items-center gap-3 flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 transition-colors"
               >

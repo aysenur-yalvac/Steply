@@ -534,10 +534,10 @@ export default function DashboardViewSwitcher({
             <AnimatePresence>
               {filterOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.1, ease: "easeOut" }}
                   style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 9999 }}
                 >
                   <FilterDropdown
@@ -638,10 +638,10 @@ export default function DashboardViewSwitcher({
           <AnimatePresence mode="wait">
             <motion.div
               key={viewMode}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.1 }}
             >
               {viewMode === "kanban" ? (
                 <KanbanBoard
@@ -680,10 +680,10 @@ export default function DashboardViewSwitcher({
             <AnimatePresence mode="wait">
               <motion.div
                 key={viewMode + "-collab"}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.1 }}
               >
                 {viewMode === "kanban" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

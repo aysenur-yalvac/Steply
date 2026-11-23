@@ -748,9 +748,9 @@ export async function toggleTaskCompletion(
     await ctx.admin.from('projects').update({ status: 'in_review' }).eq('id', projectId);
   }
   revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath('/dashboard');
   revalidatePath('/dashboard/profile');
   revalidatePath('/dashboard/analytics');
-  revalidatePath('/', 'layout');
   return { success: true, progress };
 }
 
@@ -857,9 +857,9 @@ export async function addProjectNoteAction(
   }
 
   recordUserActionAction('add_log').catch(() => {});
+  revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath('/dashboard/profile');
   revalidatePath('/dashboard/analytics');
-  revalidatePath('/', 'layout');
 
   return {
     success: true,
@@ -1628,7 +1628,6 @@ export async function markProjectCompletedAction(
   revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/profile');
-  revalidatePath('/', 'layout');
   return { success: true };
 }
 

@@ -1,8 +1,7 @@
-import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
+import { getCachedUser, getCachedProfile } from '@/lib/auth-cache';
 import { GitHubIntegrationCard } from '@/components/projects/GitHubIntegrationCard';
 import { getGitHubRepoAction, getProjectCommitsAction } from '@/lib/actions';
-
-import { createAdminClient } from '@/utils/supabase/admin';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
 import { Star, Trash2, Check } from 'lucide-react';
@@ -33,27 +32,42 @@ export default async function ProjectDetailPage({
   const projectId = resolvedParams.id;
   const error = resolvedSearchParams?.error;
 
-  const supabase = await createClient();
   const admin    = createAdminClient();          // bypasses RLS for all profile reads
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCachedUser();
   if (!user) redirect('/auth/login');
 
-  // Current viewer's profile (uses anon client — viewer reads their own row: always works)
-  const { data: profile } = await supabase
-    .from('profiles')
-      .select('*')
-    .eq('id', user.id)
-    .single();
+  // Round 1: Parallelize viewer profile, project row, project_members, reviews, and project_tasks
+  const [
+    profile,
+    { data: project },
+    { data: memberRows },
+    { data: rawReviews },
+    { data: projectTasksRaw },
+  ] = await Promise.all([
+    getCachedProfile(),
+    admin
+      .from('projects')
+      .select('*, invite_code, invite_token')
+      .eq('id', projectId)
+      .single(),
+    admin
+      .from('project_members')
+      .select('user_id, status')
+      .eq('project_id', projectId),
+    admin
+      .from('reviews')
+      .select('id, rating, comment, created_at, reviewer_id')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false }),
+    admin
+      .from('project_tasks')
+      .select('id, project_id, title, is_completed, assigned_to, due_date, start_date, priority, status, description, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true }),
+  ]);
 
   const isTeacher = profile?.role === 'teacher';
-
-  // Project row
-  const { data: project } = await admin
-    .from('projects')
-    .select('*, invite_code, invite_token')
-    .eq('id', projectId)
-    .single();
 
   if (!project) notFound();
 
@@ -61,87 +75,76 @@ export default async function ProjectDetailPage({
   const ownerUserId: string = (project as any).student_id as string;
   const isOwner: boolean = ownerUserId === user.id;
 
+  // ── Privacy gate — project-level only ────────────────────────────────────
+  if (!isOwner && (project as any).is_private === true) {
+    const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
+    const isAcceptedMember = (memberRows ?? []).some(
+      (r: any) => r.user_id === user.id && r.status !== 'pending'
+    );
+    const isTeamMemberAccess = jsonTeamIds.includes(user.id) || isAcceptedMember;
+    if (!isTeamMemberAccess) notFound();
+  }
+
+  // Collect all unique user IDs needed across owner, team members, and reviewers into ONE profiles query
+  const memberUserIds = (memberRows ?? []).map((r: any) => r.user_id as string);
+  const reviewerIds = [...new Set((rawReviews ?? []).map((r: any) => r.reviewer_id as string))];
+  const profileIdsToFetch = [...new Set([
+    ...(!isOwner && ownerUserId ? [ownerUserId] : []),
+    ...memberUserIds,
+    ...reviewerIds,
+  ])];
+
+  const isAcceptedCollaborator = !isOwner && (memberRows ?? []).some(
+    (r: any) => r.user_id === user.id && r.status !== 'pending'
+  );
+  const isTeamMember = isOwner || isAcceptedCollaborator;
+
+  // Round 2: Fetch all required profiles in a single query in parallel with activities, notes, and GitHub data
+  const [
+    { data: batchProfiles },
+    activities,
+    projectNotes,
+    repo,
+    commits,
+  ] = await Promise.all([
+    profileIdsToFetch.length > 0
+      ? admin.from('profiles').select('id, full_name, avatar_url, role, github_url').in('id', profileIdsToFetch)
+      : Promise.resolve({ data: [] as any[] }),
+    isTeamMember ? getProjectActivitiesAction(projectId).catch(() => []) : Promise.resolve([]),
+    isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
+    isTeamMember ? getGitHubRepoAction(projectId).catch(() => null)      : Promise.resolve(null),
+    isTeamMember ? getProjectCommitsAction(projectId).catch(() => [])    : Promise.resolve([]),
+  ]);
+
+  const profileMap = new Map((batchProfiles ?? []).map((p: any) => [p.id as string, p]));
+
   // ── Owner identity ────────────────────────────────────────────────────────────
-  let ownerName: string | null = null;
-  let ownerAvatarUrl: string | null = null;
-  let ownerGithubUrl: string | null = null;
+  const ownerProfile = isOwner ? profile : profileMap.get(ownerUserId);
+  const ownerName: string | null = isOwner
+    ? (profile?.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? null)
+    : (ownerProfile?.full_name ?? null);
+  const ownerAvatarUrl: string | null = ownerProfile?.avatar_url ?? null;
+  const ownerGithubUrl: string | null = ownerProfile?.github_url ?? null;
 
-  if (isOwner) {
-    // Viewer IS the owner — always allow access, skip all gates.
-    ownerName      = profile?.full_name  ?? (user.user_metadata?.full_name as string | undefined) ?? null;
-    ownerAvatarUrl = profile?.avatar_url ?? null;
-    ownerGithubUrl = profile?.github_url ?? null;
-  } else {
-    // Viewer is NOT the owner — fetch owner profile for display.
-    const { data: ownerProfile, error: ownerErr } = await admin
-      .from('profiles')
-      .select('full_name, avatar_url, github_url')
-      .eq('id', ownerUserId)
-      .single();
-    if (ownerErr) console.error('owner fetch error:', ownerErr);
-    ownerName      = ownerProfile?.full_name  ?? null;
-    ownerAvatarUrl = ownerProfile?.avatar_url ?? null;
-    ownerGithubUrl = ownerProfile?.github_url ?? null;
-
-    // ── Privacy gate — project-level only ────────────────────────────────────
-    // If the project is marked private, only team members can access it.
-    const isPrivateProject = (project as any).is_private === true;
-    if (isPrivateProject) {
-      const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-      const { data: memberRow } = await admin
-        .from('project_members')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('user_id', user.id)
-        .neq('status', 'pending')
-        .maybeSingle();
-      const isTeamMember = jsonTeamIds.includes(user.id) || !!memberRow;
-      if (!isTeamMember) notFound();
-    }
-  }
-
-  // ── Team members — two-step fetch (project_members → profiles) ──────────────
-  // NOTE: project_members.user_id FK references auth.users, NOT profiles, so
-  // PostgREST cannot resolve profiles!user_id — we fetch separately instead.
+  // ── Team members ──────────────────────────────────────────────────────────────
   type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null; status?: string | null };
-  let allTeamMembers: TeamMember[] = [];
-
-  const { data: memberRows } = await admin
-    .from('project_members')
-    .select('user_id, status')
-    .eq('project_id', projectId);
-
-  if (memberRows && memberRows.length > 0) {
-    const userIds = memberRows.map((r: any) => r.user_id as string);
-    const statusMap = new Map(memberRows.map((r: any) => [r.user_id as string, (r.status as string) ?? 'accepted']));
-
-    const { data: profileRows } = await admin
-      .from('profiles')
-      .select('id, full_name, avatar_url, role')
-      .in('id', userIds);
-
-    const profileMap = new Map((profileRows ?? []).map((p: any) => [p.id, p]));
-
-    allTeamMembers = userIds
-      .map((uid) => {
-        const p = profileMap.get(uid);
-        return {
-          id:         uid,
-          full_name:  p?.full_name  ?? 'Bilinmeyen Kullanıcı',
-          avatar_url: p?.avatar_url ?? null,
-          role:       p?.role       ?? null,
-          status:     statusMap.get(uid) ?? 'accepted',
-        };
-      })
-      .filter((m) => m.id);
-  }
+  const statusMap = new Map((memberRows ?? []).map((r: any) => [r.user_id as string, (r.status as string) ?? 'accepted']));
+  const allTeamMembers: TeamMember[] = memberUserIds
+    .map((uid) => {
+      const p = uid === user.id ? profile : profileMap.get(uid);
+      return {
+        id:         uid,
+        full_name:  p?.full_name  ?? 'Bilinmeyen Kullanıcı',
+        avatar_url: p?.avatar_url ?? null,
+        role:       p?.role       ?? null,
+        status:     statusMap.get(uid) ?? 'accepted',
+      };
+    })
+    .filter((m) => m.id);
 
   const acceptedTeamMembers = allTeamMembers.filter((m) => m.status !== 'pending');
-  // Owner sees pending invites with "Bekleniyor..." badge; non-owners see accepted members only
   const teamMembers = isOwner ? allTeamMembers : acceptedTeamMembers;
-
-  // Whether the current viewer is an accepted collaborator (in project_members with status !== 'pending')
-  const isCollaborator = !isOwner && acceptedTeamMembers.some((m) => m.id === user.id);
+  const isCollaborator = isAcceptedCollaborator;
 
   // ── Reviews ───────────────────────────────────────────────────────────────────
   type Review = {
@@ -154,46 +157,17 @@ export default async function ProjectDetailPage({
     reviewer_role: string | null;
     reviewer_avatar: string | null;
   };
-
-  const { data: rawReviews } = await admin
-    .from('reviews')
-    .select('id, rating, comment, created_at, reviewer_id')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
-
-  let reviews: Review[] = [];
-  if (rawReviews && rawReviews.length > 0) {
-    const reviewerIds = [...new Set(rawReviews.map((r) => r.reviewer_id))];
-    const { data: reviewerProfiles } = await admin
-      .from('profiles')
-      .select('id, full_name, role, avatar_url')
-      .in('id', reviewerIds);
-
-    const revMap = new Map(reviewerProfiles?.map((p) => [p.id, p]) ?? []);
-    reviews = rawReviews.map((r) => ({
+  const reviews: Review[] = (rawReviews ?? []).map((r: any) => {
+    const revProf = r.reviewer_id === user.id ? profile : profileMap.get(r.reviewer_id);
+    return {
       ...r,
-      reviewer_name:   revMap.get(r.reviewer_id)?.full_name  ?? 'Must-b Academy Üyesi',
-      reviewer_role:   revMap.get(r.reviewer_id)?.role       ?? null,
-      reviewer_avatar: revMap.get(r.reviewer_id)?.avatar_url ?? null,
-    }));
-  }
+      reviewer_name:   revProf?.full_name  ?? 'Must-b Academy Üyesi',
+      reviewer_role:   revProf?.role       ?? null,
+      reviewer_avatar: revProf?.avatar_url ?? null,
+    };
+  });
 
-  // ── Project Tasks ─────────────────────────────────────────────────────────────
-  const { data: projectTasksRaw } = await admin
-    .from('project_tasks')
-      .select('*')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: true });
   const projectTasks: ProjectTask[] = (projectTasksRaw ?? []) as ProjectTask[];
-
-  // ── Activity Stream + Discussion Notes (owner + collaborators only) ─────────
-  const isTeamMember = isOwner || isCollaborator;
-  const [activities, projectNotes, repo, commits] = await Promise.all([
-    isTeamMember ? getProjectActivitiesAction(projectId).catch(() => []) : Promise.resolve([]),
-    isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
-    isTeamMember ? getGitHubRepoAction(projectId).catch(() => null)      : Promise.resolve(null),
-    isTeamMember ? getProjectCommitsAction(projectId).catch(() => [])    : Promise.resolve([]),
-  ]);
 
   const projectStatus = (project as any).status ?? 'todo';
   const isCompleted = projectStatus === 'completed';

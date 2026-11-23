@@ -147,20 +147,44 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
     if (!newMessage.trim()) return;
 
     const content = newMessage.trim();
-    const metadataProjectId = mentionedProject ? mentionedProject.id : undefined;
+    const savedMention = mentionedProject;
+    const metadataProjectId = savedMention ? savedMention.id : undefined;
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg: Message = {
+      id: tempId,
+      sender_id: currentUser.id,
+      receiver_id: selectedUser.id,
+      content,
+      created_at: new Date().toISOString(),
+      is_read: false,
+      metadata: metadataProjectId ? { mentioned_project_id: metadataProjectId } : null,
+    };
 
+    // Optimistic update immediately before awaiting server action
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage("");
+    setMentionedProject(null);
+    setTimeout(scrollToBottom, 20);
     setIsSending(true);
+
     try {
       const result = await sendMessageAction(selectedUser.id, content, metadataProjectId);
-      
-      // Optimistic update
       if (result.success) {
-        setMessages((prev) => [...prev, result.message]);
-        setNewMessage("");
-        setMentionedProject(null);
-        setTimeout(scrollToBottom, 100);
+        setMessages((prev) =>
+          prev
+            .filter((m) => m.id !== result.message.id || m.id === tempId)
+            .map((m) => (m.id === tempId ? result.message : m))
+        );
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setNewMessage(content);
+        setMentionedProject(savedMention);
+        toast.error("Mesaj gönderilemedi");
       }
     } catch (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setNewMessage(content);
+      setMentionedProject(savedMention);
       toast.error("Mesaj gönderilemedi");
       console.error(error);
     } finally {

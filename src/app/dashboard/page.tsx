@@ -2,183 +2,157 @@
 import DashboardLoading from './loading';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { getCachedUser, getCachedProfile } from '@/lib/auth-cache';
 import type { Metadata } from "next";
+import Link from 'next/link';
+import { Plus, FolderOpen, AlertTriangle, Clock } from 'lucide-react';
+import EmptyState from '@/components/layout/EmptyState';
+import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
+import SocialWidget from '@/components/dashboard/SocialWidget';
+import PendingInvitesSection, { type PendingProjectInvite } from '@/components/dashboard/PendingInvitesSection';
+import { getFollowDataAction } from '@/lib/actions';
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Projelerim | Must-b Academy",
 };
-import Link from 'next/link';
 
-import { Plus, FolderOpen, Search, Users, AlertTriangle, Clock } from 'lucide-react';
-import EmptyState from '@/components/layout/EmptyState';
-import DashboardViewSwitcher from '@/components/dashboard/DashboardViewSwitcher';
-import ProjectCard from '@/app/dashboard/ProjectCard';
-import SocialWidget from '@/components/dashboard/SocialWidget';
-import PendingInvitesSection, { type PendingProjectInvite } from '@/components/dashboard/PendingInvitesSection';
-import { getFollowDataAction } from '@/lib/actions';
+const PROJECT_CARD_COLS =
+  'id, student_id, title, description, github_link, start_date, end_date, updated_at, created_at, priority, platform, progress_percentage, status, tags';
 
 async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> }) {
-  const searchParams = await props.searchParams;
+  const [searchParams, user] = await Promise.all([
+    props.searchParams,
+    getCachedUser(),
+  ]);
   const q = searchParams?.q?.toLowerCase() || '';
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const admin = createAdminClient();
 
-  // Fetch all independent data in parallel
-  const [
-    profileRes,
-        notesDataRes,
-    followData,
-  ] = await Promise.all([
-    supabase.from('profiles').select('role').eq('id', user?.id).single(),
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Round 1: Run ALL user-dependent independent queries in parallel!
+  const [profile, notesDataRes, followData, upcomingTasksRes, membershipRes] = await Promise.all([
+    getCachedProfile(),
     supabase.from('project_notes').select('project_id, content, profiles!teacher_id(full_name)'),
-    user?.id ? getFollowDataAction(user.id) : Promise.resolve({ followers: [], following: [] })
+    user?.id ? getFollowDataAction(user.id) : Promise.resolve({ followers: [], following: [] }),
+    user?.id
+      ? supabase
+          .from('agenda_tasks')
+          .select('id, title, task_title, due_date')
+          .eq('user_id', user.id)
+          .eq('is_completed', false)
+          .lte('due_date', tomorrowStr)
+          .gte('due_date', todayStr)
+          .order('due_date', { ascending: true })
+      : Promise.resolve({ data: [] }),
+    user?.id
+      ? admin.from('project_members').select('project_id, status').eq('user_id', user.id)
+      : Promise.resolve({ data: [] }),
   ]);
 
-  const profile = profileRes.data;
   const isTeacher = profile?.role === 'teacher';
   const isStudent = profile?.role === 'student';
+  const { followers, following } = followData;
+  const upcomingTasks = upcomingTasksRes.data ?? [];
 
-  let projects: any[] = [];
-  let projectNotes: Record<string, { content: string; teacherName?: string }> = {};
-
+  const projectNotes: Record<string, { content: string; teacherName?: string }> = {};
   if (notesDataRes.data) {
     notesDataRes.data.forEach((n: any) => {
       projectNotes[n.project_id] = { content: n.content, teacherName: n.profiles?.full_name };
     });
   }
 
-  if (isTeacher) {
-    // Use admin client to bypass RLS on profiles join — teachers need to read
-    // student names from other users' profiles which the session client blocks.
-    const admin = createAdminClient();
-    const { data } = await admin
-        .from('projects')
-        .select('*, profiles!student_id(full_name, avatar_url, is_public)')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-      let all = (data || []).filter((p: any) => p.profiles?.is_public !== false);
-      if (q) {
-        all = all.filter((p: any) =>
-          p.title.toLowerCase().includes(q) ||
-          (p.profiles?.full_name || '').toLowerCase().includes(q) ||
-          (p.tags ?? []).some((t: string) => t.includes(q)),
-        );
-      }
-      projects = all;
-  } else {
-    const { data } = await supabase
-      .from('projects')
-      .select('*')
-      .is('deleted_at', null)
-      .eq('student_id', user?.id)
-      .order('created_at', { ascending: false });
-    let all = data || [];
-    if (q) all = all.filter((p: any) =>
-      p.title.toLowerCase().includes(q) ||
-      (p.tags ?? []).some((t: string) => t.includes(q))
-    );
-    projects = all;
-  }
-
-  // ── Follow data for social widget ───────────────────────────────────────────
-  const { followers, following } = user?.id
-    ? await getFollowDataAction(user.id)
-    : { followers: [], following: [] };
-
-  // ── Upcoming agenda tasks (due within 24h, not completed) ────────────────────
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split('T')[0];
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  const { data: upcomingTasks } = await supabase
-    .from('agenda_tasks')
-    .select('id, title, task_title, due_date')
-    .eq('user_id', user?.id)
-    .eq('is_completed', false)
-    .lte('due_date', tomorrowStr)
-    .gte('due_date', todayStr)
-    .order('due_date', { ascending: true });
-
-  // ── Collaborator projects (accepted) & Pending project invites ──
-  let collaboratorProjects: any[] = [];
-  let pendingInvites: PendingProjectInvite[] = [];
-  const adminForMembers = createAdminClient();
-  const { data: membershipRows } = user?.id
-    ? await adminForMembers
-        .from('project_members')
-        .select('project_id, status')
-        .eq('user_id', user.id)
-    : { data: [] };
-
-  const acceptedCollabIds = (membershipRows ?? [])
+  const membershipRows = membershipRes.data ?? [];
+  const acceptedCollabIds = membershipRows
     .filter((r: any) => r.status !== 'pending')
     .map((r: any) => r.project_id as string);
-  const pendingInviteIds = (membershipRows ?? [])
+  const pendingInviteIds = membershipRows
     .filter((r: any) => r.status === 'pending')
     .map((r: any) => r.project_id as string);
 
-  if (acceptedCollabIds.length > 0) {
-    const { data: collabData } = await adminForMembers
-      .from('projects')
-      .select('*, profiles!student_id(full_name, avatar_url)')
-      .in('id', acceptedCollabIds)
-      .is('deleted_at', null)
-      .neq('student_id', user?.id)
-      .order('created_at', { ascending: false });
-    collaboratorProjects = collabData ?? [];
-  }
+  // Round 2: Fetch main projects, accepted collaborator projects, and pending invited projects in parallel
+  const [mainProjectsRes, collabRes, invitedProjectsRes] = await Promise.all([
+    isTeacher
+      ? admin
+          .from('projects')
+          .select(`${PROJECT_CARD_COLS}, profiles!student_id(full_name, avatar_url, is_public)`)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+      : supabase
+          .from('projects')
+          .select(PROJECT_CARD_COLS)
+          .is('deleted_at', null)
+          .eq('student_id', user?.id)
+          .order('created_at', { ascending: false }),
+    acceptedCollabIds.length > 0
+      ? admin
+          .from('projects')
+          .select(`${PROJECT_CARD_COLS}, profiles!student_id(full_name, avatar_url)`)
+          .in('id', acceptedCollabIds)
+          .is('deleted_at', null)
+          .neq('student_id', user?.id)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+    pendingInviteIds.length > 0
+      ? admin
+          .from('projects')
+          .select('id, title, description, student_id')
+          .in('id', pendingInviteIds)
+          .is('deleted_at', null)
+          .neq('student_id', user?.id)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ]);
 
-  if (pendingInviteIds.length > 0) {
-    const { data: invitedProjects } = await adminForMembers
-      .from('projects')
-      .select('id, title, description, student_id')
-      .in('id', pendingInviteIds)
-      .is('deleted_at', null)
-      .neq('student_id', user?.id)
-      .order('created_at', { ascending: false });
-
-    if (invitedProjects && invitedProjects.length > 0) {
-      const ownerIds = [...new Set(invitedProjects.map((p: any) => p.student_id).filter(Boolean))];
-      const { data: ownerProfiles } = ownerIds.length > 0
-        ? await adminForMembers.from('profiles').select('id, full_name, avatar_url').in('id', ownerIds)
-        : { data: [] };
-      const ownerMap = new Map((ownerProfiles ?? []).map((p: any) => [p.id, p]));
-
-      pendingInvites = invitedProjects.map((p: any) => {
-        const owner = ownerMap.get(p.student_id);
-        return {
-          projectId: p.id,
-          projectTitle: p.title,
-          projectDescription: p.description ?? null,
-          inviterName: owner?.full_name || 'Must-b Academy Üyesi',
-          inviterAvatar: owner?.avatar_url ?? null,
-        };
-      });
+  let projects: any[] = mainProjectsRes.data ?? [];
+  if (isTeacher) {
+    projects = projects.filter((p: any) => p.profiles?.is_public !== false);
+    if (q) {
+      projects = projects.filter((p: any) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.profiles?.full_name || '').toLowerCase().includes(q) ||
+        (p.tags ?? []).some((t: string) => t.includes(q)),
+      );
     }
+  } else if (q) {
+    projects = projects.filter((p: any) =>
+      p.title.toLowerCase().includes(q) ||
+      (p.tags ?? []).some((t: string) => t.includes(q))
+    );
   }
 
-  // ── Real teacher review counts (reviews table only) ──────────────────────────
+  let collaboratorProjects: any[] = collabRes.data ?? [];
+  const invitedProjects = invitedProjectsRes.data ?? [];
+
   const allProjectIds = [
     ...new Set([
       ...projects.map((p: any) => p.id as string),
       ...collaboratorProjects.map((p: any) => p.id as string),
     ]),
   ];
+  const inviterOwnerIds = [
+    ...new Set(invitedProjects.map((p: any) => p.student_id).filter(Boolean)),
+  ];
+
+  // Round 3: Fetch teacher reviews count + inviter profiles in parallel
+  const [reviewsRes, inviterProfilesRes] = await Promise.all([
+    allProjectIds.length > 0
+      ? admin.from('reviews').select('project_id').in('project_id', allProjectIds)
+      : Promise.resolve({ data: [] }),
+    inviterOwnerIds.length > 0
+      ? admin.from('profiles').select('id, full_name, avatar_url').in('id', inviterOwnerIds)
+      : Promise.resolve({ data: [] }),
+  ]);
 
   const commentCountMap: Record<string, number> = {};
-  if (allProjectIds.length > 0) {
-    const adminClient = createAdminClient();
-    const { data: reviewRows } = await adminClient
-      .from('reviews')
-      .select('project_id')
-      .in('project_id', allProjectIds);
-
-    for (const row of reviewRows ?? []) {
-      commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
-    }
+  for (const row of reviewsRes.data ?? []) {
+    commentCountMap[row.project_id] = (commentCountMap[row.project_id] ?? 0) + 1;
   }
 
   projects = projects.map((p: any) => ({
@@ -189,6 +163,18 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     ...p,
     comment_count: commentCountMap[p.id] ?? 0,
   }));
+
+  const ownerMap = new Map((inviterProfilesRes.data ?? []).map((p: any) => [p.id, p]));
+  const pendingInvites: PendingProjectInvite[] = invitedProjects.map((p: any) => {
+    const owner = ownerMap.get(p.student_id);
+    return {
+      projectId: p.id,
+      projectTitle: p.title,
+      projectDescription: p.description ?? null,
+      inviterName: owner?.full_name || 'Must-b Academy Üyesi',
+      inviterAvatar: owner?.avatar_url ?? null,
+    };
+  });
 
   return (
     <div className="flex flex-col min-h-full">
@@ -223,7 +209,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         )}
 
         {/* ── Upcoming Tasks Banner ─────────────────────────────────────────── */}
-        {isStudent && upcomingTasks && upcomingTasks.length > 0 && (
+        {isStudent && upcomingTasks.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-950/35 dark:border-amber-700/50 dark:text-amber-100 px-5 py-4">
             <div className="flex items-center gap-2.5 mb-3">
               <div className="p-1.5 rounded-lg bg-amber-100">
@@ -244,7 +230,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
                     }`}
                   >
                     <Clock className={`w-4 h-4 shrink-0 ${isToday ? 'text-red-500' : 'text-amber-500'}`} strokeWidth={2} />
-                      <span className="flex-1 truncate">{task.title || task.task_title}</span>
+                    <span className="flex-1 truncate">{task.title || task.task_title}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-red-100 text-red-700 ' : 'bg-amber-100 text-amber-700 '} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                       {isToday ? 'Bugün Teslim!' : 'Yarın Teslim'}
                     </span>
@@ -302,9 +288,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
             collaboratorProjects={collaboratorProjects}
           />
         )}
-
-        {/* ── Ortak Olduğum Projeler ─────────────────────────────────────── */}
-              </div>
+      </div>
     </div>
   );
 }
@@ -316,4 +300,3 @@ export default function DashboardPage(props: { searchParams?: Promise<{ q?: stri
     </Suspense>
   );
 }
-

@@ -129,6 +129,7 @@ function KanbanCard({
   const [isNoteSaving,  setIsNoteSaving]  = useState(false);
   const [isDeleting,    setIsDeleting]    = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(!initialTeacherNote);
+  const [isDeletedLocally, setIsDeletedLocally] = useState(false);
 
   const isCompleted       = localProgress === 100;
   const hasUnsavedChanges = localProgress !== savedProgress;
@@ -140,6 +141,8 @@ function KanbanCard({
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasUnsavedChanges]);
 
+  if (isDeletedLocally) return null;
+
   const rawPriority        = getPriority(project);
   const priorityLabel      = PRIORITY_LABELS[rawPriority ?? "Medium"] ?? rawPriority ?? "Orta";
   const priorityClasses    = getPriorityClasses(rawPriority);
@@ -149,33 +152,45 @@ function KanbanCard({
   const studentName        = project.profiles?.full_name || "?";
 
   const saveNote = async () => {
+    setIsEditingNote(false);
     setIsNoteSaving(true);
     try {
       await addQuickNoteAction(project.id, noteContent);
-      setIsEditingNote(false);
       toast.success("Not kaydedildi!");
-    } catch { toast.error("Bir hata oluştu"); }
-    finally { setIsNoteSaving(false); }
+    } catch {
+      setIsEditingNote(true);
+      toast.error("Bir hata oluştu");
+    } finally {
+      setIsNoteSaving(false);
+    }
   };
 
   const deleteNote = async () => {
+    const prevNote = noteContent;
+    setNoteContent("");
+    setIsEditingNote(true);
     setIsNoteSaving(true);
     try {
       await deleteQuickNoteAction(project.id);
-      setNoteContent("");
-      setIsEditingNote(true);
       toast.success("Not silindi!");
-    } catch { toast.error("Bir hata oluştu"); }
-    finally { setIsNoteSaving(false); }
+    } catch {
+      setNoteContent(prevNote);
+      setIsEditingNote(false);
+      toast.error("Bir hata oluştu");
+    } finally {
+      setIsNoteSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!window.confirm("Bu projeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
+    setIsDeletedLocally(true);
     setIsDeleting(true);
     try {
       await deleteProjectAction(project.id);
       toast.success("Proje silindi.");
     } catch {
+      setIsDeletedLocally(false);
       toast.error("Proje silinirken hata oluştu");
       setIsDeleting(false);
     }
@@ -266,20 +281,20 @@ function KanbanCard({
 
       {/* â”€â”€ Expanded detail panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
-        {isExpanded && (
+        { isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.04, 0.62, 0.23, 0.98] }}
+            transition={{ duration: 0.12 }}
             className="overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <motion.div
-              initial={{ y: 8 }}
+              initial={{ y: 4 }}
               animate={{ y: 0 }}
-              exit={{ y: 8 }}
-              transition={{ duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] }}
+              exit={{ y: 4 }}
+              transition={{ duration: 0.12 }}
               className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4"
             >
               {/* Action buttons */}
@@ -296,6 +311,7 @@ function KanbanCard({
                 )}
                 <Link
                   href={`/dashboard/projects/${project.id}`}
+                  prefetch={true}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 >
                   Detayları Gör
@@ -464,19 +480,18 @@ function KanbanColumn({
         initial="hidden"
         animate="visible"
         variants={{
-          visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+          visible: { transition: { staggerChildren: 0.02, delayChildren: 0 } },
         }}
       >
         {projects.map((project) => (
           <motion.div
             key={project.id}
             variants={{
-              hidden: { opacity: 0, y: 18, scale: 0.97 },
+              hidden: { opacity: 0, y: 8 },
               visible: {
                 opacity: 1,
                 y: 0,
-                scale: 1,
-                transition: { type: "spring", stiffness: 280, damping: 26 },
+                transition: { duration: 0.12 },
               },
             }}
           >

@@ -43,22 +43,47 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
     e.preventDefault();
     if (!newTaskTitle || !newTaskDate) return;
 
+    const titleToSave = newTaskTitle.trim();
+    const dateToSave = newTaskDate;
+    const tempId = `temp-${Date.now()}`;
+    const optimisticTask: Task = {
+      id: tempId,
+      title: titleToSave,
+      task_title: titleToSave,
+      due_date: dateToSave,
+      is_completed: false,
+    };
+
+    setNewTaskTitle('');
+    setNewTaskDate('');
+    setTasks(prev =>
+      [...prev, optimisticTask].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+    );
     setIsAdding(true);
+
     try {
-      const res = await addAgendaTaskAction(newTaskTitle, newTaskDate);
+      const res = await addAgendaTaskAction(titleToSave, dateToSave);
       if (res.success && res.task) {
         const normalizedTask = {
           ...res.task,
-          title: res.task.title || (res.task as any).task_title || newTaskTitle,
+          title: res.task.title || (res.task as any).task_title || titleToSave,
         };
-        setTasks([...tasks, normalizedTask].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()));
-        setNewTaskTitle('');
-        setNewTaskDate('');
+        setTasks(prev =>
+          prev
+            .map(t => (t.id === tempId ? normalizedTask : t))
+            .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+        );
         toast.success("Görev ajandanıza eklendi!");
       } else {
+        setTasks(prev => prev.filter(t => t.id !== tempId));
+        setNewTaskTitle(titleToSave);
+        setNewTaskDate(dateToSave);
         toast.error(res.error ?? "Görev eklenemedi");
       }
     } catch (e) {
+      setTasks(prev => prev.filter(t => t.id !== tempId));
+      setNewTaskTitle(titleToSave);
+      setNewTaskDate(dateToSave);
       toast.error("Bir hata oluştu");
     } finally {
       setIsAdding(false);

@@ -1,19 +1,19 @@
 import { createClient } from '@/utils/supabase/server';
-export const dynamic = "force-dynamic";
+import { getCachedUser } from '@/lib/auth-cache';
 import { redirect } from 'next/navigation';
 import AgendaClient from '@/app/dashboard/agenda/AgendaClient';
 import { BackButton } from '@/components/ui/back-button';
 
-export default async function AgendaPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export const dynamic = "force-dynamic";
 
+export default async function AgendaPage() {
+  const user = await getCachedUser();
   if (!user) redirect('/auth/login');
 
-  // Fetch user's agenda tasks (works for both students and teachers)
+  const supabase = await createClient();
   const { data: rawTasks } = await supabase
     .from('agenda_tasks')
-    .select('*')
+    .select('id, title, task_title, due_date, is_completed')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true });
 
@@ -25,7 +25,7 @@ export default async function AgendaPage() {
   }));
 
   return (
-    <div className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 md:p-10 lg:p-12">
       <div className="mb-6">
         <BackButton href="/dashboard" variant="light" />
       </div>
