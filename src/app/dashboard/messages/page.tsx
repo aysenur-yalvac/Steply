@@ -25,7 +25,7 @@ export default async function MessagesLayoutPage({
     selectedUserId
       ? adminClient
           .from('profiles')
-          .select('id, full_name, avatar_url, role, institution, university')
+          .select('*')
           .eq('id', selectedUserId)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),

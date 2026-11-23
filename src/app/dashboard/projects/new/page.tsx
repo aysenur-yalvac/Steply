@@ -89,6 +89,7 @@ export default function NewProjectPage() {
       }
       toast.success('Proje başarıyla oluşturuldu!');
       router.push('/dashboard');
+      router.refresh();
     } catch (err: any) {
       toast.error(err.message || 'Bir hata oluştu');
     } finally {

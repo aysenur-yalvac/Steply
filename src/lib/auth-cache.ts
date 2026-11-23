@@ -43,13 +43,15 @@ export const getCachedProfile = cache(async (): Promise<any | null> => {
   if (!user) return null;
 
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select(
-      "id, full_name, email, role, avatar_url, bio, company, location, country, university, institution, github_url, linkedin_url, twitter_url, website_url, total_score, badges, is_public"
-    )
+    .select("*")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (error) {
+    console.error("[getCachedProfile] error:", error.message);
+  }
 
   return data ?? null;
 });

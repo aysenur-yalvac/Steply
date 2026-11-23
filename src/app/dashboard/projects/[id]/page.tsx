@@ -53,7 +53,7 @@ export default async function ProjectDetailPage({
       .single(),
     admin
       .from('project_members')
-      .select('user_id, status')
+      .select('*')
       .eq('project_id', projectId),
     admin
       .from('reviews')
@@ -62,7 +62,7 @@ export default async function ProjectDetailPage({
       .order('created_at', { ascending: false }),
     admin
       .from('project_tasks')
-      .select('id, project_id, title, is_completed, assigned_to, due_date, start_date, priority, status, description, created_at')
+      .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true }),
   ]);

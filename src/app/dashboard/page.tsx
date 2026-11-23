@@ -18,9 +18,6 @@ export const metadata: Metadata = {
   title: "Projelerim | Must-b Academy",
 };
 
-const PROJECT_CARD_COLS =
-  'id, student_id, title, description, github_link, start_date, end_date, updated_at, created_at, priority, platform, progress_percentage, status, tags';
-
 async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> }) {
   const [searchParams, user] = await Promise.all([
     props.searchParams,
@@ -44,7 +41,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     user?.id
       ? supabase
           .from('agenda_tasks')
-          .select('id, title, task_title, due_date')
+          .select('*')
           .eq('user_id', user.id)
           .eq('is_completed', false)
           .lte('due_date', tomorrowStr)
@@ -52,12 +49,16 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
           .order('due_date', { ascending: true })
       : Promise.resolve({ data: [] }),
     user?.id
-      ? admin.from('project_members').select('project_id, status').eq('user_id', user.id)
+      ? admin.from('project_members').select('*').eq('user_id', user.id)
       : Promise.resolve({ data: [] }),
   ]);
 
+  if ((membershipRes as any)?.error) {
+    console.error('[Dashboard] project_members fetch error:', (membershipRes as any).error);
+  }
+
   const isTeacher = profile?.role === 'teacher';
-  const isStudent = profile?.role === 'student';
+  const isStudent = !isTeacher;
   const { followers, following } = followData;
   const upcomingTasks = upcomingTasksRes.data ?? [];
 
@@ -81,34 +82,44 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
     isTeacher
       ? admin
           .from('projects')
-          .select(`${PROJECT_CARD_COLS}, profiles!student_id(full_name, avatar_url, is_public)`)
+          .select('*, profiles!student_id(full_name, avatar_url, is_public)')
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
       : supabase
           .from('projects')
-          .select(PROJECT_CARD_COLS)
+          .select('*')
           .is('deleted_at', null)
           .eq('student_id', user?.id)
           .order('created_at', { ascending: false }),
     acceptedCollabIds.length > 0
       ? admin
           .from('projects')
-          .select(`${PROJECT_CARD_COLS}, profiles!student_id(full_name, avatar_url)`)
+          .select('*, profiles!student_id(full_name, avatar_url)')
           .in('id', acceptedCollabIds)
           .is('deleted_at', null)
           .neq('student_id', user?.id)
           .order('created_at', { ascending: false })
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
     pendingInviteIds.length > 0
       ? admin
           .from('projects')
-          .select('id, title, description, student_id')
+          .select('*')
           .in('id', pendingInviteIds)
           .is('deleted_at', null)
           .neq('student_id', user?.id)
           .order('created_at', { ascending: false })
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
   ]);
+
+  if ((mainProjectsRes as any)?.error) {
+    console.error('[Dashboard] mainProjectsRes error:', (mainProjectsRes as any).error);
+  }
+  if ((collabRes as any)?.error) {
+    console.error('[Dashboard] collabRes error:', (collabRes as any).error);
+  }
+  if ((invitedProjectsRes as any)?.error) {
+    console.error('[Dashboard] invitedProjectsRes error:', (invitedProjectsRes as any).error);
+  }
 
   let projects: any[] = mainProjectsRes.data ?? [];
   if (isTeacher) {

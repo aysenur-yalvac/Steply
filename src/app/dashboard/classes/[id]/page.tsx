@@ -30,7 +30,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
   const [classRes, membershipRes, assignmentsRes, rawMembersRes] = await Promise.all([
     admin
       .from("classes")
-      .select("id, name, description, code, teacher_id, created_at")
+      .select("*")
       .eq("id", id)
       .maybeSingle(),
     admin
@@ -41,7 +41,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
       .maybeSingle(),
     admin
       .from("assignments")
-      .select("id, title, description, course_name, due_date, class_id, teacher_id, created_at, is_deleted")
+      .select("*")
       .eq("class_id", id)
       .or("is_deleted.eq.false,is_deleted.is.null")
       .order("created_at", { ascending: false }),

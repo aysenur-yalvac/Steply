@@ -11,11 +11,15 @@ export default async function AgendaPage() {
   if (!user) redirect('/auth/login');
 
   const supabase = await createClient();
-  const { data: rawTasks } = await supabase
+  const { data: rawTasks, error } = await supabase
     .from('agenda_tasks')
-    .select('id, title, task_title, due_date, is_completed')
+    .select('*')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true });
+
+  if (error) {
+    console.error('[AgendaPage] agenda_tasks fetch error:', error);
+  }
 
   const tasks = (rawTasks || []).map((t: any) => ({
     id: t.id,
