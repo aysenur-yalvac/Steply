@@ -245,6 +245,7 @@ export default function SettingsClient({
   const [grade, setGrade]                 = useState(initialGrade || '');
   const [schoolNumber, setSchoolNumber]   = useState(initialSchoolNumber || '');
   const [schoolEmail, setSchoolEmail]     = useState(initialSchoolEmail || '');
+  const [schoolEmailError, setSchoolEmailError] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber]     = useState(initialPhoneNumber || '');
   const [linkedinUrl, setLinkedinUrl]     = useState(initialLinkedinUrl);
   const [pendingFile, setPendingFile]     = useState<File | null>(null);
@@ -304,15 +305,25 @@ export default function SettingsClient({
         toast.error("Okul/Üniversite alanına bir e-posta adresi değil, listeden bir okul seçmelisiniz.");
         return;
       }
+      const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+      setSchoolEmailError(null);
       if (university && role === 'student') {
         if (!schoolNumber.trim()) {
           toast.error("Okul numarası zorunludur.");
           return;
         }
         if (!schoolEmail.trim()) {
-          toast.error("Okul e-postası zorunludur.");
+          const msg = "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com).";
+          setSchoolEmailError(msg);
+          toast.error(msg);
           return;
         }
+      }
+      if (schoolEmail.trim() && !EMAIL_REGEX.test(schoolEmail.trim())) {
+        const msg = "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com).";
+        setSchoolEmailError(msg);
+        toast.error(msg);
+        return;
       }
 
       let avatarUrl = selectedAvatar;
@@ -867,13 +878,22 @@ export default function SettingsClient({
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                               id="s-school-email"
-                              type="email"
+                              type="text"
+                              inputMode="email"
                               value={schoolEmail}
-                              onChange={(e) => setSchoolEmail(e.target.value)}
+                              onChange={(e) => {
+                                setSchoolEmail(e.target.value);
+                                if (schoolEmailError) setSchoolEmailError(null);
+                              }}
                               placeholder="Örn: ad.soyad@okul.edu.tr"
-                              className={`${inputCls} pl-9`}
+                              className={`${inputCls} pl-9 ${schoolEmailError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500/25" : ""}`}
                             />
                           </div>
+                          {schoolEmailError && (
+                            <p className="text-xs font-semibold text-rose-500 mt-1">
+                              {schoolEmailError}
+                            </p>
+                          )}
                         </div>
                         </>
                       )}

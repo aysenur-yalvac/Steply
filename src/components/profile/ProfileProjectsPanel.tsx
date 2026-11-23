@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Clock, FolderOpen, ExternalLink } from "lucide-react";
 import AnimatedProgressBar from "@/components/ui/AnimatedProgressBar";
-import FavoriteHeart from "@/components/ui/FavoriteHeart";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Project = {
@@ -52,7 +51,7 @@ function ProfileProjectCard({
     >
       {/* ── Card body ───────────────────────────────────────────────────── */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Status badge + bookmark */}
+        {/* Status badge */}
         <div className="flex items-center justify-between gap-2 mb-3.5">
           <div className="flex items-center gap-2">
             {isCompleted ? (
@@ -64,13 +63,6 @@ function ProfileProjectCard({
                 <Clock className="w-3.5 h-3.5" /> Devam Ediyor
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Heart — favorites (any logged-in visitor) */}
-            {showFavorite && (
-              <FavoriteHeart projectId={project.id} initialFavorited={isFavorited} />
-            )}
-            
           </div>
         </div>
 

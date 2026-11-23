@@ -164,7 +164,7 @@ function FilterDropdown({
   };
 
   return (
-    <div className="w-[min(16rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <div className="w-full max-w-full md:w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950/60">
         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Filtreler</span>
@@ -509,11 +509,11 @@ export default function DashboardViewSwitcher({
         </div>
 
         {/* Search + Filter + New */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div ref={filterRef} className="relative flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <GooeySearchBar />
 
           {/* Filter button + dropdown */}
-          <div ref={filterRef} className="relative">
+          <div className="md:relative">
             <button
               onClick={() => setFilterOpen((o) => !o)}
               className={`flex items-center justify-center gap-2 px-3.5 sm:px-4 min-h-[44px] py-2.5 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
@@ -538,7 +538,7 @@ export default function DashboardViewSwitcher({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.1, ease: "easeOut" }}
-                  style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 9999 }}
+                  className="absolute top-[calc(100%+8px)] left-0 right-0 w-full max-w-full md:left-auto md:right-0 md:w-72 z-[9999]"
                 >
                   <FilterDropdown
                     filters={filters}

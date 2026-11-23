@@ -314,7 +314,7 @@ function KanbanCard({
                   prefetch={true}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                 >
-                  Detayları Gör
+                  Detayları Görüntüle
                 </Link>
                 {currentUserId === project.student_id && (
                   <motion.button
@@ -330,22 +330,6 @@ function KanbanCard({
                   </motion.button>
                 )}
               </div>
-
-              {/* Team */}
-              {project.profiles?.full_name && (
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ekip</p>
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                      style={{ background: avatarColor(studentName.charAt(0)) }}
-                    >
-                      {studentName.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{studentName}</span>
-                  </div>
-                </div>
-              )}
 
               {/* Quick private note (student only) */}
               {canAddNote && (

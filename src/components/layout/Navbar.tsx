@@ -42,7 +42,10 @@ export default function Navbar() {
               className="w-8 h-8 object-cover rounded-md hidden dark:block"
             />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">Must-b Academy</span>
+          <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-slate-900 dark:text-white flex flex-col sm:flex-row sm:items-center sm:gap-1.5 leading-tight">
+            <span className="whitespace-nowrap">Must-b</span>
+            <span className="whitespace-nowrap">Academy</span>
+          </span>
         </Link>
 
         {!isUserProfilePage && (

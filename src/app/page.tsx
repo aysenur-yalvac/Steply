@@ -102,21 +102,24 @@ export default function Home() {
             : "bg-transparent py-5 border-b border-white/5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 shadow-md shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-all">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 shadow-md shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-all shrink-0">
               <img
                 src="/marka/logo-dark.png"
                 alt="Must-b Academy"
                 className="w-full h-full object-cover rounded-[10px]"
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white flex items-center gap-1.5">
-                Must-b <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent">Academy</span>
+            <div className="flex flex-col leading-tight">
+              <span className="font-extrabold text-base sm:text-2xl tracking-tight text-white flex flex-col sm:flex-row sm:items-center sm:gap-1.5 leading-tight">
+                <span className="whitespace-nowrap">Must-b</span>
+                <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent whitespace-nowrap">
+                  Academy
+                </span>
               </span>
-              <span className="text-[10px] tracking-wider text-violet-400/80 uppercase font-semibold">
+              <span className="hidden sm:block text-[10px] tracking-wider text-violet-400/80 uppercase font-semibold mt-0.5">
                 Akıllı Akademi Paneli
               </span>
             </div>
@@ -132,19 +135,19 @@ export default function Home() {
           </nav>
 
           {/* Sağ Eylemler: Giriş Yap + Mor Kayıt Ol */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               href="/auth/login"
-              className="px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              className="whitespace-nowrap px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
             >
               Giriş Yap
             </Link>
             <Link
               href="/auth/register"
-              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="whitespace-nowrap inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
               <span>Kayıt Ol</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             </Link>
           </div>
         </div>

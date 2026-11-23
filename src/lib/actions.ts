@@ -332,6 +332,11 @@ export async function updateProfileAction(formData: FormData) {
   const school_number  = (formData.get('school_number')  as string | null)?.trim() || null;
   const school_email   = (formData.get('school_email')   as string | null)?.trim() || null;
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+  if (school_email && !EMAIL_REGEX.test(school_email)) {
+    return { error: "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com)." };
+  }
+
   const { error } = await supabase.from('profiles').update({
     full_name,
     phone_number,

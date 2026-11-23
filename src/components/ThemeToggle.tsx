@@ -6,7 +6,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -17,7 +17,12 @@ export function ThemeToggle() {
     return <div className="size-9" />;
   }
 
-  const isDark = theme === "dark";
+  const isDark =
+    resolvedTheme === "dark" ||
+    (resolvedTheme === undefined &&
+      (theme === "dark" ||
+        (typeof document !== "undefined" &&
+          document.documentElement.classList.contains("dark"))));
 
   return (
     <Toggle
@@ -26,7 +31,7 @@ export function ThemeToggle() {
       pressed={isDark}
       size="sm"
       variant="outline"
-      aria-label="Toggle theme"
+      aria-label="Tema değiştir"
     >
       <Moon aria-hidden="true" className="shrink-0 scale-0 opacity-0 transition-all group-data-[state=on]:scale-100 group-data-[state=on]:opacity-100 text-purple-400" size={16} strokeWidth={2}/>
       <Sun aria-hidden="true" className="absolute shrink-0 scale-100 opacity-100 transition-all group-data-[state=on]:scale-0 group-data-[state=on]:opacity-0 text-amber-500" size={16} strokeWidth={2}/>

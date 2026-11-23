@@ -1,7 +1,7 @@
 'use client';
 
 import { downloadFileFromUrl } from '@/lib/download';
-import React, { useState, useRef, useOptimistic, startTransition } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, File, Loader2, Download, Trash2, HardDrive, Lock } from 'lucide-react';
 import { saveFileRecordAction, softDeleteFileAction, getFileViewUrlAction, ProjectFile, FileVisibility } from '@/lib/actions';
 import { createClient } from '@/utils/supabase/client';
@@ -44,9 +44,9 @@ function sanitizeName(name: string): string {
 }
 
 export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, isTeacher = false, currentUserId }: FileSectionProps) {
-  // Collaborators have the same file management rights as the owner
-  const canManageFiles = isOwner || isCollaborator || isTeacher;
-  const [files, setFiles] = useState<ProjectFile[]>(initialFiles);
+  // Only project owner and accepted team collaborators can upload/delete files
+  const canManageFiles = isOwner || isCollaborator;
+  const [files, setFiles] = useState<PendingFile[]>(initialFiles as PendingFile[]);
   const [isUploading, setIsUploading] = useState(false);
   const [viewerFile, setViewerFile] = useState<ProjectFile | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -56,10 +56,6 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeFiles = files.filter(f => !(f as any).deleted_at);
-  const [optimisticFiles, addOptimisticFile] = useOptimistic<PendingFile[], PendingFile>(
-    activeFiles as PendingFile[],
-    (state, pending) => [...state, pending],
-  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,24 +67,24 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
       return;
     }
 
-    // Optimistic: add pending card immediately
-    startTransition(() => {
-      addOptimisticFile({
-        id: `pending-${Date.now()}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: '',
-        uploaded_at: new Date().toISOString(),
-        visibility: fileVisibility,
+    const tempId = `pending-${Date.now()}`;
+    const pendingCard: PendingFile = {
+      id: tempId,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: tempId,
+      uploaded_at: new Date().toISOString(),
+      visibility: fileVisibility,
       uploaderId: currentUserId,
       isPrivate: fileVisibility !== 'PUBLIC',
-        pending: true,
-      });
-    });
+      pending: true,
+    };
 
+    // Optimistic: add pending card immediately at the top of the file list
+    setFiles(prev => [pendingCard, ...prev]);
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(15);
 
     try {
       // ── Step 1: Upload directly browser → Supabase Storage ──────────────
@@ -96,7 +92,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
       const filePath = `${projectId}/${Date.now()}-${safeName}`;
 
       const supabase = createClient();
-      setUploadProgress(30);
+      setUploadProgress(35);
 
       const { error: storageError } = await supabase.storage
         .from(BUCKET_ID)
@@ -107,6 +103,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         });
 
       if (storageError) {
+        setFiles(prev => prev.filter(f => f.id !== tempId));
         toast.error(`Dosya Yükleme Hatası: ${storageError.message}`);
         return;
       }
@@ -126,12 +123,14 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
       setUploadProgress(100);
 
       if ('error' in result) {
+        setFiles(prev => prev.filter(f => f.id !== tempId));
         toast.error('Kayıt hatası: ' + result.error);
       } else {
-        setFiles(prev => [...prev, result.file]);
+        setFiles(prev => prev.map(f => (f.id === tempId ? (result.file as PendingFile) : f)));
         toast.success('Dosya başarıyla yüklendi.');
       }
     } catch (err: unknown) {
+      setFiles(prev => prev.filter(f => f.id !== tempId));
       const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
       console.error('[FileSection] upload error:', err);
       toast.error('Yükleme başarısız: ' + msg);
@@ -197,7 +196,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const visibleFiles = optimisticFiles.filter(file => {
+  const visibleFiles = activeFiles.filter(file => {
     const isUploader = file.uploaderId === currentUserId;
     const isMember = canManageFiles;
 
@@ -292,20 +291,25 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                 <div className="overflow-hidden">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{file.name}</p>
-                    {file.isPrivate && (
+                    {(file as PendingFile).pending && (
+                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300">
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" /> Yükleniyor...
+                      </span>
+                    )}
+                    {file.isPrivate && !(file as PendingFile).pending && (
                       <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 uppercase tracking-wide">
                         <Lock className="w-2.5 h-2.5" /> Private
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-slate-400">
-                    {formatSize(file.size)} • {new Date(file.uploaded_at).toLocaleDateString('tr-TR')}
+                    {formatSize(file.size)} • {(file as PendingFile).pending ? 'Yükleniyor...' : new Date(file.uploaded_at).toLocaleDateString('tr-TR')}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className={`flex items-center gap-2 transition-opacity ${(file as PendingFile).pending ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}>
                 {(file as PendingFile).pending ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                  <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
                 ) : (
                   <>
                     <button
