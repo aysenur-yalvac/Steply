@@ -284,7 +284,7 @@ export default function ProjectTaskList({
 
       {/* Add task form */}
       {canEdit && (
-        <form onSubmit={handleAdd} className="flex gap-2">
+        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
           <input
             ref={inputRef}
             type="text"
@@ -297,7 +297,7 @@ export default function ProjectTaskList({
           <button
             type="submit"
             disabled={isAdding || !newTitle.trim()}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-1.5 px-4 min-h-[44px] py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
           >
             {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Ekle

@@ -140,7 +140,7 @@ export default function LeaderboardClient({
   return (
     <div className="flex flex-col min-h-screen bg-transparent">
       {/* Page header */}
-      <div className="bg-transparent border-b border-white/10 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
+      <div className="bg-transparent border-b border-white/10 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:pt-8 pb-0">
         <div className="mb-3">
           <BackButton href="/dashboard" variant="light" />
         </div>
@@ -156,13 +156,13 @@ export default function LeaderboardClient({
         </p>
       </div>
 
-      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-6">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-5 sm:gap-6 min-w-0">
 
         {/* Activity chart */}
         <ActivityChartCard activities={activities} totalScore={currentUserScore} className="rounded-2xl border-slate-100 shadow-sm" />
 
         {/* Stats cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex items-center gap-2 text-violet-600 mb-1">
               <Medal className="w-4 h-4" />
@@ -183,7 +183,7 @@ export default function LeaderboardClient({
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 col-span-2 sm:col-span-1">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex items-center gap-2 text-amber-600 mb-1">
               <GraduationCap className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-widest">Üniversite</span>
@@ -220,7 +220,7 @@ export default function LeaderboardClient({
           </div>
 
           {/* Table header */}
-          <div className="grid grid-cols-[40px_1fr_auto_72px] gap-4 px-5 py-2.5 bg-slate-50/60 border-b border-slate-100">
+          <div className="grid grid-cols-[36px_1fr_auto_72px] gap-2 sm:gap-4 px-3 sm:px-5 py-2.5 bg-slate-50/60 border-b border-slate-100">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">#</span>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kullanıcı</span>
             <span className="hidden sm:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rozetler</span>

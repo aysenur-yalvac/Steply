@@ -85,7 +85,7 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
   return (
     <div className="space-y-4">
       {/* Toplu İşlem Barı */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-100 dark:text-slate-100 transition-colors">
           {selectedKeys.length === files.length && files.length > 0 ? (
             <CheckSquare className="w-5 h-5 text-violet-600" />
@@ -94,18 +94,18 @@ export default function TrashFilesClient({ initialFiles }: { initialFiles: any[]
           )}
           Tümünü Seç ({selectedKeys.length}/{files.length})
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             disabled={selectedKeys.length === 0}
             onClick={() => setModalState({ isOpen: true, type: "restore", isBulk: true })}
-            className="px-4 py-2 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-sm font-medium rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 sm:flex-none min-h-[44px] px-3.5 sm:px-4 py-2 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Seçilenleri Geri Yükle
           </button>
           <button
             disabled={selectedKeys.length === 0}
             onClick={() => setModalState({ isOpen: true, type: "delete", isBulk: true })}
-            className="px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
+            className="flex-1 sm:flex-none min-h-[44px] justify-center px-3.5 sm:px-4 py-2 bg-red-50 text-red-600 text-xs sm:text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
           >
             <Trash className="w-4 h-4" />
             Seçilenleri Kalıcı Sil

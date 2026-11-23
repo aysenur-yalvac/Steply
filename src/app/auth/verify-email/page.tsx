@@ -18,7 +18,7 @@ export default async function VerifyEmailPage({
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="min-h-screen flex items-center justify-center px-3 sm:px-4 py-6"
       style={{ background: "#0B0E14" }}
     >
       {/* Background glows */}
@@ -41,7 +41,7 @@ export default async function VerifyEmailPage({
 
       {/* Card */}
       <div
-        className="w-full max-w-md rounded-3xl p-8"
+        className="w-full max-w-md rounded-2xl sm:rounded-3xl p-4 sm:p-8"
         style={{
           background: "rgba(255,255,255,0.03)",
           border: "1px solid rgba(255,255,255,0.08)",

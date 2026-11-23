@@ -119,7 +119,7 @@ export default function TaskDetailModal({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -136,7 +136,7 @@ export default function TaskDetailModal({
         </div>
 
         <div className="overflow-y-auto space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Due Date */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
@@ -182,7 +182,7 @@ export default function TaskDetailModal({
               type="button"
               onClick={handleSaveFields}
               disabled={isUpdating}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+              className="w-full min-h-[44px] py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
             >
               {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Değişiklikleri Kaydet"}
             </button>

@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, FolderRoot } from 'lucide-react';
+import { Send, Loader2, FolderRoot, ArrowLeft } from 'lucide-react';
 import { getMessagesAction, sendMessageAction, getUserProjectsAction, markMessagesAsReadAction, Message } from '@/lib/social-actions';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
@@ -19,9 +19,10 @@ interface User {
 interface ChatWindowProps {
   currentUser: User;
   selectedUser: User;
+  onBack?: () => void;
 }
 
-export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProps) {
+export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -170,8 +171,19 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
   return (
     <div className="flex flex-col h-full w-full bg-slate-50/70 overflow-hidden relative border-l border-slate-200/80">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-3.5 min-w-0">
+      <div className="p-3 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="md:hidden inline-flex items-center gap-1 min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0"
+              aria-label="Konuşma listesine dön"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Geri</span>
+            </button>
+          )}
           {selectedUser.avatar_url ? (
             <img
               src={selectedUser.avatar_url}
@@ -195,9 +207,9 @@ export default function ChatWindow({ currentUser, selectedUser }: ChatWindowProp
 
         <a
           href={`/user/${selectedUser.id}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors shrink-0"
+          className="inline-flex items-center gap-1 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors shrink-0"
         >
-          Profili Gör →
+          <span className="hidden xs:inline sm:inline">Profili Gör</span><span className="sm:hidden">Profil</span> →
         </a>
       </div>
 

@@ -310,6 +310,67 @@ export default function AnimatedCharactersLoginPage({
   const [rememberMe,   setRememberMe]   = useState(false);
   const [role,         setRole]         = useState<"student" | "teacher">("student");
   const [hovSocial,    setHovSocial]    = useState<string | null>(null);
+  const [resetSending, setResetSending] = useState(false);
+  const [resetCooldown, setResetCooldown] = useState(0);
+  const [resetFeedback, setResetFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResetCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resetCooldown]);
+
+  const handleForgotPassword = async () => {
+    if (resetSending || resetCooldown > 0) return;
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      const msg = "Şifre sıfırlama bağlantısı için lütfen önce e-posta adresinizi girin.";
+      setResetFeedback({ type: "error", text: msg });
+      toast.error(msg);
+      return;
+    }
+
+    setResetSending(true);
+    setResetFeedback(null);
+    try {
+      const supabase = createClient();
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_SITE_URL || "https://steply-app.vercel.app";
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (resetErr) {
+        const lowerMsg = (resetErr.message || "").toLowerCase();
+        const lowerCode = ((resetErr as any).code || "").toLowerCase();
+        const isRateLimit =
+          (resetErr as any).status === 429 ||
+          lowerCode === "over_email_send_rate_limit" ||
+          lowerMsg.includes("rate limit") ||
+          lowerMsg.includes("over_email_send_rate_limit") ||
+          lowerMsg.includes("429") ||
+          lowerMsg.includes("too many requests") ||
+          lowerMsg.includes("for security purposes");
+        const msg = isRateLimit
+          ? "Saatlik e-posta gönderim kotası doldu. Güvenlik nedeniyle bir süre bekleyip tekrar deneyin."
+          : resetErr.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
+        setResetFeedback({ type: "error", text: msg });
+        toast.error(msg);
+        if (isRateLimit) setResetCooldown(60);
+      } else {
+        const msg =
+          "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
+        setResetFeedback({ type: "success", text: msg });
+        setResetCooldown(60);
+        toast.success(msg);
+      }
+    } finally {
+      setResetSending(false);
+    }
+  };
 
   // Mouse position
   const [mouseX, setMouseX] = useState(0);
@@ -832,11 +893,33 @@ export default function AnimatedCharactersLoginPage({
                 </span>
               </label>
               {isLogin && (
-                <a href="#" className="text-[11px] font-semibold transition-colors hover:text-purple-300" style={{ color: "#A78BFA" }}>
-                  Şifremi Unuttum
-                </a>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetSending || resetCooldown > 0}
+                  className="text-xs font-semibold min-h-[36px] px-1 transition-colors hover:text-purple-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ color: "#A78BFA" }}
+                >
+                  {resetSending
+                    ? "Gönderiliyor..."
+                    : resetCooldown > 0
+                      ? `Tekrar gönder (${resetCooldown}s)`
+                      : "Şifremi Unuttum"}
+                </button>
               )}
             </div>
+
+            {resetFeedback && (
+              <div
+                className={`p-3.5 text-xs rounded-xl leading-relaxed ${
+                  resetFeedback.type === "success"
+                    ? "text-emerald-200 bg-emerald-500/15 border border-emerald-500/35"
+                    : "text-rose-200 bg-rose-500/15 border border-rose-500/35"
+                }`}
+              >
+                {resetFeedback.text}
+              </div>
+            )}
 
             {/* Error message */}
             {message && (

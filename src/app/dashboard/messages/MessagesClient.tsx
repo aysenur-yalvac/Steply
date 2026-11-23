@@ -172,7 +172,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
-      <div className="h-[calc(100vh-8.5rem)] min-h-[540px] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100">
+      <div className="h-[calc(100dvh-6.5rem)] sm:h-[calc(100vh-8.5rem)] min-h-[460px] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100">
         
         {/* Left Sidebar: Contact List */}
         <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 flex flex-col h-full min-h-0 ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
@@ -313,9 +313,9 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         </div>
 
         {/* Right Area: Chat Window */}
-        <div className={`flex-1 bg-white dark:bg-slate-900 dark:bg-slate-900 ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
+        <div className={`flex-1 min-w-0 h-full bg-white dark:bg-slate-900 ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
           {selectedUser ? (
-            <ChatWindow currentUser={currentUser} selectedUser={selectedUser} />
+            <ChatWindow currentUser={currentUser} selectedUser={selectedUser} onBack={() => router.push('/dashboard/messages')} />
           ) : (
             <EmptyState
               icon={MessageSquare}

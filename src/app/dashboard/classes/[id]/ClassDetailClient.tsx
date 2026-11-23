@@ -51,13 +51,13 @@ export default function ClassDetailClient({
         </Link>
 
         {/* Header (Class Hub Info) */}
-        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-bl-full pointer-events-none -mr-10 -mt-10" />
 
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
             <div className="space-y-3 flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{cls.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight break-words">{cls.name}</h1>
                 <span className="text-xs px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800/60">
                   {members.length} Öğrenci
                 </span>
@@ -111,7 +111,7 @@ export default function ClassDetailClient({
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm hover:shadow-indigo-500/20"
+                  className="w-full sm:w-auto justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-sm hover:shadow-indigo-500/20"
                 >
                   <FolderPlus className="w-5 h-5" />
                   Bu Sınıfa Ödev Ekle
@@ -123,7 +123,7 @@ export default function ClassDetailClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-0">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-0 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab("assignments")}

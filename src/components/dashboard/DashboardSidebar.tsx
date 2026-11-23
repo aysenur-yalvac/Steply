@@ -563,7 +563,7 @@ export default function DashboardSidebar(props: SidebarProps) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#0f172a] shadow-md border border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-950 transition-colors"
+        className="lg:hidden fixed top-1.5 left-3 z-[70] min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/95 dark:bg-[#0f172a]/95 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         aria-label="Menüyü aç"
       >
         <Menu className="w-5 h-5" />
@@ -616,16 +616,16 @@ export default function DashboardSidebar(props: SidebarProps) {
               className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[65] lg:hidden"
             />
             <motion.aside
-              initial={{ x: -288 }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: -288 }}
+              exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
-              className="fixed top-0 left-0 h-full w-72 shadow-2xl z-[70] lg:hidden border-r border-white/60"
-              style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+              className="fixed top-0 left-0 h-full w-[85vw] max-w-[320px] shadow-2xl z-[75] lg:hidden border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl"
             >
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors z-10"
+                aria-label="Menüyü kapat"
+                className="absolute top-3 right-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors z-10"
               >
                 <X className="w-5 h-5" />
               </button>

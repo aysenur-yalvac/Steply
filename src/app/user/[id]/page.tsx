@@ -115,7 +115,7 @@ export default async function PublicProfilePage({
     <div
       className="min-h-screen bg-slate-50 dark:bg-[#0b0e14] transition-colors duration-200"
     >
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
         <div className="mb-8">
           <BackButton href="/dashboard" variant="light" />
@@ -123,7 +123,7 @@ export default async function PublicProfilePage({
 
         {/* ── Profile header ─────────────────────────────────────────────── */}
         <div
-          className="rounded-3xl p-8 mb-6 shadow-xl bg-white/70 dark:bg-[#1a2234]/80 border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-xl transition-colors duration-200"
+          className="rounded-2xl sm:rounded-3xl p-5 sm:p-8 mb-6 shadow-xl bg-white/70 dark:bg-[#1a2234]/80 border border-slate-200/80 dark:border-slate-700/60 backdrop-blur-xl transition-colors duration-200"
         >
           <div className="flex flex-col sm:flex-row items-start gap-6">
 

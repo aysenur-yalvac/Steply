@@ -197,15 +197,15 @@ export default async function ProjectDetailPage({
 
   return (
     <PageWrapper>
-      <div className="max-w-7xl mx-auto flex flex-col gap-8 w-full p-6 md:p-10 lg:p-12">
+      <div className="max-w-7xl mx-auto flex flex-col gap-6 sm:gap-8 w-full p-4 sm:p-6 md:p-10 lg:p-12 min-w-0">
 
         {/* Header */}
-        <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-1 sm:mb-2 flex-wrap">
           <BackButton href="/dashboard" variant="light" />
           <div className="flex items-center gap-3">
             <Avatar src={ownerAvatarUrl} name={ownerName ?? "S"} size="md" />
             <div>
-              <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-200 leading-tight">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-200 leading-tight break-words">
                 {project.title}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">

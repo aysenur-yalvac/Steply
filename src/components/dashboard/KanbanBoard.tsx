@@ -523,7 +523,7 @@ export function KanbanBoard({
   const common = { isTeacher, projectNotes, currentUserId };
 
   return (
-    <div className="grid grid-cols-3 gap-6 pb-4 pt-1">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6 pb-4 pt-1">
       <KanbanColumn columnKey="todo"      projects={todo}      {...common} />
       <KanbanColumn columnKey="inreview"  projects={inReview}  {...common} />
       <KanbanColumn columnKey="completed" projects={completed} {...common} />

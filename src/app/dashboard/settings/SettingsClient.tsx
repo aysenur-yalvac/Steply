@@ -150,7 +150,7 @@ const selectCls =
   "w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-slate-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 outline-none transition-all text-sm appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
 
 const primaryBtn =
-  "flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-500/20 active:scale-95 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed";
 
 /* ── Toggle row sub-component ── */
 function NotifRow({
@@ -273,6 +273,15 @@ export default function SettingsClient({
   const [pwError, setPwError] = useState<string | null>(null);
   const [resetSending, setResetSending] = useState(false);
   const [resetSentMsg, setResetSentMsg] = useState<string | null>(null);
+  const [resetCooldown, setResetCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResetCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resetCooldown]);
 
   // Notifications
   const [muteAll, setMuteAll] = useState(false);
@@ -431,6 +440,7 @@ export default function SettingsClient({
       toast.error("Kayıtlı e-posta adresi bulunamadı.");
       return;
     }
+    if (resetCooldown > 0 || resetSending) return;
     setResetSending(true);
     setPwError(null);
     setResetSentMsg(null);
@@ -444,13 +454,27 @@ export default function SettingsClient({
         redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
       });
       if (error) {
-        const msg = error.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
+        const lowerMsg = (error.message || "").toLowerCase();
+        const lowerCode = ((error as any).code || "").toLowerCase();
+        const isRateLimit =
+          (error as any).status === 429 ||
+          lowerCode === "over_email_send_rate_limit" ||
+          lowerMsg.includes("rate limit") ||
+          lowerMsg.includes("over_email_send_rate_limit") ||
+          lowerMsg.includes("429") ||
+          lowerMsg.includes("too many requests") ||
+          lowerMsg.includes("for security purposes");
+        const msg = isRateLimit
+          ? "Saatlik e-posta gönderim kotası doldu. Güvenlik nedeniyle bir süre bekleyip tekrar deneyin."
+          : error.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
         setPwError(msg);
         toast.error(msg);
+        if (isRateLimit) setResetCooldown(60);
       } else {
         const msg =
           "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
         setResetSentMsg(msg);
+        setResetCooldown(60);
         toast.success(msg);
       }
     } finally {
@@ -509,12 +533,12 @@ export default function SettingsClient({
           {/* ── Sidebar (desktop) / Tab bar (mobile) ── */}
           <nav className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-slate-100">
             {/* Mobile: horizontal scrollable row */}
-            <div className="flex md:hidden overflow-x-auto gap-1 p-2">
+            <div className="flex md:hidden overflow-x-auto gap-1.5 p-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-1.5 px-3.5 min-h-[44px] py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-colors ${
                     activeTab === item.id
                       ? "bg-violet-50 text-violet-600 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:bg-slate-950"
@@ -988,11 +1012,15 @@ export default function SettingsClient({
                         <button
                           type="button"
                           onClick={handleForgotPassword}
-                          disabled={resetSending}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline disabled:opacity-50 transition-colors"
+                          disabled={resetSending || resetCooldown > 0}
+                          className="inline-flex items-center gap-1.5 min-h-[36px] px-1 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed transition-colors"
                         >
                           {resetSending && <Loader2 className="w-3 h-3 animate-spin" />}
-                          {resetSending ? "Gönderiliyor..." : "Şifremi unuttum"}
+                          {resetSending
+                            ? "Gönderiliyor..."
+                            : resetCooldown > 0
+                              ? `Tekrar gönder (${resetCooldown}s)`
+                              : "Şifremi unuttum"}
                         </button>
                       </div>
                     </div>

@@ -153,7 +153,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
   return (
     <div className="flex flex-col min-h-full">
       {/* ── Page header ───────────────────────────────────────────────────── */}
-      <div className="bg-transparent dark:bg-transparent border-b border-slate-100 px-6 lg:px-8 py-5 lg:pt-8 pb-0">
+      <div className="bg-transparent dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:pt-8 pb-0">
         <p className="text-xs font-semibold text-slate-400 mb-1">
           Projelerim{' '}
           <span className="text-slate-300 mx-1">›</span>
@@ -161,7 +161,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
             {isTeacher ? 'Portfolyo Genel Bakış' : 'Tüm Projeler'}
           </span>
         </p>
-        <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight leading-tight">
           {isTeacher ? 'Portfolyo Genel Bakış' : 'Projelerim'}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 mb-4">
@@ -175,7 +175,7 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
       </div>
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
-      <div className="flex-1 p-6 lg:p-8 flex flex-col gap-6">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-5 sm:gap-6 min-w-0">
 
         {/* ── Upcoming Tasks Banner ─────────────────────────────────────────── */}
         {isStudent && upcomingTasks && upcomingTasks.length > 0 && (

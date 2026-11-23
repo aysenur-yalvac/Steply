@@ -221,7 +221,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
       {/* OTP DECK CONTAINER */}
       <div 
-        className={`flex gap-2 relative my-2 ${shake ? "otp-shake" : ""}`}
+        className={`flex items-center justify-center gap-1 sm:gap-2 relative my-2 w-full max-w-full ${shake ? "otp-shake" : ""}`}
       >
         {otp.map((digit, i) => {
           let transform = "";
@@ -246,7 +246,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
               onKeyDown={(e) => handleKeyDown(i, e)}
               onPaste={handlePaste}
               readOnly={loading}
-              className="otp-card w-10 h-12 text-center text-xl font-bold rounded-xl outline-none"
+              className="otp-card w-8 h-10 sm:w-10 sm:h-12 text-center text-base sm:text-xl font-bold rounded-lg sm:rounded-xl outline-none shrink-0"
               style={{
                 color: loading ? "transparent" : "white",
                 background: "rgba(255,255,255,0.05)",

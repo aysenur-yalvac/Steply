@@ -164,7 +164,7 @@ function FilterDropdown({
   };
 
   return (
-    <div className="w-64 bg-white dark:bg-slate-900 border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+    <div className="w-[min(16rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950/60">
         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Filtreler</span>
@@ -311,8 +311,10 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
     : "grid-cols-[1fr_140px_100px_120px_40px]";
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className={`grid ${gridCols} gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50 dark:bg-slate-950`}>
+    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="w-full overflow-x-auto">
+      <div className="min-w-[600px]">
+      <div className={`grid ${gridCols} gap-4 px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Proje Adı</span>
         {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Durum</span>
@@ -396,7 +398,9 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
         </div>
       </AnimatePresence>
 
-      <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 dark:bg-slate-950/50 flex items-center justify-between">
+      </div>
+      </div>
+      <div className="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs text-slate-400 font-medium">{projects.length} proje</span>
         <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium">
           <span className="flex items-center gap-1.5">
@@ -472,12 +476,12 @@ export default function DashboardViewSwitcher({
   return (
     <>
       {/* â”€â”€ Controls row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         {/* View tabs */}
-        <div className="flex items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-full sm:w-auto">
           <button
             onClick={() => setViewMode("kanban")}
-            className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
+            className={`flex items-center justify-center gap-2 px-4 sm:px-5 min-h-[40px] py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
               viewMode === "kanban" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
@@ -491,7 +495,7 @@ export default function DashboardViewSwitcher({
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
+            className={`flex items-center justify-center gap-2 px-4 sm:px-5 min-h-[40px] py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
               viewMode === "list" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
@@ -505,14 +509,14 @@ export default function DashboardViewSwitcher({
         </div>
 
         {/* Search + Filter + New */}
-        <div className="flex items-center gap-3 flex-1 sm:flex-none justify-end">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <GooeySearchBar />
 
           {/* Filter button + dropdown */}
           <div ref={filterRef} className="relative">
             <button
               onClick={() => setFilterOpen((o) => !o)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
+              className={`flex items-center justify-center gap-2 px-3.5 sm:px-4 min-h-[44px] py-2.5 text-sm font-semibold rounded-xl border transition-all shrink-0 ${
                 activeCount > 0
                   ? "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200"
                   : "text-slate-600 dark:text-slate-300 border-slate-200 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950"
@@ -554,7 +558,7 @@ export default function DashboardViewSwitcher({
               
               <Link
                 href="/dashboard/projects/new"
-                className="btn-aura flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl shrink-0 active:scale-95 overflow-hidden"
+                className="btn-aura flex items-center justify-center gap-2 text-sm font-bold text-white px-4 sm:px-5 min-h-[44px] py-2.5 rounded-xl shrink-0 active:scale-95 overflow-hidden"
               >
                 <Plus className="w-4 h-4" strokeWidth={2.5} />
                 Yeni Proje

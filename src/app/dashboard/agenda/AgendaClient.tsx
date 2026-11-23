@@ -100,12 +100,12 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
           <Calendar className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Kişisel Ajanda</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">Kişisel Ajanda</h1>
           <p className="text-slate-500 dark:text-slate-400">Proje hedeflerinizi ve teslim tarihlerini takip edin.</p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-3xl p-6 sm:p-8 shadow-xl shadow-violet-500/5">
+      <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl shadow-violet-500/5">
         
         <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-4 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
           <input 
@@ -113,14 +113,14 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             placeholder="Neyi tamamlamanız gerekiyor? (Örn: Veritabanı Tasarımı)" 
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="flex-[2] px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
+            className="w-full sm:flex-[2] px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
             required
           />
           <input 
             type="date" 
             value={newTaskDate}
             onChange={(e) => setNewTaskDate(e.target.value)}
-            className="flex-1 px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
+            className="w-full sm:flex-1 px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
             required
           />
           <button 

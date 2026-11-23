@@ -101,6 +101,8 @@ export default function DashboardGanttTimeline({
         </div>
       </div>
 
+      <div className="w-full overflow-x-auto">
+      <div className="min-w-[640px]">
       {/* ── Month ruler ────────────────────────────────────────────────────── */}
       <div className="relative pt-3 pb-1 pr-5" style={{ paddingLeft: "176px" }}>
         <div className="relative w-full h-5">
@@ -277,19 +279,21 @@ export default function DashboardGanttTimeline({
         })}
       </div>
 
+      </div>
+      </div>
+
       {/* ── Legend ─────────────────────────────────────────────────────────── */}
       <div
-        className="pb-4 pr-5 flex items-center gap-5 flex-wrap"
+        className="px-4 sm:px-5 pb-4 flex items-center gap-4 sm:gap-5 flex-wrap"
         style={{
-          paddingLeft: "176px",
           borderTop: "1px solid rgba(255,255,255,0.04)",
           paddingTop: "12px",
         }}
       >
-        <span className="text-[9px] text-slate-600 dark:text-slate-300 font-medium uppercase tracking-widest">Legend:</span>
+        <span className="text-[9px] text-slate-600 dark:text-slate-300 font-medium uppercase tracking-widest">Açıklama:</span>
         <div className="flex items-center gap-1.5">
           <div className="w-8 h-2 rounded-full" style={{ background: "rgba(160,32,240,0.55)" }} />
-          <span className="text-[9px] text-slate-500 dark:text-slate-400">Span</span>
+          <span className="text-[9px] text-slate-500 dark:text-slate-400">Süre</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-8 h-2 rounded-full opacity-60" style={{ background: "#A020F0" }} />

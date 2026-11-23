@@ -37,7 +37,7 @@ export default async function ProfilePage() {
   const badges: string[] = (profile as any).badges ?? [];
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fafc] p-6 md:p-10 flex flex-col items-center">
+    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-transparent p-4 sm:p-6 md:p-10 flex flex-col items-center">
       <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
 
         <div className="mb-6 flex items-center justify-between">
@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           <div className="h-24 bg-gradient-to-r from-violet-100 via-purple-50 to-slate-100 dark:bg-none" />
 
           {/* Avatar + name */}
-          <div className="px-8 pb-6">
+          <div className="px-4 sm:px-8 pb-6">
             <div className="-mt-12 mb-4">
               <Avatar
                 src={profile.avatar_url}
@@ -70,7 +70,7 @@ export default async function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{profile.full_name || 'Unnamed User'}</h1>
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{profile.full_name || 'İsimsiz Kullanıcı'}</h1>
                   {badges.length > 0 && <BadgeDisplay badges={badges} size="sm" />}
                 </div>
                 <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 capitalize tracking-wide dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">

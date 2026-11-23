@@ -71,23 +71,23 @@ export default async function DashboardLayout({
       />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative">
         {/* Purple blobs — hidden on /dashboard, visible on all other sub-pages */}
         <DashboardBackground />
 
         {/* Top bar */}
-        <div className="relative z-20 flex items-center justify-end gap-3 px-6 py-2 border-b border-slate-100 bg-white dark:bg-slate-900/70 backdrop-blur-sm shrink-0">
+        <div className="relative z-20 flex items-center justify-end gap-2 sm:gap-3 pl-16 lg:pl-6 pr-3 sm:pr-6 py-2 min-h-[56px] border-b border-slate-100 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm shrink-0">
 
           <ThemeToggle />
           <NotificationBell initialNotifications={notifications} currentUserId={user.id} />
         </div>
 
-        <div className="flex-1 overflow-y-auto relative z-10 flex flex-col">
-          <div className="flex-1">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 flex flex-col">
+          <div className="flex-1 min-w-0">
             {children}
           </div>
-          <footer className="shrink-0 py-3 text-center text-xs text-slate-400 border-t border-slate-100/80 bg-white dark:bg-slate-900/40 backdrop-blur-sm">
-            Powered by{' '}
+          <footer className="shrink-0 py-3 px-4 text-center text-xs text-slate-400 border-t border-slate-100/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/40 backdrop-blur-sm">
+            Altyapı:{' '}
             <a
               href="https://must-b.com"
               target="_blank"

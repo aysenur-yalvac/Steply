@@ -204,6 +204,7 @@ export const GooeySearchBar = ({
               top:          "calc(100% + 8px)",
               right:        0,
               minWidth:     "220px",
+              maxWidth:     "calc(100vw - 2rem)",
               zIndex:       9999,
               background:   "#ffffff",
               borderRadius: "16px",
