@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
@@ -107,8 +107,8 @@ function avatarColor(seed: string) {
   return AVATAR_COLORS[strHash(seed) % AVATAR_COLORS.length];
 }
 
-// â”€â”€ KanbanCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function KanbanCard({
+// ── KanbanCard ────────────────────────────────────────────────────────────────
+const KanbanCard = React.memo(function KanbanCard({
   project,
   isTeacher,
   teacherNote: initialTeacherNote = "",
@@ -197,11 +197,8 @@ function KanbanCard({
   };
 
   return (
-    <motion.div
-      layout
-      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer min-h-[160px] flex flex-col"
-      whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)" }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+    <div
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 overflow-hidden cursor-pointer min-h-[160px] flex flex-col"
       onClick={() => setIsExpanded((v) => !v)}
     >
       <div className="p-5 flex flex-col flex-1">
@@ -214,7 +211,7 @@ function KanbanCard({
             </span>
           )}
           {isTeacher && project.profiles?.full_name && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 truncate max-w-[120px] dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 truncate max-w-[120px] dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
               {project.profiles.full_name}
             </span>
           )}
@@ -395,11 +392,11 @@ function KanbanCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
-}
+});
 
-// â”€â”€ Column config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Column config ──────────────────────────────────────────────────────────────
 const COLUMN_CONFIG = {
   todo: {
     label: "Yapılacaklar",
@@ -459,52 +456,33 @@ function KanbanColumn({
       <div className="h-px w-full rounded-full" style={{ background: cfg.accentColor, opacity: 0.20 }} />
 
       {/* Cards */}
-      <motion.div
-        className="flex flex-col gap-3.5"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          visible: { transition: { staggerChildren: 0.02, delayChildren: 0 } },
-        }}
-      >
+      <div className="flex flex-col gap-3.5">
         {projects.map((project) => (
-          <motion.div
+          <KanbanCard
             key={project.id}
-            variants={{
-              hidden: { opacity: 0, y: 8 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.12 },
-              },
-            }}
-          >
-            <KanbanCard
-              project={project}
-              isTeacher={isTeacher}
-              
-              teacherNote={projectNotes[project.id]?.content}
-              teacherNameForNote={projectNotes[project.id]?.teacherName}
-              currentUserId={currentUserId}
-            />
-          </motion.div>
+            project={project}
+            isTeacher={isTeacher}
+            teacherNote={projectNotes[project.id]?.content}
+            teacherNameForNote={projectNotes[project.id]?.teacherName}
+            currentUserId={currentUserId}
+          />
         ))}
 
         {projects.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 dark:bg-slate-950/60 min-h-[160px] flex flex-col items-center justify-center gap-3 p-6">
-            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 flex items-center justify-center shadow-sm">
-              <FolderOpen className="w-6 h-6 text-slate-300" />
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 min-h-[160px] flex flex-col items-center justify-center gap-3 p-6">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm">
+              <FolderOpen className="w-6 h-6 text-slate-300 dark:text-slate-600" />
             </div>
             <p className="text-sm text-slate-400 font-medium">Bu aşamada henüz proje yok</p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
 
-// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export function KanbanBoard({
+// ── Main export ────────────────────────────────────────────────────────────────
+export const KanbanBoard = React.memo(function KanbanBoard({
   projects,
   isTeacher,
   projectNotes,
@@ -515,9 +493,18 @@ export function KanbanBoard({
   projectNotes: Record<string, { content: string; teacherName?: string }>;
   currentUserId?: string;
 }) {
-  const todo      = projects.filter((p) => (p.status ?? 'todo') === 'todo');
-  const inReview  = projects.filter((p) => { const s = p.status ?? 'todo'; return s === 'in_progress' || s === 'in_review'; });
-  const completed = projects.filter((p) => p.status === 'completed');
+  const { todo, inReview, completed } = useMemo(() => {
+    const t: Project[] = [];
+    const ir: Project[] = [];
+    const c: Project[] = [];
+    for (const p of projects) {
+      const s = p.status ?? "todo";
+      if (s === "completed") c.push(p);
+      else if (s === "in_progress" || s === "in_review") ir.push(p);
+      else t.push(p);
+    }
+    return { todo: t, inReview: ir, completed: c };
+  }, [projects]);
 
   const common = { isTeacher, projectNotes, currentUserId };
 
@@ -528,4 +515,4 @@ export function KanbanBoard({
       <KanbanColumn columnKey="completed" projects={completed} {...common} />
     </div>
   );
-}
+});

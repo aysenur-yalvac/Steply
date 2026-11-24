@@ -102,11 +102,8 @@ export default function ProjectCard({
   };
 
   return (
-    <motion.div
-      layout
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-h-[160px]"
-      whileHover={{ y: -2, boxShadow: '0 8px 24px -4px rgba(124,58,255,0.10), 0 0 0 1px rgba(124,58,255,0.09)' }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+    <div
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 overflow-hidden flex flex-col min-h-[160px]"
     >
       {/* ── Card body ─────────────────────────────────────────────────────── */}
       <div className="p-5 flex flex-col flex-1">
@@ -219,12 +216,13 @@ export default function ProjectCard({
       </div>
 
       {/* ── Progress + actions panel ───────────────────────────────────────── */}
-      <div className="px-5 pb-5 border-t border-slate-100 pt-4 flex flex-col gap-4">
+      <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-col gap-4">
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             href={`/dashboard/projects/${project.id}`}
+            prefetch={true}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80"
           >
             Detayları Gör
@@ -233,7 +231,7 @@ export default function ProjectCard({
 
         {/* Quick private note */}
         {canAddNote && (
-          <div className="rounded-xl p-3 bg-slate-50 border border-slate-200">
+          <div className="rounded-xl p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <div className="flex items-start gap-2">
               <MessageSquarePlus className="w-4 h-4 shrink-0 mt-0.5 text-violet-500" />
               <div className="flex-1">
@@ -244,7 +242,7 @@ export default function ProjectCard({
                       onChange={(e) => setNoteContent(e.target.value)}
                       placeholder="Hızlı özel not yazın..."
                       rows={2}
-                      className="w-full bg-transparent text-xs text-slate-700 placeholder:text-slate-400 border-none outline-none resize-none"
+                      className="w-full bg-transparent text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 border-none outline-none resize-none"
                     />
                     <div className="flex justify-end gap-2 mt-1">
                       {initialTeacherNote && (
@@ -267,11 +265,11 @@ export default function ProjectCard({
                   </>
                 ) : (
                   <div className="flex justify-between items-start gap-3">
-                    <p className="text-xs text-slate-700 leading-relaxed">{noteContent}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">{noteContent}</p>
                     <div className="flex gap-1 shrink-0">
                       <button
                         onClick={() => setIsEditingNote(true)}
-                        className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
+                        className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
@@ -292,6 +290,6 @@ export default function ProjectCard({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

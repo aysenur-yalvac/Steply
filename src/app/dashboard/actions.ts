@@ -390,21 +390,33 @@ export async function acceptProjectInviteAction(
 
   if (!membership) return { error: "Proje daveti bulunamadı." };
 
-  const { error } = await admin
-    .from("project_members")
-    .update({ status: "accepted" })
-    .eq("project_id", projectId)
-    .eq("user_id", user.id);
+  const [updateMemberRes, projectRes, userProfileRes] = await Promise.all([
+    admin
+      .from("project_members")
+      .update({ status: "accepted" })
+      .eq("project_id", projectId)
+      .eq("user_id", user.id),
+    admin.from("projects").select("title, student_id").eq("id", projectId).maybeSingle(),
+    admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+  ]);
 
-  if (error) return { error: error.message };
+  if (updateMemberRes.error) return { error: updateMemberRes.error.message };
 
-  // Mark invite notification as read
+  const ownerId = projectRes.data?.student_id;
+  const projectTitle = projectRes.data?.title || "Proje";
+  const userName = userProfileRes.data?.full_name || "Bir kullanıcı";
+
+  // Mark invite notification as read and update its title/content in notifications table
   try {
     await admin
       .from("notifications")
-      .update({ is_read: true })
+      .update({
+        is_read: true,
+        title: "Proje daveti kabul edildi",
+        content: `'${projectTitle}' proje davetini kabul ettiniz.`,
+        link: `/dashboard/projects/${projectId}`,
+      })
       .eq("user_id", user.id)
-      .eq("type", "project_invite")
       .ilike("link", `%${projectId}%`);
   } catch (e) {
     console.error("[acceptProjectInviteAction] Mark read error:", e);
@@ -412,14 +424,6 @@ export async function acceptProjectInviteAction(
 
   // Notify the project owner that the invite was accepted
   try {
-    const [projectRes, userProfileRes] = await Promise.all([
-      admin.from("projects").select("title, student_id").eq("id", projectId).single(),
-      admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
-    ]);
-    const ownerId = projectRes.data?.student_id;
-    const projectTitle = projectRes.data?.title || "Proje";
-    const userName = userProfileRes.data?.full_name || "Bir kullanıcı";
-
     if (ownerId && ownerId !== user.id) {
       await createNotificationAction(
         ownerId,
@@ -447,21 +451,29 @@ export async function declineProjectInviteAction(
 
   const admin = createAdminClient();
 
-  const { error } = await admin
-    .from("project_members")
-    .delete()
-    .eq("project_id", projectId)
-    .eq("user_id", user.id)
-    .eq("status", "pending");
+  const [deleteRes, projectRes] = await Promise.all([
+    admin
+      .from("project_members")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", user.id)
+      .eq("status", "pending"),
+    admin.from("projects").select("title").eq("id", projectId).maybeSingle(),
+  ]);
 
-  if (error) return { error: error.message };
+  if (deleteRes.error) return { error: deleteRes.error.message };
+
+  const projectTitle = projectRes.data?.title || "Proje";
 
   try {
     await admin
       .from("notifications")
-      .update({ is_read: true })
+      .update({
+        is_read: true,
+        title: "Proje daveti reddedildi",
+        content: `'${projectTitle}' proje davetini reddettiniz.`,
+      })
       .eq("user_id", user.id)
-      .eq("type", "project_invite")
       .ilike("link", `%${projectId}%`);
   } catch (e) {
     console.error("[declineProjectInviteAction] Mark read error:", e);

@@ -9,6 +9,8 @@ import {
   markAllNotificationsAndMessagesReadAction,
   AppNotificationItem
 } from "@/lib/social-actions";
+import { markNotificationAsReadAction } from "@/lib/actions";
+import { markMessagesAsReadAction } from "@/lib/social-actions";
 import {
   acceptProjectInviteAction,
   declineProjectInviteAction,
@@ -56,7 +58,7 @@ export default function NotificationBell({
     refreshNotifications();
   }, [refreshNotifications]);
 
-  // Supabase Realtime for instant updates
+  // Supabase Realtime & custom window events for instant updates
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -64,7 +66,7 @@ export default function NotificationBell({
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "messages",
           filter: `receiver_id=eq.${currentUserId}`,
@@ -76,7 +78,7 @@ export default function NotificationBell({
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "notifications",
           filter: `user_id=eq.${currentUserId}`,
@@ -85,10 +87,70 @@ export default function NotificationBell({
           refreshNotifications();
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "project_members",
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        () => {
+          refreshNotifications();
+        }
+      )
       .subscribe();
+
+    function handleInviteHandled(e: Event) {
+      const custom = e as CustomEvent<{
+        projectId?: string;
+        decision?: "accept" | "decline";
+        projectTitle?: string;
+      }>;
+      const pid = custom.detail?.projectId;
+      const decision = custom.detail?.decision;
+      if (pid) {
+        setItems((prev) => {
+          let decremented = 0;
+          const next = prev.map((i) => {
+            const matchesProject =
+              i.pendingProjectId === pid || (i.link && i.link.includes(pid));
+            if (matchesProject) {
+              if (!i.is_read) decremented += 1;
+              return {
+                ...i,
+                is_read: true,
+                pendingProjectId: null,
+                title:
+                  decision === "accept"
+                    ? "Proje daveti kabul edildi"
+                    : "Proje daveti reddedildi",
+              };
+            }
+            return i;
+          });
+          if (decremented > 0) {
+            setUnreadCount((c) => Math.max(0, c - decremented));
+          }
+          return next;
+        });
+      }
+      refreshNotifications();
+    }
+
+    function handleNotificationsUpdated() {
+      refreshNotifications();
+    }
+
+    window.addEventListener("project_invite_handled", handleInviteHandled);
+    window.addEventListener("notifications_updated", handleNotificationsUpdated);
+    window.addEventListener("unread_chat_count_changed", handleNotificationsUpdated);
 
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("project_invite_handled", handleInviteHandled);
+      window.removeEventListener("notifications_updated", handleNotificationsUpdated);
+      window.removeEventListener("unread_chat_count_changed", handleNotificationsUpdated);
     };
   }, [currentUserId, refreshNotifications]);
 
@@ -123,10 +185,19 @@ export default function NotificationBell({
   };
 
   const handleItemClick = (item: AppNotificationItem) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, is_read: true } : i))
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
+    if (!item.is_read) {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, is_read: true } : i))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      if (item.id.startsWith("notif-")) {
+        const rawId = item.id.replace(/^notif-/, "");
+        markNotificationAsReadAction(rawId).catch(() => {});
+      } else if (item.id.startsWith("msg-") && item.link.includes("userId=")) {
+        const senderId = item.link.split("userId=")[1]?.split("&")[0];
+        if (senderId) markMessagesAsReadAction(senderId).catch(() => {});
+      }
+    }
     setOpen(false);
     if (item.link) {
       router.push(item.link);
@@ -142,6 +213,40 @@ export default function NotificationBell({
     const projectId = item.pendingProjectId;
     if (!projectId || inviteActionId) return;
 
+    const prevItems = items;
+    const prevUnread = unreadCount;
+
+    // Optimistic UI update: immediately mark as read and clear pending buttons
+    let wasUnread = false;
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.pendingProjectId === projectId || (i.link && i.link.includes(projectId))) {
+          if (!i.is_read) wasUnread = true;
+          return {
+            ...i,
+            is_read: true,
+            pendingProjectId: null,
+            title:
+              decision === "accept"
+                ? "Proje daveti kabul edildi"
+                : "Proje daveti reddedildi",
+          };
+        }
+        return i;
+      })
+    );
+    if (wasUnread || !item.is_read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("project_invite_handled", {
+          detail: { projectId, decision },
+        })
+      );
+    }
+
     setInviteActionId(projectId);
     try {
       const res =
@@ -150,6 +255,8 @@ export default function NotificationBell({
           : await declineProjectInviteAction(projectId);
 
       if ("error" in res) {
+        setItems(prevItems);
+        setUnreadCount(prevUnread);
         toast.error(res.error || "İşlem başarısız oldu.");
       } else {
         toast.success(
@@ -157,16 +264,13 @@ export default function NotificationBell({
             ? "Proje daveti kabul edildi!"
             : "Proje daveti reddedildi."
         );
-        setItems((prev) =>
-          prev.map((i) =>
-            i.pendingProjectId === projectId
-              ? { ...i, is_read: true, pendingProjectId: null }
-              : i
-          )
-        );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        await refreshNotifications();
         router.refresh();
       }
+    } catch {
+      setItems(prevItems);
+      setUnreadCount(prevUnread);
+      toast.error("İşlem başarısız oldu.");
     } finally {
       setInviteActionId(null);
     }

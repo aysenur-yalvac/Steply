@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Check, X, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -28,21 +28,54 @@ export default function PendingInvitesSection({
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [processingType, setProcessingType] = useState<"accept" | "decline" | null>(null);
 
+  useEffect(() => {
+    setInvites(initialInvites);
+  }, [initialInvites]);
+
+  useEffect(() => {
+    function onInviteSynced(e: Event) {
+      const custom = e as CustomEvent<{ projectId?: string }>;
+      const pid = custom.detail?.projectId;
+      if (pid) {
+        setInvites((prev) => prev.filter((i) => i.projectId !== pid));
+      }
+    }
+    window.addEventListener("project_invite_handled", onInviteSynced);
+    return () => window.removeEventListener("project_invite_handled", onInviteSynced);
+  }, []);
+
   if (invites.length === 0) return null;
 
   const handleAccept = async (invite: PendingProjectInvite) => {
     if (processingId) return;
+    const prevInvites = invites;
+    // Optimistically remove from pending banner and notify NotificationBell immediately
+    setInvites((prev) => prev.filter((i) => i.projectId !== invite.projectId));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("project_invite_handled", {
+          detail: { projectId: invite.projectId, decision: "accept", projectTitle: invite.projectTitle },
+        })
+      );
+      window.dispatchEvent(new Event("notifications_updated"));
+    }
     setProcessingId(invite.projectId);
     setProcessingType("accept");
     try {
       const res = await acceptProjectInviteAction(invite.projectId);
       if ("error" in res) {
+        setInvites(prevInvites);
         toast.error(res.error || "Davet kabul edilemedi.");
       } else {
-        setInvites((prev) => prev.filter((i) => i.projectId !== invite.projectId));
         toast.success(`"${invite.projectTitle}" proje daveti kabul edildi!`);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("notifications_updated"));
+        }
         router.refresh();
       }
+    } catch {
+      setInvites(prevInvites);
+      toast.error("Davet kabul edilemedi.");
     } finally {
       setProcessingId(null);
       setProcessingType(null);
@@ -51,17 +84,34 @@ export default function PendingInvitesSection({
 
   const handleDecline = async (invite: PendingProjectInvite) => {
     if (processingId) return;
+    const prevInvites = invites;
+    // Optimistically remove from pending banner and notify NotificationBell immediately
+    setInvites((prev) => prev.filter((i) => i.projectId !== invite.projectId));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("project_invite_handled", {
+          detail: { projectId: invite.projectId, decision: "decline", projectTitle: invite.projectTitle },
+        })
+      );
+      window.dispatchEvent(new Event("notifications_updated"));
+    }
     setProcessingId(invite.projectId);
     setProcessingType("decline");
     try {
       const res = await declineProjectInviteAction(invite.projectId);
       if ("error" in res) {
+        setInvites(prevInvites);
         toast.error(res.error || "Davet reddedilemedi.");
       } else {
-        setInvites((prev) => prev.filter((i) => i.projectId !== invite.projectId));
         toast.success("Proje daveti reddedildi.");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("notifications_updated"));
+        }
         router.refresh();
       }
+    } catch {
+      setInvites(prevInvites);
+      toast.error("Davet reddedilemedi.");
     } finally {
       setProcessingId(null);
       setProcessingType(null);

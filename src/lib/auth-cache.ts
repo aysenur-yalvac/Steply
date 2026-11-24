@@ -34,6 +34,8 @@ export const getCachedUser = cache(async () => {
   return user;
 });
 
+export const getCurrentUser = getCachedUser;
+
 /**
  * Request-scoped cached profile lookup for the authenticated user.
  * Fetches only the commonly needed profile fields once per request.

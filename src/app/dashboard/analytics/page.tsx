@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
-import { createClient } from "@/utils/supabase/server";
+import { getCachedUser, getCachedProfile } from "@/lib/auth-cache";
 import { redirect } from "next/navigation";
 import { getLeaderboardAction, getUserActivitiesAction } from "@/lib/actions";
 import LeaderboardClient from "./LeaderboardClient";
+import AnalyticsLoading from "./loading";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -12,15 +13,11 @@ export const metadata: Metadata = {
 };
 
 async function AnalyticsPageContent() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [user, profile] = await Promise.all([
+    getCachedUser(),
+    getCachedProfile(),
+  ]);
   if (!user) redirect("/auth/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("university, country, total_score, badges")
-    .eq("id", user.id)
-    .single();
 
   const [global50, turkey50, uni50, activities] = await Promise.all([
     getLeaderboardAction("global"),
@@ -49,8 +46,8 @@ async function AnalyticsPageContent() {
 
 export default function AnalyticsPage() {
   return (
-    <Suspense fallback={<div className="flex-1 p-8 flex items-center justify-center animate-pulse"><div className="w-8 h-8 rounded-full border-4 border-violet-600 border-t-transparent animate-spin"></div></div>}>
-      <AnalyticsPageContent  />
+    <Suspense fallback={<AnalyticsLoading />}>
+      <AnalyticsPageContent />
     </Suspense>
   );
 }

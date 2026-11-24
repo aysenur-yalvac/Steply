@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/utils/supabase/server';
+import { getCachedUser, getCachedProfile } from '@/lib/auth-cache';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import { School, UserCheck } from 'lucide-react';
@@ -8,6 +8,7 @@ import { BackButton } from '@/components/ui/back-button';
 import SchoolStudentPanel, { type StudentRow } from '@/components/school/SchoolStudentPanel';
 import TeacherGrid, { type TeacherRow } from '@/components/school/TeacherGrid';
 import { sanitizeInstitution } from '@/lib/utils';
+import SchoolLoading from './loading';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,15 +92,11 @@ async function buildPeopleRows(
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 async function SchoolPageContent() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [user, profile] = await Promise.all([
+    getCachedUser(),
+    getCachedProfile(),
+  ]);
   if (!user) redirect('/auth/login');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, institution')
-    .eq('id', user.id)
-    .single();
 
   // Guards against legacy bad data / free-typed input where an email address
   // ended up stored as the institution — never display or match on that.
@@ -209,8 +206,8 @@ function NoInstitutionNotice() {
 
 export default function SchoolPage() {
   return (
-    <Suspense fallback={<div className="flex-1 p-8 flex items-center justify-center animate-pulse"><div className="w-8 h-8 rounded-full border-4 border-violet-600 border-t-transparent animate-spin"></div></div>}>
-      <SchoolPageContent  />
+    <Suspense fallback={<SchoolLoading />}>
+      <SchoolPageContent />
     </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Plus, SlidersHorizontal, CheckCircle, Clock, Minus, ExternalLink, X, UserPlus } from "lucide-react";
@@ -304,9 +304,10 @@ function FilterDropdown({
   );
 }
 
-// â”€â”€ List view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boolean }) {
-  const gridCols = isTeacher
+// ── List view ──────────────────────────────────────────────────────────────────
+const ListView = React.memo(function ListView({ projects, isTeacher, showOwner = false }: { projects: Project[]; isTeacher: boolean; showOwner?: boolean }) {
+  const showStudentCol = isTeacher || showOwner;
+  const gridCols = showStudentCol
     ? "grid-cols-[1fr_130px_140px_100px_120px_40px]"
     : "grid-cols-[1fr_140px_100px_120px_40px]";
 
@@ -316,46 +317,46 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
       <div className="min-w-[600px]">
       <div className={`grid ${gridCols} gap-4 px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950`}>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Proje Adı</span>
-        {isTeacher && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öğrenci</span>}
+        {showStudentCol && <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{isTeacher ? "Öğrenci" : "Proje Sahibi"}</span>}
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Durum</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Öncelik</span>
         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Bitiş Tarihi</span>
         <span />
       </div>
 
-      <AnimatePresence initial={false}>
-        <div className="divide-y divide-slate-50">
-          {projects.map((project, i) => (
-            <motion.div
+        <div className="divide-y divide-slate-50 dark:divide-slate-800/60">
+          {projects.map((project) => (
+            <div
               key={project.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
-              layout
-              transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 28 }}
-              className={`grid ${gridCols} gap-4 px-5 py-3.5 items-center hover:bg-slate-50 dark:bg-slate-950/80 transition-colors group`}
+              className={`grid ${gridCols} gap-4 px-5 py-3.5 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-950/80 transition-colors group`}
             >
               <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate leading-tight">{project.title}</p>
+                <Link
+                  href={`/dashboard/projects/${project.id}`}
+                  prefetch={true}
+                  className="text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 truncate block leading-tight transition-colors"
+                >
+                  {project.title}
+                </Link>
                 {project.description && cleanDescription(project.description) && (
                   <p className="text-[11px] text-slate-400 mt-0.5 truncate hidden sm:block">
                     {cleanDescription(project.description)}
                   </p>
                 )}
               </div>
-              {isTeacher && (
+              {showStudentCol && (
                 <div className="min-w-0">
                   {project.profiles?.full_name ? (
-                    <span className="text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full truncate block max-w-[120px]">
+                    <span className="text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border-slate-700/80 px-2.5 py-0.5 rounded-full truncate block max-w-[120px]">
                       {project.profiles.full_name}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-300">—</span>
+                    <span className="text-xs text-slate-300 dark:text-slate-600">—</span>
                   )}
                 </div>
               )}
               <div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 ' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 ' : 'bg-violet-100 text-violet-700'} dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${projectStatus(project) === 'Completed' ? 'bg-emerald-100 text-emerald-700 ' : projectStatus(project) === 'In Review' ? 'bg-amber-100 text-amber-700 ' : 'bg-violet-100 text-violet-700'} dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80`}>
                   {STATUS_LABELS[projectStatus(project)] ?? projectStatus(project)}
                 </span>
               </div>
@@ -363,7 +364,6 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                 {(() => {
                   const p   = getEffectivePriority(project);
                   const cls = PRIORITY_CLASSES[p] ?? PRIORITY_CLASSES["Medium"];
-                  const dot = PRIORITY_DOT[p]    ?? PRIORITY_DOT["Medium"];
                   return (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cls}`}>
                        {PRIORITY_LABELS[p] ?? p}
@@ -375,12 +375,12 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
                 {projectStatus(project) === 'Completed' ? (() => {
                   const dateStr = project.end_date || project.updated_at || project.created_at;
                   return dateStr ? (
-                    <span className="text-xs font-medium text-emerald-600">
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                       {new Date(dateStr).toLocaleDateString("tr-TR")}
                     </span>
-                  ) : <span className="text-xs text-slate-300">-</span>;
+                  ) : <span className="text-xs text-slate-300 dark:text-slate-600">-</span>;
                 })() : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest bg-violet-50 text-violet-600 border border-violet-100 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest bg-violet-50 text-violet-600 border border-violet-100 dark:!bg-slate-800/90 dark:!text-slate-200 dark:!border dark:!border-slate-700/80">
                     Devam Ediyor
                   </span>
                 )}
@@ -388,15 +388,15 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
               <div>
                 <Link
                   href={`/dashboard/projects/${project.id}`}
-                  className="p-1.5 rounded-lg text-slate-300 hover:text-violet-600 hover:bg-violet-50 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                  prefetch={true}
+                  className="p-1.5 rounded-lg text-slate-300 dark:text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-slate-800 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
-      </AnimatePresence>
 
       </div>
       </div>
@@ -419,9 +419,9 @@ function ListView({ projects, isTeacher }: { projects: Project[]; isTeacher: boo
       </div>
     </div>
   );
-}
+});
 
-// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main component ─────────────────────────────────────────────────────────────
 interface Props {
   projects: Project[];
   isTeacher: boolean;
@@ -470,8 +470,25 @@ export default function DashboardViewSwitcher({
 
   const activeCount = filters.status.length + filters.priority.length + filters.tags.length
     + (filters.studentSearch.trim() ? 1 : 0);
-  const filteredProjects = applyFilters(projects, filters);
-  const allTags = [...new Set(projects.flatMap(p => p.tags ?? []))].sort();
+
+  // Öğrenci görünümünde üstteki ana pano ve liste yalnızca kullanıcının kendi oluşturduğu projeleri içermelidir
+  const ownProjects = useMemo(() => {
+    if (isTeacher || !currentUserId) return projects;
+    const collabIdSet = new Set((collaboratorProjects ?? []).map((cp: any) => cp.id));
+    return projects.filter((p: any) => {
+      const ownerId = p.student_id || p.owner_id || p.user_id;
+      return ownerId === currentUserId && !collabIdSet.has(p.id);
+    });
+  }, [projects, isTeacher, currentUserId, collaboratorProjects]);
+
+  const filteredProjects = useMemo(
+    () => applyFilters(ownProjects, filters),
+    [ownProjects, filters]
+  );
+  const allTags = useMemo(
+    () => [...new Set(ownProjects.flatMap(p => p.tags ?? []))].sort(),
+    [ownProjects]
+  );
 
   return (
     <>
@@ -558,6 +575,7 @@ export default function DashboardViewSwitcher({
               
               <Link
                 href="/dashboard/projects/new"
+                prefetch={true}
                 className="btn-aura flex items-center justify-center gap-2 text-sm font-bold text-white px-4 sm:px-5 min-h-[44px] py-2.5 rounded-xl shrink-0 active:scale-95 overflow-hidden"
               >
                 <Plus className="w-4 h-4" strokeWidth={2.5} />
@@ -698,7 +716,7 @@ export default function DashboardViewSwitcher({
                     ))}
                   </div>
                 ) : (
-                  <ListView projects={collaboratorProjects} isTeacher={isTeacher} />
+                  <ListView projects={collaboratorProjects} isTeacher={isTeacher} showOwner />
                 )}
               </motion.div>
             </AnimatePresence>

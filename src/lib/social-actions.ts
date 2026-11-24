@@ -359,21 +359,33 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
 
     const items: AppNotificationItem[] = [];
 
-    // 1. Fetch recent messages sent to the current user
+    // Run messages, notifications, and all project_members for this user in parallel
     try {
-      const { data: incomingMessages } = await client
-        .from('messages')
-        .select(`
-          id,
-          content,
-          is_read,
-          created_at,
-          sender_id,
-          sender:profiles!messages_sender_id_fkey(*)
-        `)
-        .eq('receiver_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const [{ data: incomingMessages }, { data: notifs }, { data: allMemberships }] = await Promise.all([
+        client
+          .from('messages')
+          .select(`
+            id,
+            content,
+            is_read,
+            created_at,
+            sender_id,
+            sender:profiles!messages_sender_id_fkey(*)
+          `)
+          .eq('receiver_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+        client
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+        client
+          .from('project_members')
+          .select('project_id, status')
+          .eq('user_id', user.id),
+      ]);
 
       if (incomingMessages) {
         for (const msg of incomingMessages) {
@@ -392,29 +404,11 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
           });
         }
       }
-    } catch (e) {
-      console.error("[getUserNotificationsAndMessagesAction] Messages fetch error:", e);
-    }
 
-    // 2. Fetch notifications from notifications table if it exists
-    try {
-      const [{ data: notifs }, { data: pendingMemberships }] = await Promise.all([
-        client
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(20),
-        client
-          .from('project_members')
-          .select('project_id')
-          .eq('user_id', user.id)
-          .eq('status', 'pending'),
-      ]);
-
-      const pendingProjectIdSet = new Set(
-        (pendingMemberships ?? []).map((r: any) => r.project_id as string)
+      const membershipStatusMap = new Map<string, string>(
+        (allMemberships ?? []).map((r: any) => [r.project_id as string, (r.status as string) || 'accepted'])
       );
+      const staleInviteNotifIds: string[] = [];
 
       if (notifs) {
         for (const n of notifs) {
@@ -424,20 +418,41 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
           }
 
           let pendingProjectId: string | null = null;
+          let isRead = Boolean(n.is_read);
+          let title = n.title || 'Yeni bildirim';
+          let body = n.content || n.body || '';
+
           if (n.type === 'project_invite') {
-            const match = typeof link === 'string' ? link.match(/[?&]invite=([0-9a-f-]+)/i) : null;
+            const match = typeof link === 'string'
+              ? link.match(/(?:[?&]invite=|\/projects\/)([0-9a-f-]{36})/i)
+              : null;
             const candidateId = match?.[1] || n.related_id || null;
-            if (candidateId && pendingProjectIdSet.has(candidateId)) {
-              pendingProjectId = candidateId;
+            if (candidateId) {
+              const memberStatus = membershipStatusMap.get(candidateId);
+              if (memberStatus === 'pending') {
+                pendingProjectId = candidateId;
+              } else {
+                // Invite has already been accepted or declined
+                if (!isRead) {
+                  isRead = true;
+                  staleInviteNotifIds.push(n.id);
+                }
+                if (memberStatus === 'accepted') {
+                  if (title === 'Yeni Proje Daveti') title = 'Proje daveti kabul edildi';
+                  link = `/dashboard/projects/${candidateId}`;
+                } else {
+                  if (title === 'Yeni Proje Daveti') title = 'Proje daveti reddedildi';
+                }
+              }
             }
           }
 
           items.push({
             id: `notif-${n.id}`,
             type: 'notification',
-            title: n.title || 'Yeni bildirim',
-            body: n.content || n.body || '',
-            is_read: Boolean(n.is_read),
+            title,
+            body,
+            is_read: isRead,
             sender_avatar: null,
             sender_name: null,
             created_at: n.created_at,
@@ -446,8 +461,17 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
           });
         }
       }
+
+      if (staleInviteNotifIds.length > 0) {
+        client
+          .from('notifications')
+          .update({ is_read: true })
+          .in('id', staleInviteNotifIds)
+          .then(() => {})
+          .catch(() => {});
+      }
     } catch (e) {
-      // notifications table might be empty or optional
+      console.error("[getUserNotificationsAndMessagesAction] Fetch error:", e);
     }
 
     // Sort by created_at DESC

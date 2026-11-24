@@ -85,9 +85,9 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
           .select('*, profiles!student_id(full_name, avatar_url, is_public)')
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
-      : supabase
+      : admin
           .from('projects')
-          .select('*')
+          .select('*, profiles!student_id(full_name, avatar_url)')
           .is('deleted_at', null)
           .eq('student_id', user?.id)
           .order('created_at', { ascending: false }),
@@ -131,14 +131,24 @@ async function DashboardContent(props: { searchParams?: Promise<{ q?: string }> 
         (p.tags ?? []).some((t: string) => t.includes(q)),
       );
     }
-  } else if (q) {
-    projects = projects.filter((p: any) =>
-      p.title.toLowerCase().includes(q) ||
-      (p.tags ?? []).some((t: string) => t.includes(q))
-    );
+  } else {
+    // Yalnızca kullanıcının kendi oluşturduğu projeler üstteki ana pano ve listede gösterilir
+    projects = projects.filter((p: any) => {
+      const ownerId = p.student_id || p.owner_id || p.user_id;
+      return ownerId === user?.id && !acceptedCollabIds.includes(p.id);
+    });
+    if (q) {
+      projects = projects.filter((p: any) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.tags ?? []).some((t: string) => t.includes(q))
+      );
+    }
   }
 
-  let collaboratorProjects: any[] = collabRes.data ?? [];
+  let collaboratorProjects: any[] = (collabRes.data ?? []).filter((p: any) => {
+    const ownerId = p.student_id || p.owner_id || p.user_id;
+    return ownerId !== user?.id;
+  });
   const invitedProjects = invitedProjectsRes.data ?? [];
 
   const allProjectIds = [

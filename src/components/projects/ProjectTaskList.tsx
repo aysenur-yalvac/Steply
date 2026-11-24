@@ -132,7 +132,7 @@ export default function ProjectTaskList({
   const todayStr = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="bg-white dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -205,9 +205,7 @@ export default function ProjectTaskList({
                   }}
                   className="shrink-0 mt-0.5 text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors"
                 >
-                  {pendingIds.has(task.id) ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
-                  ) : task.is_completed ? (
+                  { task.is_completed ? (
                     <CheckSquare className="w-5 h-5 text-emerald-500" />
                   ) : (
                     <Square className="w-5 h-5 text-slate-400 dark:text-slate-500" />

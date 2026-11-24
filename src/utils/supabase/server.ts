@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -32,3 +33,14 @@ export async function createClient() {
     }
   )
 }
+
+/**
+ * Request-scoped cached auth user helper to prevent duplicate Supabase Auth network calls
+ * during a single SSR render cycle.
+ */
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return null
+  return user
+})

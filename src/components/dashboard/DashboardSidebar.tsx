@@ -602,11 +602,10 @@ export default function DashboardSidebar(props: SidebarProps) {
         <Menu className="w-5 h-5 pointer-events-none" />
       </button>
 
-      {/* Desktop sidebar - collapsible without any screen-blocking overlay */}
+      {/* Desktop sidebar - collapsible without any screen-blocking overlay or heavy blur */}
       <aside
         ref={sidebarRef}
-        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out ${isExpanded ? 'w-64 relative z-30' : 'w-[72px] hover:bg-white dark:bg-[#0f172a]/90 relative z-30'}`}
-        style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#0f172a] transition-[width] duration-150 ease-out ${isExpanded ? 'w-64 relative z-30' : 'w-[72px] hover:bg-white dark:hover:bg-[#0f172a] relative z-30'}`}
       >
         <NavContent
           {...props}

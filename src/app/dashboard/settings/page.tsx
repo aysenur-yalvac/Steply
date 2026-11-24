@@ -1,21 +1,17 @@
-import { createClient } from "@/utils/supabase/server";
+import { getCachedUser, getCachedProfile } from "@/lib/auth-cache";
 import { redirect } from "next/navigation";
 import SettingsClient from "./SettingsClient";
 import { getBlockedUsersAction } from "@/lib/actions";
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCachedUser();
 
   if (!user) {
     return redirect("/auth/login");
   }
 
-  const [{ data: profile }, blockedUsers] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+  const [profile, blockedUsers] = await Promise.all([
+    getCachedProfile(),
     getBlockedUsersAction(),
   ]);
 
