@@ -49,6 +49,26 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/auth/reset-password?error=invalid_link`);
     }
 
+    if (error) {
+      const lowerErr = (error.message || '').toLowerCase();
+      const isPkceOrUsedCodeError =
+        lowerErr.includes('code verifier') ||
+        lowerErr.includes('code_verifier') ||
+        lowerErr.includes('both auth code and code verifier') ||
+        lowerErr.includes('pkce') ||
+        lowerErr.includes('flow state') ||
+        lowerErr.includes('invalid grant') ||
+        lowerErr.includes('expired') ||
+        !intent;
+
+      // Farklı sekme/gizli sekme nedeniyle PKCE code_verifier bulunamadıysa e-posta onayı Supabase tarafında tamamlanmıştır
+      if (isPkceOrUsedCodeError) {
+        return NextResponse.redirect(
+          `${origin}/auth/login?message=E-posta+adresiniz+onaylandı.+Lütfen+giriş+yapın.`
+        );
+      }
+    }
+
     if (!error && data?.user?.email) {
       // 1. GİRİŞ KONTROLÜ (intent === 'login')
       // Kullanıcı Login sayfasından Google ile giriş yapmaya çalışmışsa ancak daha önce kayıtlı bir hesabı yoksa:
@@ -167,6 +187,56 @@ export async function GET(request: Request) {
     }
   } catch (sessionErr) {
     console.error('[Auth Callback] Active session check error:', sessionErr);
+  }
+
+  // d) URL'de hiç query parametresi yoksa (Supabase token'ı #access_token hash fragment olarak gönderdiyse),
+  // istemci tarafında oturumu/hash'i okuyup /dashboard veya /auth/login sayfasına yönlendiren client fallback döndür
+  if (!code && !tokenHash && !searchParams.get('error')) {
+    const fallbackDest = isPasswordRecovery ? '/auth/reset-password' : destination;
+    const html = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doğrulanıyor... | Must-b Academy</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0B0E14; color: #F1F5F9; font-family: system-ui, -apple-system, sans-serif; }
+    .box { text-align: center; padding: 24px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(124,58,255,0.25); border-top-color: #7C3AFF; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <p style="font-size:14px;color:#94A3B8;margin:0;">Oturumunuz doğrulanıyor, yönlendiriliyorsunuz...</p>
+  </div>
+  <script>
+    (function() {
+      var hash = window.location.hash || "";
+      var dest = ${JSON.stringify(fallbackDest)};
+      if (hash.indexOf("access_token=") !== -1) {
+        if (hash.indexOf("type=recovery") !== -1 || dest.indexOf("/auth/reset-password") === 0) {
+          window.location.replace("/auth/reset-password" + hash);
+          return;
+        }
+        window.location.replace("/auth/login" + hash);
+        return;
+      }
+      if (hash.indexOf("error=") !== -1) {
+        window.location.replace("/auth/login?error=" + encodeURIComponent("Doğrulama işlemi başarısız oldu. Lütfen giriş yapın."));
+        return;
+      }
+      window.location.replace("/auth/login?message=" + encodeURIComponent("E-posta adresiniz onaylandı. Lütfen giriş yapın."));
+    })();
+  </script>
+</body>
+</html>`;
+
+    return new NextResponse(html, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
   }
 
   return NextResponse.redirect(

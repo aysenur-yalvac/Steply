@@ -956,26 +956,34 @@ export default function AnimatedCharactersLoginPage({
               </div>
             )}
 
-            {/* Error message */}
+            {/* Error / Info message */}
             {message && (
               <div
                 className={`p-3.5 text-xs rounded-xl flex items-start gap-2.5 leading-relaxed ${
-                  error === "account_not_found" || message.includes("Google hesabıyla")
-                    ? "text-amber-200 border-amber-500/35 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                    : "text-red-400 border-red-500/20 bg-red-500/10"
+                  message.includes("onaylandı") || message.includes("başarıyla")
+                    ? "text-emerald-200 border-emerald-500/35 bg-emerald-500/15"
+                    : error === "account_not_found" || message.includes("Google hesabıyla")
+                      ? "text-amber-200 border-amber-500/35 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+                      : "text-red-400 border-red-500/20 bg-red-500/10"
                 }`}
                 style={{
                   border:
-                    error === "account_not_found" || message.includes("Google hesabıyla")
-                      ? "1px solid rgba(245, 158, 11, 0.40)"
-                      : "1px solid rgba(248, 113, 113, 0.20)",
+                    message.includes("onaylandı") || message.includes("başarıyla")
+                      ? "1px solid rgba(16, 185, 129, 0.40)"
+                      : error === "account_not_found" || message.includes("Google hesabıyla")
+                        ? "1px solid rgba(245, 158, 11, 0.40)"
+                        : "1px solid rgba(248, 113, 113, 0.20)",
                   background:
-                    error === "account_not_found" || message.includes("Google hesabıyla")
-                      ? "rgba(245, 158, 11, 0.12)"
-                      : "rgba(248, 113, 113, 0.08)",
+                    message.includes("onaylandı") || message.includes("başarıyla")
+                      ? "rgba(16, 185, 129, 0.12)"
+                      : error === "account_not_found" || message.includes("Google hesabıyla")
+                        ? "rgba(245, 158, 11, 0.12)"
+                        : "rgba(248, 113, 113, 0.08)",
                 }}
               >
-                {error === "account_not_found" || message.includes("Google hesabıyla") ? (
+                {message.includes("onaylandı") || message.includes("başarıyla") ? (
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                ) : error === "account_not_found" || message.includes("Google hesabıyla") ? (
                   <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 ) : null}
                 <div className="flex-1 text-left">
