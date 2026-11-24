@@ -1,110 +1,178 @@
 ﻿import { NextResponse } from "next/server";
-import { classifyEmail } from "@/lib/email-classification";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
+import { isTeacherEmail } from "@/lib/email-validation";
 import { getSiteOrigin } from "@/lib/site-url";
 
 export async function POST(request: Request) {
-  const { email, token } = await request.json();
+  try {
+    const body = await request.json();
+    const normalizedEmail = String(body?.email || "").trim().toLowerCase();
+    const normalizedCode = String(body?.code ?? body?.token ?? "").trim();
 
-  if (!email || !token || token.length !== 8) {
-    return NextResponse.json({ error: "Lutfen 8 haneli gecerli bir OTP kodu girin." }, { status: 400 });
-  }
-
-  // Admin yetkisiyle dogrulama
-  const supabaseAdmin = require("@supabase/supabase-js").createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  // 1. Kodu veritabanindan kontrol et
-  const { data: otpRecords, error: otpError } = await supabaseAdmin
-    .from("email_otp_codes")
-    .select("*")
-    .eq("email", email)
-    .eq("code", token)
-    .gte("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false });
-
-  if (otpError || !otpRecords || otpRecords.length === 0) {
-    return NextResponse.json({ error: "Gecersiz veya suresi dolmus kod. Lutfen tekrar deneyin." }, { status: 401 });
-  }
-
-  // Kod kullanildi, sil
-  await supabaseAdmin.from("email_otp_codes").delete().eq("email", email);
-
-  // 2. Auth API uzerinden User'i bul
-  const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-  if (userError) return NextResponse.json({ error: "Kullanici veritabanina ulasilamadi." }, { status: 500 });
-  
-  const user = userData.users.find((u: any) => u.email === email);
-  if (!user) return NextResponse.json({ error: "Kullanici hesabi bulunamadi." }, { status: 404 });
-
-  // 3. ZORUNLU KILIDI AC (Zero Bypass onayi)
-  await supabaseAdmin.auth.admin.updateUserById(user.id, {
-    email_confirm: true,
-    user_metadata: { ...user.user_metadata, email_verified: true }
-  });
-
-  // 4. Rol belirleme — kullanıcının kayıt sırasında seçtiği rolü esas al
-  let targetRoute = "/dashboard";
-
-  // Öncelik: user_metadata.role (kayıt sırasında set edilir) → profiles.role → "student"
-  let role: string = user.user_metadata?.role || "student";
-
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  // user_metadata'da rol yoksa profiles tablosuna bak
-  if (!user.user_metadata?.role && profile?.role) {
-    role = profile.role;
-  }
-
-  const { isTeacherEmail } = require("@/lib/email-classification");
-  const domainIsTeacher = isTeacherEmail(email);
-
-  // Güvenlik: Domain kurumsal/whitelist ise her durumda teacher yap
-  if (domainIsTeacher) {
-    role = "teacher";
-  }
-
-  // Güvenlik: Teacher rolü var ama domain kurumsal değilse öğrenciye indir
-  // (veri manipülasyonuna karşı koruma; normal akışta oluşmamalı)
-  if (role === "teacher" && !domainIsTeacher) {
-    console.warn(`[verify-otp-8] Kurumsal olmayan e-posta ${email} teacher rolündeydi, student'a düşürüldü.`);
-    role = "student";
-  }
-
-  // Profili onaylanan rolle güncelle
-  const updates: Record<string, string> = { role };
-  if (role === "teacher") {
-    updates.teacher_status = "verified";
-  }
-
-  await supabaseAdmin.from("profiles").update(updates).eq("id", user.id);
-
-  if (role === "teacher") {
-    targetRoute = "/dashboard/teacher";
-  } else {
-    targetRoute = "/dashboard/student";
-  }
-
-  // 5. Kullaniciyi login yapmak icin Magic Link olustur
-  const siteOrigin = getSiteOrigin(request);
-  const redirectUrl = `${siteOrigin}${targetRoute}`;
-
-  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-    type: "magiclink",
-    email: email,
-    options: {
-      redirectTo: redirectUrl
+    if (!normalizedEmail || !normalizedCode || normalizedCode.length !== 8) {
+      return NextResponse.json(
+        { error: "Lütfen 8 haneli geçerli bir doğrulama kodu girin." },
+        { status: 400 }
+      );
     }
-  });
 
-  if (linkError || !linkData?.properties?.action_link) {
-    return NextResponse.json({ error: "Oturum acma linki olusturulamadi." }, { status: 500 });
+    const supabaseAdmin = createAdminClient();
+
+    // 1. Kodu veritabanından createAdminClient ile sorgula
+    const { data: otpRecords, error: otpError } = await supabaseAdmin
+      .from("email_otp_codes")
+      .select("*")
+      .ilike("email", normalizedEmail)
+      .eq("code", normalizedCode)
+      .order("created_at", { ascending: false });
+
+    if (otpError || !otpRecords || otpRecords.length === 0) {
+      return NextResponse.json(
+        { error: "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin." },
+        { status: 401 }
+      );
+    }
+
+    // 2. Süre kontrolünü yerel saat dilimi kayması olmayacak şekilde doğrudan milisaniye üzerinden yap
+    const nowMs = Date.now();
+    const validRecord = otpRecords.find((rec: any) => {
+      if (!rec.expires_at) return true;
+      const rawExp = String(rec.expires_at).trim();
+      const isoExp =
+        rawExp.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(rawExp)
+          ? rawExp
+          : `${rawExp.replace(" ", "T")}Z`;
+      const expMsUtc = new Date(isoExp).getTime();
+      const expMsDirect = new Date(rawExp).getTime();
+      const expMs = !Number.isNaN(expMsUtc) ? expMsUtc : expMsDirect;
+      return !Number.isNaN(expMs) && !(expMs < nowMs);
+    });
+
+    if (!validRecord) {
+      return NextResponse.json(
+        { error: "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin." },
+        { status: 401 }
+      );
+    }
+
+    // Kod kullanıldı, temizle
+    await supabaseAdmin.from("email_otp_codes").delete().ilike("email", normalizedEmail);
+
+    // 3. Auth API üzerinden kullanıcıyı bul
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (userError) {
+      return NextResponse.json(
+        { error: "Kullanıcı veritabanına ulaşılamadı." },
+        { status: 500 }
+      );
+    }
+
+    const user = userData.users.find(
+      (u: any) => (u.email || "").trim().toLowerCase() === normalizedEmail
+    );
+    if (!user) {
+      return NextResponse.json(
+        { error: "Kullanıcı hesabı bulunamadı." },
+        { status: 404 }
+      );
+    }
+
+    // 4. Doğrulama başarılı olduğunda Supabase Admin API ile kullanıcının hesabını onaylı (email_confirm: true) hale getir
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      email_confirm: true,
+      user_metadata: { ...user.user_metadata, email_verified: true },
+    });
+
+    // 5. Rol ve okul bilgisini profilde kesinleştir
+    let role: string = user.user_metadata?.role || "student";
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("role, institution, university")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!user.user_metadata?.role && profile?.role) {
+      role = profile.role;
+    }
+
+    const domainIsTeacher = isTeacherEmail(normalizedEmail);
+    if (domainIsTeacher && role === "teacher") {
+      role = "teacher";
+    } else if (role === "teacher" && !domainIsTeacher) {
+      console.warn(
+        `[verify-otp-8] Kurumsal öğretmen e-postası olmayan ${normalizedEmail} student rolüne düşürüldü.`
+      );
+      role = "student";
+    }
+
+    const metaInstitution =
+      user.user_metadata?.institution || user.user_metadata?.university || null;
+    const savedInstitution =
+      profile?.institution || (profile as any)?.university || metaInstitution;
+
+    const updates: Record<string, any> = { role };
+    if (role === "teacher") {
+      updates.teacher_status = "verified";
+    }
+    if (savedInstitution) {
+      updates.institution = savedInstitution;
+    }
+
+    await supabaseAdmin.from("profiles").update(updates).eq("id", user.id);
+    if (savedInstitution) {
+      await (supabaseAdmin as any)
+        .from("profiles")
+        .update({ university: savedInstitution })
+        .eq("id", user.id);
+    }
+
+    const targetRoute = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
+    const siteOrigin = getSiteOrigin(request);
+    const redirectUrl = `${siteOrigin}${targetRoute}`;
+
+    // 6. Oturumu başlat (hem sunucu çerezi olarak doğrula hem de magicLink döndür)
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email: normalizedEmail,
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      return NextResponse.json(
+        { error: "Oturum açma bağlantısı oluşturulamadı." },
+        { status: 500 }
+      );
+    }
+
+    if (linkData.properties.hashed_token) {
+      try {
+        const supabaseServer = await createClient();
+        await supabaseServer.auth.verifyOtp({
+          token_hash: linkData.properties.hashed_token,
+          type: "magiclink",
+        });
+      } catch (sessionErr) {
+        console.warn("[verify-otp-8] Server verifyOtp fallback:", sessionErr);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      redirectUrl: targetRoute,
+      magicLink: linkData.properties.action_link,
+    });
+  } catch (err: any) {
+    console.error("[verify-otp-8] Unexpected error:", err);
+    return NextResponse.json(
+      { error: err?.message || "Doğrulama sırasında bir hata oluştu." },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ success: true, magicLink: linkData.properties.action_link });
 }

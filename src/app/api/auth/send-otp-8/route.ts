@@ -1,7 +1,8 @@
 ﻿import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { Resend } from "resend";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { validateRoleAndEmail } from "@/lib/email-validation";
 
 const RESEND_TEST_MODE_ERROR =
   "E-posta servisi şu an test modundadır; domain doğrulaması tamamlanana kadar yalnızca yönetici e-posta adresine doğrulama kodu gönderilebilir.";
@@ -18,23 +19,39 @@ function isResendTestModeError(msg?: string | null): boolean {
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
-    if (!email) return NextResponse.json({ error: "E-posta gerekli." }, { status: 400 });
+    const body = await request.json();
+    const rawEmail = body?.email;
+    const requestedRole = body?.role ? String(body.role).trim() : null;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    if (!rawEmail) {
+      return NextResponse.json({ error: "E-posta gerekli." }, { status: 400 });
+    }
 
-    // 1. 8 Haneli OTP Uret ve Kaydet
+    const email = String(rawEmail).trim().toLowerCase();
+
+    if (requestedRole) {
+      const roleCheck = validateRoleAndEmail(email, requestedRole);
+      if (!roleCheck.valid) {
+        return NextResponse.json({ error: roleCheck.error }, { status: 400 });
+      }
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    // 1. Önceki kodları temizle ve tek bir 8 haneli OTP üretip kaydet (RLS'e takılmadan)
+    await supabaseAdmin.from("email_otp_codes").delete().ilike("email", email);
+
     const code = crypto.randomInt(10000000, 99999999).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    const { error: dbError } = await supabase
+    const { error: dbError } = await supabaseAdmin
       .from("email_otp_codes")
       .insert([{ email, code, expires_at: expiresAt }]);
 
-    if (dbError) throw new Error("Kod veritabanina kaydedilemedi.");
+    if (dbError) {
+      console.error("[send-otp-8] DB insert error:", dbError);
+      throw new Error("Kod veritabanina kaydedilemedi.");
+    }
 
     // 2. E-posta Gonderimi
     const resendApiKey = process.env.RESEND_API_KEY;

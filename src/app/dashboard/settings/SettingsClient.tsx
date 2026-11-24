@@ -38,7 +38,7 @@ import type { FollowUser } from "@/lib/actions";
 import { Avatar } from "@/components/ui/avatar";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
-import UniversityCombobox from "@/components/ui/UniversityCombobox";
+import { isStudentEmail, STUDENT_EMAIL_ERROR_MESSAGE } from "@/lib/email-validation";
 
 const ALL_AVATARS = Array.from({ length: 20 }, (_, i) => `/avatars/avatar-${i + 1}.svg`);
 const AVATAR_VISIBLE = 5;
@@ -280,28 +280,20 @@ export default function SettingsClient({
         toast.error("Öğrenci rolü için sınıf seçimi zorunludur.");
         return;
       }
-      if (university.includes('@')) {
-        toast.error("Okul/Üniversite alanına bir e-posta adresi değil, listeden bir okul seçmelisiniz.");
-        return;
-      }
-      const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
       setSchoolEmailError(null);
-      if (university && role === 'student') {
-        if (!schoolNumber.trim()) {
+      if (role === 'student') {
+        if (university && !schoolNumber.trim()) {
           toast.error("Okul numarası zorunludur.");
           return;
         }
-        if (!schoolEmail.trim()) {
-          const msg = "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com).";
-          setSchoolEmailError(msg);
-          toast.error(msg);
+        if ((university || schoolEmail.trim()) && !isStudentEmail(schoolEmail.trim())) {
+          setSchoolEmailError(STUDENT_EMAIL_ERROR_MESSAGE);
+          toast.error(STUDENT_EMAIL_ERROR_MESSAGE);
           return;
         }
-      }
-      if (schoolEmail.trim() && !EMAIL_REGEX.test(schoolEmail.trim())) {
-        const msg = "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com).";
-        setSchoolEmailError(msg);
-        toast.error(msg);
+      } else if (schoolEmail.trim() && !isStudentEmail(schoolEmail.trim())) {
+        setSchoolEmailError(STUDENT_EMAIL_ERROR_MESSAGE);
+        toast.error(STUDENT_EMAIL_ERROR_MESSAGE);
         return;
       }
 
@@ -803,7 +795,7 @@ export default function SettingsClient({
                       </div>
                     )}
 
-                    {/* Okul Bilgileri — school/university selection + number/email */}
+                    {/* Okul Bilgileri — kayıtlı okul bilgisi kilitli (readOnly) + okul numarası ve öğrenci e-postası */}
                     <div className="space-y-3 pt-1">
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 flex items-center gap-1.5">
                         <IdCard className="w-3.5 h-3.5" /> Okul Bilgileri
@@ -812,46 +804,52 @@ export default function SettingsClient({
                         )}
                       </p>
 
-                      {/* Okul / Üniversite — universities tablosundan aranarak seçilir */}
+                      {/* Okul / Üniversite — kayıtlı ve değiştirilemez (readOnly / disabled) */}
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Okul / Üniversite</label>
-                        <UniversityCombobox
-                          value={university}
-                          onChange={setUniversity}
-                          placeholder="Üniversite veya kurum ara..."
-                        />
-                        <p className="text-[11px] text-slate-400">Yazarak arama yap, listeden seç.</p>
+                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" /> Okul / Üniversite
+                        </label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                          <input
+                            type="text"
+                            readOnly
+                            disabled
+                            value={university || "Kayıtlı okul bilgisi yok"}
+                            className="w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed text-sm select-none dark:bg-slate-800 dark:text-white dark:border-slate-700"
+                          />
+                          <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                        </div>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                          Okul bilgisi kayıt sırasında belirlenir ve değiştirilemez.
+                        </p>
                       </div>
 
-                      {university && (
-                        <>
-                        {/* Okul Numarası — sadece öğrenciler için */}
-                        {role === 'student' && (
-                          <div className="space-y-1.5">
-                            <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                              Okul Numarası <span className="text-rose-500">*</span>
-                            </label>
-                            <div className="relative">
-                              <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <input
-                                id="s-school-number"
-                                type="text"
-                                value={schoolNumber}
-                                onChange={(e) => setSchoolNumber(e.target.value)}
-                                placeholder="Örn: 20240001"
-                                className={`${inputCls} pl-9`}
-                              />
-                            </div>
+                      {/* Okul Numarası — sadece öğrenciler için */}
+                      {role === 'student' && (
+                        <div className="space-y-1.5">
+                          <label htmlFor="s-school-number" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                            Okul Numarası {university ? <span className="text-rose-500">*</span> : null}
+                          </label>
+                          <div className="relative">
+                            <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              id="s-school-number"
+                              type="text"
+                              value={schoolNumber}
+                              onChange={(e) => setSchoolNumber(e.target.value)}
+                              placeholder="Örn: 20240001"
+                              className={`${inputCls} pl-9`}
+                            />
                           </div>
-                        )}
+                        </div>
+                      )}
 
-                        {/* Okul E-postası — öğrenci için zorunlu, öğretmen için opsiyonel */}
+                      {/* Öğrenci E-postası — öğrenci uzantılı (@ogr. vb.) zorunlu */}
+                      {role === 'student' && (
                         <div className="space-y-1.5">
                           <label htmlFor="s-school-email" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                            Okul E-postası{' '}
-                            {role === 'student'
-                              ? <span className="text-rose-500">*</span>
-                              : <span className="text-slate-400 font-normal text-xs">(isteğe bağlı)</span>}
+                            Öğrenci E-postası {university ? <span className="text-rose-500">*</span> : null}
                           </label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -864,7 +862,7 @@ export default function SettingsClient({
                                 setSchoolEmail(e.target.value);
                                 if (schoolEmailError) setSchoolEmailError(null);
                               }}
-                              placeholder="Örn: ad.soyad@okul.edu.tr"
+                              placeholder="Örn: ad.soyad@ogr.universite.edu.tr"
                               className={`${inputCls} pl-9 ${schoolEmailError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500/25" : ""}`}
                             />
                           </div>
@@ -874,7 +872,6 @@ export default function SettingsClient({
                             </p>
                           )}
                         </div>
-                        </>
                       )}
                     </div>
 

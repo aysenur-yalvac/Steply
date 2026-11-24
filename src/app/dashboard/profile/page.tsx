@@ -94,10 +94,18 @@ export default async function ProfilePage() {
                     {[profile.location, profile.country].filter(Boolean).join(", ")}
                   </span>
                 )}
-                {sanitizeInstitution(profile.university) && (
+                {sanitizeInstitution(
+                  profile.institution ||
+                  profile.university ||
+                  (user.user_metadata?.institution as string | null)
+                ) && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
                     <GraduationCap className="w-3.5 h-3.5" />
-                    {sanitizeInstitution(profile.university)}
+                    {sanitizeInstitution(
+                      profile.institution ||
+                      profile.university ||
+                      (user.user_metadata?.institution as string | null)
+                    )}
                   </span>
                 )}
               </div>

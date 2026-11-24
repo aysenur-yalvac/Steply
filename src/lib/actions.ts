@@ -325,16 +325,34 @@ export async function updateProfileAction(formData: FormData) {
   const twitter_url = formData.get('twitter_url') as string;
   const website_url = formData.get('website_url') as string;
   const avatar_url = formData.get('avatar_url') as string;
-  const university     = sanitizeInstitution(formData.get('university') as string | null);
-  const institution    = university ?? sanitizeInstitution(formData.get('institution') as string | null);
-  // role is intentionally NOT read -- changes are locked server-side
+  // role and existing registered school/institution are locked server-side
   const grade          = (formData.get('grade')          as string | null)?.trim() || null;
   const school_number  = (formData.get('school_number')  as string | null)?.trim() || null;
   const school_email   = (formData.get('school_email')   as string | null)?.trim() || null;
 
-  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-  if (school_email && !EMAIL_REGEX.test(school_email)) {
-    return { error: "Lütfen geçerli bir e-posta adresi girin (örn: ad@ornek.com)." };
+  const { isStudentEmail, STUDENT_EMAIL_ERROR_MESSAGE } = await import('@/lib/email-validation');
+
+  const { data: currentProfile } = await supabase
+    .from('profiles')
+    .select('role, institution')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const existingSchool =
+    currentProfile?.institution ||
+    sanitizeInstitution(user.user_metadata?.institution as string | null) ||
+    sanitizeInstitution(user.user_metadata?.university as string | null) ||
+    null;
+
+  // Mevcut kayıtlı okul bilgisinin sonradan değiştirilmesini engelle
+  const institution = existingSchool;
+  const university = existingSchool;
+
+  if (school_email && !isStudentEmail(school_email)) {
+    return { error: STUDENT_EMAIL_ERROR_MESSAGE };
+  }
+  if ((currentProfile?.role || 'student') === 'student' && existingSchool && !isStudentEmail(school_email || '')) {
+    return { error: STUDENT_EMAIL_ERROR_MESSAGE };
   }
 
   const { error } = await supabase.from('profiles').update({

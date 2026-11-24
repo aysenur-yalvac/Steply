@@ -20,19 +20,16 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    handleResend();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    inputRefs.current[0]?.focus();
   }, []);
-
-  const RESEND_TEST_MODE_WARNING =
-    "E-posta servisi şu an test modundadır; domain doğrulaması tamamlanana kadar yalnızca yönetici e-posta adresine doğrulama kodu gönderilebilir.";
 
   const formatOtpError = (raw: string): string => {
     return raw;
   };
 
   const handleVerify = async (code?: string) => {
-    const token = code || otp.join("");
+    const rawToken = code !== undefined ? code : otp.join("");
+    const token = String(rawToken).replace(/\D/g, "").trim();
     if (token.length !== 8) {
       setError("Lütfen 8 haneli kodu eksiksiz girin.");
       setShake(true);
@@ -44,10 +41,11 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     setError(null);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const res = await fetch("/api/auth/verify-otp-8", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token }),
+        body: JSON.stringify({ email: normalizedEmail, code: token, token }),
       });
       const data = await res.json();
 
@@ -64,12 +62,14 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       setSuccess(true);
       
       setTimeout(() => {
-        if (data.magicLink) {
+        if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else if (data.magicLink) {
           window.location.href = data.magicLink;
         } else {
           router.replace("/dashboard");
         }
-      }, 1500);
+      }, 1000);
 
     } catch {
       setError("Beklenmeyen bir hata oluştu.");
@@ -128,10 +128,11 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     setResending(true);
     setError(null);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const res = await fetch("/api/auth/send-otp-8", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: normalizedEmail, role }),
       });
       const data = await res.json();
       

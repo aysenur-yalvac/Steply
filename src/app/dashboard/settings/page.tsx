@@ -34,7 +34,13 @@ export default async function SettingsPage() {
       initialLinkedinUrl={profile?.linkedin_url || ""}
       initialTwitterUrl={profile?.twitter_url || ""}
       initialWebsiteUrl={profile?.website_url || ""}
-      initialUniversity={profile?.institution || (profile as any)?.university || ""}
+      initialUniversity={
+        profile?.institution ||
+        (profile as any)?.university ||
+        user.user_metadata?.institution ||
+        user.user_metadata?.university ||
+        ""
+      }
       initialRole={(profile?.role as string) || "student"}
       initialGrade={(profile as any)?.grade || ""}
       initialSchoolNumber={(profile as any)?.school_number || ""}

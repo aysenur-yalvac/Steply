@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { classifyEmail, isTeacherEmail } from "@/lib/email-classification";
+import { validateRoleAndEmail, TEACHER_EMAIL_ERROR_MESSAGE } from "@/lib/email-validation";
 import { Sparkles, Eye, EyeOff, GraduationCap, Shield, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { BackButton } from "@/components/ui/back-button";
@@ -785,10 +786,18 @@ export default function AnimatedCharactersLoginPage({
             action={isLogin ? "/api/auth/login" : "/api/auth/register"}
             method="post"
             onSubmit={(e) => {
-              if (!isLogin && !kvkkAccepted) {
-                e.preventDefault();
-                setKvkkError("Devam etmek için KVKK Aydınlatma Metni ve Kullanım Koşulları'nı onaylamanız gerekir.");
-                return;
+              if (!isLogin) {
+                const emailCheck = validateRoleAndEmail(email, role);
+                if (!emailCheck.valid) {
+                  e.preventDefault();
+                  setKvkkError(emailCheck.error || TEACHER_EMAIL_ERROR_MESSAGE);
+                  return;
+                }
+                if (!kvkkAccepted) {
+                  e.preventDefault();
+                  setKvkkError("Devam etmek için KVKK Aydınlatma Metni ve Kullanım Koşulları'nı onaylamanız gerekir.");
+                  return;
+                }
               }
               setKvkkError(null);
             }}
@@ -837,7 +846,12 @@ export default function AnimatedCharactersLoginPage({
                 />
                 {role === "teacher" && (
                   <p className="text-xs text-amber-400 mt-1.5 flex items-center gap-1">
-                    <span>ℹ️</span> {isLogin ? "Öğretmen hesabı için kurumsal e-posta adresinizi kullanın." : "Öğretmenlerin @meb.k12.tr, @meb.gov.tr veya kurumsal e-posta kullanması zorunludur."}
+                    <span>ℹ️</span> {isLogin ? "Öğretmen hesabı için kurumsal e-posta adresinizi kullanın." : "Öğretmenlerin @meb.k12.tr, @meb.gov.tr veya kurumsal akademisyen e-postası kullanması zorunludur."}
+                  </p>
+                )}
+                {!isLogin && role === "teacher" && email.trim().includes("@") && !isTeacherEmail(email) && (
+                  <p className="text-xs font-semibold text-rose-400 mt-1.5 leading-snug">
+                    {TEACHER_EMAIL_ERROR_MESSAGE}
                   </p>
                 )}
                 {isLogin && email && email.includes('@') && role === 'student' && isTeacherEmail(email) && (

@@ -172,10 +172,10 @@ export default function ProfileForm({
         </label>
         <input 
           type="text" 
-          name="institution"
-          defaultValue={profile?.institution || ''}
-          placeholder="Okul veya kurumunuzu girin..."
-          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          value={profile?.institution || (profile as any)?.university || 'Kayıtlı okul bilgisi yok'}
+          readOnly
+          disabled
+          className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-400 cursor-not-allowed shadow-inner"
         />
       </div>
 
