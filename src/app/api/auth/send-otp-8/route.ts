@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
       const { error: sendError } = await resend.emails.send({
-        from: "Must-b Academy <onboarding@resend.dev>",
+        from: "Must-b Academy <noreply@mustbacademy.com>",
         to: email,
         subject: "Must-b Academy - E-posta Doğrulama Kodunuz",
         html: `
@@ -60,11 +60,18 @@ export async function POST(request: Request) {
       });
 
       if (sendError) {
+        const rawResendMsg = `${sendError.name ? `[${sendError.name}] ` : ""}${sendError.message || JSON.stringify(sendError)}`;
         console.error("Resend API Error Detail:", sendError);
         if (isResendTestModeError(sendError.message)) {
-          return NextResponse.json({ error: RESEND_TEST_MODE_ERROR }, { status: 403 });
+          return NextResponse.json(
+            { error: `${RESEND_TEST_MODE_ERROR} (Resend: ${rawResendMsg})`, details: sendError },
+            { status: 403 }
+          );
         }
-        throw new Error(`Resend hatası: ${sendError.message}`);
+        return NextResponse.json(
+          { error: `Resend hatası: ${rawResendMsg}`, details: sendError },
+          { status: 500 }
+        );
       }
     } else {
       // 3. Fallback / Dev Mode
@@ -74,9 +81,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, message: "Kod basariyla gonderildi." });
   } catch (err: any) {
     console.error("send-otp-8 Error:", err);
-    const msg = err.message || "Bilinmeyen hata";
+    const msg = err?.message || "Bilinmeyen hata";
     if (isResendTestModeError(msg)) {
-      return NextResponse.json({ error: RESEND_TEST_MODE_ERROR }, { status: 403 });
+      return NextResponse.json(
+        { error: `${RESEND_TEST_MODE_ERROR} (Detay: ${msg})` },
+        { status: 403 }
+      );
     }
     return NextResponse.json({ error: msg }, { status: 500 });
   }

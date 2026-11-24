@@ -28,14 +28,6 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     "E-posta servisi şu an test modundadır; domain doğrulaması tamamlanana kadar yalnızca yönetici e-posta adresine doğrulama kodu gönderilebilir.";
 
   const formatOtpError = (raw: string): string => {
-    if (
-      raw.includes("You can only send testing emails") ||
-      raw.includes("testing emails to your own email address") ||
-      raw.includes("only send testing emails") ||
-      raw.includes("domain doğrulaması tamamlanana kadar")
-    ) {
-      return RESEND_TEST_MODE_WARNING;
-    }
     return raw;
   };
 
