@@ -15,6 +15,7 @@ interface ProjectTabsWrapperProps {
   filesContent?: ReactNode;
   notesContent?: ReactNode;
   analyticsContent?: ReactNode;
+  rightSidebarContent?: ReactNode;
   showNotesTab: boolean;
   hasNotes?: boolean;
   projectId?: string;
@@ -32,6 +33,7 @@ export default function ProjectTabsWrapper({
   filesContent,
   notesContent,
   analyticsContent,
+  rightSidebarContent,
   showNotesTab,
   hasNotes,
   projectId,
@@ -114,76 +116,86 @@ export default function ProjectTabsWrapper({
   tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start w-full">
-      <div className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto pb-1.5 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(tab.id as TabType)}
-              className={`flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 min-h-[44px] py-2.5 sm:py-3 rounded-xl transition-all text-left font-semibold text-xs sm:text-sm relative border whitespace-nowrap shrink-0 md:whitespace-normal ${
-                isActive
-                  ? 'bg-violet-600 text-white shadow-md shadow-violet-500/25 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600'
-                  : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border-slate-100 hover:border-violet-200 dark:bg-[#1a2234] dark:text-slate-300 dark:border-slate-700/60 dark:hover:bg-slate-800 dark:hover:text-white'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              {tab.label}
-            </button>
-          );
-        })}
+    <div className="flex flex-col xl:flex-row gap-6 md:gap-8 items-start w-full">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start flex-1 w-full min-w-0">
+        <div className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto pb-1.5 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => handleTabClick(tab.id as TabType)}
+                className={`flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 min-h-[44px] py-2.5 sm:py-3 rounded-xl transition-all text-left font-semibold text-xs sm:text-sm relative border whitespace-nowrap shrink-0 md:whitespace-normal cursor-pointer ${
+                  isActive
+                    ? 'bg-violet-600 text-white shadow-md shadow-violet-500/25 border-violet-600 dark:bg-violet-600 dark:text-white dark:border-violet-600'
+                    : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700 border-slate-100 hover:border-violet-200 dark:bg-[#1a2234] dark:text-slate-300 dark:border-slate-700/60 dark:hover:bg-slate-800 dark:hover:text-white'
+                }`}
+              >
+                <Icon className="w-5 h-5 pointer-events-none" />
+                <span className="pointer-events-none">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex-1 w-full min-w-0 bg-white/95 dark:bg-[#1a2234] md:bg-white/40 md:dark:bg-[#1a2234]/70 border border-slate-200/70 md:border-white/50 dark:border-slate-700/60 md:backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && (
+              <motion.div key="overview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
+                {overviewContent}
+              </motion.div>
+            )}
+            {activeTab === 'milestones' && (
+              <motion.div key="milestones" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
+                {React.isValidElement(milestonesContent)
+                  ? React.cloneElement(milestonesContent as any, {
+                      tasks,
+                      onTasksChange: setTasks,
+                      initialTasks: tasks,
+                    })
+                  : milestonesContent}
+              </motion.div>
+            )}
+            {activeTab === 'files' && (
+              <motion.div key="files" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
+                {filesContent}
+              </motion.div>
+            )}
+            {activeTab === 'notes' && showNotesTab && (
+              <motion.div
+                key="notes"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.1 }}
+                className="w-full"
+              >
+                {notesContent}
+              </motion.div>
+            )}
+            
+            {activeTab === 'analytics' && (
+              <motion.div
+                key="analytics"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.1 }}
+              >
+                <ProjectAnalyticsView tasks={tasks} members={teamMembers} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <div className="flex-1 w-full min-w-0 bg-white/95 dark:bg-[#1a2234] md:bg-white/40 md:dark:bg-[#1a2234]/70 border border-slate-200/70 md:border-white/50 dark:border-slate-700/60 md:backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm min-h-[400px] relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          {activeTab === 'overview' && (
-            <motion.div key="overview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
-              {overviewContent}
-            </motion.div>
-          )}
-          {activeTab === 'milestones' && (
-            <motion.div key="milestones" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
-              {React.isValidElement(milestonesContent)
-                ? React.cloneElement(milestonesContent as any, {
-                    tasks,
-                    onTasksChange: setTasks,
-                    initialTasks: tasks,
-                  })
-                : milestonesContent}
-            </motion.div>
-          )}
-          {activeTab === 'files' && (
-            <motion.div key="files" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.1 }}>
-              {filesContent}
-            </motion.div>
-          )}
-          {activeTab === 'notes' && showNotesTab && (
-            <motion.div
-              key="notes"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.1 }}
-            >
-              {notesContent}
-            </motion.div>
-          )}
-          
-          {activeTab === 'analytics' && (
-            <motion.div
-              key="analytics"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.1 }}
-            >
-              <ProjectAnalyticsView tasks={tasks} members={teamMembers} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {rightSidebarContent && activeTab !== 'notes' && (
+        <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
+          {rightSidebarContent}
+        </div>
+      )}
     </div>
   );
 }

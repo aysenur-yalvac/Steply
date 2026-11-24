@@ -63,10 +63,10 @@ const NAV_ITEMS = [
 
 function AccountAvatar({ src, name, size = 32 }: { src?: string | null; name: string; size?: number }) {
   const px = `${size}px`;
-  if (src) return <img src={src} alt="avatar" className="rounded-full object-cover shrink-0" style={{ width: px, height: px }} />;
+  if (src) return <img src={src} alt="avatar" className="rounded-full object-cover shrink-0 pointer-events-none" style={{ width: px, height: px }} />;
   return (
     <div
-      className="rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+      className="rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 pointer-events-none"
       style={{ width: px, height: px, background: "linear-gradient(135deg, #7C3AFF 0%, #A020F0 100%)" }}
     >
       {(name || "?").charAt(0).toUpperCase()}
@@ -209,6 +209,22 @@ function NavContent({
       console.error('[switch-account] network error:', e);
       setSwitchError('Ağ hatası. İnternet bağlantınızı kontrol edin.');
       setIsSwitching(false);
+    }
+  }
+
+  async function handleSignOut(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const supabase = createClient();
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((resolve) => setTimeout(resolve, 600)),
+      ]);
+    } catch {
+      // ignore
+    } finally {
+      window.location.href = '/auth/login';
     }
   }
 
@@ -436,11 +452,12 @@ function NavContent({
               <AccountAvatar src={avatarUrl} name={userName || userEmail || "?"} size={32} />
             </button>
             <button
-              onClick={() => signOut()}
+              type="button"
+              onClick={handleSignOut}
               title="Çıkış Yap"
-              className="flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800 transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
             >
-              <LogOut className="w-4 h-4" strokeWidth={1.5} />
+              <LogOut className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
             </button>
           </div>
         ) : (
@@ -462,19 +479,20 @@ function NavContent({
               <button
                 type="button"
                 onClick={() => setIsAccountMenuOpen(o => !o)}
-                className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 transition-colors"
+                className="shrink-0 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 transition-colors"
                 title="Hesap değiştir"
               >
-                <ChevronsUpDown className="w-4 h-4" />
+                <ChevronsUpDown className="w-4 h-4 pointer-events-none" />
               </button>
             </div>
 
             <button
-              onClick={() => signOut()}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
+              type="button"
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800/80 transition-all duration-150 cursor-pointer"
             >
-              <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-              Çıkış Yap
+              <LogOut className="w-4 h-4 shrink-0 pointer-events-none" strokeWidth={1.5} />
+              <span className="pointer-events-none">Çıkış Yap</span>
             </button>
           </>
         )}
@@ -558,42 +576,36 @@ function NavContent({
 export default function DashboardSidebar(props: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  // Close expanded desktop sidebar when clicking outside, without any screen-blocking overlay
+  useEffect(() => {
+    if (!isExpanded) return;
+    function handleOutsideMouseDown(e: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setIsExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideMouseDown);
+    return () => document.removeEventListener("mousedown", handleOutsideMouseDown);
+  }, [isExpanded]);
 
   return (
     <>
       {/* Mobile hamburger */}
       <button
+        type="button"
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-1.5 left-3 z-[70] min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/95 dark:bg-[#0f172a]/95 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         aria-label="Menüyü aç"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="w-5 h-5 pointer-events-none" />
       </button>
 
-      {/* Desktop sidebar — collapsible */}
-      
-      {/* Desktop overlay when expanded */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="hidden lg:block fixed inset-0 z-40 bg-transparent"
-            onClick={() => setIsExpanded(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Desktop sidebar - collapsible */}
+      {/* Desktop sidebar - collapsible without any screen-blocking overlay */}
       <aside
-        onClick={(e) => {
-          if (!isExpanded) {
-            setIsExpanded(true);
-          }
-        }}
-        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out cursor-pointer ${isExpanded ? 'w-64 cursor-default relative z-50' : 'w-[72px] hover:bg-white dark:bg-[#0f172a]/90 relative z-50'}`}
+        ref={sidebarRef}
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-white/60 transition-[width] duration-200 ease-in-out ${isExpanded ? 'w-64 relative z-30' : 'w-[72px] hover:bg-white dark:bg-[#0f172a]/90 relative z-30'}`}
         style={{ background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
       >
         <NavContent

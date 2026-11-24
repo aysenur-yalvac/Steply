@@ -10,7 +10,6 @@ import {
   FileText,
   Download,
   X,
-  Image as ImageIcon,
 } from "lucide-react";
 import { addProjectNoteAction } from "@/lib/actions";
 import type { ProjectNote } from "@/lib/actions";
@@ -19,6 +18,7 @@ import { Avatar } from "@/components/ui/avatar";
 import {
   ACCEPTED_CHAT_FILES,
   ChatAttachment,
+  downloadAttachment,
   encodeContentWithAttachment,
   formatAttachmentSize,
   isImageAttachment,
@@ -34,6 +34,42 @@ interface Props {
   currentUserId: string;
   currentUserName: string | null;
   currentUserAvatar: string | null;
+}
+
+function ImageAttachmentPreview({
+  url,
+  name,
+  onClick,
+}: {
+  url: string;
+  name: string;
+  onClick: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative block rounded-xl overflow-hidden border border-black/10 dark:border-white/15 hover:opacity-95 transition-opacity max-w-full cursor-pointer"
+      title="Görseli büyütmek için tıklayın"
+    >
+      {!loaded && (
+        <div className="w-56 h-36 flex items-center justify-center bg-black/10 dark:bg-white/10 animate-pulse rounded-xl">
+          <Loader2 className="w-5 h-5 animate-spin opacity-70" />
+        </div>
+      )}
+      <img
+        src={url}
+        alt={name}
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={`max-h-60 w-auto max-w-full object-contain rounded-xl bg-black/5 transition-opacity duration-200 ${
+          loaded ? "opacity-100" : "opacity-0 absolute inset-0"
+        }`}
+      />
+    </button>
+  );
 }
 
 function MessageBubble({
@@ -76,41 +112,37 @@ function MessageBubble({
       {attachment && (
         <div className={text ? "mb-2.5" : ""}>
           {isImageAttachment(attachment) ? (
+            <ImageAttachmentPreview
+              url={attachment.url}
+              name={attachment.name}
+              onClick={() => onImageClick(attachment.url, attachment.name)}
+            />
+          ) : (
             <button
               type="button"
-              onClick={() => onImageClick(attachment.url, attachment.name)}
-              className="block rounded-xl overflow-hidden border border-black/10 dark:border-white/15 hover:opacity-95 transition-opacity max-w-full"
-              title="Görseli büyütmek için tıklayın"
-            >
-              <img
-                src={attachment.url}
-                alt={attachment.name}
-                className="max-h-60 w-auto max-w-full object-contain rounded-xl bg-black/5"
-              />
-            </button>
-          ) : (
-            <a
-              href={attachment.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={attachment.name}
-              className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors ${
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                downloadAttachment(attachment.url, attachment.name);
+              }}
+              className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors cursor-pointer ${
                 isOwn
                   ? "bg-white/70 hover:bg-white text-slate-800 border-violet-200/80 dark:bg-white/15 dark:hover:bg-white/25 dark:text-white dark:border-white/20"
                   : "bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-900/70 dark:hover:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
               }`}
+              title="Dosyayı indir"
             >
-              <div className="w-9 h-9 rounded-lg bg-violet-600/10 dark:bg-white/10 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-violet-600/10 dark:bg-white/10 flex items-center justify-center shrink-0 pointer-events-none">
                 <FileText className="w-4 h-4 text-violet-600 dark:text-violet-300" />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 pointer-events-none">
                 <p className="text-xs font-semibold truncate">{attachment.name}</p>
                 {attachment.size ? (
                   <p className="text-[10px] opacity-70">{formatAttachmentSize(attachment.size)}</p>
                 ) : null}
               </div>
-              <Download className="w-4 h-4 shrink-0 opacity-75" />
-            </a>
+              <Download className="w-4 h-4 shrink-0 opacity-75 pointer-events-none" />
+            </button>
           )}
         </div>
       )}
@@ -186,7 +218,9 @@ export default function ProjectNotes({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
+    const nextHeight = Math.min(el.scrollHeight, 150);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > 150 ? "auto" : "hidden";
   };
 
   const attachFile = (file: File) => {
@@ -244,38 +278,11 @@ export default function ProjectNotes({
 
     const fileToUpload = pendingFile;
     const localPreview = pendingPreviewUrl;
-    const tempId = `temp-${Date.now()}`;
-
-    const optimisticAttachment: ChatAttachment | null = fileToUpload
-      ? {
-          url: localPreview || "#",
-          name: fileToUpload.name,
-          type: fileToUpload.type,
-          size: fileToUpload.size,
-        }
-      : null;
-
-    const optimisticContent = encodeContentWithAttachment(trimmed, optimisticAttachment);
-
-    const optimistic: ProjectNote = {
-      id: tempId,
-      project_id: projectId,
-      user_id: currentUserId,
-      content: optimisticContent,
-      created_at: new Date().toISOString(),
-      author_name: currentUserName,
-      author_avatar: currentUserAvatar,
-    };
-
-    setNotes((prev) => [...prev, optimistic]);
-    setContent("");
-    setPendingFile(null);
-    setPendingPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsSubmitting(true);
 
     try {
+      // 1. If a file/screenshot is attached, upload to Supabase Storage FIRST
+      // so the message is created directly with the permanent public URL (no blank purple box or revoked blob).
       let uploadedAttachment: ChatAttachment | null = null;
       if (fileToUpload) {
         uploadedAttachment = await uploadChatAttachment(
@@ -285,6 +292,29 @@ export default function ProjectNotes({
       }
 
       const finalPayload = encodeContentWithAttachment(trimmed, uploadedAttachment);
+      const tempId = `temp-${Date.now()}`;
+
+      const optimistic: ProjectNote = {
+        id: tempId,
+        project_id: projectId,
+        user_id: currentUserId,
+        content: finalPayload,
+        created_at: new Date().toISOString(),
+        author_name: currentUserName,
+        author_avatar: currentUserAvatar,
+      };
+
+      setNotes((prev) => [...prev, optimistic]);
+      setContent("");
+      setPendingFile(null);
+      setPendingPreviewUrl(null);
+      if (localPreview) URL.revokeObjectURL(localPreview);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.overflowY = "hidden";
+      }
+
       const result = await addProjectNoteAction(projectId, finalPayload);
 
       if ("error" in result) {
@@ -292,15 +322,18 @@ export default function ProjectNotes({
         setContent(trimmed);
         toast.error(result.error);
       } else {
-        setNotes((prev) => prev.map((n) => (n.id === tempId ? result.note : n)));
+        setNotes((prev) => {
+          const alreadyHasReal = prev.some((n) => n.id === result.note.id);
+          if (alreadyHasReal) {
+            return prev.filter((n) => n.id !== tempId);
+          }
+          return prev.map((n) => (n.id === tempId ? result.note : n));
+        });
         router.refresh();
       }
     } catch (err: any) {
-      setNotes((prev) => prev.filter((n) => n.id !== tempId));
-      setContent(trimmed);
       toast.error(err?.message || "Mesaj gönderilemedi.");
     } finally {
-      if (localPreview) URL.revokeObjectURL(localPreview);
       setIsSubmitting(false);
       textareaRef.current?.focus();
     }
@@ -314,7 +347,7 @@ export default function ProjectNotes({
   }
 
   return (
-    <div className="border border-gray-200/70 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col bg-white dark:bg-slate-900">
+    <div className="w-full border border-gray-200/70 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col bg-white dark:bg-slate-900">
       {/* Header */}
       <div className="flex items-center gap-2.5 px-5 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-slate-800 shrink-0">
         <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-violet-50 dark:bg-slate-800">
@@ -333,7 +366,7 @@ export default function ProjectNotes({
       {/* Expanded Message area */}
       <div
         ref={listRef}
-        className="flex-1 min-h-[380px] sm:min-h-[460px] max-h-[620px] overflow-y-auto px-4 sm:px-6 py-5 flex flex-col gap-4 bg-[#F9FAFB] dark:bg-slate-950/90"
+        className="flex-1 min-h-[420px] sm:min-h-[480px] max-h-[640px] overflow-y-auto px-4 sm:px-6 py-5 flex flex-col gap-4 bg-[#F9FAFB] dark:bg-slate-950/90"
       >
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-16 gap-2.5">
@@ -383,14 +416,25 @@ export default function ProjectNotes({
         <div className="px-4 py-2.5 bg-violet-50/70 dark:bg-slate-800/80 border-t border-violet-100 dark:border-slate-700 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {pendingPreviewUrl ? (
-              <img
-                src={pendingPreviewUrl}
-                alt={pendingFile.name}
-                className="w-11 h-11 rounded-lg object-cover border border-violet-200 dark:border-slate-600 shrink-0"
-              />
+              <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-violet-200 dark:border-slate-600 shrink-0">
+                <img
+                  src={pendingPreviewUrl}
+                  alt={pendingFile.name}
+                  className="w-full h-full object-cover"
+                />
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-10 h-10 rounded-lg bg-violet-600/10 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 text-violet-600 dark:text-violet-300 animate-spin" />
+                ) : (
+                  <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                )}
               </div>
             )}
             <div className="min-w-0">
@@ -398,17 +442,18 @@ export default function ProjectNotes({
                 {pendingFile.name}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {formatAttachmentSize(pendingFile.size)}
+                {isSubmitting ? "Yükleniyor..." : formatAttachmentSize(pendingFile.size)}
               </p>
             </div>
           </div>
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={clearAttachment}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors shrink-0 disabled:opacity-40"
             title="Eki kaldır"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 pointer-events-none" />
           </button>
         </div>
       )}
@@ -427,10 +472,10 @@ export default function ProjectNotes({
             type="button"
             disabled={isSubmitting}
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40"
+            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
             title="Dosya veya görsel ekle"
           >
-            <Paperclip className="w-4 h-4" />
+            <Paperclip className="w-4 h-4 pointer-events-none" />
           </button>
 
           <textarea
@@ -442,22 +487,22 @@ export default function ProjectNotes({
             }}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="Bir mesaj yazın veya Ctrl+V ile ekran görüntüsü yapıştırın… (Enter ile gönder, Shift+Enter alt satır)"
+            placeholder="Bir şeyler yazın..."
             rows={1}
             maxLength={100000}
             disabled={isSubmitting}
-            className="flex-1 min-h-[44px] max-h-[150px] resize-none px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500 outline-none transition-all leading-relaxed focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/15 disabled:opacity-50 overflow-y-auto"
+            className="flex-1 min-h-[44px] max-h-[150px] resize-none px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500 outline-none transition-all leading-relaxed focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/15 disabled:opacity-50 overflow-hidden"
           />
 
           <button
             type="submit"
             disabled={isSubmitting || (!content.trim() && !pendingFile)}
-            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-[#7C3AFF] hover:bg-[#6D28D9] text-white shadow-sm active:scale-95 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-[#7C3AFF] hover:bg-[#6D28D9] text-white shadow-sm active:scale-95 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin pointer-events-none" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 pointer-events-none" />
             )}
           </button>
         </form>
@@ -478,22 +523,20 @@ export default function ProjectNotes({
                 {lightboxImage.name}
               </span>
               <div className="flex items-center gap-2">
-                <a
-                  href={lightboxImage.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={lightboxImage.name}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                <button
+                  type="button"
+                  onClick={() => downloadAttachment(lightboxImage.url, lightboxImage.name)}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                   title="İndir"
                 >
-                  <Download className="w-4 h-4" />
-                </a>
+                  <Download className="w-4 h-4 pointer-events-none" />
+                </button>
                 <button
                   type="button"
                   onClick={() => setLightboxImage(null)}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4 pointer-events-none" />
                 </button>
               </div>
             </div>

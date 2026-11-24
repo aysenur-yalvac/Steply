@@ -115,3 +115,36 @@ export function parseContentWithAttachment(
   const text = content.replace(ATTACHMENT_REGEX, "").trim();
   return { text, attachment };
 }
+
+export async function downloadAttachment(
+  url: string,
+  fileName: string
+): Promise<void> {
+  if (!url || typeof window === "undefined") return;
+  const safeFileName = fileName || "dosya";
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Dosya indirilemedi.");
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = safeFileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+  } catch {
+    const separator = url.includes("?") ? "&" : "?";
+    const downloadUrl = `${url}${separator}download=${encodeURIComponent(safeFileName)}`;
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = safeFileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}

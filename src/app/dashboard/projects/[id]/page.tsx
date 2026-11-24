@@ -230,10 +230,8 @@ export default async function ProjectDetailPage({
           canEdit={isTeamMember}
         />
 
-                <div className="flex flex-col xl:flex-row gap-8">
-          {/* Left Content (Tabs) */}
-          <div className="flex-1 min-w-0">
-            <ProjectTabsWrapper
+        <div className="w-full">
+          <ProjectTabsWrapper
               showNotesTab={isTeamMember || isTeacher}
               hasNotes={projectNotes.length > 0 || reviews.length > 0}
               projectId={project.id}
@@ -242,6 +240,36 @@ export default async function ProjectDetailPage({
               reviews={reviews}
               initialTasks={projectTasks}
               teamMembers={activeMembersWithOwner}
+              rightSidebarContent={
+                <>
+                  <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Proje Durumu</h3>
+                    <div className="mb-4">
+                      {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"> Tamamlandı</span>}
+                      {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60"> İncelemede</span>}
+                      {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/60"> Devam Ediyor</span>}
+                      {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80"> Yapılacaklar</span>}
+                    </div>
+                    
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">İlerleme Durumu</h4>
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">% {project.progress_percentage}</span>
+                    </div>
+                    <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
+
+                    {isOwner && !isCompleted && <CompleteProjectButton projectId={projectId} isCompletedInitial={isCompleted} />}
+                    {isCompleted && (
+                      <div className="mt-4 flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-semibold p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 shadow-sm w-full">
+                        <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Proje Tamamlandı
+                      </div>
+                    )}
+                  </div>
+                  
+                  {isTeamMember && (
+                    <ActivityTimeline activities={activities} />
+                  )}
+                </>
+              }
                 overviewContent={
                 <div className="flex flex-col gap-8">
                   <ProjectEditableContent
@@ -365,38 +393,6 @@ export default async function ProjectDetailPage({
                 </div>
               }
             />
-          </div>
-
-          {/* Right Sidebar (Status & Actions) */}
-          <div className="w-full xl:w-[320px] shrink-0 flex flex-col gap-6">
-            <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Proje Durumu</h3>
-              <div className="mb-4">
-                {projectStatus === 'completed' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"> Tamamlandı</span>}
-                {projectStatus === 'in_review' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60"> İncelemede</span>}
-                {projectStatus === 'in_progress' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/60"> Devam Ediyor</span>}
-                {projectStatus === 'todo' && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80"> Yapılacaklar</span>}
-              </div>
-              
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">İlerleme Durumu</h4>
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-2xl font-black text-slate-800 dark:text-slate-200">% {project.progress_percentage}</span>
-              </div>
-              <AnimatedProgressBar progress={project.progress_percentage} isCompleted={isCompleted} className="h-3" />
-
-              {isOwner && !isCompleted && <CompleteProjectButton projectId={projectId} isCompletedInitial={isCompleted} />}
-              {isCompleted && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-semibold p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 shadow-sm w-full">
-                  <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Proje Tamamlandı
-                </div>
-              )}
-            </div>
-            
-            {/* Activity Stream moved to right sidebar */}
-            {isTeamMember && (
-              <ActivityTimeline activities={activities} />
-            )}
-          </div>
         </div>
 
         <div className="w-full col-span-full">

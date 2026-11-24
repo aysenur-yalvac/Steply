@@ -29,11 +29,16 @@ interface MessagesClientProps {
 export default function MessagesClient({ currentUser, selectedUser, recentConversations }: MessagesClientProps) {
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>(recentConversations);
+  const [activeUser, setActiveUser] = useState<CurrentUser | null>(selectedUser);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    setActiveUser(selectedUser);
+  }, [selectedUser]);
 
   // 250ms debounced user search with trim
   useEffect(() => {
@@ -78,17 +83,18 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     return count.toString();
   };
 
-  const handleSelectUser = (user: UserSearchResult) => {
+  const handleSelectUser = (user: CurrentUser) => {
+    setActiveUser(user);
     router.push(`/dashboard/messages?userId=${user.id}`);
   };
 
   useEffect(() => {
     // If a conversation is selected, mark it as read optimistically and in the DB
-    if (selectedUser) {
+    if (activeUser) {
       setConversations((prev) => {
         let chatMarkedAsRead = false;
         const next = prev.map((c) => {
-          if (c.other_user.id === selectedUser.id && c.unread_count > 0) {
+          if (c.other_user.id === activeUser.id && c.unread_count > 0) {
             chatMarkedAsRead = true;
             return { ...c, unread_count: 0 };
           }
@@ -103,9 +109,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         return next;
       });
 
-      // Let the ChatWindow or this handle the DB read, ChatWindow actually calls markMessagesAsReadAction
-      // But we can just be sure and call it here.
-      markMessagesAsReadAction(selectedUser.id).then((res) => {
+      markMessagesAsReadAction(activeUser.id).then((res) => {
         if (res.success) {
            router.refresh();
            if (typeof window !== "undefined") {
@@ -114,7 +118,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         }
       });
     }
-  }, [selectedUser, router]);
+  }, [activeUser, router]);
 
   useEffect(() => {
     // Subscribe to new incoming messages
@@ -136,7 +140,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
             const existingConvIdx = prev.findIndex(c => c.other_user.id === senderId);
             
             // If the chat is currently open, it is instantly read.
-            const isOpen = selectedUser?.id === senderId;
+            const isOpen = activeUser?.id === senderId;
 
             if (existingConvIdx !== -1) {
               const updatedConv = { ...prev[existingConvIdx] };
@@ -169,14 +173,14 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser.id, selectedUser, router, supabase]);
+  }, [currentUser.id, activeUser, router, supabase]);
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
       <div className="h-[calc(100dvh-6.5rem)] sm:h-[calc(100vh-8.5rem)] min-h-[460px] w-full max-w-7xl mx-auto flex flex-col md:flex-row rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg overflow-hidden text-slate-900 dark:text-slate-100">
         
         {/* Left Sidebar: Contact List */}
-        <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 flex flex-col h-full min-h-0 ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-80 border-r border-slate-200 dark:border-slate-800 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950 flex flex-col h-full min-h-0 ${activeUser ? 'hidden md:flex' : 'flex'}`}>
           <div className="shrink-0 p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 space-y-3 bg-white dark:bg-slate-900">
              <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
                <MessageSquare className="w-5 h-5 text-violet-600 dark:text-violet-400" /> Mesajlar
@@ -227,20 +231,27 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                   searchResults.map((u) => (
                     <button
                       key={u.id}
+                      type="button"
                       onClick={() => {
                         setSearchQuery('');
-                        router.push(`/dashboard/messages?userId=${u.id}`);
+                        handleSelectUser({
+                          id: u.id,
+                          full_name: u.full_name,
+                          avatar_url: u.avatar_url,
+                          role: u.role,
+                          institution: u.institution,
+                        });
                       }}
-                      className={`w-full text-left flex items-center gap-3.5 p-3 rounded-2xl transition-all duration-200 ${selectedUser?.id === u.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
+                      className={`w-full text-left flex items-center gap-3.5 p-3 rounded-2xl transition-all duration-200 cursor-pointer ${activeUser?.id === u.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
                     >
                       {u.avatar_url ? (
-                        <img src={u.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+                        <img src={u.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 pointer-events-none" />
                       ) : (
-                        <div className="w-11 h-11 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm">
+                        <div className="w-11 h-11 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm pointer-events-none">
                           {(u.full_name || '?').charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div className="flex flex-col overflow-hidden flex-1">
+                      <div className="flex flex-col overflow-hidden flex-1 pointer-events-none">
                         <span className="font-semibold text-sm truncate text-slate-800 dark:text-slate-100">{u.full_name}</span>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                           <span className="capitalize">{u.role === 'teacher' ? 'Öğretmen' : 'Öğrenci'}</span>
@@ -267,21 +278,30 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                   {conversations.map((conv) => (
                     <button
                       key={conv.other_user.id}
-                      onClick={() => router.push(`/dashboard/messages?userId=${conv.other_user.id}`)}
-                      className={`w-full text-left flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-200 ${selectedUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
+                      type="button"
+                      onClick={() =>
+                        handleSelectUser({
+                          id: conv.other_user.id,
+                          full_name: conv.other_user.full_name,
+                          avatar_url: conv.other_user.avatar_url,
+                          role: conv.other_user.role,
+                          institution: conv.other_user.institution,
+                        })
+                      }
+                      className={`w-full text-left flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-200 cursor-pointer ${activeUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
                     >
                       {conv.other_user.avatar_url ? (
                         <img
                           src={conv.other_user.avatar_url}
                           alt=""
-                          className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                          className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm pointer-events-none"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm shadow-sm pointer-events-none">
                           {(conv.other_user.full_name || '?').charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div className="flex flex-col overflow-hidden w-full">
+                      <div className="flex flex-col overflow-hidden w-full pointer-events-none">
                         <div className="flex justify-between items-center mb-0.5">
                           <span className="font-semibold text-sm truncate text-slate-800 dark:text-slate-100">{conv.other_user.full_name}</span>
                           {conv.last_message && (
@@ -313,8 +333,8 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                         </p>
                       </div>
                       {/* Unread Badge */}
-                      {selectedUser?.id !== conv.other_user.id && conv.unread_count > 0 && (
-                        <div className="ml-auto shrink-0 self-center bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
+                      {activeUser?.id !== conv.other_user.id && conv.unread_count > 0 && (
+                        <div className="ml-auto shrink-0 self-center bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm pointer-events-none">
                           {formatUnreadBadge(conv.unread_count)}
                         </div>
                       )}
@@ -327,9 +347,16 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         </div>
 
         {/* Right Area: Chat Window */}
-        <div className={`flex-1 min-w-0 h-full bg-white dark:bg-slate-900 ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
-          {selectedUser ? (
-            <ChatWindow currentUser={currentUser} selectedUser={selectedUser} onBack={() => router.push('/dashboard/messages')} />
+        <div className={`flex-1 min-w-0 h-full bg-white dark:bg-slate-900 ${activeUser ? 'flex' : 'hidden md:flex'}`}>
+          {activeUser ? (
+            <ChatWindow
+              currentUser={currentUser}
+              selectedUser={activeUser}
+              onBack={() => {
+                setActiveUser(null);
+                router.push('/dashboard/messages');
+              }}
+            />
           ) : (
             <EmptyState
               icon={MessageSquare}

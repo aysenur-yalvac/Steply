@@ -22,6 +22,7 @@ import { toast } from "react-hot-toast";
 import {
   ACCEPTED_CHAT_FILES,
   ChatAttachment,
+  downloadAttachment,
   encodeContentWithAttachment,
   formatAttachmentSize,
   isImageAttachment,
@@ -42,6 +43,42 @@ interface ChatWindowProps {
   currentUser: User;
   selectedUser: User;
   onBack?: () => void;
+}
+
+function ChatImageAttachment({
+  url,
+  name,
+  onClick,
+}: {
+  url: string;
+  name: string;
+  onClick: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative block rounded-xl overflow-hidden border border-white/20 hover:opacity-95 transition-opacity max-w-full cursor-pointer"
+      title="Görseli büyütmek için tıklayın"
+    >
+      {!loaded && (
+        <div className="w-56 h-36 flex items-center justify-center bg-black/15 dark:bg-white/10 animate-pulse rounded-xl">
+          <Loader2 className="w-5 h-5 animate-spin opacity-75" />
+        </div>
+      )}
+      <img
+        src={url}
+        alt={name}
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={`max-h-60 w-auto max-w-full object-contain rounded-xl bg-black/5 transition-opacity duration-200 ${
+          loaded ? "opacity-100" : "opacity-0 absolute inset-0"
+        }`}
+      />
+    </button>
+  );
 }
 
 export default function ChatWindow({
@@ -95,7 +132,7 @@ export default function ChatWindow({
     loadProjects();
 
     const channel = supabase
-      .channel("realtime:messages")
+      .channel(`realtime:messages:${currentUser.id}:${selectedUser.id}`)
       .on(
         "postgres_changes",
         {
@@ -107,7 +144,10 @@ export default function ChatWindow({
         (payload) => {
           const newMsg = payload.new as Message;
           if (newMsg.receiver_id === currentUser.id) {
-            setMessages((prev) => [...prev, newMsg]);
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
             setTimeout(scrollToBottom, 100);
           }
         }
@@ -124,7 +164,19 @@ export default function ChatWindow({
           const newMsg = payload.new as Message;
           if (newMsg.sender_id === currentUser.id) {
             setMessages((prev) => {
-              if (prev.find((m) => m.id === newMsg.id)) return prev;
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              // If an optimistic temp message with the exact same content exists, replace it in place
+              const tempIdx = prev.findIndex(
+                (m) =>
+                  String(m.id).startsWith("temp-") &&
+                  m.sender_id === newMsg.sender_id &&
+                  m.content === newMsg.content
+              );
+              if (tempIdx !== -1) {
+                const updated = [...prev];
+                updated[tempIdx] = newMsg;
+                return updated;
+              }
               return [...prev, newMsg];
             });
             setTimeout(scrollToBottom, 100);
@@ -155,7 +207,9 @@ export default function ChatWindow({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+    const nextHeight = Math.min(el.scrollHeight, 140);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > 140 ? "auto" : "hidden";
   };
 
   const attachFile = (file: File) => {
@@ -244,43 +298,12 @@ export default function ChatWindow({
     const localPreview = pendingPreviewUrl;
     const savedMention = mentionedProject;
     const metadataProjectId = savedMention ? savedMention.id : undefined;
-    const tempId = `temp-${Date.now()}`;
 
-    const optimisticAttachment: ChatAttachment | undefined = fileToUpload
-      ? {
-          url: localPreview || "#",
-          name: fileToUpload.name,
-          type: fileToUpload.type,
-          size: fileToUpload.size,
-        }
-      : undefined;
-
-    const optimisticContent = encodeContentWithAttachment(trimmed, optimisticAttachment);
-
-    const optimisticMsg: Message = {
-      id: tempId,
-      sender_id: currentUser.id,
-      receiver_id: selectedUser.id,
-      content: optimisticContent,
-      created_at: new Date().toISOString(),
-      is_read: false,
-      metadata: {
-        ...(metadataProjectId ? { mentioned_project_id: metadataProjectId } : {}),
-        ...(optimisticAttachment ? { attachment: optimisticAttachment } : {}),
-      },
-    };
-
-    setMessages((prev) => [...prev, optimisticMsg]);
-    setNewMessage("");
-    setMentionedProject(null);
-    setPendingFile(null);
-    setPendingPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-    setTimeout(scrollToBottom, 20);
     setIsSending(true);
 
     try {
+      // 1. Upload file/screenshot to Supabase Storage FIRST so we have the permanent public URL
+      // before creating the message bubble (prevents blank purple box and revoked blob URL flicker).
       let uploadedAttachment: ChatAttachment | null = null;
       if (fileToUpload) {
         uploadedAttachment = await uploadChatAttachment(
@@ -290,6 +313,34 @@ export default function ChatWindow({
       }
 
       const finalContent = encodeContentWithAttachment(trimmed, uploadedAttachment);
+      const tempId = `temp-${Date.now()}`;
+
+      const optimisticMsg: Message = {
+        id: tempId,
+        sender_id: currentUser.id,
+        receiver_id: selectedUser.id,
+        content: finalContent,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        metadata: {
+          ...(metadataProjectId ? { mentioned_project_id: metadataProjectId } : {}),
+          ...(uploadedAttachment ? { attachment: uploadedAttachment } : {}),
+        },
+      };
+
+      setMessages((prev) => [...prev, optimisticMsg]);
+      setNewMessage("");
+      setMentionedProject(null);
+      setPendingFile(null);
+      setPendingPreviewUrl(null);
+      if (localPreview) URL.revokeObjectURL(localPreview);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.overflowY = "hidden";
+      }
+      setTimeout(scrollToBottom, 20);
+
       const result = await sendMessageAction(
         selectedUser.id,
         finalContent,
@@ -298,11 +349,14 @@ export default function ChatWindow({
       );
 
       if (result.success) {
-        setMessages((prev) =>
-          prev
-            .filter((m) => m.id !== result.message.id || m.id === tempId)
-            .map((m) => (m.id === tempId ? result.message : m))
-        );
+        setMessages((prev) => {
+          const alreadyHasReal = prev.some((m) => m.id === result.message.id);
+          if (alreadyHasReal) {
+            return prev.filter((m) => m.id !== tempId);
+          }
+          return prev.map((m) => (m.id === tempId ? result.message : m));
+        });
+        setTimeout(scrollToBottom, 40);
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setNewMessage(trimmed);
@@ -310,13 +364,9 @@ export default function ChatWindow({
         toast.error("Mesaj gönderilemedi");
       }
     } catch (error: any) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setNewMessage(trimmed);
-      setMentionedProject(savedMention);
       toast.error(error?.message || "Mesaj gönderilemedi");
       console.error(error);
     } finally {
-      if (localPreview) URL.revokeObjectURL(localPreview);
       setIsSending(false);
       textareaRef.current?.focus();
     }
@@ -338,11 +388,11 @@ export default function ChatWindow({
             <button
               type="button"
               onClick={onBack}
-              className="md:hidden inline-flex items-center gap-1 min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0"
+              className="md:hidden inline-flex items-center gap-1 min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0 cursor-pointer"
               aria-label="Konuşma listesine dön"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Geri</span>
+              <ArrowLeft className="w-4 h-4 pointer-events-none" />
+              <span className="pointer-events-none">Geri</span>
             </button>
           )}
           {selectedUser.avatar_url ? (
@@ -441,39 +491,35 @@ export default function ChatWindow({
                   {attachment && (
                     <div className={text ? "mb-2.5" : ""}>
                       {isImageAttachment(attachment) ? (
-                        <button
-                          type="button"
+                        <ChatImageAttachment
+                          url={attachment.url}
+                          name={attachment.name}
                           onClick={() =>
                             setLightboxImage({
                               url: attachment.url,
                               name: attachment.name,
                             })
                           }
-                          className="block rounded-xl overflow-hidden border border-white/20 hover:opacity-95 transition-opacity max-w-full"
-                          title="Görseli büyütmek için tıklayın"
-                        >
-                          <img
-                            src={attachment.url}
-                            alt={attachment.name}
-                            className="max-h-60 w-auto max-w-full object-contain rounded-xl bg-black/5"
-                          />
-                        </button>
+                        />
                       ) : (
-                        <a
-                          href={attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download={attachment.name}
-                          className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors ${
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            downloadAttachment(attachment.url, attachment.name);
+                          }}
+                          className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors cursor-pointer ${
                             isMine
                               ? "bg-white/15 hover:bg-white/25 text-white border-white/25"
                               : "bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700"
                           }`}
+                          title="Dosyayı indir"
                         >
-                          <div className="w-9 h-9 rounded-lg bg-white/15 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-white/15 dark:bg-slate-700 flex items-center justify-center shrink-0 pointer-events-none">
                             <FileText className="w-4 h-4" />
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 pointer-events-none">
                             <p className="text-xs font-semibold truncate">
                               {attachment.name}
                             </p>
@@ -483,8 +529,8 @@ export default function ChatWindow({
                               </p>
                             ) : null}
                           </div>
-                          <Download className="w-4 h-4 shrink-0 opacity-80" />
-                        </a>
+                          <Download className="w-4 h-4 shrink-0 opacity-80 pointer-events-none" />
+                        </button>
                       )}
                     </div>
                   )}
@@ -536,14 +582,25 @@ export default function ChatWindow({
         <div className="px-4 py-2.5 bg-violet-50/80 dark:bg-zinc-800/90 border-t border-violet-100 dark:border-zinc-700 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {pendingPreviewUrl ? (
-              <img
-                src={pendingPreviewUrl}
-                alt={pendingFile.name}
-                className="w-11 h-11 rounded-lg object-cover border border-violet-200 dark:border-zinc-600 shrink-0"
-              />
+              <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-violet-200 dark:border-zinc-600 shrink-0">
+                <img
+                  src={pendingPreviewUrl}
+                  alt={pendingFile.name}
+                  className="w-full h-full object-cover"
+                />
+                {isSending && (
+                  <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-10 h-10 rounded-lg bg-violet-600/10 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 text-violet-600 dark:text-violet-300 animate-spin" />
+                ) : (
+                  <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                )}
               </div>
             )}
             <div className="min-w-0">
@@ -551,17 +608,18 @@ export default function ChatWindow({
                 {pendingFile.name}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {formatAttachmentSize(pendingFile.size)}
+                {isSending ? "Yükleniyor..." : formatAttachmentSize(pendingFile.size)}
               </p>
             </div>
           </div>
           <button
             type="button"
+            disabled={isSending}
             onClick={clearAttachment}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors shrink-0 disabled:opacity-40"
             title="Eki kaldır"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 pointer-events-none" />
           </button>
         </div>
       )}
@@ -600,10 +658,10 @@ export default function ChatWindow({
             type="button"
             disabled={isSending}
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40"
+            className="flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
             title="Dosya veya görsel ekle"
           >
-            <Paperclip className="w-4 h-4" />
+            <Paperclip className="w-4 h-4 pointer-events-none" />
           </button>
 
           <textarea
@@ -613,8 +671,9 @@ export default function ChatWindow({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             rows={1}
-            placeholder="Mesajınızı yazın, @ ile proje etiketleyin veya Ctrl+V ile ekran görüntüsü yapıştırın…"
-            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-y-auto"
+            disabled={isSending}
+            placeholder="Bir şeyler yazın..."
+            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-hidden disabled:opacity-50"
           />
 
           <button
@@ -622,14 +681,14 @@ export default function ChatWindow({
             disabled={(!newMessage.trim() && !pendingFile) || isSending}
             className={`px-4 sm:px-5 h-11 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
               (newMessage.trim() || pendingFile) && !isSending
-                ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white"
+                ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white cursor-pointer"
                 : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-600 cursor-not-allowed"
             }`}
           >
             {isSending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin pointer-events-none" />
             ) : (
-              <Send className="w-5 h-5" />
+              <Send className="w-5 h-5 pointer-events-none" />
             )}
           </button>
         </form>
@@ -650,22 +709,20 @@ export default function ChatWindow({
                 {lightboxImage.name}
               </span>
               <div className="flex items-center gap-2">
-                <a
-                  href={lightboxImage.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={lightboxImage.name}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                <button
+                  type="button"
+                  onClick={() => downloadAttachment(lightboxImage.url, lightboxImage.name)}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                   title="İndir"
                 >
-                  <Download className="w-4 h-4" />
-                </a>
+                  <Download className="w-4 h-4 pointer-events-none" />
+                </button>
                 <button
                   type="button"
                   onClick={() => setLightboxImage(null)}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4 pointer-events-none" />
                 </button>
               </div>
             </div>
