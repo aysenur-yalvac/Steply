@@ -10,6 +10,7 @@ import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
 import { Conversation, UserSearchResult, markMessagesAsReadAction, searchUsersAction } from '@/lib/social-actions';
 import { createClient } from '@/utils/supabase/client';
+import { isImageAttachment, parseContentWithAttachment } from '@/lib/chat-attachments';
 
 interface CurrentUser {
   id: string;
@@ -295,7 +296,20 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                           </p>
                         )}
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {conv.last_message?.content || "Sohbeti başlatmak için tıkla"}
+                          {(() => {
+                            if (!conv.last_message?.content) return "Sohbeti başlatmak için tıkla";
+                            const parsed = parseContentWithAttachment(
+                              conv.last_message.content,
+                              conv.last_message.metadata
+                            );
+                            if (parsed.text) return parsed.text;
+                            if (parsed.attachment) {
+                              return isImageAttachment(parsed.attachment)
+                                ? "📷 Görsel"
+                                : `📎 ${parsed.attachment.name}`;
+                            }
+                            return conv.last_message.content;
+                          })()}
                         </p>
                       </div>
                       {/* Unread Badge */}

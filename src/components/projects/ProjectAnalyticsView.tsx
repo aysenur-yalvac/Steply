@@ -24,7 +24,7 @@ import {
   CartesianGrid
 } from 'recharts';
 
-export type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null };
+export type TeamMember = { id: string; full_name: string; avatar_url: string | null; role?: string | null; status?: string | null };
 
 interface ProjectAnalyticsProps {
   tasks: ProjectTask[];
@@ -32,6 +32,8 @@ interface ProjectAnalyticsProps {
 }
 
 export default function ProjectAnalyticsView({ tasks = [], members = [] }: ProjectAnalyticsProps) {
+  // Daveti henüz kabul etmemiş (pending) kullanıcıları analizlerden tamamen hariç tut
+  const activeMembers = (members ?? []).filter((m) => m.status !== 'pending');
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const inProgressTasks = tasks.filter(t => !t.is_completed).length;
@@ -160,7 +162,7 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
       </div>
 
       {/* 3. ÜYE PERFORMANS TABLOSU */}
-      {members && members.length > 0 && (
+      {activeMembers && activeMembers.length > 0 && (
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400"/>
@@ -178,7 +180,7 @@ export default function ProjectAnalyticsView({ tasks = [], members = [] }: Proje
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {members.map(member => {
+                {activeMembers.map(member => {
                   const memberTasks = tasks.filter(t => t.assigned_to === member.id);
                   const memberCompleted = memberTasks.filter(t => t.is_completed).length;
                   const memberRate = memberTasks.length > 0 ? Math.round((memberCompleted / memberTasks.length) * 100) : 0;

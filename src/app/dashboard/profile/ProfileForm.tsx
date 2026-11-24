@@ -142,15 +142,20 @@ export default function ProfileForm({
 
       <div className="flex flex-col gap-2 relative z-0">
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
-           <Phone className="w-4 h-4 text-dusty-rose" /> Telefon Numarası
+           <Phone className="w-4 h-4 text-dusty-rose" /> Telefon Numarası <span className="text-slate-400 font-normal text-xs">(isteğe bağlı)</span>
         </label>
-        <input 
-          type="tel" 
-          name="phone_number"
-          defaultValue={profile?.phone_number || ''}
-          placeholder="+1 234 567 8900"
-          className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
-        />
+        <div className="flex items-stretch gap-2">
+          <div className="inline-flex items-center gap-1.5 px-4 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-sm font-semibold shrink-0 select-none">
+            <span>🇹🇷 +90</span>
+          </div>
+          <input 
+            type="tel" 
+            name="phone_number"
+            defaultValue={(profile?.phone_number || '').trim().replace(/^(?:\+90|90|0)\s*/, '')}
+            placeholder="555 123 45 67"
+            className="flex-1 min-w-0 px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+          />
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">

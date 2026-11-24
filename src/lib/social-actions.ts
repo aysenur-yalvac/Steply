@@ -26,6 +26,12 @@ export type Message = {
   is_read: boolean;
   metadata: {
     mentioned_project_id?: string;
+    attachment?: {
+      url: string;
+      name: string;
+      type: string;
+      size?: number;
+    };
   } | null;
   created_at: string;
 };
@@ -88,8 +94,13 @@ export async function searchUsersAction(query: string): Promise<SearchUsersResul
 /**
  * Sends a message to another user.
  */
-export async function sendMessageAction(receiverId: string, content: string, mentionedProjectId?: string) {
-  if (!receiverId || !content.trim()) {
+export async function sendMessageAction(
+  receiverId: string,
+  content: string,
+  mentionedProjectId?: string,
+  attachment?: { url: string; name: string; type: string; size?: number } | null
+) {
+  if (!receiverId || (!content.trim() && !attachment)) {
     throw new Error("Receiver ID and content are required.");
   }
 
@@ -100,7 +111,9 @@ export async function sendMessageAction(receiverId: string, content: string, men
     throw new Error("You must be logged in to send a message.");
   }
 
-  const metadata = mentionedProjectId ? { mentioned_project_id: mentionedProjectId } : {};
+  const metadata: Record<string, any> = {};
+  if (mentionedProjectId) metadata.mentioned_project_id = mentionedProjectId;
+  if (attachment) metadata.attachment = attachment;
 
   const { data, error } = await supabase
     .from("messages")

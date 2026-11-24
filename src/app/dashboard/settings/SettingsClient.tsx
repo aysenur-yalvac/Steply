@@ -225,7 +225,11 @@ export default function SettingsClient({
   const [schoolNumber, setSchoolNumber]   = useState(initialSchoolNumber || '');
   const [schoolEmail, setSchoolEmail]     = useState(initialSchoolEmail || '');
   const [schoolEmailError, setSchoolEmailError] = useState<string | null>(null);
-  const [phoneNumber, setPhoneNumber]     = useState(initialPhoneNumber || '');
+  const [phoneNumber, setPhoneNumber]     = useState(() => {
+    const raw = (initialPhoneNumber || '').trim();
+    if (!raw) return '';
+    return raw.replace(/^(?:\+90|90|0)\s*/, '');
+  });
   const [linkedinUrl, setLinkedinUrl]     = useState(initialLinkedinUrl);
   const [pendingFile, setPendingFile]     = useState<File | null>(null);
   const [previewUrl, setPreviewUrl]       = useState<string | null>(null);
@@ -320,6 +324,9 @@ export default function SettingsClient({
         toast.success("Profil fotoğrafı güncellendi.");
       }
 
+      const cleanedPhone = phoneNumber.trim().replace(/^(?:\+90|90|0)\s*/, '').trim();
+      const formattedPhone = cleanedPhone ? `+90 ${cleanedPhone}` : '';
+
       const formData = new FormData();
       formData.set("full_name", fullName);
       formData.set("bio", bio);
@@ -337,7 +344,7 @@ export default function SettingsClient({
       formData.set("grade", role === 'student' ? grade : '');
       formData.set("school_number", role === 'student' ? schoolNumber : '');
       formData.set("school_email", schoolEmail);
-      formData.set("phone_number", phoneNumber);
+      formData.set("phone_number", formattedPhone);
       const result = await updateProfileAction(formData);
       if ("error" in result) {
         toast.error(result.error || "Profil kaydedilemedi.");
@@ -875,21 +882,29 @@ export default function SettingsClient({
                       )}
                     </div>
 
-                    {/* Phone — optional */}
+                    {/* Phone — optional with fixed +90 prefix */}
                     <div className="space-y-1.5">
                       <label htmlFor="s-phone" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         Telefon Numarası <span className="text-slate-400 font-normal text-xs">(isteğe bağlı)</span>
                       </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          id="s-phone"
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          placeholder="+90 555 123 45 67"
-                          className={`${inputCls} pl-9`}
-                        />
+                      <div className="flex items-stretch gap-2">
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-sm font-semibold shrink-0 select-none">
+                          <span>🇹🇷 +90</span>
+                        </div>
+                        <div className="relative flex-1 min-w-0">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            id="s-phone"
+                            type="tel"
+                            value={phoneNumber}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/^(?:\+90|90|0)\s*/, '');
+                              setPhoneNumber(val);
+                            }}
+                            placeholder="555 123 45 67"
+                            className={`${inputCls} pl-9`}
+                          />
+                        </div>
                       </div>
                     </div>
 

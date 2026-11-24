@@ -147,6 +147,19 @@ export default async function ProjectDetailPage({
   const teamMembers = isOwner ? allTeamMembers : acceptedTeamMembers;
   const isCollaborator = isAcceptedCollaborator;
 
+  // Yalnızca proje sahibi ve daveti kabul etmiş aktif üyeler (Analizler ve Görev Atama için)
+  const ownerMemberObj: TeamMember = {
+    id: ownerUserId,
+    full_name: ownerName ?? 'Proje Sahibi',
+    avatar_url: ownerAvatarUrl,
+    role: 'owner',
+    status: 'accepted',
+  };
+  const activeMembersWithOwner: TeamMember[] = [
+    ownerMemberObj,
+    ...acceptedTeamMembers.filter((m) => m.id !== ownerUserId),
+  ];
+
   // ── Reviews ───────────────────────────────────────────────────────────────────
   type Review = {
     id: string;
@@ -228,7 +241,7 @@ export default async function ProjectDetailPage({
               projectNotes={projectNotes}
               reviews={reviews}
               initialTasks={projectTasks}
-              teamMembers={teamMembers}
+              teamMembers={activeMembersWithOwner}
                 overviewContent={
                 <div className="flex flex-col gap-8">
                   <ProjectEditableContent
@@ -260,7 +273,7 @@ export default async function ProjectDetailPage({
                         projectId={project.id}
                         initialTasks={projectTasks}
                         canEdit={isTeamMember}
-                        teamMembers={teamMembers}
+                        teamMembers={acceptedTeamMembers}
                         currentUserId={user.id}
                         projectOwnerId={ownerUserId}
                         projectOwnerName={ownerName}

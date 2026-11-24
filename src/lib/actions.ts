@@ -315,7 +315,9 @@ export async function updateProfileAction(formData: FormData) {
   if (authError || !user) return { error: "Unauthorized" };
 
   const full_name = formData.get('full_name') as string;
-  const phone_number = formData.get('phone_number') as string;
+  const raw_phone = ((formData.get('phone_number') as string | null) ?? '').trim();
+  const stripped_phone = raw_phone.replace(/^(?:\+90|90|0)\s*/, '').trim();
+  const phone_number = stripped_phone ? `+90 ${stripped_phone}` : null;
   const bio = formData.get('bio') as string;
   const company = formData.get('company') as string;
   const country = formData.get('country') as string;
@@ -809,6 +811,30 @@ async function notifyAndMessageTaskAssignee(
   }
 }
 
+async function isApprovedProjectAssignee(
+  admin: ReturnType<typeof createAdminClient>,
+  projectId: string,
+  assigneeId: string,
+): Promise<boolean> {
+  if (!assigneeId) return true;
+  const { data: project } = await admin
+    .from('projects')
+    .select('student_id')
+    .eq('id', projectId)
+    .maybeSingle();
+  if (project?.student_id === assigneeId) return true;
+
+  const { data: member } = await admin
+    .from('project_members')
+    .select('user_id, status')
+    .eq('project_id', projectId)
+    .eq('user_id', assigneeId)
+    .maybeSingle();
+
+  if (!member) return false;
+  return (member as any).status !== 'pending';
+}
+
 export async function addProjectTask(
   projectId: string,
   title: string,
@@ -817,6 +843,13 @@ export async function addProjectTask(
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
+
+  if (assignedTo) {
+    const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, assignedTo);
+    if (!canAssign) {
+      return { error: 'Yalnızca proje sahibine veya daveti kabul etmiş aktif ekip üyelerine görev atanabilir.' };
+    }
+  }
   const cleanTitle = title.trim();
   const insertPayload: Record<string, unknown> = {
     project_id: projectId,
@@ -979,15 +1012,18 @@ export async function addProjectNoteAction(
   // Notify all other team members (fire-and-forget)
   try {
     const senderName = profile?.full_name ?? 'Bir üye';
+    const previewBody = trimmed.replace(/\[\[ATTACHMENT:\{[\s\S]*?\}\]\]/g, '').trim() || '📎 Bir dosya/görsel paylaştı';
 
     const [projectRow, memberRows] = await Promise.all([
       ctx.admin.from("projects").select('title, student_id').eq('id', projectId).single(),
-      ctx.admin.from('project_members').select('student_id').eq('project_id', projectId),
+      ctx.admin.from('project_members').select('user_id, status').eq('project_id', projectId),
     ]);
 
     const projectTitle = projectRow.data?.title ?? 'proje';
     const ownerId: string = projectRow.data?.student_id ?? '';
-    const memberIds: string[] = (memberRows.data ?? []).map((r: any) => r.user_id as string);
+    const memberIds: string[] = (memberRows.data ?? [])
+      .filter((r: any) => r.status !== 'pending')
+      .map((r: any) => r.user_id as string);
 
     const recipients = [...new Set([ownerId, ...memberIds])].filter(
       (uid) => uid && uid !== ctx.user.id,
@@ -999,7 +1035,7 @@ export async function addProjectNoteAction(
           uid,
           'message',
           `${senderName}, ${projectTitle} projesinde yeni bir mesaj paylaştı.`,
-          trimmed.slice(0, 120),
+          previewBody.slice(0, 120),
           projectId,
         ),
       ),
@@ -2453,7 +2489,15 @@ export async function updateTaskAction(
   if (updates.description !== undefined) safeUpdates.description = updates.description;
   if (updates.is_completed !== undefined) safeUpdates.is_completed = updates.is_completed;
   if (updates.due_date !== undefined) safeUpdates.due_date = updates.due_date;
-  if (updates.assigned_to !== undefined) safeUpdates.assigned_to = updates.assigned_to;
+  if (updates.assigned_to !== undefined) {
+    if (updates.assigned_to) {
+      const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, updates.assigned_to);
+      if (!canAssign) {
+        return { error: 'Yalnızca proje sahibine veya daveti kabul etmiş aktif ekip üyelerine görev atanabilir.' };
+      }
+    }
+    safeUpdates.assigned_to = updates.assigned_to;
+  }
   if (updates.subtasks !== undefined) safeUpdates.subtasks = updates.subtasks;
 
   const { data: existingTask } = await ctx.admin.from('project_tasks').select('*').eq('id', taskId).single();

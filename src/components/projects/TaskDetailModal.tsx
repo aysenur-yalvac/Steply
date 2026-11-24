@@ -99,9 +99,9 @@ export default function TaskDetailModal({
 
   const completedCount = subtasks.filter(s => s.is_completed).length;
 
-  // Exclude teachers from assignable list — only students and project owner can be assigned
+  // Exclude teachers and pending (unaccepted) members from assignable list — only accepted students and project owner can be assigned
   let assignableMembers = teamMembers.filter(
-    (m) => m.role !== "teacher" && m.role !== "ogretmen"
+    (m) => m.status !== "pending" && m.role !== "teacher" && m.role !== "ogretmen"
   );
 
   // Guarantee the project owner is always in the list even if not in teamMembers

@@ -377,7 +377,7 @@ function NavContent({
                 <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Yükleniyor...</div>
               )}
               {!isLoadingAccounts && accounts.length === 0 && (
-                <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Bağlı hesap yok</div>
+                <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Başka hesap bağlanılmamış</div>
               )}
               {accounts.map(acc => (
                 <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:bg-slate-950 group">

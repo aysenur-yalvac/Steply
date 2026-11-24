@@ -172,7 +172,12 @@ export default function ProjectTaskList({
         )}
         {tasks.map((task) => {
           const isAssignedToMe = !!currentUserId && task.assigned_to === currentUserId;
-          const assignedUser = teamMembers.find((m) => m.id === task.assigned_to);
+          const acceptedMembersOnly = teamMembers.filter((m) => m.status !== "pending");
+          const assignedUser =
+            acceptedMembersOnly.find((m) => m.id === task.assigned_to) ??
+            (task.assigned_to && task.assigned_to === projectOwnerId
+              ? { id: projectOwnerId, full_name: projectOwnerName || "Proje Sahibi", avatar_url: null }
+              : undefined);
           const completedSubtasks = task.subtasks?.filter(st => st.is_completed).length ?? 0;
           const totalSubtasks = task.subtasks?.length ?? 0;
           // String-based comparison — avoids all timezone/time-of-day drift issues

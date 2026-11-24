@@ -1,11 +1,33 @@
 ﻿"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, FolderRoot, ArrowLeft } from 'lucide-react';
-import { getMessagesAction, sendMessageAction, getUserProjectsAction, markMessagesAsReadAction, Message } from '@/lib/social-actions';
-import { createClient } from '@/utils/supabase/client';
-import { toast } from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Send,
+  Loader2,
+  FolderRoot,
+  ArrowLeft,
+  Paperclip,
+  FileText,
+  Download,
+  X,
+} from "lucide-react";
+import {
+  getMessagesAction,
+  sendMessageAction,
+  getUserProjectsAction,
+  Message,
+} from "@/lib/social-actions";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "react-hot-toast";
+import {
+  ACCEPTED_CHAT_FILES,
+  ChatAttachment,
+  encodeContentWithAttachment,
+  formatAttachmentSize,
+  isImageAttachment,
+  parseContentWithAttachment,
+  uploadChatAttachment,
+} from "@/lib/chat-attachments";
 
 interface User {
   id: string;
@@ -22,12 +44,22 @@ interface ChatWindowProps {
   onBack?: () => void;
 }
 
-export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWindowProps) {
+export default function ChatWindow({
+  currentUser,
+  selectedUser,
+  onBack,
+}: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Mention State
   const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
@@ -35,10 +67,8 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
   const [mentionedProject, setMentionedProject] = useState<{ id: string; title: string } | null>(null);
 
   const supabase = createClient();
-  const router = useRouter();
 
   useEffect(() => {
-    // Load initial messages
     const loadMessages = async () => {
       setIsLoading(true);
       try {
@@ -54,7 +84,6 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
 
     loadMessages();
 
-    // Load user projects for mentions
     const loadProjects = async () => {
       try {
         const data = await getUserProjectsAction();
@@ -65,16 +94,15 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
     };
     loadProjects();
 
-    // Subscribe to real-time updates
     const channel = supabase
-      .channel('realtime:messages')
+      .channel("realtime:messages")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `sender_id=eq.${selectedUser.id}`, 
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `sender_id=eq.${selectedUser.id}`,
         },
         (payload) => {
           const newMsg = payload.new as Message;
@@ -85,20 +113,18 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${selectedUser.id}`, 
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${selectedUser.id}`,
         },
         (payload) => {
           const newMsg = payload.new as Message;
           if (newMsg.sender_id === currentUser.id) {
-            // Already added optimistically, or can let realtime add it
-            // To avoid duplicates, check if it exists (but usually we optimistic update)
             setMessages((prev) => {
-              if (prev.find(m => m.id === newMsg.id)) return prev;
+              if (prev.find((m) => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
             setTimeout(scrollToBottom, 100);
@@ -112,6 +138,12 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
     };
   }, [selectedUser.id, currentUser.id, supabase]);
 
+  useEffect(() => {
+    return () => {
+      if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+    };
+  }, [pendingPreviewUrl]);
+
   const scrollToBottom = () => {
     if (messagesEndRef.current && messagesEndRef.current.parentElement) {
       const container = messagesEndRef.current.parentElement;
@@ -119,13 +151,68 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const adjustTextareaHeight = () => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+  };
+
+  const attachFile = (file: File) => {
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Dosya boyutu 50 MB'ı geçemez.");
+      return;
+    }
+    if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+    setPendingFile(file);
+    if (file.type.startsWith("image/")) {
+      setPendingPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPendingPreviewUrl(null);
+    }
+  };
+
+  const clearAttachment = () => {
+    if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    attachFile(file);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith("image/")) {
+        const blob = item.getAsFile();
+        if (blob) {
+          e.preventDefault();
+          const ext = blob.type.split("/")[1] || "png";
+          const namedFile = new File([blob], `ekran-goruntusu-${Date.now()}.${ext}`, {
+            type: blob.type,
+          });
+          attachFile(namedFile);
+          toast.success("Ekran görüntüsü eklendi.");
+          break;
+        }
+      }
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setNewMessage(val);
+    adjustTextareaHeight();
 
-    // Naive mention detect
-    const lastWord = val.split(' ').pop();
-    if (lastWord?.startsWith('@')) {
+    const lastWord = val.split(" ").pop();
+    if (lastWord?.startsWith("@")) {
       setShowMentionMenu(true);
     } else {
       setShowMentionMenu(false);
@@ -133,42 +220,83 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
   };
 
   const selectMention = (project: { id: string; title: string }) => {
-    const words = newMessage.split(' ');
-    words.pop(); // remove the @ query
-    const textWithoutQuery = words.join(' ');
-    
-    setNewMessage(textWithoutQuery + (textWithoutQuery ? ' ' : '') + `@${project.title} `);
+    const words = newMessage.split(" ");
+    words.pop();
+    const textWithoutQuery = words.join(" ");
+
+    setNewMessage(
+      textWithoutQuery + (textWithoutQuery ? " " : "") + `@${project.title} `
+    );
     setMentionedProject(project);
     setShowMentionMenu(false);
+    setTimeout(() => {
+      adjustTextareaHeight();
+      textareaRef.current?.focus();
+    }, 10);
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const trimmed = newMessage.trim();
+    if ((!trimmed && !pendingFile) || isSending) return;
 
-    const content = newMessage.trim();
+    const fileToUpload = pendingFile;
+    const localPreview = pendingPreviewUrl;
     const savedMention = mentionedProject;
     const metadataProjectId = savedMention ? savedMention.id : undefined;
     const tempId = `temp-${Date.now()}`;
+
+    const optimisticAttachment: ChatAttachment | undefined = fileToUpload
+      ? {
+          url: localPreview || "#",
+          name: fileToUpload.name,
+          type: fileToUpload.type,
+          size: fileToUpload.size,
+        }
+      : undefined;
+
+    const optimisticContent = encodeContentWithAttachment(trimmed, optimisticAttachment);
+
     const optimisticMsg: Message = {
       id: tempId,
       sender_id: currentUser.id,
       receiver_id: selectedUser.id,
-      content,
+      content: optimisticContent,
       created_at: new Date().toISOString(),
       is_read: false,
-      metadata: metadataProjectId ? { mentioned_project_id: metadataProjectId } : null,
+      metadata: {
+        ...(metadataProjectId ? { mentioned_project_id: metadataProjectId } : {}),
+        ...(optimisticAttachment ? { attachment: optimisticAttachment } : {}),
+      },
     };
 
-    // Optimistic update immediately before awaiting server action
     setMessages((prev) => [...prev, optimisticMsg]);
     setNewMessage("");
     setMentionedProject(null);
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setTimeout(scrollToBottom, 20);
     setIsSending(true);
 
     try {
-      const result = await sendMessageAction(selectedUser.id, content, metadataProjectId);
+      let uploadedAttachment: ChatAttachment | null = null;
+      if (fileToUpload) {
+        uploadedAttachment = await uploadChatAttachment(
+          fileToUpload,
+          `dm-${currentUser.id}`
+        );
+      }
+
+      const finalContent = encodeContentWithAttachment(trimmed, uploadedAttachment);
+      const result = await sendMessageAction(
+        selectedUser.id,
+        finalContent,
+        metadataProjectId,
+        uploadedAttachment
+      );
+
       if (result.success) {
         setMessages((prev) =>
           prev
@@ -177,18 +305,27 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
         );
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        setNewMessage(content);
+        setNewMessage(trimmed);
         setMentionedProject(savedMention);
         toast.error("Mesaj gönderilemedi");
       }
-    } catch (error) {
+    } catch (error: any) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setNewMessage(content);
+      setNewMessage(trimmed);
       setMentionedProject(savedMention);
-      toast.error("Mesaj gönderilemedi");
+      toast.error(error?.message || "Mesaj gönderilemedi");
       console.error(error);
     } finally {
+      if (localPreview) URL.revokeObjectURL(localPreview);
       setIsSending(false);
+      textareaRef.current?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -216,7 +353,7 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-violet-700 dark:text-violet-300 font-bold text-sm shadow-sm">
-              {(selectedUser.full_name || '?').charAt(0).toUpperCase()}
+              {(selectedUser.full_name || "?").charAt(0).toUpperCase()}
             </div>
           )}
           <div className="min-w-0">
@@ -224,7 +361,9 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
               {selectedUser.full_name}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-              {selectedUser.institution || selectedUser.university || (selectedUser.role === 'teacher' ? 'Öğretmen' : 'Öğrenci')}
+              {selectedUser.institution ||
+                selectedUser.university ||
+                (selectedUser.role === "teacher" ? "Öğretmen" : "Öğrenci")}
             </p>
           </div>
         </div>
@@ -233,7 +372,8 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
           href={`/user/${selectedUser.id}`}
           className="inline-flex items-center gap-1 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors shrink-0"
         >
-          <span className="hidden xs:inline sm:inline">Profili Gör</span><span className="sm:hidden">Profil</span> →
+          <span className="hidden xs:inline sm:inline">Profili Gör</span>
+          <span className="sm:hidden">Profil</span> →
         </a>
       </div>
 
@@ -245,19 +385,30 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 dark:text-slate-400 space-y-3">
-             <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200/60 flex flex-col items-center justify-center shadow-inner">
-               <Send className="w-8 h-8 text-slate-400" />
-             </div>
-             <p className="max-w-xs text-sm font-medium !text-slate-900 dark:text-slate-100">Henüz mesaj yok. Sohbeti başlatmak için bir merhaba deyin!</p>
+            <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200/60 flex flex-col items-center justify-center shadow-inner">
+              <Send className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="max-w-xs text-sm font-medium !text-slate-900 dark:text-slate-100">
+              Henüz mesaj yok. Sohbeti başlatmak için bir merhaba deyin!
+            </p>
           </div>
         ) : (
           messages.map((msg, index) => {
             const isMine = msg.sender_id === currentUser.id;
-            // Group messages if they are from the same person (simple check)
-            const isLastFromSame = index > 0 && messages[index - 1].sender_id === msg.sender_id;
-            
+            const isLastFromSame =
+              index > 0 && messages[index - 1].sender_id === msg.sender_id;
+            const { text, attachment } = parseContentWithAttachment(
+              msg.content,
+              msg.metadata
+            );
+
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isLastFromSame ? 'mt-1' : 'mt-5'}`}>
+              <div
+                key={msg.id}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} ${
+                  isLastFromSame ? "mt-1" : "mt-5"
+                }`}
+              >
                 {!isMine && (
                   <div className="shrink-0 mr-2.5 mt-0.5">
                     {selectedUser.avatar_url ? (
@@ -268,40 +419,109 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
                       />
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-violet-100 dark:bg-slate-800 border border-violet-200 dark:border-slate-700 flex items-center justify-center text-violet-700 dark:text-violet-300 font-bold text-xs shadow-sm">
-                        {(selectedUser.full_name || '?').charAt(0).toUpperCase()}
+                        {(selectedUser.full_name || "?").charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                 )}
-                <div 
-                  className={`max-w-[75%] md:max-w-[70%] px-5 py-3 shadow-sm ${
-                    isMine 
-                      ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30' 
-                      : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm'
+                <div
+                  className={`max-w-[78%] md:max-w-[72%] px-4 sm:px-5 py-3 shadow-sm overflow-hidden ${
+                    isMine
+                      ? "bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30"
+                      : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm"
                   }`}
+                  style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
                 >
                   {!isMine && !isLastFromSame && (
                     <p className="text-[11px] font-bold text-violet-600 dark:text-violet-400 mb-1">
                       {selectedUser.full_name}
                     </p>
                   )}
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.content}</p>
-                  
+
+                  {attachment && (
+                    <div className={text ? "mb-2.5" : ""}>
+                      {isImageAttachment(attachment) ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setLightboxImage({
+                              url: attachment.url,
+                              name: attachment.name,
+                            })
+                          }
+                          className="block rounded-xl overflow-hidden border border-white/20 hover:opacity-95 transition-opacity max-w-full"
+                          title="Görseli büyütmek için tıklayın"
+                        >
+                          <img
+                            src={attachment.url}
+                            alt={attachment.name}
+                            className="max-h-60 w-auto max-w-full object-contain rounded-xl bg-black/5"
+                          />
+                        </button>
+                      ) : (
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={attachment.name}
+                          className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors ${
+                            isMine
+                              ? "bg-white/15 hover:bg-white/25 text-white border-white/25"
+                              : "bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700"
+                          }`}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/15 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold truncate">
+                              {attachment.name}
+                            </p>
+                            {attachment.size ? (
+                              <p className="text-[10px] opacity-75">
+                                {formatAttachmentSize(attachment.size)}
+                              </p>
+                            ) : null}
+                          </div>
+                          <Download className="w-4 h-4 shrink-0 opacity-80" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {text && (
+                    <p
+                      className="whitespace-pre-wrap break-words leading-relaxed text-sm"
+                      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                    >
+                      {text}
+                    </p>
+                  )}
+
                   {msg.metadata?.mentioned_project_id && (
-                    <a 
+                    <a
                       href={`/dashboard/projects/${msg.metadata.mentioned_project_id}`}
                       className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
-                        isMine 
-                          ? 'bg-white/20 hover:bg-white/30 text-white border-white/20' 
-                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60'
+                        isMine
+                          ? "bg-white/20 hover:bg-white/30 text-white border-white/20"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60"
                       }`}
                     >
                       <FolderRoot className="w-3.5 h-3.5" /> Projeyi Gör
                     </a>
                   )}
-                  
-                  <div className={`text-[10px] mt-2 font-medium ${isMine ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'} text-right tracking-wide`}>
-                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                  <div
+                    className={`text-[10px] mt-2 font-medium ${
+                      isMine
+                        ? "text-indigo-200"
+                        : "text-slate-500 dark:text-slate-400"
+                    } text-right tracking-wide`}
+                  >
+                    {new Date(msg.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </div>
                 </div>
               </div>
@@ -311,6 +531,41 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
+      {/* Attachment Preview Bar */}
+      {pendingFile && (
+        <div className="px-4 py-2.5 bg-violet-50/80 dark:bg-zinc-800/90 border-t border-violet-100 dark:border-zinc-700 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {pendingPreviewUrl ? (
+              <img
+                src={pendingPreviewUrl}
+                alt={pendingFile.name}
+                className="w-11 h-11 rounded-lg object-cover border border-violet-200 dark:border-zinc-600 shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-violet-600/10 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
+                {pendingFile.name}
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {formatAttachmentSize(pendingFile.size)}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={clearAttachment}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors shrink-0"
+            title="Eki kaldır"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative z-20 shrink-0">
         {showMentionMenu && projects.length > 0 && (
@@ -319,9 +574,9 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
               Bir projeden bahset
             </div>
             <ul className="max-h-48 overflow-y-auto custom-scrollbar p-1">
-              {projects.map(p => (
-                <li 
-                  key={p.id} 
+              {projects.map((p) => (
+                <li
+                  key={p.id}
                   className="px-4 py-3 hover:bg-sage-green/5 rounded-xl cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-300 transition-all hover:pl-5 border border-transparent hover:border-sage-green/10 m-1 flex items-center"
                   onClick={() => selectMention(p)}
                 >
@@ -333,32 +588,95 @@ export default function ChatWindow({ currentUser, selectedUser, onBack }: ChatWi
           </div>
         )}
 
-        <form onSubmit={handleSend} className="flex gap-3">
+        <form onSubmit={handleSend} className="flex items-end gap-2 sm:gap-3">
           <input
-            type="text"
-            value={newMessage}
-            onChange={handleInputChange}
-            placeholder="Mesajınızı yazın... (Projeyi etiketlemek için @ kullanın)"
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500"
-            autoComplete="off"
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_CHAT_FILES}
+            onChange={handleFileInputChange}
+            className="hidden"
           />
           <button
+            type="button"
+            disabled={isSending}
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40"
+            title="Dosya veya görsel ekle"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+
+          <textarea
+            ref={textareaRef}
+            value={newMessage}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            rows={1}
+            placeholder="Mesajınızı yazın, @ ile proje etiketleyin veya Ctrl+V ile ekran görüntüsü yapıştırın…"
+            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-y-auto"
+          />
+
+          <button
             type="submit"
-            disabled={!newMessage.trim() || isSending}
-            className={`px-5 py-3.5 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
-              newMessage.trim() && !isSending
-                ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white'
-                : 'bg-slate-200 text-slate-500 border border-slate-300/70 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 cursor-not-allowed'
+            disabled={(!newMessage.trim() && !pendingFile) || isSending}
+            className={`px-4 sm:px-5 h-11 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
+              (newMessage.trim() || pendingFile) && !isSending
+                ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white"
+                : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-600 cursor-not-allowed"
             }`}
           >
             {isSending ? (
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <Send className={`w-4 h-4 ${newMessage.trim() ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+              <Send className="w-5 h-5" />
             )}
           </button>
         </form>
       </div>
+
+      {/* Image Lightbox Modal */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between w-full mb-2 px-1 text-white">
+              <span className="text-xs font-medium truncate max-w-md">
+                {lightboxImage.name}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={lightboxImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={lightboxImage.name}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  title="İndir"
+                >
+                  <Download className="w-4 h-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setLightboxImage(null)}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.name}
+              className="max-h-[82vh] max-w-full object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
