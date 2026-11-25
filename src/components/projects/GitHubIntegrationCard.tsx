@@ -3,10 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { connectGitHubRepoAction, removeGitHubRepoAction } from '@/lib/actions';
 import { Github, Check, Copy, Trash2, GitCommit, Settings, X, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, githubLink }: { projectId: string, repo: any, commits: any[], isTeamMember: boolean, githubLink?: string | null }) {
+  const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
@@ -45,16 +48,23 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
     setLoading(true);
     setError(null);
     const res = await connectGitHubRepoAction(projectId, repoUrl);
-    if (res.error) setError(res.error);
+    if (res.error) {
+      setError(res.error);
+      toast.error(res.error);
+    } else {
+      toast.success('GitHub deposu başarıyla bağlandı!');
+      router.refresh();
+    }
     setLoading(false);
   };
 
   const handleRemove = async () => {
-    if (!confirm('GitHub baglantisini kaldirmak istediginize emin misiniz?')) return;
+    if (!confirm('GitHub bağlantısını kaldırmak istediğinize emin misiniz?')) return;
     setLoading(true);
     await removeGitHubRepoAction(projectId);
     setLoading(false);
     setShowSettings(false);
+    router.refresh();
   };
 
   const copyToClipboard = (text: string, setCopied: any) => {

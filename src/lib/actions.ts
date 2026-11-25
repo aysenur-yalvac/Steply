@@ -2440,7 +2440,7 @@ export async function connectGitHubRepoAction(projectId: string, repoUrl: string
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Oturum bulunamadııi." };
+    if (!user) return { error: "Oturum bulunamadı." };
 
     const admin = createAdminClient();
 
@@ -2449,23 +2449,65 @@ export async function connectGitHubRepoAction(projectId: string, repoUrl: string
     if (project?.student_id !== user.id) return { error: "Yetkiniz yok." };
 
     // Basic URL parsing (https://github.com/owner/repo)
-    const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    const match = repoUrl.trim().match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
     if (!match) return { error: "Geçersiz GitHub URL'si." };
     const repoOwner = match[1];
-    const repoName = match[2].replace('.git', '');
+    const repoName = match[2].replace(/\.git$/i, '');
 
     const crypto = require('crypto');
     const webhookSecret = crypto.randomBytes(32).toString('hex');
 
-    const { error } = await admin.from("project_github_repos").upsert({
-      project_id: projectId,
-      repo_url: repoUrl,
-      repo_owner: repoOwner,
-      repo_name: repoName,
-      webhook_secret: webhookSecret,
-    }, { onConflict: 'project_id' });
+    // Check if a record already exists for this project_id (avoids ON CONFLICT error when unique constraint is missing)
+    const { data: existingRepo, error: checkErr } = await admin
+      .from("project_github_repos")
+      .select("id")
+      .eq("project_id", projectId)
+      .maybeSingle();
 
-    if (error) return { error: error.message };
+    if (checkErr && (checkErr as any).code !== 'PGRST116') {
+      // If multiple rows existed previously, pick the first one and update by project_id
+      const { error: updateAllErr } = await admin
+        .from("project_github_repos")
+        .update({
+          repo_url: repoUrl.trim(),
+          repo_owner: repoOwner,
+          repo_name: repoName,
+          webhook_secret: webhookSecret,
+        })
+        .eq("project_id", projectId);
+
+      if (updateAllErr) return { error: updateAllErr.message };
+    } else if (existingRepo?.id) {
+      const { error: updateErr } = await admin
+        .from("project_github_repos")
+        .update({
+          repo_url: repoUrl.trim(),
+          repo_owner: repoOwner,
+          repo_name: repoName,
+          webhook_secret: webhookSecret,
+        })
+        .eq("id", existingRepo.id);
+
+      if (updateErr) return { error: updateErr.message };
+    } else {
+      const { error: insertErr } = await admin
+        .from("project_github_repos")
+        .insert({
+          project_id: projectId,
+          repo_url: repoUrl.trim(),
+          repo_owner: repoOwner,
+          repo_name: repoName,
+          webhook_secret: webhookSecret,
+        });
+
+      if (insertErr) return { error: insertErr.message };
+    }
+
+    // Also keep projects.github_link synced so the project overview card shows the repo link
+    await admin
+      .from("projects")
+      .update({ github_link: repoUrl.trim() })
+      .eq("id", projectId);
 
     revalidatePath(`/dashboard/projects/${projectId}`);
     return { success: true };
@@ -2497,7 +2539,12 @@ export async function removeGitHubRepoAction(projectId: string) {
 
 export async function getGitHubRepoAction(projectId: string) {
   const admin = createAdminClient();
-  const { data } = await admin.from("project_github_repos").select("*").eq("project_id", projectId).single();
+  const { data } = await admin
+    .from("project_github_repos")
+    .select("*")
+    .eq("project_id", projectId)
+    .limit(1)
+    .maybeSingle();
   return data;
 }
 
