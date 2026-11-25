@@ -18,6 +18,8 @@ export default function Navbar() {
 
   const closeMenus = () => setIsMenuOpen(false);
   const isUserProfilePage = pathname.startsWith('/user/');
+  const isAuthPage = pathname.startsWith('/auth') || pathname === '/login';
+  const hideRightActions = isUserProfilePage || isAuthPage;
 
   return (
     <nav
@@ -26,7 +28,7 @@ export default function Navbar() {
       {/* Brand + mobile toggle */}
       <div className="flex justify-between items-center w-full md:w-auto">
         <Link
-          href={user ? "/dashboard" : "/"}
+          href={!isAuthPage && user ? "/dashboard" : "/"}
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           onClick={closeMenus}
         >
@@ -48,7 +50,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {!isUserProfilePage && (
+        {!hideRightActions && (
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-colors"
@@ -58,60 +60,42 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Nav links (hidden on /user/[id] profile view) */}
-      {!isUserProfilePage && (
+      {/* Nav links (hidden on /user/[id] and /auth/* pages) */}
+      {!hideRightActions && (
         <div
           className={`${isMenuOpen ? "flex" : "hidden"} md:flex flex-col md:flex-row items-center gap-5 mt-4 md:mt-0`}
         >
-          {!loading && (
-            <>
-              {user ? (
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                  <Link
-                    href="/dashboard"
-                    className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-4"
-                    onClick={closeMenus}
-                  >
-                    Projelerim
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                  {!pathname.startsWith('/auth') && (
-                    <Link
-                      href="/auth/login"
-                      prefetch={true}
-                      onClick={(e) => {
-                        closeMenus();
-                        if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
-                          e.preventDefault();
-                          window.location.assign("/auth/login");
-                        }
-                      }}
-                      className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5 cursor-pointer"
-                    >
-                      Giriş Yap
-                    </Link>
-                  )}
-                  {!pathname.startsWith('/auth') && (
-                    <Link
-                      href="/auth/register"
-                      prefetch={true}
-                      onClick={(e) => {
-                        closeMenus();
-                        if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
-                          e.preventDefault();
-                          window.location.assign("/auth/register");
-                        }
-                      }}
-                      className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95 cursor-pointer"
-                    >
-                      Kayıt Ol
-                    </Link>
-                  )}
-                </div>
-              )}
-            </>
+          {!loading && !user && (
+            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+              <Link
+                href="/auth/login"
+                prefetch={true}
+                onClick={(e) => {
+                  closeMenus();
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    window.location.assign("/auth/login");
+                  }
+                }}
+                className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5 cursor-pointer"
+              >
+                Giriş Yap
+              </Link>
+              <Link
+                href="/auth/register"
+                prefetch={true}
+                onClick={(e) => {
+                  closeMenus();
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    window.location.assign("/auth/register");
+                  }
+                }}
+                className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95 cursor-pointer"
+              >
+                Kayıt Ol
+              </Link>
+            </div>
           )}
         </div>
       )}

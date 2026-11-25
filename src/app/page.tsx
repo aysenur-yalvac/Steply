@@ -30,12 +30,10 @@ import {
 } from "lucide-react";
 import LegalModal from "@/components/layout/LegalModal";
 import { NeuralNoise } from "@/components/ui/neural-noise";
-import { useAuth } from "@/context/AuthProvider";
 
 type LegalSlug = "privacy" | "terms" | "kvkk" | "cookies" | "contact";
 
 export default function Home() {
-  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<"projects" | "analytics" | "messages">("projects");
   const [copied, setCopied] = useState(false);
   const [openLegalModal, setOpenLegalModal] = useState<LegalSlug | null>(null);
@@ -142,39 +140,25 @@ export default function Home() {
             <a href="#iletisim" className="hover:text-violet-400 transition-colors">İletişim</a>
           </nav>
 
-          {/* Sağ Eylemler: Oturum açık değilse Giriş Yap + Kayıt Ol, açıksa Projelerim */}
+          {/* Sağ Eylemler: Giriş Yap + Mor Kayıt Ol */}
           <div className="relative z-50 flex items-center gap-1.5 sm:gap-3 shrink-0">
-            {!authLoading && user ? (
-              <Link
-                href="/dashboard"
-                prefetch={true}
-                onClick={(e) => handleAuthNav(e, "/dashboard")}
-                className="relative z-50 cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                <span className="pointer-events-none">Projelerim</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 pointer-events-none" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  prefetch={true}
-                  onClick={(e) => handleAuthNav(e, "/auth/login")}
-                  className="relative z-50 cursor-pointer whitespace-nowrap px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Giriş Yap
-                </Link>
-                <Link
-                  href="/auth/register"
-                  prefetch={true}
-                  onClick={(e) => handleAuthNav(e, "/auth/register")}
-                  className="relative z-50 cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <span className="pointer-events-none">Kayıt Ol</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 pointer-events-none" />
-                </Link>
-              </>
-            )}
+            <Link
+              href="/auth/login"
+              prefetch={true}
+              onClick={(e) => handleAuthNav(e, "/auth/login")}
+              className="relative z-50 cursor-pointer whitespace-nowrap px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+            >
+              Giriş Yap
+            </Link>
+            <Link
+              href="/auth/register"
+              prefetch={true}
+              onClick={(e) => handleAuthNav(e, "/auth/register")}
+              className="relative z-50 cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <span className="pointer-events-none">Kayıt Ol</span>
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 pointer-events-none" />
+            </Link>
           </div>
         </div>
       </header>
@@ -988,7 +972,7 @@ export default function Home() {
           <div className="space-y-3">
             <h4 className="font-bold text-white text-sm">Erişim</h4>
             <ul className="space-y-2">
-              <li><Link href="/auth/login" prefetch={true} onClick={(e) => handleAuthNav(e, "/auth/login")} className="hover:text-violet-400 transition-colors cursor-pointer">Giriş Yap</Link></li>
+              <li><Link href="/auth/login" prefetch={true} onClick={(e) => handleAuthNav(e, "/auth/login")} className="hover:text-violet-400 transition-colors cursor-pointer">Panele Giriş</Link></li>
               <li><Link href="/auth/register" prefetch={true} onClick={(e) => handleAuthNav(e, "/auth/register")} className="hover:text-violet-400 transition-colors cursor-pointer">Kayıt Ol</Link></li>
             </ul>
           </div>
