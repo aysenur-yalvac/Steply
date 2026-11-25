@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { upsertSavedLocalAccount } from '@/context/AuthProvider'
 
 function LinkCompleteContent() {
   const searchParams = useSearchParams()
@@ -16,29 +17,44 @@ function LinkCompleteContent() {
       return
     }
 
-    fetch('/api/auth/switch-to-owner', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ owner_id: ownerId, linked_uid: linkedUid }),
-    })
-      .then(res => res.json())
-      .then(async (data) => {
-        if (data.session?.access_token && data.session?.refresh_token) {
-          try {
-            const supabase = createClient()
-            await supabase.auth.setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            })
-          } catch {}
+    const run = async () => {
+      try {
+        const supabase = createClient()
+        const { data: currentSession } = await supabase.auth.getSession()
+        if (currentSession?.session) {
+          upsertSavedLocalAccount(currentSession.session)
         }
-        if (data.url) {
-          window.location.href = data.url
-        } else {
-          setError(data.error ?? 'Hesaba geri dönüş başarısız oldu.')
-        }
+      } catch {}
+
+      fetch('/api/auth/switch-to-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ owner_id: ownerId, linked_uid: linkedUid }),
       })
-      .catch(() => setError('Ağ hatası. Lütfen tekrar deneyin.'))
+        .then(res => res.json())
+        .then(async (data) => {
+          if (data.session?.access_token && data.session?.refresh_token) {
+            try {
+              const supabase = createClient()
+              const { data: ownerSession } = await supabase.auth.setSession({
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token,
+              })
+              if (ownerSession?.session) {
+                upsertSavedLocalAccount(ownerSession.session)
+              }
+            } catch {}
+          }
+          if (data.url) {
+            window.location.href = data.url
+          } else {
+            setError(data.error ?? 'Hesaba geri dönüş başarısız oldu.')
+          }
+        })
+        .catch(() => setError('Ağ hatası. Lütfen tekrar deneyin.'))
+    }
+
+    void run()
   }, [ownerId, linkedUid])
 
   if (error) {

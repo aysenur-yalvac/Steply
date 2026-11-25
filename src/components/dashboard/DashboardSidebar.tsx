@@ -32,6 +32,7 @@ import {
   getSavedLocalAccount,
   removeSavedLocalAccount,
   upsertSavedLocalAccount,
+  clearAllSavedLocalAccounts,
 } from "@/context/AuthProvider";
 import { createClient } from "@/utils/supabase/client";
 import UnreadMessagesBadge from "@/components/dashboard/UnreadMessagesBadge";
@@ -116,43 +117,17 @@ function NavContent({
   const [expiredSwitchEmail, setExpiredSwitchEmail] = useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
 
-  // Merge server linked accounts with any locally saved sessions in localStorage
+  // Only show server-verified linked_accounts from the database for the current user's cluster.
+  // Never merge arbitrary localStorage accounts that were not explicitly linked to this user!
   function mergeWithLocalSavedAccounts(serverAccounts: LinkedAccount[]): LinkedAccount[] {
-    if (typeof window === "undefined") return serverAccounts;
-    try {
-      const raw = window.localStorage.getItem("saved_accounts");
-      if (!raw) return serverAccounts;
-      const localList = JSON.parse(raw);
-      if (!Array.isArray(localList)) return serverAccounts;
-
-      const merged = [...serverAccounts];
-      const currentEmailLower = (userEmail || "").toLowerCase();
-
-      for (const loc of localList) {
-        if (!loc?.email) continue;
-        const locEmailLower = String(loc.email).toLowerCase();
-        if (loc.userId === userId || (currentEmailLower && locEmailLower === currentEmailLower)) {
-          continue;
-        }
-        const exists = merged.some(
-          (a) =>
-            (a.linked_user_id && loc.userId && a.linked_user_id === loc.userId) ||
-            (a.linked_email || "").toLowerCase() === locEmailLower
-        );
-        if (!exists) {
-          merged.push({
-            id: `local-${loc.userId || locEmailLower}`,
-            linked_user_id: loc.userId || null,
-            linked_email: loc.email,
-            linked_name: loc.fullName || loc.email,
-            linked_avatar: loc.avatarUrl || null,
-          });
-        }
-      }
-      return merged;
-    } catch {
-      return serverAccounts;
+    if (!Array.isArray(serverAccounts) || serverAccounts.length === 0) {
+      return [];
     }
+    return serverAccounts.filter(
+      (a) =>
+        a.linked_user_id !== userId &&
+        (!userEmail || (a.linked_email || "").toLowerCase() !== userEmail.toLowerCase())
+    );
   }
 
   // Refresh accounts from server — called on mount and each time dropdown opens.
@@ -299,6 +274,7 @@ function NavContent({
   async function handleSignOut(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
+    clearAllSavedLocalAccounts();
     try {
       const supabase = createClient();
       await Promise.race([
@@ -517,8 +493,17 @@ function NavContent({
               <button
                 type="button"
                 disabled={!userId}
-                onClick={() => {
+                onClick={async () => {
                   if (!userId) return;
+                  try {
+                    const supabase = createClient();
+                    const { data: currentSessionData } = await supabase.auth.getSession();
+                    if (currentSessionData?.session) {
+                      upsertSavedLocalAccount(currentSessionData.session);
+                    }
+                  } catch {
+                    // ignore
+                  }
                   document.cookie = `_steply_link_owner=${userId}; path=/; max-age=600; SameSite=Lax`;
                   window.location.replace(`/auth/login?link_account=true&owner_id=${userId}`);
                 }}

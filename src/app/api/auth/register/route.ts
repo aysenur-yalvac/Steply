@@ -18,6 +18,11 @@ export async function POST(request: Request) {
     : "";
   const institution = sanitizeInstitution(rawInstitution) || (rawInstitution ? rawInstitution : null);
   const cookieStore = await cookies();
+  // Normal yeni kayıt işleminde olası eski hesap bağlama çerezlerini temizle (bağımsız hesap izolasyonu)
+  try {
+    cookieStore.delete("_steply_link_owner");
+    cookieStore.delete("_Must-b Academy_link_owner");
+  } catch {}
 
   // 1. E-posta ve Rol Doğrulaması (Öğretmen kaydında öğrenci ve kişisel mailleri engelle)
   const validation = validateRoleAndEmail(email, requestedRole);

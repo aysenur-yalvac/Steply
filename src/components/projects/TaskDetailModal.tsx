@@ -13,7 +13,8 @@ interface TaskDetailModalProps {
   teamMembers: TeamMember[];
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (task: ProjectTask) => void;
+  onUpdate: (task: ProjectTask, originalId?: string) => void;
+  resolveTaskId?: (taskId: string) => Promise<string | null>;
   currentUserId?: string;
   projectOwnerId?: string;
   projectOwnerName?: string | null;
@@ -26,6 +27,7 @@ export default function TaskDetailModal({
   isOpen,
   onClose,
   onUpdate,
+  resolveTaskId,
   currentUserId,
   projectOwnerId,
   projectOwnerName,
@@ -48,22 +50,38 @@ export default function TaskDetailModal({
     );
   const canAssignTask = isOwner || isTeacher;
 
-  const handleUpdate = async (updates: Partial<ProjectTask>) => {
+  const handleUpdate = async (updates: Partial<ProjectTask>, shouldCloseModal = false) => {
+    const originalTaskId = task.id;
     const previousTask = { ...task };
     const optimisticTask: ProjectTask = { ...task, ...updates };
-    onUpdate(optimisticTask);
+    onUpdate(optimisticTask, originalTaskId);
     setIsUpdating(true);
     try {
-      const result = await updateTaskAction(task.id, projectId, updates);
+      let targetTaskId: string | null = originalTaskId;
+      if (targetTaskId.startsWith("temp-")) {
+        if (resolveTaskId) {
+          targetTaskId = await resolveTaskId(originalTaskId);
+        }
+        if (!targetTaskId || targetTaskId.startsWith("temp-")) {
+          onUpdate(previousTask, originalTaskId);
+          toast.error("Görev henüz oluşturuluyor, lütfen 1 saniye sonra tekrar kaydedin.");
+          return;
+        }
+      }
+
+      const result = await updateTaskAction(targetTaskId, projectId, updates);
       if ("error" in result) {
-        onUpdate(previousTask);
+        onUpdate(previousTask, originalTaskId);
         toast.error(result.error);
       } else {
-        onUpdate(result.task);
+        onUpdate(result.task, originalTaskId);
         toast.success("Görev güncellendi");
+        if (shouldCloseModal) {
+          onClose();
+        }
       }
     } catch {
-      onUpdate(previousTask);
+      onUpdate(previousTask, originalTaskId);
       toast.error("Görev güncellenemedi");
     } finally {
       setIsUpdating(false);
@@ -71,8 +89,7 @@ export default function TaskDetailModal({
   };
 
   const handleSaveFields = () => {
-    handleUpdate({ due_date: dueDate || null, assigned_to: assignedTo || null, subtasks });
-    onClose();
+    void handleUpdate({ due_date: dueDate || null, assigned_to: assignedTo || null, subtasks }, true);
   };
 
   const handleAddSubtask = (e: React.FormEvent) => {

@@ -26,6 +26,17 @@ type SavedLocalAccount = {
 
 const SAVED_ACCOUNTS_STORAGE_KEY = 'saved_accounts'
 
+export function clearAllSavedLocalAccounts() {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(SAVED_ACCOUNTS_STORAGE_KEY)
+    document.cookie = '_steply_link_owner=; path=/; max-age=0; SameSite=Lax'
+    document.cookie = '_Must-b Academy_link_owner=; path=/; max-age=0; SameSite=Lax'
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export function upsertSavedLocalAccount(session: Session | null) {
   if (typeof window === 'undefined' || !session?.user?.email) return
   try {
@@ -51,6 +62,29 @@ export function upsertSavedLocalAccount(session: Session | null) {
     window.localStorage.setItem(SAVED_ACCOUNTS_STORAGE_KEY, JSON.stringify(next))
   } catch {
     // ignore storage errors
+  }
+}
+
+/**
+ * Updates token cache ONLY if the account is already present in saved_accounts.
+ * Never adds a newly logged-in or newly registered independent account automatically.
+ */
+export function refreshExistingSavedLocalAccount(session: Session | null) {
+  if (typeof window === 'undefined' || !session?.user?.email) return
+  try {
+    const raw = window.localStorage.getItem(SAVED_ACCOUNTS_STORAGE_KEY)
+    if (!raw) return
+    const parsed: SavedLocalAccount[] = JSON.parse(raw)
+    if (!Array.isArray(parsed) || parsed.length === 0) return
+    const emailLower = session.user.email.toLowerCase()
+    const exists = parsed.some(
+      (a) => a.userId === session.user.id || (a.email || '').toLowerCase() === emailLower
+    )
+    if (exists) {
+      upsertSavedLocalAccount(session)
+    }
+  } catch {
+    // ignore
   }
 }
 
@@ -106,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session) {
-        upsertSavedLocalAccount(session)
+        // Only refresh token if this user was ALREADY explicitly saved via account linking/switching
+        refreshExistingSavedLocalAccount(session)
       }
       setLoading(false)
     }
@@ -116,8 +151,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
-        upsertSavedLocalAccount(session)
+      if (event === 'SIGNED_OUT') {
+        clearAllSavedLocalAccounts()
+      } else if (session && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+        refreshExistingSavedLocalAccount(session)
       }
       setLoading(false)
     })
@@ -128,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const signOut = async () => {
+    clearAllSavedLocalAccounts()
     try {
       await supabase.auth.signOut()
     } catch (err) {

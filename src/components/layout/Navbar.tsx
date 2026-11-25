@@ -72,7 +72,7 @@ export default function Navbar() {
                     className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-4"
                     onClick={closeMenus}
                   >
-                    Panel
+                    Projelerim
                   </Link>
                 </div>
               ) : (

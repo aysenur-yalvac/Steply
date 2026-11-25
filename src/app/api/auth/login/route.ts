@@ -116,14 +116,21 @@ export async function POST(request: Request) {
     return NextResponse.redirect(errorUrl.toString(), { status: 303 })
   }
 
-  // Resolve owner_id: form hidden input is the primary source; cookie is the fallback
-  // in case the client component failed to render the hidden inputs.
+  // Explicit link mode ONLY when the login form explicitly requested account linking (link_account === 'true')
   const cookieOwnerId =
     cookieStore.get('_steply_link_owner')?.value ??
     cookieStore.get('_Must-b Academy_link_owner')?.value ??
     null
-  const resolvedOwnerId  = ownerId ?? (linkAccount === 'true' ? cookieOwnerId : null) ?? cookieOwnerId
-  const resolvedLinkMode = linkAccount === 'true' || (!!cookieOwnerId && !!resolvedOwnerId)
+  const resolvedOwnerId  = linkAccount === 'true' ? (ownerId || cookieOwnerId) : null
+  const resolvedLinkMode = linkAccount === 'true' && !!resolvedOwnerId
+
+  // If this is a normal login (NOT link_account=true), make sure any stale _steply_link_owner cookie is ignored
+  if (!resolvedLinkMode && cookieOwnerId) {
+    try {
+      cookieStore.delete('_steply_link_owner')
+      cookieStore.delete('_Must-b Academy_link_owner')
+    } catch {}
+  }
 
   // Role mismatch check: selected login tab vs actual DB role
   if (selectedRole && data.user && !resolvedLinkMode) {

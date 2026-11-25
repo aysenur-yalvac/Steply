@@ -948,6 +948,9 @@ export async function toggleTaskCompletion(
   projectId: string,
   isCompleted: boolean,
 ): Promise<{ success: true; progress: number } | { error: string }> {
+  if (!taskId || taskId.startsWith('temp-')) {
+    return { error: 'Görev henüz kaydediliyor, lütfen bir saniye sonra tekrar deneyin.' };
+  }
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
@@ -998,6 +1001,9 @@ export async function deleteProjectTask(
   taskId: string,
   projectId: string,
 ): Promise<{ success: true; progress: number } | { error: string }> {
+  if (!taskId || taskId.startsWith('temp-')) {
+    return { error: 'Görev henüz kaydediliyor, lütfen bir saniye sonra tekrar deneyin.' };
+  }
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
@@ -2501,6 +2507,132 @@ export async function getProjectCommitsAction(projectId: string) {
   return data || [];
 }
 
+export type ProjectInvitePreview = {
+  projectId: string;
+  title: string;
+  description: string;
+  ownerName: string;
+  ownerSchool: string | null;
+  ownerAvatarUrl: string | null;
+  alreadyMember: boolean;
+  isOwner: boolean;
+};
+
+export async function getProjectInvitePreviewAction(
+  codeOrToken: string
+): Promise<{ success: true; preview: ProjectInvitePreview } | { success: false; error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const rawInput = (codeOrToken ?? '').trim();
+    if (!rawInput) {
+      return { success: false, error: 'Geçersiz davet bağlantısı.' };
+    }
+
+    const lastSegment = rawInput.includes('/') ? (rawInput.split('/').filter(Boolean).pop() ?? rawInput) : rawInput;
+    const dotIdx = lastSegment.indexOf('.');
+    const baseTokenOrCode = dotIdx !== -1 ? lastSegment.slice(0, dotIdx) : lastSegment;
+    const embeddedExpiresPart = dotIdx !== -1 ? lastSegment.slice(dotIdx + 1) : null;
+
+    if (embeddedExpiresPart) {
+      const expiresMs = Number(embeddedExpiresPart);
+      if (Number.isFinite(expiresMs) && expiresMs > 0 && expiresMs < Date.now()) {
+        return { success: false, error: 'Davet bağlantısının 7 günlük geçerlilik süresi dolmuş.' };
+      }
+    }
+
+    const admin = createAdminClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(baseTokenOrCode);
+
+    let project: any = null;
+
+    if (isUuid) {
+      const { data: byToken } = await admin
+        .from('projects')
+        .select('id, student_id, title, description, invite_code, invite_token, deleted_at')
+        .eq('invite_token', baseTokenOrCode)
+        .maybeSingle();
+
+      if (byToken) {
+        project = byToken;
+      } else {
+        const { data: byId } = await admin
+          .from('projects')
+          .select('id, student_id, title, description, invite_code, invite_token, deleted_at')
+          .eq('id', baseTokenOrCode)
+          .maybeSingle();
+        if (byId) {
+          project = byId;
+        }
+      }
+    } else {
+      const upperCode = baseTokenOrCode.toUpperCase();
+      const { data: byCode } = await admin
+        .from('projects')
+        .select('id, student_id, title, description, invite_code, invite_token, deleted_at')
+        .ilike('invite_code', upperCode)
+        .maybeSingle();
+      if (byCode) {
+        project = byCode;
+      }
+    }
+
+    if (!project || project.deleted_at) {
+      return { success: false, error: 'Geçersiz veya süresi dolmuş davet bağlantısı.' };
+    }
+
+    const dbExpiresAt = (project as any).invite_expires_at || (project as any).expires_at;
+    if (dbExpiresAt) {
+      const expiresTime = new Date(dbExpiresAt).getTime();
+      if (Number.isFinite(expiresTime) && expiresTime < Date.now()) {
+        return { success: false, error: 'Davet bağlantısının geçerlilik süresi dolmuş.' };
+      }
+    }
+
+    const { data: ownerProfile } = await admin
+      .from('profiles')
+      .select('full_name, institution, avatar_url')
+      .eq('id', project.student_id)
+      .maybeSingle();
+
+    const isOwner = Boolean(user && project.student_id === user.id);
+    let alreadyMember = isOwner;
+
+    if (user && !isOwner) {
+      const { data: existingMember } = await admin
+        .from('project_members')
+        .select('id, status')
+        .eq('project_id', project.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (existingMember && (existingMember as any).status !== 'pending') {
+        alreadyMember = true;
+      }
+    }
+
+    const cleanedDescription = String(project.description || '')
+      .replace(/\[.*?\]/g, '')
+      .trim();
+
+    return {
+      success: true,
+      preview: {
+        projectId: project.id,
+        title: project.title || 'İsimsiz Proje',
+        description: cleanedDescription,
+        ownerName: (ownerProfile as any)?.full_name || 'Proje Sahibi',
+        ownerSchool: (ownerProfile as any)?.institution || (ownerProfile as any)?.university || null,
+        ownerAvatarUrl: (ownerProfile as any)?.avatar_url || null,
+        alreadyMember,
+        isOwner,
+      },
+    };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Davet bilgileri yüklenemedi.' };
+  }
+}
+
 /**
  * Join a project using a 6-digit invite code or UUID invite token
  */
@@ -2661,6 +2793,9 @@ export async function updateTaskAction(
   projectId: string,
   updates: Partial<ProjectTask>
 ): Promise<{ success: true; task: ProjectTask } | { error: string }> {
+  if (!taskId || taskId.startsWith('temp-')) {
+    return { error: 'Görev henüz veritabanına kaydediliyor, lütfen bir saniye bekleyip tekrar kaydedin.' };
+  }
   const supabase = await createClient();
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };

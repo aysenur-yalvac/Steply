@@ -46,25 +46,58 @@ export default function ProjectTaskList({
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedTask, setSelectedTask] = useState<ProjectTask | null>(null);
+  const pendingCreateMapRef = useRef<Map<string, Promise<ProjectTask | null>>>(new Map());
+  const resolvedIdMapRef = useRef<Map<string, string>>(new Map());
   const router = useRouter();
 
   const completed = tasks.filter((t) => t.is_completed).length;
   const total = tasks.length;
   const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-  const handleUpdateTask = (updatedTask: ProjectTask) => {
-    updateTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+  const resolveRealTaskId = async (taskId: string): Promise<string | null> => {
+    if (!taskId.startsWith("temp-")) return taskId;
+    const alreadyResolved = resolvedIdMapRef.current.get(taskId);
+    if (alreadyResolved) return alreadyResolved;
+    const pendingCreatePromise = pendingCreateMapRef.current.get(taskId);
+    if (pendingCreatePromise) {
+      const created = await pendingCreatePromise;
+      if (created && created.id && !created.id.startsWith("temp-")) {
+        return created.id;
+      }
+    }
+    return resolvedIdMapRef.current.get(taskId) ?? null;
+  };
+
+  const handleUpdateTask = (updatedTask: ProjectTask, originalId?: string) => {
+    updateTasks((prev) =>
+      prev.map((t) =>
+        t.id === updatedTask.id || (originalId && t.id === originalId)
+          ? { ...t, ...updatedTask, id: updatedTask.id }
+          : t
+      )
+    );
+    setSelectedTask((prev) =>
+      prev && (prev.id === updatedTask.id || (originalId && prev.id === originalId))
+        ? { ...prev, ...updatedTask, id: updatedTask.id }
+        : prev
+    );
   };
 
   const handleTaskClick = (task: ProjectTask) => {
-    setSelectedTask(task);
+    const resolvedId = resolvedIdMapRef.current.get(task.id);
+    if (resolvedId) {
+      const found = tasks.find((t) => t.id === resolvedId);
+      setSelectedTask(found ?? { ...task, id: resolvedId });
+    } else {
+      setSelectedTask(task);
+    }
   };
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     const title = newTitle.trim();
     if (!title) return;
-    const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const optimisticTask: ProjectTask = {
       id: tempId,
       project_id: projectId,
@@ -76,22 +109,48 @@ export default function ProjectTaskList({
     updateTasks((prev) => [...prev, optimisticTask]);
     inputRef.current?.focus();
     setIsAdding(true);
-    try {
-      const result = await addProjectTask(projectId, title);
-      if ("error" in result) {
+
+    const createPromise = (async (): Promise<ProjectTask | null> => {
+      try {
+        const result = await addProjectTask(projectId, title);
+        if ("error" in result) {
+          updateTasks((prev) => prev.filter((t) => t.id !== tempId));
+          setSelectedTask((prev) => (prev?.id === tempId ? null : prev));
+          setNewTitle(title);
+          toast.error(result.error);
+          return null;
+        } else {
+          const createdTask = result.task;
+          resolvedIdMapRef.current.set(tempId, createdTask.id);
+          // Merge any local edits made while the task still had tempId, overwriting id with the real UUID
+          updateTasks((prev) =>
+            prev.map((t) =>
+              t.id === tempId
+                ? { ...createdTask, ...t, id: createdTask.id }
+                : t
+            )
+          );
+          setSelectedTask((prev) =>
+            prev && prev.id === tempId
+              ? { ...createdTask, ...prev, id: createdTask.id }
+              : prev
+          );
+          return createdTask;
+        }
+      } catch {
         updateTasks((prev) => prev.filter((t) => t.id !== tempId));
+        setSelectedTask((prev) => (prev?.id === tempId ? null : prev));
         setNewTitle(title);
-        toast.error(result.error);
-      } else {
-        updateTasks((prev) => prev.map((t) => (t.id === tempId ? result.task : t)));
+        toast.error("Görev eklenemedi");
+        return null;
+      } finally {
+        pendingCreateMapRef.current.delete(tempId);
+        setIsAdding(false);
       }
-    } catch {
-      updateTasks((prev) => prev.filter((t) => t.id !== tempId));
-      setNewTitle(title);
-      toast.error("Görev eklenemedi");
-    } finally {
-      setIsAdding(false);
-    }
+    })();
+
+    pendingCreateMapRef.current.set(tempId, createPromise);
+    await createPromise;
   }
 
   async function handleToggle(taskId: string, is_completed: boolean) {
@@ -99,9 +158,14 @@ export default function ProjectTaskList({
     updateTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed } : t));
     setPendingIds((s) => new Set(s).add(taskId));
     try {
-      const result = await toggleTaskCompletion(taskId, projectId, is_completed);
-      if ("error" in result) {
+      const realId = await resolveRealTaskId(taskId);
+      if (!realId) {
         updateTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, is_completed: !is_completed } : t));
+        return;
+      }
+      const result = await toggleTaskCompletion(realId, projectId, is_completed);
+      if ("error" in result) {
+        updateTasks((prev) => prev.map((t) => (t.id === taskId || t.id === realId) ? { ...t, is_completed: !is_completed } : t));
         toast.error(result.error);
       } else {
         router.refresh();
@@ -116,9 +180,11 @@ export default function ProjectTaskList({
     updateTasks((prev) => prev.filter((t) => t.id !== task.id));
     setPendingIds((s) => new Set(s).add(task.id));
     try {
-      const result = await deleteProjectTask(task.id, projectId);
+      const realId = await resolveRealTaskId(task.id);
+      if (!realId) return;
+      const result = await deleteProjectTask(realId, projectId);
       if ("error" in result) {
-        updateTasks((prev) => [...prev, task].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+        updateTasks((prev) => [...prev, { ...task, id: realId }].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
         toast.error(result.error);
       } else {
         router.refresh();
@@ -332,8 +398,9 @@ export default function ProjectTaskList({
           currentUserId={currentUserId}
           projectOwnerId={projectOwnerId}
           projectOwnerName={projectOwnerName}
-          onUpdate={(updatedTask) => {
-            handleUpdateTask(updatedTask);
+          resolveTaskId={resolveRealTaskId}
+          onUpdate={(updatedTask, originalId) => {
+            handleUpdateTask(updatedTask, originalId);
             setSelectedTask(null);
           }}
         />
