@@ -14,7 +14,6 @@ import {
   Tag,
   X,
   HelpCircle,
-  Sparkles,
 } from 'lucide-react';
 
 const TAG_COLORS = [
@@ -146,9 +145,6 @@ function FieldHelpPopover({
     <div className="mt-2 rounded-2xl bg-slate-50/95 dark:bg-[#0b1120] border border-violet-200 dark:border-violet-500/40 p-4 sm:p-5 shadow-xl animate-in fade-in zoom-in-95 duration-200">
       <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-200/80 dark:border-slate-800">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-violet-600/15 text-violet-600 dark:text-violet-400 border border-violet-500/25">
-            <Sparkles className="w-4 h-4" />
-          </span>
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">
             {info.title}
           </h4>
