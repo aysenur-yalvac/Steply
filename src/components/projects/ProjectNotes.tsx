@@ -25,6 +25,7 @@ import {
   parseContentWithAttachment,
   uploadChatAttachment,
 } from "@/lib/chat-attachments";
+import { renderMessageWithLinks } from "@/lib/linkify";
 
 const LONG_MSG_CHARS = 360;
 
@@ -155,7 +156,7 @@ function MessageBubble({
             }`}
             style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
           >
-            {text}
+            {renderMessageWithLinks(text)}
           </div>
 
           {isLong && !expanded && (

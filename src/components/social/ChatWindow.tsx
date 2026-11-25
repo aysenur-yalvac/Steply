@@ -29,6 +29,7 @@ import {
   parseContentWithAttachment,
   uploadChatAttachment,
 } from "@/lib/chat-attachments";
+import { renderMessageWithLinks } from "@/lib/linkify";
 
 interface User {
   id: string;
@@ -610,7 +611,7 @@ export default function ChatWindow({
                       className="whitespace-pre-wrap break-words leading-relaxed text-sm"
                       style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
                     >
-                      {text}
+                      {renderMessageWithLinks(text)}
                     </p>
                   )}
 

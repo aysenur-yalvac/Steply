@@ -9,6 +9,7 @@ import {
   deleteTeacherReviewAction,
   type TeacherReviewItem,
 } from "@/app/dashboard/actions";
+import { renderMessageWithLinks } from "@/lib/linkify";
 import toast from "react-hot-toast";
 
 interface TeacherReviewsSectionProps {
@@ -157,7 +158,7 @@ export default function TeacherReviewsSection({
                 </div>
               </div>
               <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap pl-[52px]">
-                {review.comment}
+                {renderMessageWithLinks(review.comment)}
               </p>
             </div>
           ))}
