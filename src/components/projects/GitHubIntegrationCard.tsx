@@ -114,7 +114,7 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
                 <strong className="text-slate-800 dark:text-slate-100">Settings → Webhooks → Add webhook</strong>{" "}
                 menüsüne girip Payload URL kısmına{" "}
                 <code className="px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800 text-violet-700 dark:text-violet-300 font-mono text-[11px] break-all">
-                  https://steply-app.vercel.app/api/webhooks/github
+                  https://mustbacademy.com/api/webhooks/github
                 </code>{" "}
                 adresini ve Content type olarak{" "}
                 <code className="px-1 py-0.5 rounded bg-white/80 dark:bg-slate-800 font-mono text-[11px]">application/json</code>{" "}
