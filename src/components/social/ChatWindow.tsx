@@ -310,30 +310,80 @@ export default function ChatWindow({
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const trimmed = newMessage.trim();
-    if ((!trimmed && !pendingFile) || isSending) return;
+    if (!trimmed && !pendingFile) return;
 
     const fileToUpload = pendingFile;
     const localPreview = pendingPreviewUrl;
     const savedMention = mentionedProject;
     const metadataProjectId = savedMention ? savedMention.id : undefined;
 
+    // CASE 1: Text-only message — instant WhatsApp/Instagram feel (zero spinner, zero input lock)
+    if (!fileToUpload) {
+      const finalContent = encodeContentWithAttachment(trimmed, null);
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+      const optimisticMsg: Message = {
+        id: tempId,
+        sender_id: currentUser.id,
+        receiver_id: selectedUser.id,
+        content: finalContent,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        metadata: metadataProjectId ? { mentioned_project_id: metadataProjectId } : null,
+      };
+
+      setMessages((prev) => [...prev, optimisticMsg]);
+      setNewMessage("");
+      setMentionedProject(null);
+      setShowMentionMenu(false);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.overflowY = "hidden";
+      }
+      setTimeout(scrollToBottom, 15);
+      focusMessageTextarea();
+
+      try {
+        const result = await sendMessageAction(
+          selectedUser.id,
+          finalContent,
+          metadataProjectId,
+          null
+        );
+
+        if (result.success) {
+          setMessages((prev) => {
+            const alreadyHasReal = prev.some((m) => m.id === result.message.id);
+            if (alreadyHasReal) {
+              return prev.filter((m) => m.id !== tempId);
+            }
+            return prev.map((m) => (m.id === tempId ? result.message : m));
+          });
+        } else {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          toast.error("Mesaj gönderilemedi");
+        }
+      } catch (error: any) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        toast.error(error?.message || "Mesaj gönderilemedi");
+      }
+      return;
+    }
+
+    // CASE 2: Attachment / screenshot upload — show upload indicator and reset in finally
+    if (isSending) return;
     shouldRestoreFocusRef.current = true;
     setIsSending(true);
     focusMessageTextarea();
 
     try {
-      // 1. Upload file/screenshot to Supabase Storage FIRST so we have the permanent public URL
-      // before creating the message bubble (prevents blank purple box and revoked blob URL flicker).
-      let uploadedAttachment: ChatAttachment | null = null;
-      if (fileToUpload) {
-        uploadedAttachment = await uploadChatAttachment(
-          fileToUpload,
-          `dm-${currentUser.id}`
-        );
-      }
+      const uploadedAttachment = await uploadChatAttachment(
+        fileToUpload,
+        `dm-${currentUser.id}`
+      );
 
       const finalContent = encodeContentWithAttachment(trimmed, uploadedAttachment);
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
       const optimisticMsg: Message = {
         id: tempId,

@@ -98,7 +98,11 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
       let res;
       if (stagedAnnotation.type === 'drawing') {
         const payloadToSave = stagedAnnotation.pages || stagedAnnotation.lines;
-        res = await saveFileDrawingsAction(projectId, file.url, JSON.stringify(payloadToSave));
+        const serializedPayload =
+          typeof payloadToSave === 'string'
+            ? payloadToSave
+            : JSON.stringify(payloadToSave);
+        res = await saveFileDrawingsAction(projectId, file.url, serializedPayload);
       } else {
         res = await saveFileAnnotationAction(projectId, file.url, stagedAnnotation);
       }
@@ -125,9 +129,18 @@ export default function SmartFileViewerModal({ isOpen, onClose, file, projectId,
   if (!mounted || !isOpen || !file) return null;
   const activeFile = { ...file, url: resolvedUrl || file.url };
 
-  const isImage = file.type.startsWith('image/');
-  const isPdf = file.type === 'application/pdf';
-  const isCode = file.type.startsWith('text/') || file.type === 'application/json' || file.type === 'application/javascript';
+  const lowerName = (file.name || '').toLowerCase();
+  const isImage =
+    file.type.startsWith('image/') ||
+    /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(lowerName);
+  const isPdf =
+    file.type === 'application/pdf' ||
+    lowerName.endsWith('.pdf');
+  const isCode =
+    file.type.startsWith('text/') ||
+    file.type === 'application/json' ||
+    file.type === 'application/javascript' ||
+    /\.(txt|md|json|js|jsx|ts|tsx|py|html|css|csv|xml|yml|yaml)$/i.test(lowerName);
 
   return createPortal(
     <AnimatePresence>

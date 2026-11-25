@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Check, X, Loader2 } from "lucide-react";
+import { Mail, Check, X, Loader2, ExternalLink } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import {
   acceptProjectInviteAction,
@@ -162,9 +163,15 @@ export default function PendingInvitesSection({
                   className="shrink-0 mt-0.5"
                 />
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate">
-                    {invite.projectTitle}
-                  </h3>
+                  <Link
+                    href={`/dashboard/projects/${invite.projectId}`}
+                    prefetch={true}
+                    className="group/title inline-flex items-center gap-1.5 max-w-full text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                    title="Projeyi incelemek için tıklayın"
+                  >
+                    <span className="truncate">{invite.projectTitle}</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-60 group-hover/title:opacity-100 transition-opacity" />
+                  </Link>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     Davet eden:{" "}
                     <span className="font-semibold text-violet-600 dark:text-violet-400">
@@ -176,6 +183,15 @@ export default function PendingInvitesSection({
                       {cleanDesc}
                     </p>
                   )}
+                  <div className="mt-2">
+                    <Link
+                      href={`/dashboard/projects/${invite.projectId}`}
+                      prefetch={true}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline"
+                    >
+                      Projeyi İncele →
+                    </Link>
+                  </div>
                 </div>
               </div>
 

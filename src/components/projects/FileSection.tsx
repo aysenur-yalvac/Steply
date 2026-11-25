@@ -17,6 +17,7 @@ interface FileSectionProps {
   initialFiles: ProjectFile[];
   isOwner: boolean;
   isCollaborator?: boolean;
+  isPendingInvitee?: boolean;
   isTeacher?: boolean;
   currentUserId?: string;
 }
@@ -43,9 +44,11 @@ function sanitizeName(name: string): string {
   return safeBase + ext;
 }
 
-export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, isTeacher = false, currentUserId }: FileSectionProps) {
+export default function FileSection({ projectId, initialFiles, isOwner, isCollaborator = false, isPendingInvitee = false, isTeacher = false, currentUserId }: FileSectionProps) {
   // Only project owner and accepted team collaborators can upload/delete files
   const canManageFiles = isOwner || isCollaborator;
+  // Project owner, collaborators, and teachers can draw/annotate on files
+  const canAnnotateFiles = isOwner || isCollaborator || isTeacher;
   const [files, setFiles] = useState<PendingFile[]>(initialFiles as PendingFile[]);
   const [isUploading, setIsUploading] = useState(false);
   const [viewerFile, setViewerFile] = useState<ProjectFile | null>(null);
@@ -198,11 +201,11 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
 
   const visibleFiles = activeFiles.filter(file => {
     const isUploader = file.uploaderId === currentUserId;
-    const isMember = canManageFiles;
+    const isMemberOrPreview = canManageFiles || isPendingInvitee || isTeacher;
 
     if (isUploader) return true;
     if (file.visibility === 'ONLY_ME') return false;
-    if (isMember) return true;
+    if (isMemberOrPreview) return true;
     return file.visibility === 'PUBLIC' || file.isPrivate === false;
   });
 
@@ -357,7 +360,7 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
         onClose={() => setViewerFile(null)}
         file={viewerFile}
         projectId={projectId}
-        canManageFiles={canManageFiles}
+        canManageFiles={canAnnotateFiles}
       />
     
       {/* Silme Onay Modalı */}

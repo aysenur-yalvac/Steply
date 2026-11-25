@@ -4,8 +4,8 @@ import { GitHubIntegrationCard } from '@/components/projects/GitHubIntegrationCa
 import { getGitHubRepoAction, getProjectCommitsAction } from '@/lib/actions';
 export const dynamic = "force-dynamic";
 import { notFound, redirect } from 'next/navigation';
-import { Star, Trash2, Check } from 'lucide-react';
-import { createReview, deleteReviewAction } from '../../actions';
+import { Check } from 'lucide-react';
+import TeacherReviewsSection from '@/components/projects/TeacherReviewsSection';
 import FileSection from '@/components/projects/FileSection';
 import ProjectEditableContent from '@/components/projects/ProjectEditableContent';
 import ProjectTaskList from '@/components/projects/ProjectTaskList';
@@ -77,12 +77,12 @@ export default async function ProjectDetailPage({
   const isOwner: boolean = ownerUserId === user.id;
 
   // ── Privacy gate — project-level only ────────────────────────────────────
-  if (!isOwner && (project as any).is_private === true) {
+  const isInvitedMember = (memberRows ?? []).some(
+    (r: any) => r.user_id === user.id
+  );
+  if (!isOwner && (project as any).is_private === true && !isTeacher) {
     const jsonTeamIds = ((project.team_members as { id: string }[] | null) ?? []).map((m) => m.id);
-    const isAcceptedMember = (memberRows ?? []).some(
-      (r: any) => r.user_id === user.id && r.status !== 'pending'
-    );
-    const isTeamMemberAccess = jsonTeamIds.includes(user.id) || isAcceptedMember;
+    const isTeamMemberAccess = jsonTeamIds.includes(user.id) || isInvitedMember;
     if (!isTeamMemberAccess) notFound();
   }
 
@@ -98,7 +98,9 @@ export default async function ProjectDetailPage({
   const isAcceptedCollaborator = !isOwner && (memberRows ?? []).some(
     (r: any) => r.user_id === user.id && r.status !== 'pending'
   );
+  const isPendingInvitee = !isOwner && !isAcceptedCollaborator && isInvitedMember;
   const isTeamMember = isOwner || isAcceptedCollaborator;
+  const canViewProjectDetails = isTeamMember || isPendingInvitee || isTeacher;
 
   // Round 2: Fetch all required profiles in a single query in parallel with activities, notes, and GitHub data
   const [
@@ -112,7 +114,7 @@ export default async function ProjectDetailPage({
       ? admin.from('profiles').select('id, full_name, avatar_url, role, github_url').in('id', profileIdsToFetch)
       : Promise.resolve({ data: [] as any[] }),
     isTeamMember ? getProjectActivitiesAction(projectId).catch(() => []) : Promise.resolve([]),
-    isTeamMember ? getProjectNotesAction(projectId).catch(() => [])      : Promise.resolve([]),
+    (isTeamMember || isTeacher) ? getProjectNotesAction(projectId).catch(() => []) : Promise.resolve([]),
     isTeamMember ? getGitHubRepoAction(projectId).catch(() => null)      : Promise.resolve(null),
     isTeamMember ? getProjectCommitsAction(projectId).catch(() => [])    : Promise.resolve([]),
   ]);
@@ -296,7 +298,7 @@ export default async function ProjectDetailPage({
                 </div>
               }
               milestonesContent={
-                isTeamMember ? (
+                canViewProjectDetails ? (
                   <ProjectTaskList
                         projectId={project.id}
                         initialTasks={projectTasks}
@@ -314,13 +316,14 @@ export default async function ProjectDetailPage({
                   initialFiles={(project.files as ProjectFile[]) || []}
                   isOwner={isOwner}
                   isCollaborator={isCollaborator}
+                  isPendingInvitee={isPendingInvitee}
                   isTeacher={isTeacher}
                   currentUserId={user.id}
                 />
               }
               notesContent={
                 <div className="flex flex-col gap-8">
-                  {isTeamMember && (
+                  {(isTeamMember || isTeacher) && (
                     <ProjectNotes
                       projectId={project.id}
                       initialNotes={projectNotes}
@@ -329,67 +332,12 @@ export default async function ProjectDetailPage({
                       currentUserAvatar={profile?.avatar_url ?? null}
                     />
                   )}
-                  {reviews.length > 0 && (
-                    <div className="flex flex-col gap-4">
-                      <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Öğretmen Değerlendirmeleri</h3>
-                      {reviews.map((review) => (
-                        <div key={review.id} className="rounded-2xl p-6 shadow-sm" style={{ background: 'rgba(255,255,255,0.40)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.55)' }}>
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar src={review.reviewer_avatar} name={review.reviewer_name} size="md" />
-                              <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-slate-700">{review.reviewer_name}</span>
-                                  {review.reviewer_role === 'teacher' && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 tracking-wide uppercase">Öğretmen</span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                                  {new Date(review.created_at).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <div className="flex gap-1 text-amber-400">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
-                                ))}
-                              </div>
-                              {user.id === review.reviewer_id && (
-                                <form action={deleteReviewAction}>
-                                  <input type="hidden" name="id" value={review.id} />
-                                  <input type="hidden" name="project_id" value={project.id} />
-                                  <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Değerlendirmeyi Sil">
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </form>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap pl-[52px]">{review.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {isTeacher && (
-                    <div className="bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
-                      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-dusty-rose" /> Projeyi Değerlendir
-                      </h3>
-                      <form action={createReview} className="flex flex-col gap-5">
-                        <input type="hidden" name="project_id" value={project.id} />
-                        <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Puan (1-5)</label>
-                          <input type="number" name="rating" min="1" max="5" defaultValue="5" className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all w-24 font-bold" required />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Yorum ve Geri Bildirim</label>
-                          <textarea name="comment" rows={4} placeholder="Proje hakkındaki değerlendirmenizi yazın..." className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-dusty-rose/5 focus:border-dusty-rose/30 transition-all resize-y placeholder:text-slate-400" required />
-                        </div>
-                        <button type="submit" className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-95">Değerlendirmeyi Gönder</button>
-                      </form>
-                    </div>
-                  )}
+                  <TeacherReviewsSection
+                    projectId={project.id}
+                    initialReviews={reviews}
+                    currentUserId={user.id}
+                    isTeacher={isTeacher}
+                  />
                 </div>
               }
             />

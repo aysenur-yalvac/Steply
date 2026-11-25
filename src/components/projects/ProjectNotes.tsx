@@ -292,27 +292,70 @@ export default function ProjectNotes({
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     const trimmed = content.trim();
-    if ((!trimmed && !pendingFile) || isSubmitting) return;
+    if (!trimmed && !pendingFile) return;
 
     const fileToUpload = pendingFile;
     const localPreview = pendingPreviewUrl;
+
+    // CASE 1: Text-only message — instant WhatsApp/Instagram feel (zero spinner, zero input lock)
+    if (!fileToUpload) {
+      const finalPayload = encodeContentWithAttachment(trimmed, null);
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+      const optimistic: ProjectNote = {
+        id: tempId,
+        project_id: projectId,
+        user_id: currentUserId,
+        content: finalPayload,
+        created_at: new Date().toISOString(),
+        author_name: currentUserName,
+        author_avatar: currentUserAvatar,
+      };
+
+      setNotes((prev) => [...prev, optimistic]);
+      setContent("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.overflowY = "hidden";
+      }
+      focusMessageTextarea();
+
+      try {
+        const result = await addProjectNoteAction(projectId, finalPayload);
+        if ("error" in result) {
+          setNotes((prev) => prev.filter((n) => n.id !== tempId));
+          toast.error(result.error);
+        } else {
+          setNotes((prev) => {
+            const alreadyHasReal = prev.some((n) => n.id === result.note.id);
+            if (alreadyHasReal) {
+              return prev.filter((n) => n.id !== tempId);
+            }
+            return prev.map((n) => (n.id === tempId ? result.note : n));
+          });
+          router.refresh();
+        }
+      } catch (err: any) {
+        setNotes((prev) => prev.filter((n) => n.id !== tempId));
+        toast.error(err?.message || "Mesaj gönderilemedi.");
+      }
+      return;
+    }
+
+    // CASE 2: Attachment / screenshot upload — show upload indicator and reset in finally
+    if (isSubmitting) return;
     shouldRestoreFocusRef.current = true;
     setIsSubmitting(true);
     focusMessageTextarea();
 
     try {
-      // 1. If a file/screenshot is attached, upload to Supabase Storage FIRST
-      // so the message is created directly with the permanent public URL (no blank purple box or revoked blob).
-      let uploadedAttachment: ChatAttachment | null = null;
-      if (fileToUpload) {
-        uploadedAttachment = await uploadChatAttachment(
-          fileToUpload,
-          `project-${projectId}`
-        );
-      }
+      const uploadedAttachment = await uploadChatAttachment(
+        fileToUpload,
+        `project-${projectId}`
+      );
 
       const finalPayload = encodeContentWithAttachment(trimmed, uploadedAttachment);
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
       const optimistic: ProjectNote = {
         id: tempId,

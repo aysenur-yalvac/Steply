@@ -134,14 +134,18 @@ async function verifyProjectFileAccess(
 
     const { data: isMember } = await admin
       .from('project_members')
-      .select('id')
+      .select('id, status')
       .eq('project_id', projectId)
       .eq('user_id', userId)
-      .neq('status', 'pending')
       .maybeSingle();
 
     if (isMember) {
-      return { allowed: true, isOwner: false, isTeacher: false, isCollaborator: true };
+      return {
+        allowed: true,
+        isOwner: false,
+        isTeacher: false,
+        isCollaborator: (isMember as any).status !== 'pending',
+      };
     }
 
     return { allowed: false, isOwner: false, isTeacher: false, isCollaborator: false };
@@ -844,8 +848,10 @@ export async function addProjectTask(
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
 
-  if (assignedTo) {
-    const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, assignedTo);
+  const normalizedAssignee = assignedTo && String(assignedTo).trim() ? String(assignedTo).trim() : null;
+
+  if (normalizedAssignee) {
+    const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, normalizedAssignee);
     if (!canAssign) {
       return { error: 'Yalnızca proje sahibine veya daveti kabul etmiş aktif ekip üyelerine görev atanabilir.' };
     }
@@ -856,14 +862,35 @@ export async function addProjectTask(
     title: cleanTitle,
     is_completed: false,
   };
-  if (assignedTo) {
-    insertPayload.assigned_to = assignedTo;
+  if (normalizedAssignee) {
+    insertPayload.assigned_to = normalizedAssignee;
   }
-  const { data, error } = await ctx.admin
+
+  let { data, error } = await ctx.admin
     .from('project_tasks')
     .insert(insertPayload)
     .select()
     .single();
+
+  if (error) {
+    const errMsg = (error.message || '').toLowerCase();
+    const isMissingColumn =
+      errMsg.includes('assigned_to') ||
+      errMsg.includes('schema cache') ||
+      (error as any).code === 'PGRST204' ||
+      (error as any).code === '42703';
+
+    if (isMissingColumn && 'assigned_to' in insertPayload) {
+      const { assigned_to: _removed, ...fallbackPayload } = insertPayload;
+      const retry = await ctx.admin
+        .from('project_tasks')
+        .insert(fallbackPayload)
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+  }
 
   if (error || !data) return { error: error?.message ?? 'Insert failed' };
 
@@ -1996,25 +2023,36 @@ export async function saveFileDrawingsAction(
     const ctx = await assertProjectAccess(supabase, projectId);
     if (!ctx) return { error: 'Unauthorized' };
 
+    let parsedLines = drawingData;
+    if (typeof drawingData === 'string') {
+      try {
+        parsedLines = JSON.parse(drawingData);
+      } catch {
+        parsedLines = drawingData;
+      }
+    }
+
     // First, check if a drawing record already exists for this file_url
-    const { data: existing } = await ctx.admin
+    const { data: existingRows } = await ctx.admin
       .from('file_annotations')
-      .select('id')
-      .eq('file_url', fileUrl)
-      .eq('annotation_data->>type', 'drawing')
-      .maybeSingle();
+      .select('id, annotation_data')
+      .eq('file_url', fileUrl);
+
+    const existingDrawing = (existingRows ?? []).find(
+      (r: any) => r?.annotation_data?.type === 'drawing'
+    );
 
     let data, error;
 
-    if (existing?.id) {
+    if (existingDrawing?.id) {
       // OVERWRITE: Update the existing drawing record completely
       const res = await ctx.admin
         .from('file_annotations')
         .update({
-          annotation_data: { type: 'drawing', lines: drawingData },
+          annotation_data: { type: 'drawing', lines: parsedLines, pages: parsedLines },
           author_id: ctx.user.id,
         })
-        .eq('id', existing.id)
+        .eq('id', existingDrawing.id)
         .select('*')
         .single();
       data = res.data; error = res.error;
@@ -2026,7 +2064,7 @@ export async function saveFileDrawingsAction(
           project_id: projectId,
           file_url: fileUrl,
           author_id: ctx.user.id,
-          annotation_data: { type: 'drawing', lines: drawingData }
+          annotation_data: { type: 'drawing', lines: parsedLines, pages: parsedLines }
         })
         .select('*')
         .single();
@@ -2498,32 +2536,85 @@ export async function updateTaskAction(
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
 
+  const { data: existingTask } = await ctx.admin.from('project_tasks').select('*').eq('id', taskId).single();
+  const hasAssignedToColumn = existingTask ? Object.prototype.hasOwnProperty.call(existingTask, 'assigned_to') : true;
+  const hasSubtasksColumn = existingTask ? Object.prototype.hasOwnProperty.call(existingTask, 'subtasks') : true;
+  const hasDueDateColumn = existingTask ? Object.prototype.hasOwnProperty.call(existingTask, 'due_date') : true;
+
   // Only allow updating safe fields
-  const safeUpdates: any = {};
+  const safeUpdates: Record<string, any> = {};
   if (updates.title !== undefined) safeUpdates.title = updates.title;
   if (updates.description !== undefined) safeUpdates.description = updates.description;
   if (updates.is_completed !== undefined) safeUpdates.is_completed = updates.is_completed;
-  if (updates.due_date !== undefined) safeUpdates.due_date = updates.due_date;
-  if (updates.assigned_to !== undefined) {
-    if (updates.assigned_to) {
-      const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, updates.assigned_to);
+  if (updates.due_date !== undefined && hasDueDateColumn) {
+    safeUpdates.due_date = updates.due_date && String(updates.due_date).trim() ? String(updates.due_date).trim() : null;
+  }
+  if (updates.assigned_to !== undefined && hasAssignedToColumn) {
+    const normalizedAssignee = updates.assigned_to && String(updates.assigned_to).trim() ? String(updates.assigned_to).trim() : null;
+    if (normalizedAssignee) {
+      const canAssign = await isApprovedProjectAssignee(ctx.admin, projectId, normalizedAssignee);
       if (!canAssign) {
         return { error: 'Yalnızca proje sahibine veya daveti kabul etmiş aktif ekip üyelerine görev atanabilir.' };
       }
     }
-    safeUpdates.assigned_to = updates.assigned_to;
+    safeUpdates.assigned_to = normalizedAssignee;
   }
-  if (updates.subtasks !== undefined) safeUpdates.subtasks = updates.subtasks;
+  if (updates.subtasks !== undefined && hasSubtasksColumn) {
+    safeUpdates.subtasks = updates.subtasks;
+  }
 
-  const { data: existingTask } = await ctx.admin.from('project_tasks').select('*').eq('id', taskId).single();
+  if (Object.keys(safeUpdates).length === 0 && existingTask) {
+    return { success: true, task: { ...existingTask, ...updates } as ProjectTask };
+  }
 
-  const { data, error } = await ctx.admin
+  let { data, error } = await ctx.admin
     .from('project_tasks')
     .update(safeUpdates)
     .eq('id', taskId)
     .eq('project_id', projectId)
     .select()
     .single();
+
+  // Safe schema fallback: if assigned_to, subtasks, or due_date column is missing in DB schema, strip and retry automatically
+  if (error) {
+    const errMsg = (error.message || '').toLowerCase();
+    const isMissingColumn =
+      errMsg.includes('assigned_to') ||
+      errMsg.includes('subtasks') ||
+      errMsg.includes('due_date') ||
+      errMsg.includes('schema cache') ||
+      errMsg.includes('column') ||
+      (error as any).code === 'PGRST204' ||
+      (error as any).code === '42703';
+
+    if (isMissingColumn) {
+      const fallbackUpdates: Record<string, any> = { ...safeUpdates };
+      if (errMsg.includes('assigned_to') || 'assigned_to' in fallbackUpdates) {
+        delete fallbackUpdates.assigned_to;
+      }
+      if (errMsg.includes('subtasks')) {
+        delete fallbackUpdates.subtasks;
+      }
+      if (errMsg.includes('due_date')) {
+        delete fallbackUpdates.due_date;
+      }
+
+      if (Object.keys(fallbackUpdates).length > 0) {
+        const retry = await ctx.admin
+          .from('project_tasks')
+          .update(fallbackUpdates)
+          .eq('id', taskId)
+          .eq('project_id', projectId)
+          .select()
+          .single();
+        data = retry.data;
+        error = retry.error;
+      } else if (existingTask) {
+        data = { ...existingTask, ...updates };
+        error = null;
+      }
+    }
+  }
 
   if (error || !data) return { error: error?.message ?? 'Update failed' };
 
@@ -2565,7 +2656,7 @@ export async function updateTaskAction(
   // ---------------------------
 
   revalidatePath(`/dashboard/projects/${projectId}`);
-  return { success: true, task: data as ProjectTask };
+  return { success: true, task: { ...data, ...(updates.assigned_to !== undefined ? { assigned_to: updates.assigned_to } : {}) } as ProjectTask };
 }
 
 

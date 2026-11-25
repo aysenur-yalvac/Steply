@@ -184,16 +184,137 @@ export async function updateProgress(formData: FormData) {
   revalidatePath("/dashboard/analytics");
 }
 
+export type TeacherReviewItem = {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  reviewer_id: string;
+  reviewer_name: string;
+  reviewer_role: string | null;
+  reviewer_avatar: string | null;
+};
+
+export async function createReviewAction(
+  projectId: string,
+  rating: number,
+  comment: string,
+): Promise<{ success: true; review: TeacherReviewItem } | { error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Oturum bulunamadı. Lütfen tekrar giriş yapın." };
+
+    const cleanComment = (comment || "").trim();
+    if (!cleanComment) return { error: "Yorum alanı boş bırakılamaz." };
+
+    const safeRating = Math.min(5, Math.max(1, Number(rating) || 5));
+    const admin = createAdminClient();
+
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("full_name, avatar_url, role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const { data: inserted, error } = await admin
+      .from("reviews")
+      .insert({
+        project_id: projectId,
+        reviewer_id: user.id,
+        rating: safeRating,
+        comment: cleanComment,
+      })
+      .select("id, rating, comment, created_at, reviewer_id")
+      .single();
+
+    if (error || !inserted) {
+      console.error("[createReviewAction] insert error:", error);
+      return { error: error?.message || "Değerlendirme gönderilemedi." };
+    }
+
+    // Notify project owner
+    try {
+      const { data: proj } = await admin
+        .from("projects")
+        .select("student_id, title")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (proj?.student_id && proj.student_id !== user.id) {
+        const teacherName = profile?.full_name || "Öğretmeniniz";
+        await createNotificationAction(
+          proj.student_id,
+          "project",
+          "Yeni Öğretmen Değerlendirmesi",
+          `${teacherName}, '${proj.title || "Proje"}' projenizi değerlendirdi (${safeRating}/5).`,
+          `/dashboard/projects/${projectId}`,
+        );
+      }
+    } catch (notifErr) {
+      console.warn("[createReviewAction] notification error:", notifErr);
+    }
+
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      review: {
+        id: inserted.id,
+        rating: inserted.rating,
+        comment: inserted.comment,
+        created_at: inserted.created_at,
+        reviewer_id: inserted.reviewer_id,
+        reviewer_name: profile?.full_name || "Öğretmen",
+        reviewer_role: profile?.role || "teacher",
+        reviewer_avatar: profile?.avatar_url || null,
+      },
+    };
+  } catch (err: any) {
+    console.error("[createReviewAction] exception:", err);
+    return { error: err?.message || "Beklenmedik bir hata oluştu." };
+  }
+}
+
+export async function deleteTeacherReviewAction(
+  reviewId: string,
+  projectId: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Oturum bulunamadı." };
+
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("reviews")
+      .delete()
+      .match({ id: reviewId, reviewer_id: user.id });
+
+    if (error) {
+      console.error("[deleteTeacherReviewAction] error:", error);
+      return { error: error.message || "Değerlendirme silinemedi." };
+    }
+
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Değerlendirme silinemedi." };
+  }
+}
+
 export async function createReview(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return redirect("/auth/login");
 
   const projectId = formData.get("project_id") as string;
-  const rating = parseInt(formData.get("rating") as string);
-  const comment = formData.get("comment") as string;
+  const rating = parseInt(formData.get("rating") as string) || 5;
+  const comment = ((formData.get("comment") as string) || "").trim();
 
-  const { error } = await supabase.from("reviews").insert({
+  const admin = createAdminClient();
+  const { error } = await admin.from("reviews").insert({
     project_id: projectId,
     reviewer_id: user.id,
     rating,
@@ -202,7 +323,7 @@ export async function createReview(formData: FormData) {
 
   if (error) {
     console.error("Error adding review:", error);
-    return redirect(`/dashboard/projects/${projectId}?error=Evaluation could not be sent.`);
+    return redirect(`/dashboard/projects/${projectId}?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath(`/dashboard/projects/${projectId}`);
@@ -217,11 +338,12 @@ export async function deleteReviewAction(formData: FormData) {
   const reviewId = formData.get("id") as string;
   const projectId = formData.get("project_id") as string;
 
-  const { error } = await supabase.from("reviews").delete().match({ id: reviewId, reviewer_id: user.id });
+  const admin = createAdminClient();
+  const { error } = await admin.from("reviews").delete().match({ id: reviewId, reviewer_id: user.id });
 
   if (error) {
     console.error("Error deleting review:", error);
-    return redirect(`/dashboard/projects/${projectId}?error=Could not delete review.`);
+    return redirect(`/dashboard/projects/${projectId}?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath(`/dashboard/projects/${projectId}`);
