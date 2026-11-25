@@ -1,4 +1,7 @@
-﻿import LoginCard from "./LoginCard";
+﻿import { Suspense } from "react";
+import LoginCard from "./LoginCard";
+
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,
@@ -16,10 +19,12 @@ export default async function LoginPage({
   }
 
   return (
-    <LoginCard
-      message={displayMessage}
-      linkAccount={resolved?.link_account === "true"}
-      ownerId={resolved?.owner_id}
-    />
+    <Suspense fallback={<div className="min-h-screen w-full bg-[#0B0E14]" />}>
+      <LoginCard
+        message={displayMessage}
+        linkAccount={resolved?.link_account === "true"}
+        ownerId={resolved?.owner_id}
+      />
+    </Suspense>
   );
 }

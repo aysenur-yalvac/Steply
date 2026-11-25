@@ -1,26 +1,38 @@
 ﻿import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = [
+const PUBLIC_BYPASS_PATHS = [
+  "/",
   "/auth/login",
   "/auth/register",
   "/auth/verify-email",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/callback",
+  "/auth/link-complete",
+  "/auth/logout",
 ];
 const PROTECTED_PREFIX = "/dashboard";
 
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Fast-path: do not block static assets or Next.js internal prefetches on public routes
+  // 1. Completely bypass middleware auth & session checks on /, /auth/*, and all non-protected routes
+  // so RSC (_rsc) payloads and client-side transitions never stall or enter redirect loops.
+  const isPublicOrAuth =
+    pathname === "/" ||
+    pathname.startsWith("/auth") ||
+    PUBLIC_BYPASS_PATHS.some((p) => pathname === p || (p !== "/" && pathname.startsWith(p)));
+
   const isProtected = pathname.startsWith(PROTECTED_PREFIX);
-  const isAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+
+  if (isPublicOrAuth || !isProtected) {
+    return NextResponse.next({ request });
+  }
+
   const isPrefetch =
     request.headers.get("next-router-prefetch") === "1" ||
     request.headers.get("purpose") === "prefetch";
-
-  if (!isProtected && !isAuthPage) {
-    return NextResponse.next({ request });
-  }
 
   let supabaseResponse = NextResponse.next({ request });
 
@@ -91,15 +103,6 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
     }
-  }
-
-  // Auth sayfasinda oturumu acik, onayi tamamlanmis kullanici -> dashboard
-  if (user && isAuthPage && !isPrefetch && (!!user.email_confirmed_at || user.user_metadata?.email_verified === true)) {
-    if (request.nextUrl.searchParams.get("link_account") === "true") {
-      return supabaseResponse;
-    }
-    const url = new URL("/dashboard", request.url);
-    return NextResponse.redirect(url);
   }
 
   return supabaseResponse;

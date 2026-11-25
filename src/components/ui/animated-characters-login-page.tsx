@@ -1107,11 +1107,37 @@ export default function AnimatedCharactersLoginPage({
           <p className="mt-6 text-center text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
             {isLogin ? (
               <>Hesabın yok mu?{" "}
-                <Link href="/auth/register" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Kayıt Ol</Link>
+                <Link
+                  href="/auth/register"
+                  prefetch={true}
+                  onClick={(e) => {
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                      e.preventDefault();
+                      window.location.assign("/auth/register");
+                    }
+                  }}
+                  className="font-bold transition-colors hover:text-purple-300 cursor-pointer"
+                  style={{ color: "#C97EFF" }}
+                >
+                  Kayıt Ol
+                </Link>
               </>
             ) : (
               <>Zaten hesabın var mı?{" "}
-                <Link href="/auth/login" className="font-bold transition-colors hover:text-purple-300" style={{ color: "#C97EFF" }}>Giriş Yap</Link>
+                <Link
+                  href="/auth/login"
+                  prefetch={true}
+                  onClick={(e) => {
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                      e.preventDefault();
+                      window.location.assign("/auth/login");
+                    }
+                  }}
+                  className="font-bold transition-colors hover:text-purple-300 cursor-pointer"
+                  style={{ color: "#C97EFF" }}
+                >
+                  Giriş Yap
+                </Link>
               </>
             )}
           </p>

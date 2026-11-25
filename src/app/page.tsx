@@ -53,6 +53,12 @@ export default function Home() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleAuthNav = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    window.location.assign(path);
+  };
+
   return (
     <div className="flex flex-col w-full min-h-screen bg-[#070B14] text-slate-100 selection:bg-violet-600/30 selection:text-violet-200 font-sans relative overflow-hidden">
       {openLegalModal && (
@@ -135,19 +141,23 @@ export default function Home() {
           </nav>
 
           {/* Sağ Eylemler: Giriş Yap + Mor Kayıt Ol */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="relative z-50 flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               href="/auth/login"
-              className="whitespace-nowrap px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              prefetch={true}
+              onClick={(e) => handleAuthNav(e, "/auth/login")}
+              className="relative z-50 cursor-pointer whitespace-nowrap px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
             >
               Giriş Yap
             </Link>
             <Link
               href="/auth/register"
-              className="whitespace-nowrap inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              prefetch={true}
+              onClick={(e) => handleAuthNav(e, "/auth/register")}
+              className="relative z-50 cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              <span>Kayıt Ol</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="pointer-events-none">Kayıt Ol</span>
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 pointer-events-none" />
             </Link>
           </div>
         </div>
@@ -205,10 +215,12 @@ export default function Home() {
         >
           <Link
             href="/auth/register"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-purple-500 shadow-xl shadow-violet-600/35 hover:shadow-violet-600/55 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            prefetch={true}
+            onClick={(e) => handleAuthNav(e, "/auth/register")}
+            className="relative z-20 cursor-pointer w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-purple-500 shadow-xl shadow-violet-600/35 hover:shadow-violet-600/55 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <span>Kayıt Ol</span>
-            <ArrowRight className="w-5 h-5" />
+            <span className="pointer-events-none">Kayıt Ol</span>
+            <ArrowRight className="w-5 h-5 pointer-events-none" />
           </Link>
           <a
             href="#nasil-calisir"
@@ -310,10 +322,12 @@ export default function Home() {
           </div>
           <Link
             href="/auth/register"
-            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 transition-all hover:-translate-y-0.5"
+            prefetch={true}
+            onClick={(e) => handleAuthNav(e, "/auth/register")}
+            className="relative z-20 cursor-pointer shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-md shadow-violet-600/30 transition-all hover:-translate-y-0.5"
           >
-            <span>Hemen Başla</span>
-            <ArrowRight className="w-4 h-4" />
+            <span className="pointer-events-none">Hemen Başla</span>
+            <ArrowRight className="w-4 h-4 pointer-events-none" />
           </Link>
         </motion.div>
       </section>
@@ -915,10 +929,12 @@ export default function Home() {
 
             <Link
               href="/auth/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-600/30 transition-all hover:-translate-y-0.5"
+              prefetch={true}
+              onClick={(e) => handleAuthNav(e, "/auth/register")}
+              className="relative z-20 cursor-pointer inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-600/30 transition-all hover:-translate-y-0.5"
             >
-              <span>Kayıt Ol</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="pointer-events-none">Kayıt Ol</span>
+              <ArrowRight className="w-4 h-4 pointer-events-none" />
             </Link>
           </div>
         </motion.div>
@@ -956,8 +972,8 @@ export default function Home() {
           <div className="space-y-3">
             <h4 className="font-bold text-white text-sm">Erişim</h4>
             <ul className="space-y-2">
-              <li><Link href="/auth/login" className="hover:text-violet-400 transition-colors">Panele Giriş</Link></li>
-              <li><Link href="/auth/register" className="hover:text-violet-400 transition-colors">Kayıt Ol</Link></li>
+              <li><Link href="/auth/login" prefetch={true} onClick={(e) => handleAuthNav(e, "/auth/login")} className="hover:text-violet-400 transition-colors cursor-pointer">Panele Giriş</Link></li>
+              <li><Link href="/auth/register" prefetch={true} onClick={(e) => handleAuthNav(e, "/auth/register")} className="hover:text-violet-400 transition-colors cursor-pointer">Kayıt Ol</Link></li>
             </ul>
           </div>
 

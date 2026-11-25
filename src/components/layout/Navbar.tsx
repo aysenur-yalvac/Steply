@@ -80,8 +80,15 @@ export default function Navbar() {
                   {!pathname.startsWith('/auth') && (
                     <Link
                       href="/auth/login"
-                      onClick={closeMenus}
-                      className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5"
+                      prefetch={true}
+                      onClick={(e) => {
+                        closeMenus();
+                        if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                          e.preventDefault();
+                          window.location.assign("/auth/login");
+                        }
+                      }}
+                      className="w-full md:w-auto text-sm font-semibold text-center text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-white transition-colors py-2 md:px-5 cursor-pointer"
                     >
                       Giriş Yap
                     </Link>
@@ -89,8 +96,15 @@ export default function Navbar() {
                   {!pathname.startsWith('/auth') && (
                     <Link
                       href="/auth/register"
-                      onClick={closeMenus}
-                      className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95"
+                      prefetch={true}
+                      onClick={(e) => {
+                        closeMenus();
+                        if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                          e.preventDefault();
+                          window.location.assign("/auth/register");
+                        }
+                      }}
+                      className="btn-aura w-full md:w-auto text-sm font-bold text-center text-white rounded-xl py-2.5 px-6 transition-all active:scale-95 cursor-pointer"
                     >
                       Kayıt Ol
                     </Link>

@@ -261,7 +261,7 @@ export function NeuralNoise({
     return (
       <div
         aria-hidden="true"
-        className="fixed inset-0 z-0 h-full w-full pointer-events-none"
+        className="fixed inset-0 -z-10 h-full w-full pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse 85% 60% at 50% 0%, rgba(124, 58, 237, 0.28) 0%, rgba(124, 58, 237, 0.10) 45%, transparent 75%), radial-gradient(ellipse 65% 50% at 85% 85%, rgba(124, 58, 237, 0.16) 0%, transparent 70%)",
@@ -273,7 +273,7 @@ export function NeuralNoise({
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 h-full w-full pointer-events-none"
+      className="fixed inset-0 -z-10 h-full w-full pointer-events-none"
       style={{ opacity }}
     />
   );

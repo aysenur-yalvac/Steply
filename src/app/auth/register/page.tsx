@@ -1,4 +1,7 @@
-﻿import RegisterCard from "./RegisterCard";
+﻿import { Suspense } from "react";
+import RegisterCard from "./RegisterCard";
+
+export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({
   searchParams,
@@ -14,5 +17,9 @@ export default async function RegisterPage({
     displayMessage = resolved.error;
   }
 
-  return <RegisterCard message={displayMessage} error={resolved?.error} />;
+  return (
+    <Suspense fallback={<div className="min-h-screen w-full bg-[#0B0E14]" />}>
+      <RegisterCard message={displayMessage} error={resolved?.error} />
+    </Suspense>
+  );
 }
