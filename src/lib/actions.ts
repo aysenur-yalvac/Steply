@@ -1444,39 +1444,54 @@ export async function removeLinkedAccountAction(
   if (!user) return { error: 'Unauthorized' };
   const admin = createAdminClient();
 
-  // Fetch the row to get both sides' IDs and the stored email of A
+  // Case 1: Virtual "owner-<uuid>" row when the current user is a child account removing the root owner
+  if (linkedId.startsWith('owner-')) {
+    const targetOwnerId = linkedId.replace(/^owner-/, '');
+    await Promise.all([
+      admin
+        .from('linked_accounts')
+        .delete()
+        .eq('owner_user_id', targetOwnerId)
+        .eq('linked_user_id', user.id),
+      admin
+        .from('linked_accounts')
+        .delete()
+        .eq('owner_user_id', user.id)
+        .eq('linked_user_id', targetOwnerId),
+    ]);
+    return { success: true };
+  }
+
+  // Case 2: Standard row in linked_accounts
   const { data: row, error: fetchErr } = await admin
     .from('linked_accounts')
-    .select('owner_user_id, linked_user_id, linked_email')
+    .select('id, owner_user_id, linked_user_id, linked_email')
     .eq('id', linkedId)
-    .eq('owner_user_id', user.id)
     .maybeSingle();
 
   if (fetchErr) return { error: fetchErr.message };
-  if (!row) return { error: 'Bağlantı bulunamadıı.' };
+  if (!row) return { error: 'Bağlantı bulunamadı.' };
 
-  const ownerUserId  = user.id;            // A's uuid
-  const ownerEmail   = user.email ?? '';   // A's email (fallback key for B's row)
-  const targetUserId = row.linked_user_id; // B's uuid (may be null on legacy rows)
+  const rowOwnerId  = row.owner_user_id;
+  const targetUserId = row.linked_user_id;
 
-  // Delete A→B (forward row)
-  const { error: fwdErr } = await admin
-    .from('linked_accounts')
-    .delete()
-    .eq('owner_user_id', ownerUserId)
-    .eq('linked_user_id', targetUserId);
-  if (fwdErr) return { error: fwdErr.message };
+  // Delete the clicked row
+  await admin.from('linked_accounts').delete().eq('id', linkedId);
 
-  // Delete B→A (reverse row).
-  // Some legacy rows may have linked_user_id=null and only store A's email in the
-  // `linked_email` column, so we match on either the uuid OR the stored email as fallback.
-  if (targetUserId) {
-    const { error: revErr } = await admin
-      .from('linked_accounts')
-      .delete()
-      .eq('owner_user_id', targetUserId)
-      .or(`linked_user_id.eq.${ownerUserId},linked_email.eq.${ownerEmail}`);
-    if (revErr) console.error('[removeLinkedAccount] reverse delete failed:', revErr.message);
+  // Also delete any reverse link between these two accounts
+  if (targetUserId && rowOwnerId) {
+    await Promise.all([
+      admin
+        .from('linked_accounts')
+        .delete()
+        .eq('owner_user_id', rowOwnerId)
+        .eq('linked_user_id', targetUserId),
+      admin
+        .from('linked_accounts')
+        .delete()
+        .eq('owner_user_id', targetUserId)
+        .eq('linked_user_id', rowOwnerId),
+    ]);
   }
 
   return { success: true };

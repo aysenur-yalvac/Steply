@@ -118,7 +118,10 @@ export async function POST(request: Request) {
 
   // Resolve owner_id: form hidden input is the primary source; cookie is the fallback
   // in case the client component failed to render the hidden inputs.
-  const cookieOwnerId = cookieStore.get('_Must-b Academy_link_owner')?.value ?? null
+  const cookieOwnerId =
+    cookieStore.get('_steply_link_owner')?.value ??
+    cookieStore.get('_Must-b Academy_link_owner')?.value ??
+    null
   const resolvedOwnerId  = ownerId ?? (linkAccount === 'true' ? cookieOwnerId : null) ?? cookieOwnerId
   const resolvedLinkMode = linkAccount === 'true' || (!!cookieOwnerId && !!resolvedOwnerId)
 
@@ -220,6 +223,7 @@ export async function POST(request: Request) {
         `${origin}/auth/link-complete?owner_id=${resolvedOwnerId}&linked_uid=${data.user.id}`,
         { status: 303 },
       )
+      res.cookies.delete('_steply_link_owner')
       res.cookies.delete('_Must-b Academy_link_owner')
       return res
     } catch (e) {

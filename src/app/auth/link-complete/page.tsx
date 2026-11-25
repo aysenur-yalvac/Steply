@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
 function LinkCompleteContent() {
   const searchParams = useSearchParams()
@@ -21,7 +22,16 @@ function LinkCompleteContent() {
       body: JSON.stringify({ owner_id: ownerId, linked_uid: linkedUid }),
     })
       .then(res => res.json())
-      .then(data => {
+      .then(async (data) => {
+        if (data.session?.access_token && data.session?.refresh_token) {
+          try {
+            const supabase = createClient()
+            await supabase.auth.setSession({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            })
+          } catch {}
+        }
         if (data.url) {
           window.location.href = data.url
         } else {
@@ -29,7 +39,7 @@ function LinkCompleteContent() {
         }
       })
       .catch(() => setError('Ağ hatası. Lütfen tekrar deneyin.'))
-  }, [ownerId])
+  }, [ownerId, linkedUid])
 
   if (error) {
     return (

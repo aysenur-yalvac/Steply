@@ -27,9 +27,15 @@ Calendar,
 import { removeLinkedAccountAction } from "@/lib/actions";
 import type { LinkedAccount } from "@/lib/actions";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthProvider";
+import {
+  useAuth,
+  getSavedLocalAccount,
+  removeSavedLocalAccount,
+  upsertSavedLocalAccount,
+} from "@/context/AuthProvider";
 import { createClient } from "@/utils/supabase/client";
 import UnreadMessagesBadge from "@/components/dashboard/UnreadMessagesBadge";
+import toast from "react-hot-toast";
 
 interface SidebarProps {
   userName?: string;
@@ -107,7 +113,47 @@ function NavContent({
   const [accounts, setAccounts] = useState<LinkedAccount[]>(linkedAccounts);
   const [isSwitching, setIsSwitching] = useState(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
+  const [expiredSwitchEmail, setExpiredSwitchEmail] = useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+
+  // Merge server linked accounts with any locally saved sessions in localStorage
+  function mergeWithLocalSavedAccounts(serverAccounts: LinkedAccount[]): LinkedAccount[] {
+    if (typeof window === "undefined") return serverAccounts;
+    try {
+      const raw = window.localStorage.getItem("saved_accounts");
+      if (!raw) return serverAccounts;
+      const localList = JSON.parse(raw);
+      if (!Array.isArray(localList)) return serverAccounts;
+
+      const merged = [...serverAccounts];
+      const currentEmailLower = (userEmail || "").toLowerCase();
+
+      for (const loc of localList) {
+        if (!loc?.email) continue;
+        const locEmailLower = String(loc.email).toLowerCase();
+        if (loc.userId === userId || (currentEmailLower && locEmailLower === currentEmailLower)) {
+          continue;
+        }
+        const exists = merged.some(
+          (a) =>
+            (a.linked_user_id && loc.userId && a.linked_user_id === loc.userId) ||
+            (a.linked_email || "").toLowerCase() === locEmailLower
+        );
+        if (!exists) {
+          merged.push({
+            id: `local-${loc.userId || locEmailLower}`,
+            linked_user_id: loc.userId || null,
+            linked_email: loc.email,
+            linked_name: loc.fullName || loc.email,
+            linked_avatar: loc.avatarUrl || null,
+          });
+        }
+      }
+      return merged;
+    } catch {
+      return serverAccounts;
+    }
+  }
 
   // Refresh accounts from server — called on mount and each time dropdown opens.
   async function refreshAccounts() {
@@ -116,10 +162,12 @@ function NavContent({
       const res = await fetch('/api/auth/linked-accounts');
       if (res.ok) {
         const data: LinkedAccount[] = await res.json();
-        setAccounts(data);
+        setAccounts(mergeWithLocalSavedAccounts(data));
+      } else {
+        setAccounts(prev => mergeWithLocalSavedAccounts(prev));
       }
     } catch {
-      // silent — keep stale list
+      setAccounts(prev => mergeWithLocalSavedAccounts(prev));
     } finally {
       setIsLoadingAccounts(false);
     }
@@ -134,82 +182,101 @@ function NavContent({
   async function confirmRemoveAccount() {
     if (!removeTarget || isRemoving) return;
     setIsRemoving(true);
-    const result = await removeLinkedAccountAction(removeTarget.id);
-    if ('error' in result) {
-      setIsRemoving(false);
-      return;
+    removeSavedLocalAccount(removeTarget.linked_user_id, removeTarget.linked_email);
+    if (!removeTarget.id.startsWith("local-")) {
+      const result = await removeLinkedAccountAction(removeTarget.id);
+      if ('error' in result) {
+        setIsRemoving(false);
+        toast.error(result.error || "Hesap bağlantısı kaldırılamadı.");
+        return;
+      }
     }
     setAccounts(prev => prev.filter(a => a.id !== removeTarget.id));
     setRemoveTarget(null);
     setIsRemoving(false);
+    toast.success("Hesap listeden kaldırıldı.");
   }
 
-    async function handleDirectSwitch(target: LinkedAccount) {
+  async function executeAccountSwitch(target: LinkedAccount) {
     if (isSwitching) return;
-    if (!target.linked_user_id) {
-      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı.");
-      return;
-    }
     setIsSwitching(true);
     setSwitchError(null);
+    setExpiredSwitchEmail(null);
+
+    const supabase = createClient();
+
     try {
+      // Save current active account's tokens in localStorage before switching
+      const { data: currentSessionData } = await supabase.auth.getSession();
+      if (currentSessionData?.session) {
+        upsertSavedLocalAccount(currentSessionData.session);
+      }
+
+      const savedLocal = getSavedLocalAccount(target.linked_user_id, target.linked_email);
+
       const res = await fetch('/api/auth/switch-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ linked_user_id: target.linked_user_id }),
+        body: JSON.stringify({
+          linked_user_id: target.linked_user_id,
+          linked_email: target.linked_email,
+          refresh_token: savedLocal?.refresh_token,
+        }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.url) {
-        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu.');
-        setIsSwitching(false);
+
+      const data = await res.json().catch(() => ({}));
+
+      // If server returned fresh session tokens (and already set SSR cookies), sync client & navigate
+      if (res.ok && data?.session?.access_token && data?.session?.refresh_token) {
+        const { data: setSessionRes, error: setErr } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (!setErr && setSessionRes?.session) {
+          upsertSavedLocalAccount(setSessionRes.session);
+        }
+        window.location.href = data.url || '/dashboard';
         return;
       }
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      window.location.href = data.url;
-    } catch (e) {
-      console.error(e);
-      setSwitchError('Ağ hatası.');
+
+      // Fallback: if server returned an action_link URL, try client-side local token first
+      if (savedLocal?.access_token && savedLocal?.refresh_token) {
+        const { data: localSetData, error: localSetErr } = await supabase.auth.setSession({
+          access_token: savedLocal.access_token,
+          refresh_token: savedLocal.refresh_token,
+        });
+        if (!localSetErr && localSetData?.session) {
+          upsertSavedLocalAccount(localSetData.session);
+          window.location.href = '/dashboard';
+          return;
+        }
+      }
+
+      if (res.ok && data?.url && !String(data.url).includes('/auth/login')) {
+        window.location.href = data.url;
+        return;
+      }
+
+      // Session expired or could not be renewed — do NOT break current user's session!
+      const expiredMsg = "Bu hesabın oturum süresi dolmuş, lütfen şifrenizle tekrar giriş yapın.";
+      setSwitchError(expiredMsg);
+      setExpiredSwitchEmail(target.linked_email || data?.email || "");
+      toast.error(expiredMsg);
       setIsSwitching(false);
-    }
-  }
-
-  async function confirmSwitch() {
-    if (!switchTarget || isSwitching) return;
-
-    if (!switchTarget.linked_user_id) {
-      setSwitchError("Bu hesap için kullanıcı ID'si bulunamadı. Hesabı silip tekrar ekleyin.");
-      return;
-    }
-
-    setIsSwitching(true);
-    setSwitchError(null);
-
-    try {
-      const res = await fetch('/api/auth/switch-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ linked_user_id: switchTarget.linked_user_id }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        setSwitchError(data.error ?? 'Hesap geçişi başarısız oldu. Tekrar deneyin.');
-        setIsSwitching(false);
-        return;
-      }
-
-      // Sign out without router.push side-effect (AuthContext.signOut redirects to '/'
-      // which races with the magic link navigation below).
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      window.location.href = data.url;
     } catch (e) {
       console.error('[switch-account] network error:', e);
       setSwitchError('Ağ hatası. İnternet bağlantınızı kontrol edin.');
       setIsSwitching(false);
     }
+  }
+
+  async function handleDirectSwitch(target: LinkedAccount) {
+    await executeAccountSwitch(target);
+  }
+
+  async function confirmSwitch() {
+    if (!switchTarget || isSwitching) return;
+    await executeAccountSwitch(switchTarget);
   }
 
   async function handleSignOut(e: React.MouseEvent<HTMLButtonElement>) {
@@ -396,25 +463,35 @@ function NavContent({
                 <div className="px-3 py-2 text-[11px] text-slate-400 text-center">Başka hesap bağlanılmamış</div>
               )}
               {accounts.map(acc => (
-                <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:bg-slate-950 group">
+                <div key={acc.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-900 group">
                   <button
                     type="button"
-                    onClick={() => { setSwitchTarget(acc); setIsAccountMenuOpen(false); }}
-                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSwitchError(null);
+                      setExpiredSwitchEmail(null);
+                      setSwitchTarget(acc);
+                      setIsAccountMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
                   >
                     <AccountAvatar src={acc.linked_avatar} name={acc.linked_name || acc.linked_email} size={28} />
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-700 truncate">{acc.linked_name || acc.linked_email}</p>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{acc.linked_name || acc.linked_email}</p>
                       <p className="text-[10px] text-slate-400 truncate">{acc.linked_email}</p>
                     </div>
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setRemoveTarget(acc); setIsAccountMenuOpen(false); }}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 hover:text-red-500 text-slate-400 transition-all"
-                    title="Bağlantıyı kaldır"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRemoveTarget(acc);
+                      setIsAccountMenuOpen(false);
+                    }}
+                    className="shrink-0 opacity-80 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 text-slate-400 transition-all cursor-pointer"
+                    title="Hesabı listeden kaldır"
                   >
-                    <UserX className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5 pointer-events-none" />
                   </button>
                 </div>
               ))}
@@ -533,26 +610,78 @@ function NavContent({
 
       {/* Switch account confirmation modal */}
       {switchTarget && mounted && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={(e) => { if(e.target === e.currentTarget && !isSwitching) { setSwitchTarget(null); setSwitchError(null); }}}>
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSwitching) {
+              setSwitchTarget(null);
+              setSwitchError(null);
+              setExpiredSwitchEmail(null);
+            }
+          }}
+        >
           <div className="bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap Değiştir</h3>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200">Hesap Değiştir</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetToRemove = switchTarget;
+                    setSwitchTarget(null);
+                    setSwitchError(null);
+                    setExpiredSwitchEmail(null);
+                    setRemoveTarget(targetToRemove);
+                  }}
+                  className="text-xs font-semibold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Bu hesabı listeden kaldır"
+                >
+                  <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+                  <span>Listeden Kaldır</span>
+                </button>
+              </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-300">
-                <span className="font-semibold text-slate-700">{switchTarget.linked_name || switchTarget.linked_email}</span>{" "}
-                hesabına geçmek üzeresiniz. Mevcut oturumunuz kapatılacak.
+                <span className="font-semibold text-slate-700 dark:text-slate-100">{switchTarget.linked_name || switchTarget.linked_email}</span>{" "}
+                hesabına geçmek üzeresiniz.
               </p>
             </div>
             {switchError && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                {switchError}
-              </p>
+              <div className="text-xs text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-xl px-3 py-2.5 space-y-2">
+                <p>{switchError}</p>
+                {expiredSwitchEmail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (userId) {
+                        document.cookie = `_steply_link_owner=${userId}; path=/; max-age=600; SameSite=Lax`;
+                        window.location.assign(
+                          `/auth/login?link_account=true&owner_id=${encodeURIComponent(userId)}&email=${encodeURIComponent(expiredSwitchEmail)}`
+                        );
+                      } else {
+                        window.location.assign(
+                          `/auth/login?email=${encodeURIComponent(expiredSwitchEmail)}`
+                        );
+                      }
+                    }}
+                    className="w-full py-2 px-3 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Şifre ile Giriş Ekranını Aç ({expiredSwitchEmail})
+                  </button>
+                )}
+              </div>
             )}
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => { if (!isSwitching) { setSwitchTarget(null); setSwitchError(null); } }}
+                onClick={() => {
+                  if (!isSwitching) {
+                    setSwitchTarget(null);
+                    setSwitchError(null);
+                    setExpiredSwitchEmail(null);
+                  }
+                }}
                 disabled={isSwitching}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 İptal
               </button>
@@ -560,7 +689,7 @@ function NavContent({
                 type="button"
                 onClick={confirmSwitch}
                 disabled={isSwitching}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-70"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-70 cursor-pointer"
               >
                 {isSwitching ? "Geçiş yapılıyor..." : "Geç"}
               </button>
@@ -602,10 +731,19 @@ export default function DashboardSidebar(props: SidebarProps) {
         <Menu className="w-5 h-5 pointer-events-none" />
       </button>
 
-      {/* Desktop sidebar - collapsible without any screen-blocking overlay or heavy blur */}
+      {/* Desktop sidebar - collapsible without any screen-blocking overlay or heavy blur.
+          Clicking any empty area while collapsed expands the sidebar, while interactive links/buttons work directly. */}
       <aside
         ref={sidebarRef}
-        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#0f172a] transition-[width] duration-150 ease-out ${isExpanded ? 'w-64 relative z-30' : 'w-[72px] hover:bg-white dark:hover:bg-[#0f172a] relative z-30'}`}
+        onClick={(e) => {
+          if (!isExpanded) {
+            const target = e.target as HTMLElement;
+            if (!target.closest("a, button, input, textarea, select, [role='button']")) {
+              setIsExpanded(true);
+            }
+          }
+        }}
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#0f172a] transition-[width] duration-150 ease-out ${isExpanded ? 'w-64 relative z-30 cursor-default' : 'w-[72px] hover:bg-white dark:hover:bg-[#0f172a] relative z-30 cursor-pointer'}`}
       >
         <NavContent
           {...props}

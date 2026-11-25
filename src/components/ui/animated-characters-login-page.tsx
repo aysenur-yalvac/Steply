@@ -193,12 +193,14 @@ export default function AnimatedCharactersLoginPage({
   error,
   linkAccount,
   ownerId,
+  initialEmail,
 }: {
   mode: Mode;
   message?: string;
   error?: string;
   linkAccount?: boolean;
   ownerId?: string;
+  initialEmail?: string;
 }) {
   const isLogin = mode === "login";
   const router  = useRouter();
@@ -309,10 +311,31 @@ export default function AnimatedCharactersLoginPage({
 
   // Form state
   const [showPassword, setShowPassword] = useState(false);
-  const [email,        setEmail]        = useState("");
+  const [email,        setEmail]        = useState(initialEmail ?? "");
   const [password,     setPassword]     = useState("");
   const [rememberMe,   setRememberMe]   = useState(false);
-  const [role,         setRole]         = useState<"student" | "teacher">("student");
+  const [role,         setRole]         = useState<"student" | "teacher">(
+    initialEmail && isTeacherEmail(initialEmail) ? "teacher" : "student"
+  );
+
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+      if (isTeacherEmail(initialEmail)) {
+        setRole("teacher");
+      }
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const qEmail = new URLSearchParams(window.location.search).get("email");
+      if (qEmail) {
+        setEmail(qEmail);
+        if (isTeacherEmail(qEmail)) {
+          setRole("teacher");
+        }
+      }
+    }
+  }, [initialEmail]);
   const [hovSocial,    setHovSocial]    = useState<string | null>(null);
   const [resetSending, setResetSending] = useState(false);
   const [resetCooldown, setResetCooldown] = useState(0);

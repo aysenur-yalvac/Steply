@@ -200,7 +200,25 @@ export default function ProjectNotes({
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shouldRestoreFocusRef = useRef(false);
   const router = useRouter();
+
+  const focusMessageTextarea = () => {
+    if (typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 30);
+  };
+
+  useEffect(() => {
+    if (!isSubmitting && shouldRestoreFocusRef.current) {
+      shouldRestoreFocusRef.current = false;
+      focusMessageTextarea();
+    }
+  }, [isSubmitting]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -278,7 +296,9 @@ export default function ProjectNotes({
 
     const fileToUpload = pendingFile;
     const localPreview = pendingPreviewUrl;
+    shouldRestoreFocusRef.current = true;
     setIsSubmitting(true);
+    focusMessageTextarea();
 
     try {
       // 1. If a file/screenshot is attached, upload to Supabase Storage FIRST
@@ -335,7 +355,7 @@ export default function ProjectNotes({
       toast.error(err?.message || "Mesaj gönderilemedi.");
     } finally {
       setIsSubmitting(false);
-      textareaRef.current?.focus();
+      focusMessageTextarea();
     }
   }
 
@@ -490,12 +510,13 @@ export default function ProjectNotes({
             placeholder="Bir şeyler yazın..."
             rows={1}
             maxLength={100000}
-            disabled={isSubmitting}
-            className="flex-1 min-h-[44px] max-h-[150px] resize-none px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500 outline-none transition-all leading-relaxed focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/15 disabled:opacity-50 overflow-hidden"
+            readOnly={isSubmitting}
+            className="flex-1 min-h-[44px] max-h-[150px] resize-none px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-700 focus:dark:border-purple-500 placeholder-gray-400 dark:placeholder-slate-500 outline-none transition-all leading-relaxed focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/15 read-only:opacity-70 overflow-hidden"
           />
 
           <button
             type="submit"
+            onMouseDown={(e) => e.preventDefault()}
             disabled={isSubmitting || (!content.trim() && !pendingFile)}
             className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-[#7C3AFF] hover:bg-[#6D28D9] text-white shadow-sm active:scale-95 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >

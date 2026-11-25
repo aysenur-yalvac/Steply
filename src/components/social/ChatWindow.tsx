@@ -97,6 +97,24 @@ export default function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shouldRestoreFocusRef = useRef(false);
+
+  const focusMessageTextarea = () => {
+    if (typeof window === "undefined") return;
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 30);
+  };
+
+  useEffect(() => {
+    if (!isSending && shouldRestoreFocusRef.current) {
+      shouldRestoreFocusRef.current = false;
+      focusMessageTextarea();
+    }
+  }, [isSending]);
 
   // Mention State
   const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
@@ -299,7 +317,9 @@ export default function ChatWindow({
     const savedMention = mentionedProject;
     const metadataProjectId = savedMention ? savedMention.id : undefined;
 
+    shouldRestoreFocusRef.current = true;
     setIsSending(true);
+    focusMessageTextarea();
 
     try {
       // 1. Upload file/screenshot to Supabase Storage FIRST so we have the permanent public URL
@@ -368,7 +388,7 @@ export default function ChatWindow({
       console.error(error);
     } finally {
       setIsSending(false);
-      textareaRef.current?.focus();
+      focusMessageTextarea();
     }
   };
 
@@ -671,13 +691,14 @@ export default function ChatWindow({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             rows={1}
-            disabled={isSending}
+            readOnly={isSending}
             placeholder="Bir şeyler yazın..."
-            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-hidden disabled:opacity-50"
+            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-hidden read-only:opacity-70"
           />
 
           <button
             type="submit"
+            onMouseDown={(e) => e.preventDefault()}
             disabled={(!newMessage.trim() && !pendingFile) || isSending}
             className={`px-4 sm:px-5 h-11 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
               (newMessage.trim() || pendingFile) && !isSending

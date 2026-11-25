@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string; error?: string; link_account?: string; owner_id?: string }>;
+  searchParams: Promise<{ message?: string; error?: string; link_account?: string; owner_id?: string; email?: string }>;
 }) {
   const resolved = await searchParams;
   let displayMessage = resolved?.message;
@@ -24,6 +24,7 @@ export default async function LoginPage({
         message={displayMessage}
         linkAccount={resolved?.link_account === "true"}
         ownerId={resolved?.owner_id}
+        initialEmail={resolved?.email}
       />
     </Suspense>
   );
