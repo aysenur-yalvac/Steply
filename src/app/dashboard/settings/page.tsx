@@ -37,6 +37,11 @@ export default async function SettingsPage() {
         user.user_metadata?.university ||
         ""
       }
+      initialDepartment={
+        (profile as any)?.department ||
+        user.user_metadata?.department ||
+        ""
+      }
       initialRole={(profile?.role as string) || "student"}
       initialGrade={(profile as any)?.grade || ""}
       initialSchoolNumber={(profile as any)?.school_number || ""}

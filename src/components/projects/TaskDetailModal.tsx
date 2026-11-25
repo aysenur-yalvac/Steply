@@ -142,7 +142,7 @@ export default function TaskDetailModal({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[95vw] max-w-lg p-4 sm:p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-x-hidden overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

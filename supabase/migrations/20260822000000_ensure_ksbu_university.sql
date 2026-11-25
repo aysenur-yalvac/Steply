@@ -28,11 +28,12 @@ CREATE POLICY "Allow public read access on universities"
     TO public
     USING (true);
 
--- 6. Insert Kütahya Sağlık Bilimleri Üniversitesi (both official name and with KSBÜ suffix)
+-- 6. Insert Kütahya Sağlık Bilimleri Üniversitesi (single canonical entry)
+DELETE FROM public.universities WHERE name = 'Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)';
+
 INSERT INTO public.universities (name, country)
 VALUES
-    ('Kütahya Sağlık Bilimleri Üniversitesi', 'Türkiye'),
-    ('Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)', 'Türkiye')
+    ('Kütahya Sağlık Bilimleri Üniversitesi', 'Türkiye')
 ON CONFLICT (lower(name), lower(country)) DO NOTHING;
 
 -- Fallback insert using NOT EXISTS in case index was not present
@@ -41,13 +42,6 @@ SELECT 'Kütahya Sağlık Bilimleri Üniversitesi', 'Türkiye'
 WHERE NOT EXISTS (
     SELECT 1 FROM public.universities 
     WHERE lower(name) = lower('Kütahya Sağlık Bilimleri Üniversitesi')
-);
-
-INSERT INTO public.universities (name, country)
-SELECT 'Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)', 'Türkiye'
-WHERE NOT EXISTS (
-    SELECT 1 FROM public.universities 
-    WHERE lower(name) = lower('Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)')
 );
 
 -- 7. Update search_universities RPC with SECURITY DEFINER and alias handling

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProfileAction } from '@/lib/actions';
+import DepartmentCombobox from '@/components/ui/DepartmentCombobox';
 import toast from 'react-hot-toast';
-import { Save, Mail, User, Phone, FileText, Github, Linkedin, Twitter, Globe, Loader2, Image as ImageIcon, Landmark, ChevronDown, Check } from 'lucide-react';
+import { Save, Mail, User, Phone, FileText, Github, Linkedin, Twitter, Globe, Loader2, Image as ImageIcon, Landmark, ChevronDown, Check, BookOpen } from 'lucide-react';
 
 const ALL_AVATARS = Array.from({ length: 20 }, (_, i) => `/avatars/avatar-${i + 1}.svg`);
 
@@ -44,14 +45,27 @@ export default function ProfileForm({
   const initialSchool = (profile?.institution || (profile as any)?.university || '').trim();
   const [schoolInput, setSchoolInput] = useState(initialSchool);
   const [isSchoolLocked, setIsSchoolLocked] = useState(() => Boolean(initialSchool));
+  const initialDept = ((profile as any)?.department || '').trim();
+  const [departmentInput, setDepartmentInput] = useState(initialDept);
+  const [isDepartmentLocked, setIsDepartmentLocked] = useState(() => Boolean(initialDept));
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
+    const activeSchool = isSchoolLocked ? initialSchool : schoolInput.trim();
+    const activeDept = isDepartmentLocked ? initialDept : departmentInput.trim();
+    if (activeSchool && !activeDept) {
+      toast.error('Üniversite seçildiğinde bölüm seçimi zorunludur.');
+      return;
+    }
+
     setIsPending(true);
     formData.append('id', userId);
     if (!isSchoolLocked && schoolInput.trim()) {
       formData.set('institution', schoolInput.trim());
       formData.set('university', schoolInput.trim());
+    }
+    if (!isDepartmentLocked && departmentInput.trim()) {
+      formData.set('department', departmentInput.trim());
     }
     
     try {
@@ -61,6 +75,9 @@ export default function ProfileForm({
       } else {
         if (schoolInput.trim()) {
           setIsSchoolLocked(true);
+        }
+        if (departmentInput.trim()) {
+          setIsDepartmentLocked(true);
         }
         toast.success('Profil başarıyla güncellendi!', { icon: '✨' });
       }
@@ -210,13 +227,39 @@ export default function ProfileForm({
               <option value="İstanbul Teknik Üniversitesi" />
               <option value="Kütahya Dumlupınar Üniversitesi" />
               <option value="Kütahya Sağlık Bilimleri Üniversitesi" />
-              <option value="Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)" />
               <option value="Marmara Üniversitesi" />
               <option value="Orta Doğu Teknik Üniversitesi" />
               <option value="Yıldız Teknik Üniversitesi" />
             </datalist>
             <p className="text-xs text-amber-600 dark:text-amber-400 ml-1">
               Kayıt sırasında okul seçmediğiniz için tek seferlik okul seçimi yapabilirsiniz. Kaydedildikten sonra kilitlenecektir.
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2 relative z-10">
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1 flex items-center gap-2">
+           <BookOpen className="w-4 h-4 text-dusty-rose" /> Bölüm {(isSchoolLocked || schoolInput.trim()) && !isDepartmentLocked ? <span className="text-rose-500">*</span> : null}
+        </label>
+        {isDepartmentLocked ? (
+          <input 
+            type="text" 
+            value={departmentInput}
+            readOnly
+            disabled
+            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-400 cursor-not-allowed shadow-inner"
+          />
+        ) : (
+          <>
+            <DepartmentCombobox
+              name="department"
+              value={departmentInput}
+              onChange={setDepartmentInput}
+              placeholder="Bölüm ara ve seç... (Örn: Bilgisayar Mühendisliği)"
+            />
+            <p className="text-xs text-amber-600 dark:text-amber-400 ml-1">
+              Tek seferlik bölüm seçimi yapabilirsiniz. Kaydedildikten sonra kilitlenecektir.
             </p>
           </>
         )}

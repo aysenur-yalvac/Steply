@@ -44,10 +44,10 @@ function TeacherCard({
   return (
     <Link
       href={`/user/${t.id}`}
-      className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all h-36 flex flex-row overflow-hidden"
+      className="group bg-white dark:bg-[#1a2234] rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/40 transition-all min-h-[144px] h-auto sm:h-36 flex flex-row overflow-hidden"
     >
       <div
-        className={`w-32 shrink-0 overflow-hidden rounded-l-2xl ${isReal ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
+        className={`w-24 sm:w-32 shrink-0 overflow-hidden rounded-l-2xl ${isReal ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
         onClick={(e) => {
           if (!isReal) return;
           e.preventDefault();

@@ -729,15 +729,15 @@ export default function AnimatedCharactersLoginPage({
 
       {/* â”€â”€ Right panel: Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
-        className="flex flex-col overflow-y-auto"
+        className="flex flex-col overflow-y-auto overflow-x-hidden"
         style={{ background: "#0B0E14" }}
       >
         {/* Back button — top of form panel */}
-        <div className="px-8 pt-10 pb-0">
+        <div className="px-4 sm:px-8 pt-6 sm:pt-10 pb-0">
           <BackButton href="/" />
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-8 py-8">
+        <div className="flex flex-1 items-center justify-center px-4 sm:px-8 py-6 sm:py-8">
         <div className="w-full max-w-[420px]">
 
           {/* Mobile logo */}
@@ -911,7 +911,6 @@ export default function AnimatedCharactersLoginPage({
                   <option value="İstanbul Teknik Üniversitesi" />
                   <option value="Kütahya Dumlupınar Üniversitesi" />
                   <option value="Kütahya Sağlık Bilimleri Üniversitesi" />
-                  <option value="Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)" />
                   <option value="Marmara Üniversitesi" />
                   <option value="Orta Doğu Teknik Üniversitesi" />
                   <option value="Yıldız Teknik Üniversitesi" />

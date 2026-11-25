@@ -163,9 +163,9 @@ function FieldHelpPopover({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+      <div className="flex flex-col md:grid md:grid-cols-12 gap-4 items-stretch w-full overflow-hidden">
         {/* Sol / Üst Bölüm: Metin Rehberi (Amacı + Ne Yazmalısın & Örnekler) */}
-        <div className="md:col-span-6 space-y-3 text-xs leading-relaxed">
+        <div className="w-full md:col-span-6 space-y-3 text-xs leading-relaxed min-w-0">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1">
               Amacı
@@ -194,7 +194,7 @@ function FieldHelpPopover({
         </div>
 
         {/* Sağ / Alt Bölüm: Görsel Mini Proje Kartı Taslağı (Mockup) */}
-        <div className="md:col-span-6">
+        <div className="w-full md:col-span-6 min-w-0">
           <div className="rounded-xl bg-[#0f172a] border border-slate-700/80 p-3.5 text-slate-100 shadow-lg space-y-2.5 relative">
             <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1.5 border-b border-slate-800">
               <span className="font-semibold uppercase tracking-wider text-violet-300">
@@ -374,7 +374,7 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-full w-full bg-transparent p-4 sm:p-6 md:p-10 flex flex-col items-center justify-center">
+    <div className="min-h-full w-full bg-transparent p-3 sm:p-6 md:p-10 flex flex-col items-center justify-center overflow-x-hidden">
       <div className="w-full max-w-xl space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header — doğrudan temiz sayfa arka planı üzerinde */}
         <div className="flex items-center gap-3">

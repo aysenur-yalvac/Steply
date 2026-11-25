@@ -100,12 +100,15 @@ export default async function ProfilePage() {
                   (user.user_metadata?.institution as string | null)
                 ) && (
                   <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    {sanitizeInstitution(
-                      profile.institution ||
-                      profile.university ||
-                      (user.user_metadata?.institution as string | null)
-                    )}
+                    <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                    <span>
+                      {sanitizeInstitution(
+                        profile.institution ||
+                        profile.university ||
+                        (user.user_metadata?.institution as string | null)
+                      )}
+                      {(profile as any).department ? ` • ${(profile as any).department}` : ''}
+                    </span>
                   </span>
                 )}
               </div>

@@ -361,12 +361,13 @@ export async function updateProfileAction(formData: FormData) {
 
   const { data: currentProfile } = await supabase
     .from('profiles')
-    .select('role, institution')
+    .select('role, institution, university, department')
     .eq('id', user.id)
     .maybeSingle();
 
   const existingSchool =
     sanitizeInstitution(currentProfile?.institution as string | null) ||
+    sanitizeInstitution((currentProfile as any)?.university as string | null) ||
     sanitizeInstitution(user.user_metadata?.institution as string | null) ||
     sanitizeInstitution(user.user_metadata?.university as string | null) ||
     null;
@@ -381,6 +382,19 @@ export async function updateProfileAction(formData: FormData) {
   // kayıt sırasında okul seçmemişse (boşsa) profil/ayarlardan tek seferlik seçimine izin ver ve kaydet.
   const institution = existingSchool || submittedSchool || null;
   const university = institution;
+
+  const existingDepartment =
+    ((currentProfile as any)?.department as string | null)?.trim() || null;
+  const submittedDepartment =
+    ((formData.get('department') as string | null) ?? '').trim() || null;
+
+  // Eğer kullanıcının daha önceden kayıtlı bir bölümü varsa değiştirilmesini engelle;
+  // yoksa tek seferlik seçimine izin ver ve kaydet.
+  const department = existingDepartment || submittedDepartment || null;
+
+  if (institution && !department) {
+    return { error: 'Üniversite seçildiğinde bölüm seçimi zorunludur.' };
+  }
 
   if (school_email && !isStudentEmail(school_email)) {
     return { error: STUDENT_EMAIL_ERROR_MESSAGE };
@@ -402,6 +416,8 @@ export async function updateProfileAction(formData: FormData) {
     website_url,
     avatar_url,
     institution,
+    university: university as any,
+    department: department as any,
     // role excluded intentionally
     grade: grade as any,
     school_number: school_number as any,
@@ -430,9 +446,15 @@ export async function updateProfileAction(formData: FormData) {
     }
   }
 
-  // university column may not exist if migration not yet applied — best-effort
-  if (university !== null) {
-    await (supabase as any).from('profiles').update({ university }).eq('id', user.id);
+  // university & department best-effort sync
+  if (university !== null || department !== null) {
+    await (supabase as any)
+      .from('profiles')
+      .update({
+        ...(university !== null ? { university } : {}),
+        ...(department !== null ? { department } : {}),
+      })
+      .eq('id', user.id);
   }
 
   revalidatePath('/dashboard/profile', 'page');
@@ -1812,7 +1834,18 @@ export async function searchUniversitiesAction(
     lim: 12,
   });
 
-  let list = (data ?? []) as { name: string; country: string }[];
+  let list = ((data ?? []) as { name: string; country: string }[])
+    .map((u) => ({
+      ...u,
+      name:
+        u.name === 'Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)'
+          ? 'Kütahya Sağlık Bilimleri Üniversitesi'
+          : u.name,
+    }))
+    .filter(
+      (u, idx, arr) =>
+        arr.findIndex((x) => x.name.toLocaleLowerCase('tr-TR') === u.name.toLocaleLowerCase('tr-TR')) === idx
+    );
 
   // Güvence: Kullanıcı KSBÜ veya Kütahya Sağlık aradığında listede yoksa ekle
   const matchesKsbu =

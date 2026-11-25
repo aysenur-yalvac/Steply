@@ -78,7 +78,7 @@ export default function AutoJoinHandler({
   }
 
   return (
-    <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+    <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-8 w-[95vw] max-w-lg shadow-2xl space-y-6 overflow-hidden">
       {/* Üst Başlık */}
       <div className="flex flex-col items-center text-center space-y-2">
         <div className="w-14 h-14 rounded-2xl bg-violet-600/15 border border-violet-500/30 text-violet-600 dark:text-violet-400 flex items-center justify-center shadow-inner">

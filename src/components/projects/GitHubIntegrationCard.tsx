@@ -76,8 +76,8 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
   const payloadUrl = `https://${typeof window !== 'undefined' ? window.location.host : 'localhost'}/api/webhooks/github?projectId=${projectId}`;
 
   const modalContent = showSettings ? (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] rounded-2xl shadow-2xl p-4 sm:p-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2.5 sm:p-4 overflow-y-auto">
+      <div className="relative w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden bg-white dark:bg-[#1a2234] dark:border dark:border-slate-700/60 dark:shadow-[0_12px_30px_rgba(0,0,0,0.7)] rounded-2xl shadow-2xl p-4 sm:p-6">
         <div className="flex justify-between items-center mb-5 sm:mb-6 border-b border-slate-100 dark:border-zinc-800 pb-4">
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Settings className="w-5 h-5" /> GitHub Depo Bağlantısı
@@ -157,28 +157,28 @@ export function GitHubIntegrationCard({ projectId, repo, commits, isTeamMember, 
             </form>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-start">
             {/* Left Column: Data & Actions */}
-            <div className="flex flex-col h-full bg-white dark:bg-zinc-900">
-              <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2 mb-6">
-                <Github className="w-5 h-5" /> {repo.repo_owner}/{repo.repo_name}
+            <div className="flex flex-col h-full min-w-0 bg-white dark:bg-zinc-900 rounded-xl p-3 sm:p-4">
+              <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 dark:text-white flex items-center gap-2 mb-5 break-all">
+                <Github className="w-5 h-5 shrink-0" /> <span className="truncate">{repo.repo_owner}/{repo.repo_name}</span>
               </h4>
 
-              <div className="space-y-5 flex-1">
-                <div>
+              <div className="space-y-4 flex-1 min-w-0">
+                <div className="min-w-0">
                   <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Payload URL</label>
-                  <div className="flex gap-2 items-center">
-                    <input type="text" readOnly value={payloadUrl} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
-                    <button onClick={() => copyToClipboard(payloadUrl, setCopiedUrl)} className="p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
+                  <div className="flex gap-2 items-center min-w-0">
+                    <input type="text" readOnly value={payloadUrl} className="flex-1 min-w-0 overflow-x-auto bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
+                    <button type="button" onClick={() => copyToClipboard(payloadUrl, setCopiedUrl)} className="shrink-0 p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer" title="Kopyala">
                       {copiedUrl ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400 dark:text-zinc-400" />}
                     </button>
                   </div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Secret Key</label>
-                  <div className="flex gap-2 items-center">
-                    <input type="text" readOnly value={repo.webhook_secret} className="flex-1 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
-                    <button onClick={() => copyToClipboard(repo.webhook_secret, setCopiedSecret)} className="p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
+                  <div className="flex gap-2 items-center min-w-0">
+                    <input type="text" readOnly value={repo.webhook_secret} className="flex-1 min-w-0 overflow-x-auto bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 dark:text-zinc-100 font-mono focus:outline-none" />
+                    <button type="button" onClick={() => copyToClipboard(repo.webhook_secret, setCopiedSecret)} className="shrink-0 p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer" title="Kopyala">
                       {copiedSecret ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400 dark:text-zinc-400" />}
                     </button>
                   </div>

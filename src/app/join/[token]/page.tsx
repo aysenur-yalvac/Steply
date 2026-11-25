@@ -22,7 +22,7 @@ export default async function JoinPage({ params }: { params: Promise<{ token: st
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0f17] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0f17] flex items-center justify-center p-3 sm:p-6 overflow-x-hidden">
       <AutoJoinHandler
         token={token}
         initialPreview={previewResult.success ? previewResult.preview : null}

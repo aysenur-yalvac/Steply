@@ -15,5 +15,8 @@ export function sanitizeInstitution(value: string | null | undefined): string | 
   if (!value) return null;
   const trimmed = value.trim();
   if (!trimmed || trimmed.includes("@")) return null;
+  if (trimmed === "Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)") {
+    return "Kütahya Sağlık Bilimleri Üniversitesi";
+  }
   return trimmed;
 }

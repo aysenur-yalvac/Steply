@@ -37,6 +37,7 @@ import { updateUserPrivacyAction, updateProfileAction, unblockUserAction } from 
 import type { FollowUser } from "@/lib/actions";
 import { Avatar } from "@/components/ui/avatar";
 import UniversityCombobox from "@/components/ui/UniversityCombobox";
+import DepartmentCombobox from "@/components/ui/DepartmentCombobox";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import { isStudentEmail, STUDENT_EMAIL_ERROR_MESSAGE } from "@/lib/email-validation";
@@ -61,6 +62,7 @@ interface SettingsClientProps {
   initialTwitterUrl: string;
   initialWebsiteUrl: string;
   initialUniversity: string;
+  initialDepartment?: string;
   initialRole: string;
   initialGrade: string;
   initialSchoolNumber: string;
@@ -197,6 +199,7 @@ export default function SettingsClient({
   initialTwitterUrl,
   initialWebsiteUrl,
   initialUniversity,
+  initialDepartment = "",
   initialRole,
   initialGrade,
   initialSchoolNumber,
@@ -222,6 +225,8 @@ export default function SettingsClient({
   const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
   const [university, setUniversity]       = useState(initialUniversity);
   const [isUniversityLocked, setIsUniversityLocked] = useState(() => Boolean(initialUniversity && initialUniversity.trim()));
+  const [department, setDepartment]       = useState(initialDepartment);
+  const [isDepartmentLocked, setIsDepartmentLocked] = useState(() => Boolean(initialDepartment && initialDepartment.trim()));
   const [role, setRole]                   = useState(initialRole || 'student');
   const [grade, setGrade]                 = useState(initialGrade || '');
   const [schoolNumber, setSchoolNumber]   = useState(initialSchoolNumber || '');
@@ -286,6 +291,10 @@ export default function SettingsClient({
         toast.error("Öğrenci rolü için sınıf seçimi zorunludur.");
         return;
       }
+      if (university && university.trim() && !department.trim()) {
+        toast.error("Üniversite seçildiğinde bölüm seçimi zorunludur.");
+        return;
+      }
       setSchoolEmailError(null);
       if (role === 'student') {
         if (university && !schoolNumber.trim()) {
@@ -342,6 +351,7 @@ export default function SettingsClient({
       formData.set("website_url", websiteUrl);
       formData.set("university", university);
       formData.set("institution", university);
+      formData.set("department", department.trim());
       formData.set("role", role);
       formData.set("grade", role === 'student' ? grade : '');
       formData.set("school_number", role === 'student' ? schoolNumber : '');
@@ -353,6 +363,9 @@ export default function SettingsClient({
       } else {
         if (university && university.trim()) {
           setIsUniversityLocked(true);
+        }
+        if (department && department.trim()) {
+          setIsDepartmentLocked(true);
         }
         toast.success("Profil başarıyla kaydedildi.");
       }
@@ -852,6 +865,48 @@ export default function SettingsClient({
                             />
                             <p className="text-[11px] text-amber-600 dark:text-amber-400">
                               Kayıt sırasında okul seçmediğiniz için tek seferlik okul seçimi yapabilirsiniz. Kaydedildikten sonra kilitlenecektir.
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Bölüm (Department) — Üniversite seçildiğinde zorunlu, kaydedildikten sonra kalıcı olarak kilitli */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                          {isDepartmentLocked ? (
+                            <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                          ) : null}
+                          <span>Bölüm</span>
+                          {university && !isDepartmentLocked ? (
+                            <span className="text-rose-500">*</span>
+                          ) : null}
+                        </label>
+                        {isDepartmentLocked ? (
+                          <>
+                            <div className="relative">
+                              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                              <input
+                                type="text"
+                                readOnly
+                                disabled
+                                value={department}
+                                className="w-full pl-9 pr-9 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed text-sm select-none dark:bg-slate-800 dark:text-white dark:border-slate-700"
+                              />
+                              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                            </div>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                              Bölüm bilgisi kaydedilmiştir ve sonradan değiştirilemez.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <DepartmentCombobox
+                              value={department}
+                              onChange={setDepartment}
+                              placeholder="Bölüm ara ve seç... (Örn: Bilgisayar Mühendisliği)"
+                            />
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                              Okulum sayfasında bölüm arkadaşlarınızı ve hocalarınızı görebilmek için tek seferlik bölüm seçimi yapın. Kaydedildikten sonra kilitlenecektir.
                             </p>
                           </>
                         )}
