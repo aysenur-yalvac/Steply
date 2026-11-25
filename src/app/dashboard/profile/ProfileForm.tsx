@@ -41,17 +41,27 @@ export default function ProfileForm({
   const [isPending, setIsPending] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || ALL_AVATARS[0]);
   const [expanded, setExpanded] = useState(false);
+  const initialSchool = (profile?.institution || (profile as any)?.university || '').trim();
+  const [schoolInput, setSchoolInput] = useState(initialSchool);
+  const [isSchoolLocked, setIsSchoolLocked] = useState(() => Boolean(initialSchool));
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
     formData.append('id', userId);
+    if (!isSchoolLocked && schoolInput.trim()) {
+      formData.set('institution', schoolInput.trim());
+      formData.set('university', schoolInput.trim());
+    }
     
     try {
       const result = await updateProfileAction(formData);
       if (result.error) {
         toast.error(result.error);
       } else {
+        if (schoolInput.trim()) {
+          setIsSchoolLocked(true);
+        }
         toast.success('Profil başarıyla güncellendi!', { icon: '✨' });
       }
     } catch(e) {
@@ -175,13 +185,41 @@ export default function ProfileForm({
         <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
            <Landmark className="w-4 h-4 text-dusty-rose" /> Okul / Kurum
         </label>
-        <input 
-          type="text" 
-          value={profile?.institution || (profile as any)?.university || 'Kayıtlı okul bilgisi yok'}
-          readOnly
-          disabled
-          className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-400 cursor-not-allowed shadow-inner"
-        />
+        {isSchoolLocked ? (
+          <input 
+            type="text" 
+            value={schoolInput}
+            readOnly
+            disabled
+            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-400 cursor-not-allowed shadow-inner"
+          />
+        ) : (
+          <>
+            <input
+              type="text"
+              name="institution"
+              list="profile-institution-suggestions"
+              value={schoolInput}
+              onChange={(e) => setSchoolInput(e.target.value)}
+              placeholder="Okul veya üniversite seçin (tek seferlik)..."
+              className="w-full px-5 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-dusty-rose/10 focus:border-dusty-rose/30 transition-all shadow-sm"
+            />
+            <datalist id="profile-institution-suggestions">
+              <option value="Boğaziçi Üniversitesi" />
+              <option value="Hacettepe Üniversitesi" />
+              <option value="İstanbul Teknik Üniversitesi" />
+              <option value="Kütahya Dumlupınar Üniversitesi" />
+              <option value="Kütahya Sağlık Bilimleri Üniversitesi" />
+              <option value="Kütahya Sağlık Bilimleri Üniversitesi (KSBÜ)" />
+              <option value="Marmara Üniversitesi" />
+              <option value="Orta Doğu Teknik Üniversitesi" />
+              <option value="Yıldız Teknik Üniversitesi" />
+            </datalist>
+            <p className="text-xs text-amber-600 dark:text-amber-400 ml-1">
+              Kayıt sırasında okul seçmediğiniz için tek seferlik okul seçimi yapabilirsiniz. Kaydedildikten sonra kilitlenecektir.
+            </p>
+          </>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6">

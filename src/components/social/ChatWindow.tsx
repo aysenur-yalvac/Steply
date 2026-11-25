@@ -82,15 +82,20 @@ function ChatImageAttachment({
   );
 }
 
+// Module-level in-memory caches for instant (0ms) conversation switching
+const messagesMemoryCache = new Map<string, Message[]>();
+const userProjectsCache = new Map<string, { id: string; title: string }[]>();
+
 export default function ChatWindow({
   currentUser,
   selectedUser,
   onBack,
 }: ChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const cacheKey = `${currentUser.id}:${selectedUser.id}`;
+  const [messages, setMessages] = useState<Message[]>(() => messagesMemoryCache.get(cacheKey) ?? []);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(() => !messagesMemoryCache.has(cacheKey));
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
@@ -99,6 +104,14 @@ export default function ChatWindow({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shouldRestoreFocusRef = useRef(false);
+
+  const updateMessagesWithCache = (updater: Message[] | ((prev: Message[]) => Message[])) => {
+    setMessages((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      messagesMemoryCache.set(`${currentUser.id}:${selectedUser.id}`, next);
+      return next;
+    });
+  };
 
   const focusMessageTextarea = () => {
     if (typeof window === "undefined") return;
@@ -118,37 +131,77 @@ export default function ChatWindow({
   }, [isSending]);
 
   // Mention State
-  const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
+  const [projects, setProjects] = useState<{ id: string; title: string }[]>(
+    () => userProjectsCache.get(currentUser.id) ?? []
+  );
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionedProject, setMentionedProject] = useState<{ id: string; title: string } | null>(null);
 
   const supabase = createClient();
 
   useEffect(() => {
-    const loadMessages = async () => {
+    let active = true;
+    const currentKey = `${currentUser.id}:${selectedUser.id}`;
+    const cached = messagesMemoryCache.get(currentKey);
+
+    if (cached) {
+      setMessages(cached);
+      setIsLoading(false);
+      requestAnimationFrame(() => scrollToBottom());
+    } else {
+      setMessages([]);
       setIsLoading(true);
+    }
+
+    const loadMessages = async () => {
       try {
-        const data = await getMessagesAction(selectedUser.id);
-        setMessages(data);
+        // Direct single query for the latest 50 messages without extra server roundtrips
+        const { data, error } = await supabase
+          .from("messages")
+          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+          .or(
+            `and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`
+          )
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (!active) return;
+
+        if (!error && data) {
+          const ordered = (data as Message[]).slice().reverse();
+          messagesMemoryCache.set(currentKey, ordered);
+          setMessages(ordered);
+        } else {
+          const fallback = await getMessagesAction(selectedUser.id);
+          if (!active) return;
+          messagesMemoryCache.set(currentKey, fallback);
+          setMessages(fallback);
+        }
       } catch (error) {
         console.error("Failed to load messages", error);
       } finally {
-        setIsLoading(false);
-        scrollToBottom();
+        if (active) {
+          setIsLoading(false);
+          requestAnimationFrame(() => scrollToBottom());
+        }
       }
     };
 
-    loadMessages();
+    void loadMessages();
 
-    const loadProjects = async () => {
-      try {
-        const data = await getUserProjectsAction();
-        setProjects(data || []);
-      } catch (error) {
-        console.error("Failed to load projects for mentions", error);
-      }
-    };
-    loadProjects();
+    if (!userProjectsCache.has(currentUser.id)) {
+      getUserProjectsAction()
+        .then((data) => {
+          const list = data || [];
+          userProjectsCache.set(currentUser.id, list);
+          if (active) setProjects(list);
+        })
+        .catch((error) => {
+          console.error("Failed to load projects for mentions", error);
+        });
+    } else {
+      setProjects(userProjectsCache.get(currentUser.id) ?? []);
+    }
 
     const channel = supabase
       .channel(`realtime:messages:${currentUser.id}:${selectedUser.id}`)
@@ -163,7 +216,7 @@ export default function ChatWindow({
         (payload) => {
           const newMsg = payload.new as Message;
           if (newMsg.receiver_id === currentUser.id) {
-            setMessages((prev) => {
+            updateMessagesWithCache((prev) => {
               if (prev.some((m) => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
@@ -182,7 +235,7 @@ export default function ChatWindow({
         (payload) => {
           const newMsg = payload.new as Message;
           if (newMsg.sender_id === currentUser.id) {
-            setMessages((prev) => {
+            updateMessagesWithCache((prev) => {
               if (prev.some((m) => m.id === newMsg.id)) return prev;
               // If an optimistic temp message with the exact same content exists, replace it in place
               const tempIdx = prev.findIndex(
@@ -205,6 +258,7 @@ export default function ChatWindow({
       .subscribe();
 
     return () => {
+      active = false;
       supabase.removeChannel(channel);
     };
   }, [selectedUser.id, currentUser.id, supabase]);
@@ -333,7 +387,7 @@ export default function ChatWindow({
         metadata: metadataProjectId ? { mentioned_project_id: metadataProjectId } : null,
       };
 
-      setMessages((prev) => [...prev, optimisticMsg]);
+      updateMessagesWithCache((prev) => [...prev, optimisticMsg]);
       setNewMessage("");
       setMentionedProject(null);
       setShowMentionMenu(false);
@@ -353,7 +407,7 @@ export default function ChatWindow({
         );
 
         if (result.success) {
-          setMessages((prev) => {
+          updateMessagesWithCache((prev) => {
             const alreadyHasReal = prev.some((m) => m.id === result.message.id);
             if (alreadyHasReal) {
               return prev.filter((m) => m.id !== tempId);
@@ -361,11 +415,11 @@ export default function ChatWindow({
             return prev.map((m) => (m.id === tempId ? result.message : m));
           });
         } else {
-          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          updateMessagesWithCache((prev) => prev.filter((m) => m.id !== tempId));
           toast.error("Mesaj gönderilemedi");
         }
       } catch (error: any) {
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        updateMessagesWithCache((prev) => prev.filter((m) => m.id !== tempId));
         toast.error(error?.message || "Mesaj gönderilemedi");
       }
       return;
@@ -399,7 +453,7 @@ export default function ChatWindow({
         },
       };
 
-      setMessages((prev) => [...prev, optimisticMsg]);
+      updateMessagesWithCache((prev) => [...prev, optimisticMsg]);
       setNewMessage("");
       setMentionedProject(null);
       setPendingFile(null);
@@ -420,7 +474,7 @@ export default function ChatWindow({
       );
 
       if (result.success) {
-        setMessages((prev) => {
+        updateMessagesWithCache((prev) => {
           const alreadyHasReal = prev.some((m) => m.id === result.message.id);
           if (alreadyHasReal) {
             return prev.filter((m) => m.id !== tempId);
@@ -429,7 +483,7 @@ export default function ChatWindow({
         });
         setTimeout(scrollToBottom, 40);
       } else {
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        updateMessagesWithCache((prev) => prev.filter((m) => m.id !== tempId));
         setNewMessage(trimmed);
         setMentionedProject(savedMention);
         toast.error("Mesaj gönderilemedi");
@@ -501,8 +555,16 @@ export default function ChatWindow({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 relative z-0 bg-slate-50 dark:bg-zinc-950">
         {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+          <div className="flex flex-col justify-end h-full space-y-3 py-2">
+            <div className="flex justify-start">
+              <div className="w-48 h-11 rounded-2xl rounded-tl-md bg-slate-200/70 dark:bg-slate-800/70 animate-pulse" />
+            </div>
+            <div className="flex justify-end">
+              <div className="w-56 h-11 rounded-2xl rounded-tr-md bg-violet-500/20 dark:bg-violet-500/20 animate-pulse" />
+            </div>
+            <div className="flex justify-start">
+              <div className="w-40 h-10 rounded-2xl rounded-tl-md bg-slate-200/70 dark:bg-slate-800/70 animate-pulse" />
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 dark:text-slate-400 space-y-3">

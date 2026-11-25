@@ -177,6 +177,27 @@ export async function getFileViewUrlAction(
       return { success: false, error: 'Bu dosyayı görüntüleme yetkiniz bulunmuyor.' };
     }
 
+    // If user is a pending invitee (not owner, not accepted collaborator, not teacher), only allow PUBLIC files
+    if (!auth.isOwner && !auth.isCollaborator && !auth.isTeacher) {
+      const { data: projectRow } = await admin
+        .from('projects')
+        .select('files')
+        .eq('id', projectId)
+        .maybeSingle();
+      const projectFiles = ((projectRow as any)?.files as ProjectFile[]) || [];
+      const matchingFile = projectFiles.find(
+        (f) => f.url === fileUrlOrPath || (downloadName && f.name === downloadName)
+      );
+      if (matchingFile) {
+        const isPublicFile =
+          matchingFile.visibility === 'PUBLIC' ||
+          (!matchingFile.visibility && matchingFile.isPrivate === false);
+        if (!isPublicFile && matchingFile.uploaderId !== user.id) {
+          return { success: false, error: 'Bu dosyayı görüntülemek için önce proje davetini kabul etmelisiniz.' };
+        }
+      }
+    }
+
     let storagePath = fileUrlOrPath;
     const marker = '/project-files/';
     const markerIdx = fileUrlOrPath.indexOf(marker);
@@ -345,19 +366,26 @@ export async function updateProfileAction(formData: FormData) {
     .maybeSingle();
 
   const existingSchool =
-    currentProfile?.institution ||
+    sanitizeInstitution(currentProfile?.institution as string | null) ||
     sanitizeInstitution(user.user_metadata?.institution as string | null) ||
     sanitizeInstitution(user.user_metadata?.university as string | null) ||
     null;
 
-  // Mevcut kayıtlı okul bilgisinin sonradan değiştirilmesini engelle
-  const institution = existingSchool;
-  const university = existingSchool;
+  const submittedInstitutionRaw =
+    (formData.get('institution') as string | null) ??
+    (formData.get('university') as string | null) ??
+    null;
+  const submittedSchool = sanitizeInstitution(submittedInstitutionRaw);
+
+  // Eğer kullanıcının daha önceden kayıtlı bir okulu varsa değiştirilmesini engelle;
+  // kayıt sırasında okul seçmemişse (boşsa) profil/ayarlardan tek seferlik seçimine izin ver ve kaydet.
+  const institution = existingSchool || submittedSchool || null;
+  const university = institution;
 
   if (school_email && !isStudentEmail(school_email)) {
     return { error: STUDENT_EMAIL_ERROR_MESSAGE };
   }
-  if ((currentProfile?.role || 'student') === 'student' && existingSchool && !isStudentEmail(school_email || '')) {
+  if ((currentProfile?.role || 'student') === 'student' && institution && !isStudentEmail(school_email || '')) {
     return { error: STUDENT_EMAIL_ERROR_MESSAGE };
   }
 
@@ -2484,43 +2512,144 @@ export async function joinProjectWithCode(codeOrToken: string): Promise<{ succes
       return { success: false, error: 'Oturum bulunamadı. Lütfen giriş yapın.' };
     }
 
-    // Determine if it's a UUID (token) or 6-digit code
-    const isToken = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(codeOrToken);
-    
-    // We can't insert into project_members directly using normal client if RLS restricts it to owner.
-    // We will call the RPC function we created in the migration.
-    let rpcFunction = 'join_project_by_code';
-    let codeParam = isToken ? '' : codeOrToken.toUpperCase();
-    
-    if (isToken) {
-      // For token, we might need a separate RPC, or just fetch the code using admin client and then join.
-      const admin = createAdminClient();
-      const { data: proj, error: projErr } = await admin
-        .from('projects')
-        .select('invite_code')
-        .eq('invite_token', codeOrToken)
-        .single();
-        
-      if (projErr || !proj || !proj.invite_code) {
-        return { success: false, error: 'Geçersiz veya süresi dolmuş davet bağlantısı.' };
-      }
-      codeParam = proj.invite_code;
+    const rawInput = (codeOrToken ?? '').trim();
+    if (!rawInput) {
+      return { success: false, error: 'Geçersiz davet bağlantısı.' };
     }
 
-    const { data, error } = await supabase.rpc(rpcFunction, { p_code: codeParam });
+    // Extract token/code if full URL was passed accidentally, and decode optional timestamp suffix (<uuid>.<expiresMs>)
+    const lastSegment = rawInput.includes('/') ? (rawInput.split('/').filter(Boolean).pop() ?? rawInput) : rawInput;
+    const dotIdx = lastSegment.indexOf('.');
+    const baseTokenOrCode = dotIdx !== -1 ? lastSegment.slice(0, dotIdx) : lastSegment;
+    const embeddedExpiresPart = dotIdx !== -1 ? lastSegment.slice(dotIdx + 1) : null;
 
-    if (error) {
-      if (error.message.includes('Invalid invite code')) {
-        return { success: false, error: 'Geçersiz davet kodu.' };
+    if (embeddedExpiresPart) {
+      const expiresMs = Number(embeddedExpiresPart);
+      if (Number.isFinite(expiresMs) && expiresMs > 0 && expiresMs < Date.now()) {
+        return { success: false, error: 'Davet bağlantısının 7 günlük geçerlilik süresi dolmuş.' };
       }
-      return { success: false, error: error.message };
+    }
+
+    const admin = createAdminClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(baseTokenOrCode);
+
+    let project: any = null;
+
+    if (isUuid) {
+      // 1. Try matching by invite_token
+      const { data: byToken } = await admin
+        .from('projects')
+        .select('id, student_id, title, invite_code, invite_token, deleted_at')
+        .eq('invite_token', baseTokenOrCode)
+        .maybeSingle();
+
+      if (byToken) {
+        project = byToken;
+      } else {
+        // 2. Fallback: ProjectEditableContent uses project.id if invite_token wasn't generated yet
+        const { data: byId } = await admin
+          .from('projects')
+          .select('id, student_id, title, invite_code, invite_token, deleted_at')
+          .eq('id', baseTokenOrCode)
+          .maybeSingle();
+        if (byId) {
+          project = byId;
+        }
+      }
+    } else {
+      const upperCode = baseTokenOrCode.toUpperCase();
+      const { data: byCode } = await admin
+        .from('projects')
+        .select('id, student_id, title, invite_code, invite_token, deleted_at')
+        .ilike('invite_code', upperCode)
+        .maybeSingle();
+      if (byCode) {
+        project = byCode;
+      }
+    }
+
+    if (!project || project.deleted_at) {
+      return { success: false, error: 'Geçersiz veya süresi dolmuş davet bağlantısı.' };
+    }
+
+    // Check optional DB-level expiration column in milliseconds (timezone-independent)
+    const dbExpiresAt = (project as any).invite_expires_at || (project as any).expires_at;
+    if (dbExpiresAt) {
+      const expiresTime = new Date(dbExpiresAt).getTime();
+      if (Number.isFinite(expiresTime) && expiresTime < Date.now()) {
+        return { success: false, error: 'Davet bağlantısının geçerlilik süresi dolmuş.' };
+      }
+    }
+
+    const targetProjectId: string = project.id;
+
+    // If user is already the project owner, redirect directly to the project
+    if (project.student_id === user.id) {
+      return { success: true, projectId: targetProjectId };
+    }
+
+    // Upsert user as an accepted member of the project
+    const { data: existingMember } = await admin
+      .from('project_members')
+      .select('id, status')
+      .eq('project_id', targetProjectId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existingMember) {
+      if ((existingMember as any).status === 'pending') {
+        await admin
+          .from('project_members')
+          .update({ status: 'accepted' })
+          .eq('id', existingMember.id);
+      }
+    } else {
+      const { error: insertErr } = await admin
+        .from('project_members')
+        .insert({
+          project_id: targetProjectId,
+          user_id: user.id,
+          role: 'member',
+          status: 'accepted',
+        });
+
+      if (insertErr) {
+        // Fallback if status column doesn't exist
+        await admin
+          .from('project_members')
+          .upsert({
+            project_id: targetProjectId,
+            user_id: user.id,
+            role: 'member',
+          }, { onConflict: 'project_id,user_id' });
+      }
+    }
+
+    // Mark any pending project_invitation notifications for this project as accepted
+    try {
+      const { data: pendingNotifs } = await admin
+        .from('notifications')
+        .select('id, metadata')
+        .eq('user_id', user.id)
+        .eq('type', 'project_invitation');
+
+      for (const notif of pendingNotifs ?? []) {
+        const meta = (notif.metadata as Record<string, any>) ?? {};
+        if (meta.project_id === targetProjectId) {
+          await admin
+            .from('notifications')
+            .update({ is_read: true, metadata: { ...meta, status: 'accepted' } })
+            .eq('id', notif.id);
+        }
+      }
+    } catch {
+      // non-fatal
     }
 
     revalidatePath('/dashboard');
-    revalidatePath(`/dashboard/projects/${data}`);
-    
-    return { success: true, projectId: data };
+    revalidatePath(`/dashboard/projects/${targetProjectId}`);
 
+    return { success: true, projectId: targetProjectId };
   } catch (err: any) {
     return { success: false, error: err.message || 'Bilinmeyen bir hata oluştu.' };
   }

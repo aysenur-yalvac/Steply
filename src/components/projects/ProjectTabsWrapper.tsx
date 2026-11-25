@@ -17,6 +17,7 @@ interface ProjectTabsWrapperProps {
   analyticsContent?: ReactNode;
   rightSidebarContent?: ReactNode;
   showNotesTab: boolean;
+  showAnalyticsTab?: boolean;
   hasNotes?: boolean;
   projectId?: string;
   currentUserId?: string;
@@ -35,6 +36,7 @@ export default function ProjectTabsWrapper({
   analyticsContent,
   rightSidebarContent,
   showNotesTab,
+  showAnalyticsTab = true,
   hasNotes,
   projectId,
   currentUserId,
@@ -113,7 +115,9 @@ export default function ProjectTabsWrapper({
   if (showNotesTab) {
     tabs.push({ id: 'notes', label: 'Notlar & Değerlendirme', icon: MessageSquare });
   }
-  tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
+  if (showAnalyticsTab) {
+    tabs.push({ id: 'analytics', label: 'Analizler', icon: LineChart });
+  }
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 md:gap-8 items-start w-full">
@@ -176,7 +180,7 @@ export default function ProjectTabsWrapper({
               </motion.div>
             )}
             
-            {activeTab === 'analytics' && (
+            {activeTab === 'analytics' && showAnalyticsTab && (
               <motion.div
                 key="analytics"
                 initial={{ opacity: 0, y: 6 }}

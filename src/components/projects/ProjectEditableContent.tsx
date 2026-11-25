@@ -657,12 +657,14 @@ export default function ProjectEditableContent({
               )}
 
               {inviteTab === 'link' && (() => {
-  // İstemci tarafında Origin ve Token tespiti
+  // İstemci tarafında Origin ve Token tespiti (7 gün geçerli bağlantı)
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-  // invite_token yoksa proje ID'sini kullan (Hiçbir zaman boş kalmaz)
-  const activeToken = project?.invite_token || project?.id;
-  const inviteUrl = activeToken ? `${origin}/join/${activeToken}` : '';
+  // inviteData.token, project.invite_token veya fallback olarak project.id kullan
+  const activeToken = inviteData.token || project?.invite_token || project?.id;
+  const inviteExpiresAt = Date.now() + SEVEN_DAYS_MS;
+  const inviteUrl = activeToken ? `${origin}/join/${activeToken}.${inviteExpiresAt}` : '';
 
   return (
     <div className="space-y-4 mt-4">

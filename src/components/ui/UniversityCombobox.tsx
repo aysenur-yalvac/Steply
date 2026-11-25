@@ -134,7 +134,7 @@ export default function UniversityCombobox({
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-200/60 dark:shadow-black/60 overflow-hidden max-h-64 overflow-y-auto">
           {results.map((uni, i) => (
             <button
               key={`${uni.name}-${i}`}
@@ -142,12 +142,12 @@ export default function UniversityCombobox({
               onMouseDown={(e) => { e.preventDefault(); handleSelect(uni); }}
               onMouseEnter={() => setHighlighted(i)}
               className={`w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors ${
-                highlighted === i ? "bg-violet-50" : "hover:bg-slate-50"
+                highlighted === i ? "bg-violet-50 dark:bg-violet-950/50" : "hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
             >
               <GraduationCap className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className={`text-sm font-medium truncate ${highlighted === i ? "text-violet-700" : "text-slate-800 dark:text-slate-200"}`}>
+                <p className={`text-sm font-medium truncate ${highlighted === i ? "text-violet-700 dark:text-violet-300" : "text-slate-800 dark:text-slate-200"}`}>
                   {uni.name}
                 </p>
                 <p className="text-[11px] text-slate-400">{uni.country}</p>

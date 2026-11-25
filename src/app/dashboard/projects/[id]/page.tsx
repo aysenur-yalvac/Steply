@@ -235,12 +235,13 @@ export default async function ProjectDetailPage({
         <div className="w-full">
           <ProjectTabsWrapper
               showNotesTab={isTeamMember || isTeacher}
+              showAnalyticsTab={isTeamMember || isTeacher}
               hasNotes={projectNotes.length > 0 || reviews.length > 0}
               projectId={project.id}
               currentUserId={user.id}
               projectNotes={projectNotes}
               reviews={reviews}
-              initialTasks={projectTasks}
+              initialTasks={isTeamMember || isTeacher ? projectTasks : []}
               teamMembers={activeMembersWithOwner}
               rightSidebarContent={
                 <>
@@ -285,6 +286,8 @@ export default async function ProjectDetailPage({
                       github_link:        project.github_link,
                       created_at:         project.created_at,
                       is_private:         (project as any).is_private ?? false,
+                      invite_code:        (project as any).invite_code ?? undefined,
+                      invite_token:       (project as any).invite_token ?? undefined,
                       profiles:           ownerName
                         ? { full_name: ownerName, avatar_url: ownerAvatarUrl }
                         : null,
@@ -298,7 +301,7 @@ export default async function ProjectDetailPage({
                 </div>
               }
               milestonesContent={
-                canViewProjectDetails ? (
+                (isTeamMember || isTeacher) ? (
                   <ProjectTaskList
                         projectId={project.id}
                         initialTasks={projectTasks}
@@ -313,7 +316,13 @@ export default async function ProjectDetailPage({
               filesContent={
                 <FileSection
                   projectId={project.id}
-                  initialFiles={(project.files as ProjectFile[]) || []}
+                  initialFiles={
+                    (isTeamMember || isTeacher)
+                      ? ((project.files as ProjectFile[]) || [])
+                      : (((project.files as ProjectFile[]) || []).filter(
+                          (f) => f.visibility === 'PUBLIC' || (!f.visibility && f.isPrivate === false)
+                        ))
+                  }
                   isOwner={isOwner}
                   isCollaborator={isCollaborator}
                   isPendingInvitee={isPendingInvitee}

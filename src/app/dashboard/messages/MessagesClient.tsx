@@ -85,11 +85,14 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
   const handleSelectUser = (user: CurrentUser) => {
     setActiveUser(user);
-    router.push(`/dashboard/messages?userId=${user.id}`);
+    if (typeof window !== 'undefined') {
+      const nextUrl = `/dashboard/messages?userId=${encodeURIComponent(user.id)}`;
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
   };
 
   useEffect(() => {
-    // If a conversation is selected, mark it as read optimistically and in the DB
+    // If a conversation is selected, mark it as read optimistically and in the DB in the background
     if (activeUser) {
       setConversations((prev) => {
         let chatMarkedAsRead = false;
@@ -101,7 +104,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           return c;
         });
 
-        if (chatMarkedAsRead) {
+        if (chatMarkedAsRead && typeof window !== 'undefined') {
           // Dispatch custom event to instantly update Sidebar badge globally
           window.dispatchEvent(new CustomEvent('unread_chat_count_changed', { detail: { action: 'read_chat' } }));
         }
@@ -109,16 +112,13 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         return next;
       });
 
-      markMessagesAsReadAction(activeUser.id).then((res) => {
-        if (res.success) {
-           router.refresh();
-           if (typeof window !== "undefined") {
-             window.dispatchEvent(new Event("unread_chat_count_changed"));
-           }
+      void markMessagesAsReadAction(activeUser.id).then((res) => {
+        if (res.success && typeof window !== "undefined") {
+          window.dispatchEvent(new Event("unread_chat_count_changed"));
         }
       });
     }
-  }, [activeUser, router]);
+  }, [activeUser]);
 
   useEffect(() => {
     // Subscribe to new incoming messages

@@ -151,17 +151,17 @@ export async function getMessagesAction(otherUserId: string): Promise<Message[]>
 
   const { data, error } = await supabase
     .from("messages")
-    .select("*")
+    .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
-    .order("created_at", { ascending: true })
-    .limit(100);
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   if (error) {
     console.error("[getMessagesAction] Error:", error);
     throw new Error("Failed to fetch messages.");
   }
 
-  return data as Message[];
+  return ((data ?? []) as Message[]).slice().reverse();
 }
 
 /**

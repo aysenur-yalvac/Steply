@@ -199,14 +199,22 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getEffectiveVisibility = (file: ProjectFile): FileVisibility => {
+    if (file.visibility === 'ONLY_ME') return 'ONLY_ME';
+    if (file.visibility === 'PUBLIC' || (!file.visibility && file.isPrivate === false)) return 'PUBLIC';
+    return 'MEMBERS_ONLY';
+  };
+
   const visibleFiles = activeFiles.filter(file => {
-    const isUploader = file.uploaderId === currentUserId;
-    const isMemberOrPreview = canManageFiles || isPendingInvitee || isTeacher;
+    const isUploader = Boolean(currentUserId && file.uploaderId === currentUserId);
+    // Only accepted members (owner/collaborator) and teachers can view team files; pending invitees only see PUBLIC
+    const isAcceptedMemberOrTeacher = (canManageFiles || isTeacher) && !isPendingInvitee;
+    const effectiveVis = getEffectiveVisibility(file);
 
     if (isUploader) return true;
-    if (file.visibility === 'ONLY_ME') return false;
-    if (isMemberOrPreview) return true;
-    return file.visibility === 'PUBLIC' || file.isPrivate === false;
+    if (effectiveVis === 'ONLY_ME') return false;
+    if (effectiveVis === 'MEMBERS_ONLY') return isAcceptedMemberOrTeacher;
+    return effectiveVis === 'PUBLIC';
   });
 
   return (
@@ -292,18 +300,35 @@ export default function FileSection({ projectId, initialFiles, isOwner, isCollab
                   )}
                 </div>
                 <div className="overflow-hidden">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{file.name}</p>
                     {(file as PendingFile).pending && (
                       <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300">
                         <Loader2 className="w-2.5 h-2.5 animate-spin" /> Yükleniyor...
                       </span>
                     )}
-                    {file.isPrivate && !(file as PendingFile).pending && (
-                      <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AFF]/10 text-[#7C3AFF] border border-[#7C3AFF]/20 dark:!bg-slate-800 dark:!text-slate-200 dark:!border dark:!border-slate-700/80 uppercase tracking-wide">
-                        <Lock className="w-2.5 h-2.5" /> Private
-                      </span>
-                    )}
+                    {!(file as PendingFile).pending && (() => {
+                      const effectiveVis = getEffectiveVisibility(file);
+                      if (effectiveVis === 'PUBLIC') {
+                        return (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                            🌐 Herkese Açık
+                          </span>
+                        );
+                      }
+                      if (effectiveVis === 'ONLY_ME') {
+                        return (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60">
+                            🔒 Sadece Ben
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80">
+                          👥 Ekip Üyelerine Özel
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-xs text-slate-400">
                     {formatSize(file.size)} • {(file as PendingFile).pending ? 'Yükleniyor...' : new Date(file.uploaded_at).toLocaleDateString('tr-TR')}

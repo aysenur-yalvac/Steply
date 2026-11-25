@@ -173,11 +173,18 @@ function NavContent({
     }
   }
 
-  // Fetch once on mount so the list is always fresh after page reload.
-  useEffect(() => { refreshAccounts(); }, []);
+  // Sync initial server-provided accounts with localStorage on mount without a network call
+  useEffect(() => {
+    setAccounts(mergeWithLocalSavedAccounts(linkedAccounts));
+  }, [linkedAccounts, userEmail, userId]);
 
-  // Re-fetch every time the user opens the dropdown.
-  useEffect(() => { if (isAccountMenuOpen) refreshAccounts(); }, [isAccountMenuOpen]);
+  // Re-fetch in background when the user opens the dropdown
+  useEffect(() => {
+    if (isAccountMenuOpen) {
+      setAccounts(prev => mergeWithLocalSavedAccounts(prev));
+      void refreshAccounts();
+    }
+  }, [isAccountMenuOpen]);
 
   async function confirmRemoveAccount() {
     if (!removeTarget || isRemoving) return;
@@ -214,6 +221,25 @@ function NavContent({
 
       const savedLocal = getSavedLocalAccount(target.linked_user_id, target.linked_email);
 
+      // Fast Path: If a valid refresh_token is already cached in localStorage, switch directly on the client
+      // (@supabase/ssr browser client automatically updates SSR auth cookies on setSession!)
+      if (savedLocal?.access_token && savedLocal?.refresh_token) {
+        const { data: fastSetData, error: fastSetErr } = await supabase.auth.setSession({
+          access_token: savedLocal.access_token,
+          refresh_token: savedLocal.refresh_token,
+        });
+        if (!fastSetErr && fastSetData?.session) {
+          upsertSavedLocalAccount(fastSetData.session);
+          setSwitchTarget(null);
+          setIsAccountMenuOpen(false);
+          setIsSwitching(false);
+          router.push('/dashboard');
+          router.refresh();
+          return;
+        }
+      }
+
+      // Server Path: Request token refresh or admin magic-link verification
       const res = await fetch('/api/auth/switch-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -226,7 +252,7 @@ function NavContent({
 
       const data = await res.json().catch(() => ({}));
 
-      // If server returned fresh session tokens (and already set SSR cookies), sync client & navigate
+      // If server returned fresh session tokens (and already set SSR cookies), sync client & soft-navigate
       if (res.ok && data?.session?.access_token && data?.session?.refresh_token) {
         const { data: setSessionRes, error: setErr } = await supabase.auth.setSession({
           access_token: data.session.access_token,
@@ -235,21 +261,12 @@ function NavContent({
         if (!setErr && setSessionRes?.session) {
           upsertSavedLocalAccount(setSessionRes.session);
         }
-        window.location.href = data.url || '/dashboard';
+        setSwitchTarget(null);
+        setIsAccountMenuOpen(false);
+        setIsSwitching(false);
+        router.push('/dashboard');
+        router.refresh();
         return;
-      }
-
-      // Fallback: if server returned an action_link URL, try client-side local token first
-      if (savedLocal?.access_token && savedLocal?.refresh_token) {
-        const { data: localSetData, error: localSetErr } = await supabase.auth.setSession({
-          access_token: savedLocal.access_token,
-          refresh_token: savedLocal.refresh_token,
-        });
-        if (!localSetErr && localSetData?.session) {
-          upsertSavedLocalAccount(localSetData.session);
-          window.location.href = '/dashboard';
-          return;
-        }
       }
 
       if (res.ok && data?.url && !String(data.url).includes('/auth/login')) {

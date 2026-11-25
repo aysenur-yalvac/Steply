@@ -831,28 +831,39 @@ export async function getDeletedFilesAction() {
 }
 
 
-export async function generateProjectInviteAction(projectId: string): Promise<{ success: true, invite_code: string, invite_token: string } | { error: string }> {
+export async function generateProjectInviteAction(projectId: string): Promise<{ success: true, invite_code: string, invite_token: string, expires_at: string } | { error: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Oturum bulunamadı." };
 
-    // Generate code and token
-    const randomCode = 'STP-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-    const randomToken = crypto.randomUUID();
+    const admin = createAdminClient();
+    const { data: existing } = await admin
+      .from('projects')
+      .select('id, student_id, invite_code, invite_token')
+      .eq('id', projectId)
+      .single();
 
-    const { error } = await supabase
+    if (!existing || existing.student_id !== user.id) {
+      return { error: "Bu işlem için yetkiniz yok." };
+    }
+
+    // Generate code and token if missing, with a 7-day validity window
+    const randomCode = existing.invite_code || ('STP-' + Math.random().toString(36).substring(2, 6).toUpperCase());
+    const randomToken = existing.invite_token || crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error } = await admin
       .from('projects')
       .update({ invite_code: randomCode, invite_token: randomToken })
-      .eq('id', projectId)
-      .eq('student_id', user.id); // ensure owner
+      .eq('id', projectId);
 
     if (error) {
       console.error("[generateProjectInviteAction] Database Error:", error);
       return { error: "Davet kodu üretilemedi." };
     }
 
-    return { success: true, invite_code: randomCode, invite_token: randomToken };
+    return { success: true, invite_code: randomCode, invite_token: randomToken, expires_at: expiresAt };
   } catch (e: any) {
     console.error("[generateProjectInviteAction] Exception:", e);
     return { error: "Beklenmedik bir hata oluştu." };
