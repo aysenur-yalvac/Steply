@@ -54,6 +54,7 @@ export async function markMessagesAsRead(senderId: string) {
 
 export {
   deleteMessageAction,
+  deleteMessagesBulkAction,
   deleteConversationAction,
   getLatestMessageBetweenUsersAction,
 } from '@/lib/social-actions';

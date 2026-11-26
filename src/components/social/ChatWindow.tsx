@@ -11,12 +11,15 @@ import {
   Download,
   X,
   Trash2,
+  Check,
+  CheckSquare,
 } from "lucide-react";
 import {
   getMessagesAction,
   sendMessageAction,
   getUserProjectsAction,
   deleteMessageAction,
+  deleteMessagesBulkAction,
   deleteConversationAction,
   Message,
 } from "@/lib/social-actions";
@@ -112,9 +115,11 @@ export default function ChatWindow({
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
 
-  // Kalıcı mesaj ve sohbet silme modal state'leri
-  const [deletingMessage, setDeletingMessage] = useState<Message | null>(null);
-  const [isDeletingMsg, setIsDeletingMsg] = useState(false);
+  // iOS Tarzı Mesaj Seç / Çoklu Silme ve Sohbet Silme state'leri
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
   const [isDeletingChat, setIsDeletingChat] = useState(false);
 
@@ -124,6 +129,19 @@ export default function ChatWindow({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shouldRestoreFocusRef = useRef(false);
   const isInitialLoadRef = useRef(true);
+
+  const toggleSelectMessage = (msgId: string) => {
+    if (String(msgId).startsWith("temp-")) return;
+    setSelectedMessageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(msgId)) {
+        next.delete(msgId);
+      } else {
+        next.add(msgId);
+      }
+      return next;
+    });
+  };
 
   const scrollToBottomInstant = () => {
     const el = scrollContainerRef.current;
@@ -162,6 +180,8 @@ export default function ChatWindow({
 
   useEffect(() => {
     isInitialLoadRef.current = true;
+    setIsSelectMode(false);
+    setSelectedMessageIds(new Set());
   }, [selectedUser.id]);
 
   useIsomorphicLayoutEffect(() => {
@@ -427,36 +447,40 @@ export default function ChatWindow({
     };
   }, [pendingPreviewUrl]);
 
-  const handleConfirmDeleteMessage = async () => {
-    if (!deletingMessage) return;
-    const msgToDelete = deletingMessage;
-    setIsDeletingMsg(true);
+  const handleConfirmDeleteBulk = async () => {
+    if (selectedMessageIds.size === 0) return;
+    const idsToDelete = Array.from(selectedMessageIds);
+    setIsDeletingBulk(true);
     try {
-      // Optimistic removal
-      updateMessagesWithCache((prev) => prev.filter((m) => m.id !== msgToDelete.id));
-      setDeletingMessage(null);
+      // Optimistic update
+      updateMessagesWithCache((prev) => prev.filter((m) => !selectedMessageIds.has(m.id)));
+      setShowBulkDeleteModal(false);
+      setIsSelectMode(false);
+      setSelectedMessageIds(new Set());
 
-      const res = await deleteMessageAction(msgToDelete.id);
+      const res = await deleteMessagesBulkAction(idsToDelete, selectedUser.id);
       if (!res.success) {
-        toast.error(res.error || "Mesaj silinemedi.");
+        toast.error(res.error || "Mesajlar silinemedi.");
       } else {
-        toast.success("Mesaj kalıcı olarak silindi.");
-        onMessageDeleted?.(msgToDelete.id);
+        toast.success(`${idsToDelete.length} mesaj kalıcı olarak silindi.`);
+        idsToDelete.forEach((id) => onMessageDeleted?.(id));
         if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("chat_message_deleted", {
-              detail: {
-                messageId: msgToDelete.id,
-                otherUserId: selectedUser.id,
-              },
-            })
-          );
+          idsToDelete.forEach((id) => {
+            window.dispatchEvent(
+              new CustomEvent("chat_message_deleted", {
+                detail: {
+                  messageId: id,
+                  otherUserId: selectedUser.id,
+                },
+              })
+            );
+          });
         }
       }
     } catch (err: any) {
-      toast.error(err?.message || "Mesaj silinemedi.");
+      toast.error(err?.message || "Mesajlar silinemedi.");
     } finally {
-      setIsDeletingMsg(false);
+      setIsDeletingBulk(false);
     }
   };
 
@@ -783,6 +807,23 @@ export default function ChatWindow({
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            onClick={() => {
+              setIsSelectMode((prev) => !prev);
+              setSelectedMessageIds(new Set());
+            }}
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl transition-colors cursor-pointer ${
+              isSelectMode
+                ? "bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-sm"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+            }`}
+            title={isSelectMode ? "Seçimden Çık" : "Mesaj Seç"}
+          >
+            <CheckSquare className="w-3.5 h-3.5 pointer-events-none" />
+            <span className="hidden xs:inline sm:inline">{isSelectMode ? "Vazgeç" : "Mesaj Seç"}</span>
+            <span className="xs:hidden sm:hidden">{isSelectMode ? "İptal" : "Seç"}</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setShowDeleteChatModal(true)}
             className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-300 transition-colors cursor-pointer"
             title="Sohbeti Kalıcı Olarak Sil"
@@ -835,28 +876,49 @@ export default function ChatWindow({
               msg.content,
               msg.metadata
             );
+            const isSelected = selectedMessageIds.has(msg.id);
 
             return (
               <div
                 key={msg.id}
-                className={`group flex items-end gap-1.5 ${isMine ? "justify-end" : "justify-start"} ${
+                onClick={() => {
+                  if (isSelectMode) {
+                    toggleSelectMessage(msg.id);
+                  }
+                }}
+                className={`flex items-center gap-2.5 transition-all ${
+                  isSelectMode
+                    ? "cursor-pointer select-none py-1 px-1.5 rounded-2xl hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+                    : ""
+                } ${isMine ? "justify-end" : "justify-start"} ${
                   isLastFromSame ? "mt-1" : "mt-5"
                 }`}
               >
-                {/* Gönderen kullanıcı için mesaj silme butonu */}
-                {isMine && !String(msg.id).startsWith("temp-") && (
-                  <button
-                    type="button"
-                    onClick={() => setDeletingMessage(msg)}
-                    className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shrink-0 mb-1"
-                    title="Mesajı kalıcı olarak sil"
-                    aria-label="Mesajı kalıcı olarak sil"
+                {/* iOS tarzı yuvarlak seçim kutucuğu */}
+                {isSelectMode && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelectMessage(msg.id);
+                    }}
+                    className={`shrink-0 flex items-center justify-center p-1 cursor-pointer select-none transition-transform active:scale-90 ${
+                      isMine ? "order-first" : "order-first"
+                    }`}
                   >
-                    <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
-                  </button>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? "bg-violet-600 border-violet-600 text-white shadow-sm"
+                          : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-violet-500"
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+                  </div>
                 )}
+
                 {!isMine && (
-                  <div className="shrink-0 mr-2.5 mt-0.5">
+                  <div className="shrink-0 mr-1.5 mt-0.5">
                     {selectedUser.avatar_url ? (
                       <img
                         src={selectedUser.avatar_url}
@@ -871,7 +933,9 @@ export default function ChatWindow({
                   </div>
                 )}
                 <div
-                  className={`max-w-[78%] md:max-w-[72%] px-4 sm:px-5 py-3 shadow-sm overflow-hidden ${
+                  className={`max-w-[78%] md:max-w-[72%] px-4 sm:px-5 py-3 shadow-sm overflow-hidden transition-all ${
+                    isSelected ? "ring-2 ring-violet-500 ring-offset-2 dark:ring-offset-slate-900" : ""
+                  } ${
                     isMine
                       ? "bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30"
                       : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm"
@@ -966,19 +1030,6 @@ export default function ChatWindow({
                     })}
                   </div>
                 </div>
-
-                {/* Alıcı kullanıcı için de mesaj silme butonu */}
-                {!isMine && !String(msg.id).startsWith("temp-") && (
-                  <button
-                    type="button"
-                    onClick={() => setDeletingMessage(msg)}
-                    className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shrink-0 mb-1 order-last"
-                    title="Mesajı kalıcı olarak sil"
-                    aria-label="Mesajı kalıcı olarak sil"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
-                  </button>
-                )}
               </div>
             );
           })
@@ -986,123 +1037,163 @@ export default function ChatWindow({
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* Attachment Preview Bar */}
-      {pendingFile && (
-        <div className="px-4 py-2.5 bg-violet-50/80 dark:bg-zinc-800/90 border-t border-violet-100 dark:border-zinc-700 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {pendingPreviewUrl ? (
-              <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-violet-200 dark:border-zinc-600 shrink-0">
-                <img
-                  src={pendingPreviewUrl}
-                  alt={pendingFile.name}
-                  className="w-full h-full object-cover"
-                />
-                {isSending && (
-                  <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                    <Loader2 className="w-4 h-4 text-white animate-spin" />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-lg bg-violet-600/10 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
-                {isSending ? (
-                  <Loader2 className="w-4 h-4 text-violet-600 dark:text-violet-300 animate-spin" />
-                ) : (
-                  <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
-                )}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
-                {pendingFile.name}
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {isSending ? "Yükleniyor..." : formatAttachmentSize(pendingFile.size)}
-              </p>
-            </div>
-          </div>
+      {/* iOS Tarzı Seçim Modu Alt Barı veya Normal Mesaj Girişi */}
+      {isSelectMode ? (
+        <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3 shadow-lg relative z-20 shrink-0 animate-in slide-in-from-bottom-2 duration-200">
           <button
             type="button"
-            disabled={isSending}
-            onClick={clearAttachment}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors shrink-0 disabled:opacity-40"
-            title="Eki kaldır"
+            onClick={() => {
+              setIsSelectMode(false);
+              setSelectedMessageIds(new Set());
+            }}
+            className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4 pointer-events-none" />
+            İptal
+          </button>
+
+          <div className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+            {selectedMessageIds.size > 0 ? (
+              <span className="text-violet-600 dark:text-violet-400 font-bold">
+                {selectedMessageIds.size} mesaj seçildi
+              </span>
+            ) : (
+              <span className="text-slate-400 dark:text-slate-500">
+                Silinecek mesajları seçin
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            disabled={selectedMessageIds.size === 0 || isDeletingBulk}
+            onClick={() => setShowBulkDeleteModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-95"
+          >
+            <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+            <span>Seçilenleri Sil ({selectedMessageIds.size})</span>
           </button>
         </div>
-      )}
-
-      {/* Input */}
-      <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative z-20 shrink-0">
-        {showMentionMenu && projects.length > 0 && (
-          <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white dark:bg-slate-900 md:bg-white/95 md:backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
-            <div className="px-4 py-3 text-xs font-bold text-sage-green border-b border-slate-100 bg-slate-50/50 uppercase tracking-widest">
-              Bir projeden bahset
+      ) : (
+        <>
+          {/* Attachment Preview Bar */}
+          {pendingFile && (
+            <div className="px-4 py-2.5 bg-violet-50/80 dark:bg-zinc-800/90 border-t border-violet-100 dark:border-zinc-700 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {pendingPreviewUrl ? (
+                  <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-violet-200 dark:border-zinc-600 shrink-0">
+                    <img
+                      src={pendingPreviewUrl}
+                      alt={pendingFile.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {isSending && (
+                      <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-violet-600/10 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
+                    {isSending ? (
+                      <Loader2 className="w-4 h-4 text-violet-600 dark:text-violet-300 animate-spin" />
+                    ) : (
+                      <FileText className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                    )}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
+                    {pendingFile.name}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {isSending ? "Yükleniyor..." : formatAttachmentSize(pendingFile.size)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={clearAttachment}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors shrink-0 disabled:opacity-40"
+                title="Eki kaldır"
+              >
+                <X className="w-4 h-4 pointer-events-none" />
+              </button>
             </div>
-            <ul className="max-h-48 overflow-y-auto custom-scrollbar p-1">
-              {projects.map((p) => (
-                <li
-                  key={p.id}
-                  className="px-4 py-3 hover:bg-sage-green/5 rounded-xl cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-300 transition-all hover:pl-5 border border-transparent hover:border-sage-green/10 m-1 flex items-center"
-                  onClick={() => selectMention(p)}
-                >
-                  <FolderRoot className="w-4 h-4 mr-2 text-sage-green shrink-0" />
-                  <span className="truncate">{p.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          )}
 
-        <form onSubmit={handleSend} className="flex items-end gap-2 sm:gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_CHAT_FILES}
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
-          <button
-            type="button"
-            disabled={isSending}
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
-            title="Dosya veya görsel ekle"
-          >
-            <Paperclip className="w-4 h-4 pointer-events-none" />
-          </button>
-
-          <textarea
-            ref={textareaRef}
-            value={newMessage}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            rows={1}
-            readOnly={isSending}
-            placeholder="Bir şeyler yazın..."
-            className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-hidden read-only:opacity-70"
-          />
-
-          <button
-            type="submit"
-            onMouseDown={(e) => e.preventDefault()}
-            disabled={(!newMessage.trim() && !pendingFile) || isSending}
-            className={`px-4 sm:px-5 h-11 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
-              (newMessage.trim() || pendingFile) && !isSending
-                ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white cursor-pointer"
-                : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-600 cursor-not-allowed"
-            }`}
-          >
-            {isSending ? (
-              <Loader2 className="w-5 h-5 animate-spin pointer-events-none" />
-            ) : (
-              <Send className="w-5 h-5 pointer-events-none" />
+          {/* Input */}
+          <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative z-20 shrink-0">
+            {showMentionMenu && projects.length > 0 && (
+              <div className="absolute bottom-[calc(100%+8px)] left-5 mb-2 w-72 bg-white dark:bg-slate-900 md:bg-white/95 md:backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30">
+                <div className="px-4 py-3 text-xs font-bold text-sage-green border-b border-slate-100 bg-slate-50/50 uppercase tracking-widest">
+                  Bir projeden bahset
+                </div>
+                <ul className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+                  {projects.map((p) => (
+                    <li
+                      key={p.id}
+                      className="px-4 py-3 hover:bg-sage-green/5 rounded-xl cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-300 transition-all hover:pl-5 border border-transparent hover:border-sage-green/10 m-1 flex items-center"
+                      onClick={() => selectMention(p)}
+                    >
+                      <FolderRoot className="w-4 h-4 mr-2 text-sage-green shrink-0" />
+                      <span className="truncate">{p.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </button>
-        </form>
-      </div>
+
+            <form onSubmit={handleSend} className="flex items-end gap-2 sm:gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_CHAT_FILES}
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 bg-slate-100 hover:bg-violet-50 text-slate-600 hover:text-violet-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300 border border-slate-200/80 dark:border-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
+                title="Dosya veya görsel ekle"
+              >
+                <Paperclip className="w-4 h-4 pointer-events-none" />
+              </button>
+
+              <textarea
+                ref={textareaRef}
+                value={newMessage}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                rows={1}
+                readOnly={isSending}
+                placeholder="Bir şeyler yazın..."
+                className="flex-1 min-h-[44px] max-h-[140px] resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-500 leading-relaxed overflow-hidden read-only:opacity-70"
+              />
+
+              <button
+                type="submit"
+                onMouseDown={(e) => e.preventDefault()}
+                disabled={(!newMessage.trim() && !pendingFile) || isSending}
+                className={`px-4 sm:px-5 h-11 rounded-2xl transition-all font-semibold flex items-center justify-center shrink-0 active:scale-95 ${
+                  (newMessage.trim() || pendingFile) && !isSending
+                    ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm dark:bg-violet-600 dark:hover:bg-violet-500 dark:text-white cursor-pointer"
+                    : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-600 cursor-not-allowed"
+                }`}
+              >
+                {isSending ? (
+                  <Loader2 className="w-5 h-5 animate-spin pointer-events-none" />
+                ) : (
+                  <Send className="w-5 h-5 pointer-events-none" />
+                )}
+              </button>
+            </form>
+          </div>
+        </>
+      )}
 
       {/* Image Lightbox Modal */}
       {lightboxImage && (
@@ -1145,11 +1236,11 @@ export default function ChatWindow({
         </div>
       )}
 
-      {/* Mesaj Silme Onay Modalı */}
-      {deletingMessage && (
+      {/* Seçilen Mesajları Toplu Kalıcı Silme Onay Modalı */}
+      {showBulkDeleteModal && (
         <div
           className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => !isDeletingMsg && setDeletingMessage(null)}
+          onClick={() => !isDeletingBulk && setShowBulkDeleteModal(false)}
         >
           <div
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
@@ -1160,30 +1251,30 @@ export default function ChatWindow({
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Mesajı Kalıcı Olarak Sil</h4>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Seçilen Mesajları Sil</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Bu işlem geri alınamaz.</p>
               </div>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Bu mesajı her iki taraf için de kalıcı olarak silmek istediğinizden emin misiniz?
+              Seçtiğiniz <strong className="text-slate-900 dark:text-slate-100">{selectedMessageIds.size}</strong> adet mesaj her iki taraf için de kalıcı olarak silinecektir. Emin misiniz?
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
-                disabled={isDeletingMsg}
-                onClick={() => setDeletingMessage(null)}
+                disabled={isDeletingBulk}
+                onClick={() => setShowBulkDeleteModal(false)}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Vazgeç
               </button>
               <button
                 type="button"
-                disabled={isDeletingMsg}
-                onClick={handleConfirmDeleteMessage}
+                disabled={isDeletingBulk}
+                onClick={handleConfirmDeleteBulk}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
               >
-                {isDeletingMsg ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                <span>Sil</span>
+                {isDeletingBulk ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Seçilenleri Sil ({selectedMessageIds.size})</span>
               </button>
             </div>
           </div>

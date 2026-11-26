@@ -298,6 +298,44 @@ export async function markMessagesAsReadAction(senderId: string): Promise<{succe
   return { success: true };
 }
 
+export async function deleteMessagesBulkAction(
+  messageIds: string[],
+  otherUserId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!messageIds || messageIds.length === 0) {
+      return { success: false, error: "Silinecek mesaj seçilmedi." };
+    }
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { success: false, error: "Yetkisiz işlem." };
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    // Kullanıcının tarafı olduğu seçilen mesajları tek sorguda kalıcı olarak sil
+    const { error: deleteErr } = await client
+      .from("messages")
+      .delete()
+      .in("id", messageIds)
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+
+    if (deleteErr) {
+      console.error("[deleteMessagesBulkAction] Delete error:", deleteErr);
+      return { success: false, error: "Mesajlar silinemedi." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("[deleteMessagesBulkAction] Unexpected error:", err);
+    return { success: false, error: err?.message || "Beklenmedik bir hata oluştu." };
+  }
+}
+
 export async function deleteMessageAction(messageId: string): Promise<{ success: boolean; error?: string }> {
   try {
     if (!messageId) return { success: false, error: "Mesaj ID zorunludur." };
