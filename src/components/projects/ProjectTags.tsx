@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { X, Plus } from "lucide-react";
 import { updateProjectTagsAction } from "@/lib/actions";
 import toast from "react-hot-toast";
@@ -31,6 +31,10 @@ interface Props {
 export default function ProjectTags({ projectId, initialTags, canEdit }: Props) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    setTags(initialTags);
+  }, [initialTags]);
   const [inputValue, setInputValue] = useState("");
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

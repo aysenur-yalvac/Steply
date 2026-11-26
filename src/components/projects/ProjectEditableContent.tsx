@@ -149,6 +149,71 @@ export default function ProjectEditableContent({
   // selectedMember: the candidate picked from search, not yet confirmed
   const [teamMembers,    setTeamMembers]    = useState<Member[]>(initialTeamMembers);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
+
+  // Sync teamMembers and project fields automatically when server props refresh via RealtimeSyncProvider
+  useEffect(() => {
+    setTeamMembers(initialTeamMembers);
+  }, [initialTeamMembers]);
+
+  useEffect(() => {
+    if (!editingTitle) setTitle(project.title);
+    if (!editingDesc) setDescription(project.cleanedDescription);
+    setStartDate(project.start_date ?? "");
+    setEndDate(project.end_date ?? "");
+    setIsPrivate(project.is_private ?? false);
+  }, [
+    project.title,
+    project.cleanedDescription,
+    project.start_date,
+    project.end_date,
+    project.is_private,
+    editingTitle,
+    editingDesc,
+  ]);
+
+  // Instant optimistic member status update when an invitee accepts/declines in Realtime
+  useEffect(() => {
+    function handleProjectMembersRealtime(e: Event) {
+      const custom = e as CustomEvent<any>;
+      const payload = custom.detail;
+      if (!payload) return;
+      const newRow = payload.new as any;
+      const oldRow = payload.old as any;
+
+      if (
+        payload.eventType === "UPDATE" &&
+        newRow &&
+        newRow.project_id === project.id &&
+        newRow.user_id
+      ) {
+        setTeamMembers((prev) =>
+          prev.map((m) =>
+            m.id === newRow.user_id
+              ? { ...m, status: newRow.status || "accepted" }
+              : m
+          )
+        );
+      } else if (
+        payload.eventType === "DELETE" &&
+        oldRow &&
+        (oldRow.project_id === project.id || !oldRow.project_id) &&
+        oldRow.user_id
+      ) {
+        setTeamMembers((prev) => prev.filter((m) => m.id !== oldRow.user_id));
+      }
+    }
+
+    window.addEventListener(
+      "project_members_updated",
+      handleProjectMembersRealtime
+    );
+    return () => {
+      window.removeEventListener(
+        "project_members_updated",
+        handleProjectMembersRealtime
+      );
+    };
+  }, [project.id]);
   const [memberQuery,     setMemberQuery]     = useState("");
   const [searchResults,   setSearchResults]   = useState<Member[]>([]);
   const [isSearching,     setIsSearching]     = useState(false);

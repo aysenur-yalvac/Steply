@@ -26,6 +26,19 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
+    setTasks((prev) => {
+      const temps = prev.filter((t) => String(t.id).startsWith('temp-'));
+      const serverNormalized = initialTasks.map((t) => ({
+        ...t,
+        title: t.title || t.task_title || '',
+      }));
+      return [...serverNormalized, ...temps].sort(
+        (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      );
+    });
+  }, [initialTasks]);
+
+  useEffect(() => {
     // Check for past due tasks
     const today = new Date();
     today.setHours(0, 0, 0, 0);

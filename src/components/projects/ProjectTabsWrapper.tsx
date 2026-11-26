@@ -50,12 +50,49 @@ export default function ProjectTabsWrapper({
   const [hasViewedNotes, setHasViewedNotes] = useState(false);
   const [hasUnreadNotes, setHasUnreadNotes] = useState(false);
 
-  // Keep tasks synced if server-rendered initialTasks changes
+  // Keep tasks synced if server-rendered initialTasks changes (preserving in-flight temp-* optimistic tasks)
   useEffect(() => {
-    if (initialTasks && initialTasks.length > 0) {
-      setTasks(initialTasks);
-    }
+    setTasks((prev) => {
+      const temps = prev.filter((t) => String(t.id).startsWith('temp-'));
+      return [...initialTasks, ...temps];
+    });
   }, [initialTasks]);
+
+  // Instant update when project_tasks table changes in Realtime for this project
+  useEffect(() => {
+    if (!projectId) return;
+    function handleRealtimeTasks(e: Event) {
+      const custom = e as CustomEvent<any>;
+      const payload = custom.detail;
+      if (!payload) return;
+      const newRow = payload.new as any;
+      const oldRow = payload.old as any;
+
+      if (payload.eventType === 'INSERT' && newRow && newRow.project_id === projectId) {
+        setTasks((prev) => {
+          if (prev.some((t) => t.id === newRow.id)) return prev;
+          const tempIdx = prev.findIndex(
+            (t) => String(t.id).startsWith('temp-') && t.title === newRow.title
+          );
+          if (tempIdx !== -1) {
+            const copy = [...prev];
+            copy[tempIdx] = newRow as ProjectTask;
+            return copy;
+          }
+          return [...prev, newRow as ProjectTask];
+        });
+      } else if (payload.eventType === 'UPDATE' && newRow && newRow.project_id === projectId) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === newRow.id ? { ...t, ...(newRow as ProjectTask) } : t))
+        );
+      } else if (payload.eventType === 'DELETE' && oldRow?.id) {
+        setTasks((prev) => prev.filter((t) => t.id !== oldRow.id));
+      }
+    }
+
+    window.addEventListener('project_tasks_updated', handleRealtimeTasks);
+    return () => window.removeEventListener('project_tasks_updated', handleRealtimeTasks);
+  }, [projectId]);
 
   useEffect(() => {
     if (!projectId || typeof window === 'undefined') return;

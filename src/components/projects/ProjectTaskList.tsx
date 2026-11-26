@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, CheckSquare, Square, ListChecks } from "lucide-react";
 import { addProjectTask, toggleTaskCompletion, deleteProjectTask } from "@/lib/actions";
@@ -34,6 +34,13 @@ export default function ProjectTaskList({
 }: Props) {
   const [internalTasks, setInternalTasks] = useState<ProjectTask[]>(initialTasks);
   const tasks = controlledTasks !== undefined ? controlledTasks : internalTasks;
+
+  useEffect(() => {
+    setInternalTasks((prev) => {
+      const temps = prev.filter((t) => String(t.id).startsWith("temp-"));
+      return [...initialTasks, ...temps];
+    });
+  }, [initialTasks]);
 
   const updateTasks = (updater: (prev: ProjectTask[]) => ProjectTask[]) => {
     if (onTasksChange) {

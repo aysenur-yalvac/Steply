@@ -1,24 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getUnreadChatCountAction } from "@/lib/social-actions";
+import { createClient } from "@/utils/supabase/client";
 
 export default function UnreadMessagesBadge({ collapsed = false }: { collapsed?: boolean }) {
   const [count, setCount] = useState<number>(0);
 
-  const loadCount = async () => {
-    const res = await getUnreadChatCountAction();
-    console.log("=== [DEBUG BADGE COUNT] ===", res.count, "| ERROR:", res.error);
-    setCount(res.count);
-  };
+  const loadCount = useCallback(async () => {
+    try {
+      const res = await getUnreadChatCountAction();
+      setCount(res.count);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
-    loadCount();
+    void loadCount();
 
-    const handleUpdate = () => loadCount();
+    const handleUpdate = () => {
+      void loadCount();
+    };
     window.addEventListener("unread_chat_count_changed", handleUpdate);
-    return () => window.removeEventListener("unread_chat_count_changed", handleUpdate);
-  }, []);
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("sidebar-unread-messages-badge")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+        },
+        () => {
+          void loadCount();
+        }
+      )
+      .subscribe();
+
+    const pollInterval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void loadCount();
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener("unread_chat_count_changed", handleUpdate);
+      supabase.removeChannel(channel);
+    };
+  }, [loadCount]);
 
   if (count <= 0) return null;
 

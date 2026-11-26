@@ -83,7 +83,37 @@ export default function NotificationBell({
           table: "notifications",
           filter: `user_id=eq.${currentUserId}`,
         },
-        () => {
+        (payload) => {
+          // Optimistically insert or update notification in local state immediately
+          if (payload.eventType === "INSERT" && payload.new) {
+            const n = payload.new as any;
+            if (n.type !== "message") {
+              const link = n.link || "/dashboard";
+              const match =
+                n.type === "project_invite" && typeof link === "string"
+                  ? link.match(/(?:[?&]invite=|\/projects\/)([0-9a-f-]{36})/i)
+                  : null;
+              const newItem: AppNotificationItem = {
+                id: `notif-${n.id}`,
+                type: "notification",
+                title: n.title || "Yeni bildirim",
+                body: n.content || n.body || "",
+                is_read: Boolean(n.is_read),
+                sender_avatar: null,
+                sender_name: null,
+                created_at: n.created_at || new Date().toISOString(),
+                link,
+                pendingProjectId: match?.[1] || null,
+              };
+              setItems((prev) => {
+                if (prev.some((i) => i.id === newItem.id)) return prev;
+                return [newItem, ...prev];
+              });
+              if (!newItem.is_read) {
+                setUnreadCount((c) => c + 1);
+              }
+            }
+          }
           refreshNotifications();
         }
       )
