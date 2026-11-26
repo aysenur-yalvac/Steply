@@ -36,6 +36,8 @@ export type Message = {
       size?: number;
     };
   } | null;
+  deleted_for_everyone?: boolean;
+  deleted_by_users?: string[];
   created_at: string;
 };
 
@@ -154,7 +156,7 @@ export async function getMessagesAction(otherUserId: string): Promise<Message[]>
 
   const { data, error } = await supabase
     .from("messages")
-    .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+    .select("id, sender_id, receiver_id, content, is_read, metadata, created_at, deleted_for_everyone, deleted_by_users")
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -164,7 +166,11 @@ export async function getMessagesAction(otherUserId: string): Promise<Message[]>
     throw new Error("Failed to fetch messages.");
   }
 
-  return ((data ?? []) as Message[]).slice().reverse();
+  const validMessages = ((data ?? []) as Message[]).filter(
+    (m) => !m.deleted_by_users || !m.deleted_by_users.includes(user.id)
+  );
+
+  return validMessages.slice().reverse();
 }
 
 /**
@@ -240,6 +246,11 @@ export async function getRecentConversationsAction(): Promise<Conversation[]> {
   const convMap = new Map<string, Conversation>();
 
   for (const msg of (messages as any[])) {
+    // Kullanıcının "Benden Sil" veya "Sohbeti Sil" yaptığı mesajları atla
+    if (msg.deleted_by_users && Array.isArray(msg.deleted_by_users) && msg.deleted_by_users.includes(user.id)) {
+      continue;
+    }
+
     const isSender = msg.sender_id === user.id;
     const otherUserRaw = isSender ? msg.receiver : msg.sender;
     if (!otherUserRaw) continue;
@@ -298,7 +309,7 @@ export async function markMessagesAsReadAction(senderId: string): Promise<{succe
   return { success: true };
 }
 
-export async function deleteMessagesBulkAction(
+export async function deleteMessagesForMeAction(
   messageIds: string[],
   otherUserId: string
 ): Promise<{ success: boolean; error?: string }> {
@@ -317,28 +328,60 @@ export async function deleteMessagesBulkAction(
       client = supabase;
     }
 
-    // Kullanıcının tarafı olduğu seçilen mesajları tek sorguda kalıcı olarak sil
-    const { error: deleteErr } = await client
+    // Kullanıcının tarafı olduğu mesajları çek
+    const { data: msgs, error: fetchErr } = await client
       .from("messages")
-      .delete()
+      .select("id, sender_id, receiver_id, deleted_by_users")
       .in("id", messageIds)
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
-    if (deleteErr) {
-      console.error("[deleteMessagesBulkAction] Delete error:", deleteErr);
-      return { success: false, error: "Mesajlar silinemedi." };
+    if (fetchErr || !msgs || msgs.length === 0) {
+      return { success: false, error: "Mesajlar bulunamadı." };
+    }
+
+    const toHardDelete: string[] = [];
+    const toUpdate: { id: string; deleted_by_users: string[] }[] = [];
+
+    for (const m of msgs) {
+      const existing = (m.deleted_by_users || []) as string[];
+      if (!existing.includes(user.id)) {
+        existing.push(user.id);
+      }
+      const otherId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+      // İki taraf da "Benden Sil" yaptıysa kaydı tamamen temizle
+      if (existing.includes(otherId)) {
+        toHardDelete.push(m.id);
+      } else {
+        toUpdate.push({ id: m.id, deleted_by_users: existing });
+      }
+    }
+
+    if (toHardDelete.length > 0) {
+      await client.from("messages").delete().in("id", toHardDelete);
+    }
+
+    for (const u of toUpdate) {
+      await client
+        .from("messages")
+        .update({ deleted_by_users: u.deleted_by_users })
+        .eq("id", u.id);
     }
 
     return { success: true };
   } catch (err: any) {
-    console.error("[deleteMessagesBulkAction] Unexpected error:", err);
+    console.error("[deleteMessagesForMeAction] Unexpected error:", err);
     return { success: false, error: err?.message || "Beklenmedik bir hata oluştu." };
   }
 }
 
-export async function deleteMessageAction(messageId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteMessagesForEveryoneAction(
+  messageIds: string[],
+  otherUserId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!messageId) return { success: false, error: "Mesaj ID zorunludur." };
+    if (!messageIds || messageIds.length === 0) {
+      return { success: false, error: "Silinecek mesaj seçilmedi." };
+    }
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return { success: false, error: "Yetkisiz işlem." };
@@ -350,36 +393,53 @@ export async function deleteMessageAction(messageId: string): Promise<{ success:
       client = supabase;
     }
 
-    // Mesajın kullanıcıya ait bir sohbette olduğunu doğrula
-    const { data: msg, error: fetchErr } = await client
+    // Yalnızca kullanıcının kendi gönderdiği mesajları doğrula
+    const { data: msgs, error: fetchErr } = await client
       .from("messages")
       .select("id, sender_id, receiver_id")
-      .eq("id", messageId)
-      .maybeSingle();
+      .in("id", messageIds);
 
-    if (fetchErr || !msg) {
-      return { success: false, error: "Mesaj bulunamadı." };
+    if (fetchErr || !msgs || msgs.length === 0) {
+      return { success: false, error: "Mesajlar bulunamadı." };
     }
 
-    if (msg.sender_id !== user.id && msg.receiver_id !== user.id) {
-      return { success: false, error: "Bu mesajı silme yetkiniz yok." };
+    const nonOwned = msgs.some((m: any) => m.sender_id !== user.id);
+    if (nonOwned) {
+      return { success: false, error: "Yalnızca kendi gönderdiğiniz mesajları herkesten silebilirsiniz." };
     }
 
-    const { error: deleteErr } = await client
+    // Mesaj içeriğini ve eklerini temizleyip deleted_for_everyone = true yap
+    const { error: updateErr } = await client
       .from("messages")
-      .delete()
-      .eq("id", messageId);
+      .update({
+        content: "",
+        metadata: {},
+        deleted_for_everyone: true,
+      })
+      .in("id", messageIds)
+      .eq("sender_id", user.id);
 
-    if (deleteErr) {
-      console.error("[deleteMessageAction] Delete error:", deleteErr);
-      return { success: false, error: "Mesaj silinemedi." };
+    if (updateErr) {
+      console.error("[deleteMessagesForEveryoneAction] Update error:", updateErr);
+      return { success: false, error: "Mesajlar herkesten silinemedi." };
     }
 
     return { success: true };
   } catch (err: any) {
-    console.error("[deleteMessageAction] Unexpected error:", err);
+    console.error("[deleteMessagesForEveryoneAction] Unexpected error:", err);
     return { success: false, error: err?.message || "Beklenmedik bir hata oluştu." };
   }
+}
+
+export async function deleteMessagesBulkAction(
+  messageIds: string[],
+  otherUserId: string
+): Promise<{ success: boolean; error?: string }> {
+  return deleteMessagesForMeAction(messageIds, otherUserId);
+}
+
+export async function deleteMessageAction(messageId: string): Promise<{ success: boolean; error?: string }> {
+  return deleteMessagesForMeAction([messageId], "");
 }
 
 export async function deleteConversationAction(otherUserId: string): Promise<{ success: boolean; error?: string }> {
@@ -396,15 +456,42 @@ export async function deleteConversationAction(otherUserId: string): Promise<{ s
       client = supabase;
     }
 
-    // İki kullanıcı arasındaki tüm mesajları kalıcı olarak sil
-    const { error: deleteErr } = await client
+    // İki kullanıcı arasındaki tüm mesajları çek
+    const { data: msgs, error: fetchErr } = await client
       .from("messages")
-      .delete()
+      .select("id, sender_id, receiver_id, deleted_by_users")
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`);
 
-    if (deleteErr) {
-      console.error("[deleteConversationAction] Delete error:", deleteErr);
-      return { success: false, error: "Sohbet silinemedi." };
+    if (fetchErr || !msgs || msgs.length === 0) {
+      return { success: true };
+    }
+
+    const toHardDelete: string[] = [];
+    const toUpdate: { id: string; deleted_by_users: string[] }[] = [];
+
+    for (const m of msgs) {
+      const existing = (m.deleted_by_users || []) as string[];
+      if (!existing.includes(user.id)) {
+        existing.push(user.id);
+      }
+      const otherId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+      // İki taraf da sohbeti sildiyse kaydı tamamen temizle
+      if (existing.includes(otherId)) {
+        toHardDelete.push(m.id);
+      } else {
+        toUpdate.push({ id: m.id, deleted_by_users: existing });
+      }
+    }
+
+    if (toHardDelete.length > 0) {
+      await client.from("messages").delete().in("id", toHardDelete);
+    }
+
+    for (const u of toUpdate) {
+      await client
+        .from("messages")
+        .update({ deleted_by_users: u.deleted_by_users })
+        .eq("id", u.id);
     }
 
     return { success: true };
@@ -430,14 +517,16 @@ export async function getLatestMessageBetweenUsersAction(otherUserId: string): P
 
     const { data, error } = await client
       .from("messages")
-      .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+      .select("id, sender_id, receiver_id, content, is_read, metadata, created_at, deleted_for_everyone, deleted_by_users")
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(20);
 
     if (error || !data) return null;
-    return data as Message;
+    const valid = (data as Message[]).filter(
+      (m) => !m.deleted_by_users || !m.deleted_by_users.includes(user.id)
+    );
+    return valid[0] || null;
   } catch {
     return null;
   }

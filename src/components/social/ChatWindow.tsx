@@ -13,6 +13,9 @@ import {
   Trash2,
   Check,
   CheckSquare,
+  MoreVertical,
+  User as UserIcon,
+  Ban,
 } from "lucide-react";
 import {
   getMessagesAction,
@@ -20,6 +23,8 @@ import {
   getUserProjectsAction,
   deleteMessageAction,
   deleteMessagesBulkAction,
+  deleteMessagesForMeAction,
+  deleteMessagesForEveryoneAction,
   deleteConversationAction,
   Message,
 } from "@/lib/social-actions";
@@ -116,19 +121,43 @@ export default function ChatWindow({
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
 
   // iOS Tarzı Mesaj Seç / Çoklu Silme ve Sohbet Silme state'leri
+  const [showMenu, setShowMenu] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [isDeletingForMe, setIsDeletingForMe] = useState(false);
+  const [isDeletingForEveryone, setIsDeletingForEveryone] = useState(false);
   const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
   const [isDeletingChat, setIsDeletingChat] = useState(false);
 
+  const menuRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shouldRestoreFocusRef = useRef(false);
   const isInitialLoadRef = useRef(true);
+
+  // Üç nokta menüsü dışına tıklandığında veya Escape'e basıldığında kapat
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showMenu]);
 
   const toggleSelectMessage = (msgId: string) => {
     if (String(msgId).startsWith("temp-")) return;
@@ -246,7 +275,7 @@ export default function ChatWindow({
         // Direct single query for the latest 50 messages without extra server roundtrips
         const { data, error } = await supabase
           .from("messages")
-          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at, deleted_for_everyone, deleted_by_users")
           .or(
             `and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`
           )
@@ -256,7 +285,10 @@ export default function ChatWindow({
         if (!active) return;
 
         if (!error && data) {
-          const ordered = (data as Message[]).slice().reverse();
+          const visible = (data as Message[]).filter(
+            (m) => !m.deleted_by_users || !m.deleted_by_users.includes(currentUser.id)
+          );
+          const ordered = visible.slice().reverse();
           messagesMemoryCache.set(currentKey, ordered);
           setMessages(ordered);
         } else {
@@ -299,7 +331,7 @@ export default function ChatWindow({
       try {
         const { data, error } = await supabase
           .from("messages")
-          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at, deleted_for_everyone, deleted_by_users")
           .or(
             `and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`
           )
@@ -307,7 +339,10 @@ export default function ChatWindow({
           .limit(50);
 
         if (!active || error || !data) return;
-        const ordered = (data as Message[]).slice().reverse();
+        const visible = (data as Message[]).filter(
+          (m) => !m.deleted_by_users || !m.deleted_by_users.includes(currentUser.id)
+        );
+        const ordered = visible.slice().reverse();
 
         updateMessagesWithCache((prev) => {
           const tempMessages = prev.filter((m) => String(m.id).startsWith("temp-"));
@@ -410,9 +445,13 @@ export default function ChatWindow({
         (payload) => {
           const updatedMsg = payload.new as Message;
           if (!updatedMsg?.id) return;
-          updateMessagesWithCache((prev) =>
-            prev.map((m) => (m.id === updatedMsg.id ? { ...m, ...updatedMsg } : m))
-          );
+          if (updatedMsg.deleted_by_users?.includes(currentUser.id)) {
+            updateMessagesWithCache((prev) => prev.filter((m) => m.id !== updatedMsg.id));
+          } else {
+            updateMessagesWithCache((prev) =>
+              prev.map((m) => (m.id === updatedMsg.id ? { ...m, ...updatedMsg } : m))
+            );
+          }
         }
       )
       .on(
@@ -447,10 +486,15 @@ export default function ChatWindow({
     };
   }, [pendingPreviewUrl]);
 
-  const handleConfirmDeleteBulk = async () => {
+  const selectedMessagesList = messages.filter((m) => selectedMessageIds.has(m.id));
+  const allSelectedAreMine =
+    selectedMessagesList.length > 0 &&
+    selectedMessagesList.every((m) => m.sender_id === currentUser.id);
+
+  const handleDeleteForMe = async () => {
     if (selectedMessageIds.size === 0) return;
     const idsToDelete = Array.from(selectedMessageIds);
-    setIsDeletingBulk(true);
+    setIsDeletingForMe(true);
     try {
       // Optimistic update
       updateMessagesWithCache((prev) => prev.filter((m) => !selectedMessageIds.has(m.id)));
@@ -458,11 +502,11 @@ export default function ChatWindow({
       setIsSelectMode(false);
       setSelectedMessageIds(new Set());
 
-      const res = await deleteMessagesBulkAction(idsToDelete, selectedUser.id);
+      const res = await deleteMessagesForMeAction(idsToDelete, selectedUser.id);
       if (!res.success) {
         toast.error(res.error || "Mesajlar silinemedi.");
       } else {
-        toast.success(`${idsToDelete.length} mesaj kalıcı olarak silindi.`);
+        toast.success(`${idsToDelete.length} mesaj sizden silindi.`);
         idsToDelete.forEach((id) => onMessageDeleted?.(id));
         if (typeof window !== "undefined") {
           idsToDelete.forEach((id) => {
@@ -480,7 +524,49 @@ export default function ChatWindow({
     } catch (err: any) {
       toast.error(err?.message || "Mesajlar silinemedi.");
     } finally {
-      setIsDeletingBulk(false);
+      setIsDeletingForMe(false);
+    }
+  };
+
+  const handleDeleteForEveryone = async () => {
+    if (selectedMessageIds.size === 0) return;
+    const idsToDelete = Array.from(selectedMessageIds);
+    setIsDeletingForEveryone(true);
+    try {
+      // Optimistic update
+      updateMessagesWithCache((prev) =>
+        prev.map((m) =>
+          selectedMessageIds.has(m.id)
+            ? { ...m, content: "", metadata: {}, deleted_for_everyone: true }
+            : m
+        )
+      );
+      setShowBulkDeleteModal(false);
+      setIsSelectMode(false);
+      setSelectedMessageIds(new Set());
+
+      const res = await deleteMessagesForEveryoneAction(idsToDelete, selectedUser.id);
+      if (!res.success) {
+        toast.error(res.error || "Mesajlar herkesten silinemedi.");
+      } else {
+        toast.success(`${idsToDelete.length} mesaj herkesten silindi.`);
+        if (typeof window !== "undefined") {
+          idsToDelete.forEach((id) => {
+            window.dispatchEvent(
+              new CustomEvent("chat_message_updated", {
+                detail: {
+                  messageId: id,
+                  otherUserId: selectedUser.id,
+                },
+              })
+            );
+          });
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Mesajlar herkesten silinemedi.");
+    } finally {
+      setIsDeletingForEveryone(false);
     }
   };
 
@@ -497,7 +583,7 @@ export default function ChatWindow({
       messagesMemoryCache.delete(`${selectedUser.id}:${currentUser.id}`);
       setMessages([]);
       setShowDeleteChatModal(false);
-      toast.success("Sohbet kalıcı olarak silindi.");
+      toast.success("Sohbet geçmişi sizden temizlendi.");
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(
@@ -804,41 +890,57 @@ export default function ChatWindow({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSelectMode((prev) => !prev);
-              setSelectedMessageIds(new Set());
-            }}
-            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl transition-colors cursor-pointer ${
-              isSelectMode
-                ? "bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 shadow-sm"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
-            }`}
-            title={isSelectMode ? "Seçimden Çık" : "Mesaj Seç"}
-          >
-            <CheckSquare className="w-3.5 h-3.5 pointer-events-none" />
-            <span className="hidden xs:inline sm:inline">{isSelectMode ? "Vazgeç" : "Mesaj Seç"}</span>
-            <span className="xs:hidden sm:hidden">{isSelectMode ? "İptal" : "Seç"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteChatModal(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-300 transition-colors cursor-pointer"
-            title="Sohbeti Kalıcı Olarak Sil"
-          >
-            <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
-            <span className="hidden xs:inline sm:inline">Sohbeti Sil</span>
-          </button>
-          <a
-            href={`/user/${selectedUser.id}`}
-            className="inline-flex items-center gap-1 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors"
-          >
-            <span className="hidden xs:inline sm:inline">Profili Gör</span>
-            <span className="sm:hidden">Profil</span> →
-          </a>
-        </div>
+        {/* Sağ Üst: Üç Nokta Menüsü (Seçim modunda gizlenir) */}
+        {!isSelectMode && (
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setShowMenu((prev) => !prev)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              title="Seçenekler"
+              aria-label="Sohbet seçenekleri"
+            >
+              <MoreVertical className="w-4 h-4 pointer-events-none" />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-[calc(100%+8px)] w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50 py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                <a
+                  href={`/user/${selectedUser.id}`}
+                  onClick={() => setShowMenu(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Profili Gör</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setIsSelectMode(true);
+                    setSelectedMessageIds(new Set());
+                  }}
+                  className="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <CheckSquare className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Mesaj Seç</span>
+                </button>
+                <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowDeleteChatModal(true);
+                  }}
+                  className="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  <span>Sohbeti Sil</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -937,8 +1039,12 @@ export default function ChatWindow({
                     isSelected ? "ring-2 ring-violet-500 ring-offset-2 dark:ring-offset-slate-900" : ""
                   } ${
                     isMine
-                      ? "bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30"
-                      : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm"
+                      ? msg.deleted_for_everyone
+                        ? "bg-violet-600/70 text-indigo-100 rounded-2xl rounded-tr-md border border-violet-400/30"
+                        : "bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-2xl rounded-tr-md shadow-[0_4px_10px_-2px_rgba(167,139,250,0.3)] border border-violet-400/30"
+                      : msg.deleted_for_everyone
+                        ? "bg-slate-100 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800"
+                        : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-800 shadow-sm"
                   }`}
                   style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
                 >
@@ -948,73 +1054,82 @@ export default function ChatWindow({
                     </p>
                   )}
 
-                  {attachment && (
-                    <div className={text ? "mb-2.5" : ""}>
-                      {isImageAttachment(attachment) ? (
-                        <ChatImageAttachment
-                          url={attachment.url}
-                          name={attachment.name}
-                          onClick={() =>
-                            setLightboxImage({
-                              url: attachment.url,
-                              name: attachment.name,
-                            })
-                          }
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            downloadAttachment(attachment.url, attachment.name);
-                          }}
-                          className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors cursor-pointer ${
-                            isMine
-                              ? "bg-white/15 hover:bg-white/25 text-white border-white/25"
-                              : "bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700"
-                          }`}
-                          title="Dosyayı indir"
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-white/15 dark:bg-slate-700 flex items-center justify-center shrink-0 pointer-events-none">
-                            <FileText className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0 flex-1 pointer-events-none">
-                            <p className="text-xs font-semibold truncate">
-                              {attachment.name}
-                            </p>
-                            {attachment.size ? (
-                              <p className="text-[10px] opacity-75">
-                                {formatAttachmentSize(attachment.size)}
-                              </p>
-                            ) : null}
-                          </div>
-                          <Download className="w-4 h-4 shrink-0 opacity-80 pointer-events-none" />
-                        </button>
-                      )}
+                  {msg.deleted_for_everyone ? (
+                    <div className="flex items-center gap-1.5 py-0.5 text-xs italic select-none">
+                      <Ban className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                      <span>Bu mesaj herkesten silindi</span>
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      {attachment && (
+                        <div className={text ? "mb-2.5" : ""}>
+                          {isImageAttachment(attachment) ? (
+                            <ChatImageAttachment
+                              url={attachment.url}
+                              name={attachment.name}
+                              onClick={() =>
+                                setLightboxImage({
+                                  url: attachment.url,
+                                  name: attachment.name,
+                                })
+                              }
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                downloadAttachment(attachment.url, attachment.name);
+                              }}
+                              className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors cursor-pointer ${
+                                isMine
+                                  ? "bg-white/15 hover:bg-white/25 text-white border-white/25"
+                                  : "bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700"
+                              }`}
+                              title="Dosyayı indir"
+                            >
+                              <div className="w-9 h-9 rounded-lg bg-white/15 dark:bg-slate-700 flex items-center justify-center shrink-0 pointer-events-none">
+                                <FileText className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0 flex-1 pointer-events-none">
+                                <p className="text-xs font-semibold truncate">
+                                  {attachment.name}
+                                </p>
+                                {attachment.size ? (
+                                  <p className="text-[10px] opacity-75">
+                                    {formatAttachmentSize(attachment.size)}
+                                  </p>
+                                ) : null}
+                              </div>
+                              <Download className="w-4 h-4 shrink-0 opacity-80 pointer-events-none" />
+                            </button>
+                          )}
+                        </div>
+                      )}
 
-                  {text && (
-                    <p
-                      className="whitespace-pre-wrap break-words leading-relaxed text-sm"
-                      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-                    >
-                      {renderMessageWithLinks(text)}
-                    </p>
-                  )}
+                      {text && (
+                        <p
+                          className="whitespace-pre-wrap break-words leading-relaxed text-sm"
+                          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                        >
+                          {renderMessageWithLinks(text)}
+                        </p>
+                      )}
 
-                  {msg.metadata?.mentioned_project_id && (
-                    <a
-                      href={`/dashboard/projects/${msg.metadata.mentioned_project_id}`}
-                      className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
-                        isMine
-                          ? "bg-white/20 hover:bg-white/30 text-white border-white/20"
-                          : "bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60"
-                      }`}
-                    >
-                      <FolderRoot className="w-3.5 h-3.5" /> Projeyi Gör
-                    </a>
+                      {msg.metadata?.mentioned_project_id && (
+                        <a
+                          href={`/dashboard/projects/${msg.metadata.mentioned_project_id}`}
+                          className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
+                            isMine
+                              ? "bg-white/20 hover:bg-white/30 text-white border-white/20"
+                              : "bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-slate-200 border-slate-200/60"
+                          }`}
+                        >
+                          <FolderRoot className="w-3.5 h-3.5" /> Projeyi Gör
+                        </a>
+                      )}
+                    </>
                   )}
 
                   <div
@@ -1065,7 +1180,7 @@ export default function ChatWindow({
 
           <button
             type="button"
-            disabled={selectedMessageIds.size === 0 || isDeletingBulk}
+            disabled={selectedMessageIds.size === 0 || isDeletingForMe || isDeletingForEveryone}
             onClick={() => setShowBulkDeleteModal(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-95"
           >
@@ -1236,14 +1351,14 @@ export default function ChatWindow({
         </div>
       )}
 
-      {/* Seçilen Mesajları Toplu Kalıcı Silme Onay Modalı */}
+      {/* Seçilen Mesajları Silme Onay Modalı (WhatsApp Tarzı: Benden Sil & Herkesten Sil) */}
       {showBulkDeleteModal && (
         <div
           className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => !isDeletingBulk && setShowBulkDeleteModal(false)}
+          onClick={() => !isDeletingForMe && !isDeletingForEveryone && setShowBulkDeleteModal(false)}
         >
           <div
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
@@ -1251,37 +1366,66 @@ export default function ChatWindow({
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Seçilen Mesajları Sil</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Bu işlem geri alınamaz.</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Mesajları Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {selectedMessageIds.size} mesaj seçildi
+                </p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Seçtiğiniz <strong className="text-slate-900 dark:text-slate-100">{selectedMessageIds.size}</strong> adet mesaj her iki taraf için de kalıcı olarak silinecektir. Emin misiniz?
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Bu mesajları yalnızca kendi ekranınızdan mı yoksa herkesten mi silmek istiyorsunuz?
             </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
+
+            <div className="flex flex-col gap-2 pt-2">
               <button
                 type="button"
-                disabled={isDeletingBulk}
+                disabled={isDeletingForMe || isDeletingForEveryone}
+                onClick={handleDeleteForMe}
+                className="w-full py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingForMe ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 text-slate-500" />
+                )}
+                <span>Benden Sil</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={!allSelectedAreMine || isDeletingForMe || isDeletingForEveryone}
+                onClick={handleDeleteForEveryone}
+                className="w-full py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-95"
+              >
+                {isDeletingForEveryone ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                <span>Herkesten Sil</span>
+              </button>
+
+              {!allSelectedAreMine && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 text-center font-medium px-1">
+                  Yalnızca kendi gönderdiğiniz mesajları herkesten silebilirsiniz.
+                </p>
+              )}
+
+              <button
+                type="button"
+                disabled={isDeletingForMe || isDeletingForEveryone}
                 onClick={() => setShowBulkDeleteModal(false)}
-                className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer mt-1"
               >
                 Vazgeç
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingBulk}
-                onClick={handleConfirmDeleteBulk}
-                className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
-              >
-                {isDeletingBulk ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                <span>Seçilenleri Sil ({selectedMessageIds.size})</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Sohbeti Kalıcı Olarak Silme Modalı */}
+      {/* Sohbeti Sil Modalı */}
       {showDeleteChatModal && (
         <div
           className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
@@ -1296,12 +1440,12 @@ export default function ChatWindow({
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Kalıcı Olarak Sil</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Tüm sohbet geçmişi temizlenir.</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Sohbet geçmişi sizden temizlenir.</p>
               </div>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              <strong className="text-slate-900 dark:text-slate-100">{selectedUser.full_name}</strong> ile olan tüm mesajlaşma geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz ve bu kişi sohbet listenizden tamamen kaldırılacaktır.
+              <strong className="text-slate-900 dark:text-slate-100">{selectedUser.full_name}</strong> ile olan tüm mesajlaşma geçmişiniz yalnızca sizin ekranınızdan temizlenecektir. Karşı tarafın konuşma geçmişi etkilenmez.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -1319,7 +1463,7 @@ export default function ChatWindow({
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 {isDeletingChat ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                <span>Sohbeti Kalıcı Olarak Sil</span>
+                <span>Sohbeti Sil</span>
               </button>
             </div>
           </div>

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, MessageSquare, Send, Search, Loader2, X, Trash2 } from 'lucide-react';
+import { User, MessageSquare, Send, Search, Loader2, X, Trash2, Ban } from 'lucide-react';
 import toast from 'react-hot-toast';
 import UserSearch from '@/components/social/UserSearch';
 import ChatWindow from '@/components/social/ChatWindow';
@@ -292,6 +292,33 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const updatedMsg = payload.new as Message;
+          if (!updatedMsg?.id) return;
+          const partnerId = updatedMsg.sender_id === currentUser.id ? updatedMsg.receiver_id : updatedMsg.sender_id;
+          if (!partnerId) return;
+
+          if (updatedMsg.deleted_by_users?.includes(currentUser.id)) {
+            handleMessageDeleted(updatedMsg.id, partnerId);
+          } else {
+            setConversations((prev) =>
+              prev.map((c) => {
+                if (c.last_message?.id === updatedMsg.id) {
+                  return { ...c, last_message: { ...c.last_message, ...updatedMsg } };
+                }
+                return c;
+              })
+            );
+          }
+        }
+      )
       .subscribe();
 
     // 2. Yerel sekme için anlık (0ms) custom DOM olaylarını dinle
@@ -304,6 +331,21 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     const onChatMessageDeleted = (e: any) => {
       if (e.detail?.messageId) {
         handleMessageDeleted(e.detail.messageId, e.detail?.otherUserId);
+      }
+    };
+
+    const onChatMessageUpdated = (e: any) => {
+      if (e.detail?.messageId && e.detail?.otherUserId) {
+        void getLatestMessageBetweenUsersAction(e.detail.otherUserId).then((latestMsg) => {
+          setConversations((curr) => {
+            if (!latestMsg) {
+              return curr.filter((c) => c.other_user.id !== e.detail.otherUserId);
+            }
+            return curr.map((c) =>
+              c.other_user.id === e.detail.otherUserId ? { ...c, last_message: latestMsg } : c
+            );
+          });
+        });
       }
     };
 
@@ -320,12 +362,14 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
 
     window.addEventListener('chat_message_sent', onChatMessageSent);
     window.addEventListener('chat_message_deleted', onChatMessageDeleted);
+    window.addEventListener('chat_message_updated', onChatMessageUpdated);
     window.addEventListener('conversation_deleted', onConversationDeleted);
 
     return () => {
       supabase.removeChannel(channel);
       window.removeEventListener('chat_message_sent', onChatMessageSent);
       window.removeEventListener('chat_message_deleted', onChatMessageDeleted);
+      window.removeEventListener('chat_message_updated', onChatMessageUpdated);
       window.removeEventListener('conversation_deleted', onConversationDeleted);
     };
   }, [currentUser.id, supabase, handleUpdateLastMessage, handleMessageDeleted, activeUser?.id, router]);
@@ -485,6 +529,13 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                         )}
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                           {(() => {
+                            if (conv.last_message?.deleted_for_everyone) {
+                              return (
+                                <span className="italic text-slate-400 dark:text-slate-500 inline-flex items-center gap-1">
+                                  <Ban className="w-3 h-3 shrink-0" /> Bu mesaj herkesten silindi
+                                </span>
+                              );
+                            }
                             if (!conv.last_message?.content) return "Sohbeti başlatmak için tıkla";
                             const parsed = parseContentWithAttachment(
                               conv.last_message.content,
@@ -584,15 +635,15 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Kalıcı Olarak Sil</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Tüm sohbet geçmişi temizlenir.</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Sohbet geçmişi sizden temizlenir.</p>
               </div>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               <strong className="text-slate-900 dark:text-slate-100">
                 {confirmDeleteConv.other_user.full_name}
               </strong>{" "}
-              ile olan tüm mesajlaşma geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz ve bu kişi sohbet listenizden tamamen kaldırılacaktır.
+              ile olan tüm mesajlaşma geçmişiniz yalnızca sizin ekranınızdan temizlenecektir. Karşı tarafın konuşma geçmişi etkilenmez.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
