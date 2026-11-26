@@ -4,6 +4,12 @@ import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { sanitizeInstitution } from "@/lib/utils";
+import {
+  checkAndSendSingleTaskDeadlineReminder,
+  dispatchSmartNotification,
+  normalizeNotificationPreferences,
+  type NotificationPreferences,
+} from "@/lib/notifications";
 
 export type FileVisibility = 'PUBLIC' | 'MEMBERS_ONLY' | 'ONLY_ME';
 
@@ -477,6 +483,16 @@ export async function addAgendaTaskAction(title: string, due_date: string) {
 
   if (error) return { success: false, error: `Agenda Error [${error.code}]: ${error.message}` };
 
+  if (data?.id && due_date) {
+    void checkAndSendSingleTaskDeadlineReminder({
+      table: "agenda_tasks",
+      taskId: data.id,
+      taskTitle: title,
+      dueDate: due_date,
+      recipientUserId: user.id,
+    });
+  }
+
   revalidatePath('/dashboard/agenda');
   const taskNormalized = data ? { ...data, title: data.title || data.task_title || "" } : data;
   return { success: true, task: taskNormalized };
@@ -566,6 +582,48 @@ export type Notification = {
   created_at: string;
 };
 
+export async function updateNotificationPreferencesAction(
+  prefs: Partial<NotificationPreferences>
+): Promise<{ success: boolean; preferences?: NotificationPreferences; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Oturum bulunamadı." };
+
+    const admin = createAdminClient();
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("notification_preferences")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const currentPrefs = normalizeNotificationPreferences(
+      (existingProfile as any)?.notification_preferences
+    );
+    const updatedPrefs: NotificationPreferences = normalizeNotificationPreferences({
+      ...currentPrefs,
+      ...prefs,
+    });
+
+    const { error } = await admin
+      .from("profiles")
+      .update({ notification_preferences: updatedPrefs } as any)
+      .eq("id", user.id);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/dashboard/settings", "page");
+    return { success: true, preferences: updatedPrefs };
+  } catch (e: any) {
+    return {
+      success: false,
+      error: e?.message || "Bildirim tercihleri kaydedilemedi.",
+    };
+  }
+}
+
 export async function createNotificationAction(
   userId: string,
   type: Notification['type'] | 'project_invite',
@@ -573,26 +631,13 @@ export async function createNotificationAction(
   body?: string,
   relatedId?: string,
 ): Promise<void> {
-  try {
-    const admin = createAdminClient();
-    const link = relatedId
-      ? relatedId.startsWith('/')
-        ? relatedId
-        : `/dashboard/projects/${relatedId}`
-      : '/dashboard';
-    const { error } = await admin.from('notifications').insert({
-      user_id: userId,
-      type,
-      title,
-      content: body || null,
-      link,
-    });
-    if (error) {
-      console.error('[createNotificationAction] DB insert error:', error.message, error.code, { userId, type, title });
-    }
-  } catch (e) {
-    console.error('[createNotificationAction] Unexpected error:', e);
-  }
+  await dispatchSmartNotification({
+    userId,
+    type,
+    title,
+    body,
+    relatedId,
+  });
 }
 
 export async function reportContentAction(input: {
@@ -830,20 +875,16 @@ async function notifyAndMessageTaskAssignee(
     const projectTitle = proj?.title || 'Proje';
     const link = `/dashboard/projects/${projectId}`;
 
-    // 1. Insert notification into notifications table
-    const { error: notifErr } = await admin.from('notifications').insert({
-      user_id: assigneeId,
+    // 1. Dispatch preference-checked notification (in-app bell if in_app_tasks=true, email if email_tasks=true)
+    await dispatchSmartNotification({
+      userId: assigneeId,
       type: 'task',
       title: 'Yeni Görev Atandı',
-      content: `${assignerName}, '${projectTitle}' projesinde size '${taskTitle}' görevini atadı.`,
-      link,
-      is_read: false,
+      body: `${assignerName}, '${projectTitle}' projesinde size '${taskTitle}' görevini atadı.`,
+      relatedId: link,
     });
-    if (notifErr) {
-      console.error('[notifyAndMessageTaskAssignee] notification error:', notifErr);
-    }
 
-    // 2. Send automatic message in messages table
+    // 2. Send automatic message in messages table (always saved to chat)
     const { error: msgErr } = await admin.from('messages').insert({
       sender_id: assignerId,
       receiver_id: assigneeId,
@@ -1152,10 +1193,13 @@ export async function updateProjectTagsAction(
   const ctx = await assertProjectAccess(supabase, projectId);
   if (!ctx) return { error: 'Unauthorized' };
 
-  const sanitized = tags
-    .map((t) => t.trim().toLowerCase())
-    .filter((t) => t.length > 0 && t.length <= 32)
-    .slice(0, 10);
+  const sanitized = Array.from(
+    new Set(
+      tags
+        .map((t) => t.replace(/^#+/, '').trim().toLowerCase())
+        .filter((t) => t.length > 0 && t.length <= 32)
+    )
+  ).slice(0, 10);
 
   const { error } = await ctx.admin
     .from('projects')
@@ -1167,6 +1211,7 @@ export async function updateProjectTagsAction(
         return { error: error.message };
       }
   revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
@@ -2891,7 +2936,11 @@ export async function updateTaskAction(
   if (updates.description !== undefined) safeUpdates.description = updates.description;
   if (updates.is_completed !== undefined) safeUpdates.is_completed = updates.is_completed;
   if (updates.due_date !== undefined && hasDueDateColumn) {
-    safeUpdates.due_date = updates.due_date && String(updates.due_date).trim() ? String(updates.due_date).trim() : null;
+    const nextDue = updates.due_date && String(updates.due_date).trim() ? String(updates.due_date).trim() : null;
+    safeUpdates.due_date = nextDue;
+    if (existingTask && existingTask.due_date !== nextDue && Object.prototype.hasOwnProperty.call(existingTask, 'reminder_sent')) {
+      safeUpdates.reminder_sent = false;
+    }
   }
   if (updates.assigned_to !== undefined && hasAssignedToColumn) {
     const normalizedAssignee = updates.assigned_to && String(updates.assigned_to).trim() ? String(updates.assigned_to).trim() : null;
@@ -2974,6 +3023,18 @@ export async function updateTaskAction(
         projectId,
         title,
       );
+    }
+    // Check 24-hour deadline reminder if due_date is set/updated and task is incomplete
+    if (!data.is_completed && data.due_date) {
+      const targetAssignee = data.assigned_to || (data as any).assignee_id || ctx.user.id;
+      void checkAndSendSingleTaskDeadlineReminder({
+        table: "project_tasks",
+        taskId: data.id,
+        taskTitle: title,
+        dueDate: data.due_date,
+        recipientUserId: targetAssignee,
+        projectId,
+      });
     }
     // Notification: Task completed
     if (data.is_completed === true && existingTask.is_completed === false) {

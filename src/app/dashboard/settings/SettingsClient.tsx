@@ -33,11 +33,23 @@ import {
   AlertTriangle,
   Trash2,
   X,
+  Clock,
+  CheckSquare,
+  UserPlus,
 } from "lucide-react";
 import { Country, State } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
-import { updateUserPrivacyAction, updateProfileAction, unblockUserAction } from "@/lib/actions";
+import {
+  updateUserPrivacyAction,
+  updateProfileAction,
+  unblockUserAction,
+  updateNotificationPreferencesAction,
+} from "@/lib/actions";
 import type { FollowUser } from "@/lib/actions";
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  type NotificationPreferences,
+} from "@/lib/notifications";
 import { Avatar } from "@/components/ui/avatar";
 import UniversityCombobox from "@/components/ui/UniversityCombobox";
 import DepartmentCombobox from "@/components/ui/DepartmentCombobox";
@@ -73,6 +85,7 @@ interface SettingsClientProps {
   initialSchoolEmail: string;
   initialPhoneNumber: string;
   initialBlockedUsers?: FollowUser[];
+  initialNotificationPreferences?: NotificationPreferences;
 }
 
 type Tab = "profile" | "security" | "notifications" | "preferences";
@@ -160,9 +173,9 @@ function NotifRow({
     >
       <div className="flex items-start gap-3">
         <span className={`mt-0.5 shrink-0 ${iconColor}`}>{icon}</span>
-        <div>
-          <p className={`text-sm font-medium ${isMaster ? "text-slate-800 dark:text-slate-200 dark:text-slate-100" : "text-slate-700"}`}>{title}</p>
-          <p className="text-xs text-slate-400 mt-0.5 leading-snug">{description}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{title}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{description}</p>
         </div>
       </div>
       <button
@@ -204,6 +217,7 @@ export default function SettingsClient({
   initialSchoolEmail,
   initialPhoneNumber,
   initialBlockedUsers = [],
+  initialNotificationPreferences = DEFAULT_NOTIFICATION_PREFERENCES,
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [blockedUsers, setBlockedUsers] = useState<FollowUser[]>(initialBlockedUsers);
@@ -404,10 +418,32 @@ export default function SettingsClient({
     }
   }
 
-  // Notifications
-  const [muteAll, setMuteAll] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [projectInvites, setProjectInvites] = useState(true);
+  // Notifications (7 independent preference toggles)
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(
+    initialNotificationPreferences
+  );
+  const [isNotifSaving, setIsNotifSaving] = useState(false);
+
+  function handleToggleNotifPref(key: keyof NotificationPreferences, val: boolean) {
+    setNotifPrefs((prev) => ({ ...prev, [key]: val }));
+  }
+
+  async function handleSaveNotificationPreferences() {
+    setIsNotifSaving(true);
+    try {
+      const res = await updateNotificationPreferencesAction(notifPrefs);
+      if (!res.success) {
+        toast.error(res.error || "Bildirim tercihleri kaydedilemedi.");
+      } else {
+        if (res.preferences) setNotifPrefs(res.preferences);
+        toast.success("Bildirim tercihleriniz kaydedildi!");
+      }
+    } catch {
+      toast.error("Bildirim tercihleri kaydedilirken bir hata oluştu.");
+    } finally {
+      setIsNotifSaving(false);
+    }
+  }
 
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
@@ -1391,27 +1427,116 @@ export default function SettingsClient({
 
                 {/* ── NOTIFICATIONS ── */}
                 {activeTab === "notifications" && (
-                  <div className="max-w-lg space-y-6">
+                  <div className="max-w-2xl space-y-6">
                     {/* Section intro */}
                     <div>
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-100">Bildirim Tercihleri</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Uyarıları ve güncellemeleri nasıl alacağınızı yönetin.</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        Akıllı Bildirim Tercihleri
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                        Uygulama içi bildirim zili ve e-posta bildirimlerini her olay için bağımsız olarak tek tek yönetebilirsiniz.
+                      </p>
                     </div>
 
-                    {/* Notification rows */}
-                    <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100">
+                    {/* Group 1: Proje Davetleri */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 px-1">
+                        1. Proje Davetleri
+                      </p>
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        <NotifRow
+                          icon={<UserPlus className="w-4 h-4" />}
+                          iconColor="text-violet-500"
+                          title="Proje Davetleri — Uygulama İçi Bildirim Zili"
+                          description="Bir projeye ekip üyesi olarak davet edildiğinizde sağ üst bildirim zilinde uyarı gösterilir."
+                          checked={notifPrefs.in_app_invites}
+                          onChange={(v) => handleToggleNotifPref("in_app_invites", v)}
+                        />
+                        <NotifRow
+                          icon={<Mail className="w-4 h-4" />}
+                          iconColor="text-indigo-500"
+                          title="Proje Davetleri — E-Posta Bildirimi"
+                          description="Yeni bir proje daveti aldığınızda kayıtlı e-posta adresinize davet bağlantısı gönderilir."
+                          checked={notifPrefs.email_invites}
+                          onChange={(v) => handleToggleNotifPref("email_invites", v)}
+                        />
+                      </div>
+                    </div>
 
-                      {/* Master mute */}
+                    {/* Group 2: Görev Atama, Güncelleme & Son 24 Saat Hatırlatması */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 px-1">
+                        2. Görevler ve Teslim Hatırlatıcıları
+                      </p>
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        <NotifRow
+                          icon={<CheckSquare className="w-4 h-4" />}
+                          iconColor="text-emerald-500"
+                          title="Görev Atama & Güncellemeleri — Uygulama İçi Bildirim Zili"
+                          description="Size yeni bir görev atandığında veya göreviniz güncellendiğinde bildirim zilinde görünür."
+                          checked={notifPrefs.in_app_tasks}
+                          onChange={(v) => handleToggleNotifPref("in_app_tasks", v)}
+                        />
+                        <NotifRow
+                          icon={<Mail className="w-4 h-4" />}
+                          iconColor="text-teal-500"
+                          title="Görev Atama & Güncellemeleri — E-Posta Bildirimi"
+                          description="Size görev atandığında veya görev durumu değiştiğinde e-posta ile bilgilendirilirsiniz."
+                          checked={notifPrefs.email_tasks}
+                          onChange={(v) => handleToggleNotifPref("email_tasks", v)}
+                        />
+                        <NotifRow
+                          icon={<Clock className="w-4 h-4" />}
+                          iconColor="text-amber-500"
+                          title="Son 24 Saat Görev Teslim Hatırlatması — E-Posta Bildirimi"
+                          description="Tamamlanmamış görevlerinizin teslim tarihine 24 saat veya daha az süre kaldığında otomatik hatırlatma e-postası gönderilir."
+                          checked={notifPrefs.email_task_deadline}
+                          onChange={(v) => handleToggleNotifPref("email_task_deadline", v)}
+                        />
+                      </div>
+                    </div>
 
-                      <NotifRow
-                        icon={<MessageSquare className="w-4 h-4" />}
-                        iconColor="text-violet-500"
-                        title="Proje Davetleri ve Mesajlar"
-                        description="Yeni iş birliği davetleri ve doğrudan mesajlar için uyarılar."
-                        checked={projectInvites}
-                        onChange={setProjectInvites}
-                        disabled={muteAll}
-                      />
+                    {/* Group 3: Yeni Mesajlar */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 px-1">
+                        3. Yeni Mesajlar ve Proje Tartışmaları
+                      </p>
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        <NotifRow
+                          icon={<MessageSquare className="w-4 h-4" />}
+                          iconColor="text-sky-500"
+                          title="Yeni Mesajlar — Uygulama İçi Bildirim Zili"
+                          description="Kapalı olsa bile mesajlar sohbet kutusuna düşmeye devam eder, mesaj alımını asla engellemez; yalnızca bildirim zili uyarısını kontrol eder."
+                          checked={notifPrefs.in_app_messages}
+                          onChange={(v) => handleToggleNotifPref("in_app_messages", v)}
+                        />
+                        <NotifRow
+                          icon={<Mail className="w-4 h-4" />}
+                          iconColor="text-purple-500"
+                          title="Yeni Mesajlar — E-Posta Bildirimi"
+                          description="Sadece siz o an çevrimdışıyken ve bu anahtar açıkken yeni mesaj geldiğinde e-posta gönderir."
+                          checked={notifPrefs.email_messages}
+                          onChange={(v) => handleToggleNotifPref("email_messages", v)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Save Preferences Button */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveNotificationPreferences}
+                        disabled={isNotifSaving}
+                        className={primaryBtn}
+                        style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                      >
+                        {isNotifSaving ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" strokeWidth={1.5} />
+                        )}
+                        {isNotifSaving ? "Kaydediliyor..." : "Tercihleri Kaydet"}
+                      </button>
                     </div>
                   </div>
                 )}

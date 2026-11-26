@@ -2,6 +2,7 @@ import { getCachedUser, getCachedProfile } from "@/lib/auth-cache";
 import { redirect } from "next/navigation";
 import SettingsClient from "./SettingsClient";
 import { getBlockedUsersAction } from "@/lib/actions";
+import { normalizeNotificationPreferences } from "@/lib/notifications";
 
 export default async function SettingsPage() {
   const user = await getCachedUser();
@@ -14,6 +15,10 @@ export default async function SettingsPage() {
     getCachedProfile(),
     getBlockedUsersAction(),
   ]);
+
+  const initialNotificationPreferences = normalizeNotificationPreferences(
+    (profile as any)?.notification_preferences
+  );
 
   return (
     <SettingsClient
@@ -48,6 +53,7 @@ export default async function SettingsPage() {
       initialSchoolEmail={(profile as any)?.school_email || ""}
       initialPhoneNumber={profile?.phone_number || ""}
       initialBlockedUsers={blockedUsers}
+      initialNotificationPreferences={initialNotificationPreferences}
     />
   );
 }

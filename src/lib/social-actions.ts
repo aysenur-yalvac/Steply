@@ -2,6 +2,11 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import {
+  dispatchSmartNotification,
+  normalizeNotificationPreferences,
+  touchUserPresence,
+} from "@/lib/notifications";
 
 export type SearchUsersResult = {
   users: UserSearchResult[];
@@ -130,6 +135,37 @@ export async function sendMessageAction(
     console.error("[sendMessageAction] Error:", error);
     throw new Error("Failed to send message: " + error.message);
   }
+
+  // Update sender presence and trigger smart email notification if recipient is offline & has email_messages enabled
+  void touchUserPresence(user.id);
+  void (async () => {
+    try {
+      const admin = createAdminClient();
+      const { data: senderProfile } = await admin
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const senderName = (senderProfile as any)?.full_name || "Bir kullanıcı";
+      const cleanPreview =
+        content
+          .replace(/\[\[ATTACHMENT:\{[\s\S]*?\}\]\]/g, "")
+          .trim()
+          .slice(0, 140) || "📎 Yeni bir dosya veya görsel gönderdi.";
+
+      await dispatchSmartNotification({
+        userId: receiverId,
+        type: "message",
+        title: `${senderName} kişisinden yeni mesaj`,
+        body: cleanPreview,
+        relatedId: `/dashboard/messages?userId=${user.id}`,
+        // Direct messages are already read from `messages` table in getUserNotificationsAndMessagesAction
+        skipInAppInsert: true,
+      });
+    } catch (err) {
+      console.error("[sendMessageAction] Smart notification dispatch error:", err);
+    }
+  })();
 
   return { success: true, message: data as Message };
 }
@@ -359,9 +395,11 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
 
     const items: AppNotificationItem[] = [];
 
-    // Run messages, notifications, and all project_members for this user in parallel
+    // Run messages, notifications, all project_members, and user preferences in parallel
     try {
-      const [{ data: incomingMessages }, { data: notifs }, { data: allMemberships }] = await Promise.all([
+      void touchUserPresence(user.id);
+
+      const [{ data: incomingMessages }, { data: notifs }, { data: allMemberships }, { data: myProfile }] = await Promise.all([
         client
           .from('messages')
           .select(`
@@ -385,9 +423,20 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
           .from('project_members')
           .select('project_id, status')
           .eq('user_id', user.id),
+        client
+          .from('profiles')
+          .select('notification_preferences')
+          .eq('id', user.id)
+          .maybeSingle(),
       ]);
 
-      if (incomingMessages) {
+      const prefs = normalizeNotificationPreferences(
+        (myProfile as any)?.notification_preferences
+      );
+
+      // Only include incoming messages in the notification bell if in_app_messages is true
+      // (Messages always appear in the chat window regardless of this toggle!)
+      if (incomingMessages && prefs.in_app_messages) {
         for (const msg of incomingMessages) {
           const sender = (msg as any).sender || {};
           const senderName = sender.full_name || 'Bir kullanıcı';
@@ -412,6 +461,9 @@ export async function getUserNotificationsAndMessagesAction(): Promise<{
 
       if (notifs) {
         for (const n of notifs) {
+          if (n.type === 'project_invite' && !prefs.in_app_invites) continue;
+          if (n.type === 'task' && !prefs.in_app_tasks) continue;
+          if (n.type === 'message' && !prefs.in_app_messages) continue;
           let link = n.link || '/dashboard';
           if (!n.link && n.related_id) {
             link = `/dashboard/projects/${n.related_id}`;

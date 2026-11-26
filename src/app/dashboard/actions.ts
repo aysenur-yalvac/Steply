@@ -93,16 +93,33 @@ export async function createProject(formData: FormData): Promise<{ success: true
   const invite_token = crypto.randomUUID();
 
   const tagsRaw = formData.get("tags") as string | null;
-  let tags: string[] = [];
-  try { tags = tagsRaw ? (JSON.parse(tagsRaw) as string[]) : []; } catch { tags = []; }
+  let parsedTags: string[] = [];
+  if (tagsRaw) {
+    try {
+      const parsed = JSON.parse(tagsRaw);
+      if (Array.isArray(parsed)) {
+        parsedTags = parsed.map(String);
+      }
+    } catch {
+      parsedTags = tagsRaw.split(/[\s,]+/);
+    }
+  }
+  const tags: string[] = Array.from(
+    new Set(
+      parsedTags
+        .map((t) => t.replace(/^#+/, "").trim().toLowerCase())
+        .filter((t) => t.length > 0 && t.length <= 32)
+    )
+  ).slice(0, 10);
 
   if (!title) {
     return { success: false, error: "Proje başlığı boş olamaz." };
   }
 
-  // Attempt 1: insert with priority + platform + tags columns
-  // (these columns may not exist in older DB schemas — the fallback handles that)
-  const { error, data: newProject1 } = await supabase.from("projects").insert({
+  const admin = createAdminClient();
+
+  // Attempt 1: insert with priority + platform + tags columns (exact same tags format as updateProjectTagsAction)
+  const { error } = await admin.from("projects").insert({
     student_id: user.id,
     title,
     description,
@@ -111,7 +128,7 @@ export async function createProject(formData: FormData): Promise<{ success: true
     platform,
     invite_code,
     invite_token,
-    ...(tags.length > 0 ? { tags } : {}),
+    tags,
   });
 
   if (error) {
@@ -119,27 +136,27 @@ export async function createProject(formData: FormData): Promise<{ success: true
     const isMissingColumn =
       msg.toLowerCase().includes("priority") ||
       msg.toLowerCase().includes("platform") ||
-      msg.toLowerCase().includes("tags") ||
       (error as any).code === "PGRST204" ||
       (error as any).code === "42703";
 
     if (isMissingColumn) {
-      // priority/platform/tags columns not yet in DB schema —
-      // embed metadata into description as fallback, insert only core columns
+      // Fallback if priority/platform columns are missing — still persist tags, invite_code, invite_token!
       const augmentedDesc = [
         description,
         `[Priority: ${priority}]`,
         platform && platform !== "General" ? `[Platform: ${platform}]` : "",
-        tags.length > 0 ? `[Tags: ${tags.join(", ")}]` : "",
       ]
         .filter(Boolean)
         .join("\n");
 
-      const { error: error2, data: newProject2 } = await supabase.from("projects").insert({
+      const { error: error2 } = await admin.from("projects").insert({
         student_id: user.id,
         title,
         description: augmentedDesc,
         progress_percentage,
+        invite_code,
+        invite_token,
+        tags,
       });
 
       if (error2) {

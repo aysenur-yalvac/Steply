@@ -48,7 +48,7 @@ export default function ProjectTags({ projectId, initialTags, canEdit }: Props) 
   }
 
   function commitInput() {
-    const val = inputValue.trim().toLowerCase();
+    const val = inputValue.replace(/^#+/, "").trim().toLowerCase();
     if (val && !tags.includes(val) && tags.length < 10) {
       const next = [...tags, val];
       setTags(next);

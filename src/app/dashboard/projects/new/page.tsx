@@ -325,9 +325,22 @@ export default function NewProjectPage() {
     setActiveHelpField((prev) => (prev === field ? null : field));
   };
 
+  function parseRawTags(raw: string, existing: string[]): string[] {
+    const parts = raw
+      .split(/[\s,]+/)
+      .map((s) => s.replace(/^#+/, '').trim().toLowerCase().slice(0, 32))
+      .filter(Boolean);
+    const next = [...existing];
+    for (const part of parts) {
+      if (part && !next.includes(part) && next.length < 10) {
+        next.push(part);
+      }
+    }
+    return next;
+  }
+
   function commitTag(raw: string) {
-    const val = raw.trim().toLowerCase().slice(0, 32);
-    if (val && !tags.includes(val) && tags.length < 10) setTags(t => [...t, val]);
+    setTags((prev) => parseRawTags(raw, prev));
     setTagInput('');
   }
 
@@ -348,13 +361,20 @@ export default function NewProjectPage() {
       return;
     }
 
+    // Enter'a basılmadan input içinde yazılı bırakılan son etiket(ler) varsa otomatik diziye dahil et
+    const finalTags = tagInput.trim() ? parseRawTags(tagInput, tags) : tags;
+    if (tagInput.trim()) {
+      setTags(finalTags);
+      setTagInput('');
+    }
+
     // Ensure client-controlled fields are always present — use exact state value, no override
     formData.set('priority', priority);
     if (!formData.get('platform')) {
       formData.set('platform', 'General');
     }
     formData.set('progress_percentage', '0');
-    formData.set('tags', JSON.stringify(tags));
+    formData.set('tags', JSON.stringify(finalTags));
 
     setIsPending(true);
     try {
