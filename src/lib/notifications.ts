@@ -210,19 +210,17 @@ export async function dispatchSmartNotification(params: {
   skipInAppInsert?: boolean;
 }): Promise<void> {
   const { userId, type, title, body, relatedId, skipInAppInsert } = params;
-  if (!userId) return;
+  if (!userId || type === "message") return;
 
   try {
     const admin = createAdminClient();
-    const { email, fullName, preferences, isOnline } =
+    const { email, fullName, preferences } =
       await getRecipientNotificationContext(userId);
 
     const relativeLink = relatedId
       ? relatedId.startsWith("/")
         ? relatedId
-        : type === "message" && !relatedId.includes("/")
-          ? `/dashboard/messages?userId=${relatedId}`
-          : `/dashboard/projects/${relatedId}`
+        : `/dashboard/projects/${relatedId}`
       : "/dashboard";
 
     const fullUrl = `${SITE_BASE_URL}${relativeLink}`;
@@ -233,8 +231,6 @@ export async function dispatchSmartNotification(params: {
       allowInApp = preferences.in_app_invites;
     } else if (type === "task") {
       allowInApp = preferences.in_app_tasks;
-    } else if (type === "message") {
-      allowInApp = preferences.in_app_messages;
     }
 
     if (allowInApp && !skipInAppInsert) {
@@ -268,11 +264,6 @@ export async function dispatchSmartNotification(params: {
       allowEmail = preferences.email_tasks;
       badgeText = "Görev Bildirimi";
       ctaLabel = "Göreve Git";
-    } else if (type === "message") {
-      // Only send message email when email_messages is true AND the recipient is currently offline
-      allowEmail = preferences.email_messages && !isOnline;
-      badgeText = "Yeni Mesaj";
-      ctaLabel = "Mesajı Yanıtla";
     }
 
     if (allowEmail && email) {

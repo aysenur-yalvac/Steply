@@ -1496,31 +1496,6 @@ export default function SettingsClient({
                       </div>
                     </div>
 
-                    {/* Group 3: Yeni Mesajlar */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 px-1">
-                        3. Yeni Mesajlar ve Proje Tartışmaları
-                      </p>
-                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-                        <NotifRow
-                          icon={<MessageSquare className="w-4 h-4" />}
-                          iconColor="text-sky-500"
-                          title="Yeni Mesajlar — Uygulama İçi Bildirim Zili"
-                          description="Kapalı olsa bile mesajlar sohbet kutusuna düşmeye devam eder, mesaj alımını asla engellemez; yalnızca bildirim zili uyarısını kontrol eder."
-                          checked={notifPrefs.in_app_messages}
-                          onChange={(v) => handleToggleNotifPref("in_app_messages", v)}
-                        />
-                        <NotifRow
-                          icon={<Mail className="w-4 h-4" />}
-                          iconColor="text-purple-500"
-                          title="Yeni Mesajlar — E-Posta Bildirimi"
-                          description="Sadece siz o an çevrimdışıyken ve bu anahtar açıkken yeni mesaj geldiğinde e-posta gönderir."
-                          checked={notifPrefs.email_messages}
-                          onChange={(v) => handleToggleNotifPref("email_messages", v)}
-                        />
-                      </div>
-                    </div>
-
                     {/* Save Preferences Button */}
                     <div className="pt-2">
                       <button
