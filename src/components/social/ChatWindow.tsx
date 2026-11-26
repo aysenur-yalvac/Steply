@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import {
   Send,
   Loader2,
@@ -10,11 +10,14 @@ import {
   FileText,
   Download,
   X,
+  Trash2,
 } from "lucide-react";
 import {
   getMessagesAction,
   sendMessageAction,
   getUserProjectsAction,
+  deleteMessageAction,
+  deleteConversationAction,
   Message,
 } from "@/lib/social-actions";
 import { createClient } from "@/utils/supabase/client";
@@ -31,6 +34,9 @@ import {
 } from "@/lib/chat-attachments";
 import { renderMessageWithLinks } from "@/lib/linkify";
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 interface User {
   id: string;
   full_name: string;
@@ -44,6 +50,9 @@ interface ChatWindowProps {
   currentUser: User;
   selectedUser: User;
   onBack?: () => void;
+  onConversationDeleted?: (userId: string) => void;
+  onMessageSent?: (msg: Message) => void;
+  onMessageDeleted?: (msgId: string) => void;
 }
 
 function ChatImageAttachment({
@@ -90,6 +99,9 @@ export default function ChatWindow({
   currentUser,
   selectedUser,
   onBack,
+  onConversationDeleted,
+  onMessageSent,
+  onMessageDeleted,
 }: ChatWindowProps) {
   const cacheKey = `${currentUser.id}:${selectedUser.id}`;
   const [messages, setMessages] = useState<Message[]>(() => messagesMemoryCache.get(cacheKey) ?? []);
@@ -100,10 +112,63 @@ export default function ChatWindow({
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
 
+  // Kalıcı mesaj ve sohbet silme modal state'leri
+  const [deletingMessage, setDeletingMessage] = useState<Message | null>(null);
+  const [isDeletingMsg, setIsDeletingMsg] = useState(false);
+  const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shouldRestoreFocusRef = useRef(false);
+  const isInitialLoadRef = useRef(true);
+
+  const scrollToBottomInstant = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  };
+
+  const forceScrollToBottomInstant = () => {
+    scrollToBottomInstant();
+    requestAnimationFrame(() => {
+      scrollToBottomInstant();
+      requestAnimationFrame(() => {
+        scrollToBottomInstant();
+      });
+    });
+    setTimeout(scrollToBottomInstant, 40);
+    setTimeout(scrollToBottomInstant, 120);
+  };
+
+  const scrollToBottomSmooth = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollToBottom = (instant = false) => {
+    if (instant || isInitialLoadRef.current) {
+      forceScrollToBottomInstant();
+    } else {
+      scrollToBottomSmooth();
+    }
+  };
+
+  useEffect(() => {
+    isInitialLoadRef.current = true;
+  }, [selectedUser.id]);
+
+  useIsomorphicLayoutEffect(() => {
+    if (isInitialLoadRef.current && messages.length > 0) {
+      forceScrollToBottomInstant();
+    }
+  }, [messages, selectedUser.id]);
 
   const updateMessagesWithCache = (updater: Message[] | ((prev: Message[]) => Message[])) => {
     setMessages((prev) => {
@@ -147,7 +212,10 @@ export default function ChatWindow({
     if (cached) {
       setMessages(cached);
       setIsLoading(false);
-      requestAnimationFrame(() => scrollToBottom());
+      forceScrollToBottomInstant();
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 200);
     } else {
       setMessages([]);
       setIsLoading(true);
@@ -182,7 +250,10 @@ export default function ChatWindow({
       } finally {
         if (active) {
           setIsLoading(false);
-          requestAnimationFrame(() => scrollToBottom());
+          forceScrollToBottomInstant();
+          setTimeout(() => {
+            isInitialLoadRef.current = false;
+          }, 200);
         }
       }
     };
@@ -238,7 +309,11 @@ export default function ChatWindow({
           if (prevRealIds === nextRealIds && remainingTemps.length === tempMessages.length && serverIds.size === ordered.length) {
             return prev;
           }
-          setTimeout(scrollToBottom, 80);
+          if (isInitialLoadRef.current) {
+            forceScrollToBottomInstant();
+          } else {
+            setTimeout(scrollToBottomSmooth, 80);
+          }
           return merged;
         });
       } catch {
@@ -263,7 +338,11 @@ export default function ChatWindow({
               if (prev.some((m) => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
-            setTimeout(scrollToBottom, 80);
+            if (isInitialLoadRef.current) {
+              forceScrollToBottomInstant();
+            } else {
+              setTimeout(scrollToBottomSmooth, 40);
+            }
           }
         }
       )
@@ -293,7 +372,11 @@ export default function ChatWindow({
               }
               return [...prev, newMsg];
             });
-            setTimeout(scrollToBottom, 80);
+            if (isInitialLoadRef.current) {
+              forceScrollToBottomInstant();
+            } else {
+              setTimeout(scrollToBottomSmooth, 40);
+            }
           }
         }
       )
@@ -344,14 +427,71 @@ export default function ChatWindow({
     };
   }, [pendingPreviewUrl]);
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      if (messagesEndRef.current.parentElement) {
-        const container = messagesEndRef.current.parentElement;
-        container.scrollTop = container.scrollHeight;
+  const handleConfirmDeleteMessage = async () => {
+    if (!deletingMessage) return;
+    const msgToDelete = deletingMessage;
+    setIsDeletingMsg(true);
+    try {
+      // Optimistic removal
+      updateMessagesWithCache((prev) => prev.filter((m) => m.id !== msgToDelete.id));
+      setDeletingMessage(null);
+
+      const res = await deleteMessageAction(msgToDelete.id);
+      if (!res.success) {
+        toast.error(res.error || "Mesaj silinemedi.");
       } else {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        toast.success("Mesaj kalıcı olarak silindi.");
+        onMessageDeleted?.(msgToDelete.id);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("chat_message_deleted", {
+              detail: {
+                messageId: msgToDelete.id,
+                otherUserId: selectedUser.id,
+              },
+            })
+          );
+        }
       }
+    } catch (err: any) {
+      toast.error(err?.message || "Mesaj silinemedi.");
+    } finally {
+      setIsDeletingMsg(false);
+    }
+  };
+
+  const handleConfirmDeleteChat = async () => {
+    setIsDeletingChat(true);
+    try {
+      const res = await deleteConversationAction(selectedUser.id);
+      if (!res.success) {
+        toast.error(res.error || "Sohbet silinemedi.");
+        return;
+      }
+
+      messagesMemoryCache.delete(`${currentUser.id}:${selectedUser.id}`);
+      messagesMemoryCache.delete(`${selectedUser.id}:${currentUser.id}`);
+      setMessages([]);
+      setShowDeleteChatModal(false);
+      toast.success("Sohbet kalıcı olarak silindi.");
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("conversation_deleted", {
+            detail: { otherUserId: selectedUser.id },
+          })
+        );
+      }
+
+      if (onConversationDeleted) {
+        onConversationDeleted(selectedUser.id);
+      } else if (onBack) {
+        onBack();
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Sohbet silinemedi.");
+    } finally {
+      setIsDeletingChat(false);
     }
   };
 
@@ -474,8 +614,17 @@ export default function ChatWindow({
         textareaRef.current.style.height = "auto";
         textareaRef.current.style.overflowY = "hidden";
       }
-      setTimeout(scrollToBottom, 15);
+      setTimeout(scrollToBottomSmooth, 20);
       focusMessageTextarea();
+
+      onMessageSent?.(optimisticMsg);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("chat_message_sent", {
+            detail: { message: optimisticMsg, otherUserId: selectedUser.id },
+          })
+        );
+      }
 
       try {
         const result = await sendMessageAction(
@@ -543,7 +692,16 @@ export default function ChatWindow({
         textareaRef.current.style.height = "auto";
         textareaRef.current.style.overflowY = "hidden";
       }
-      setTimeout(scrollToBottom, 20);
+      setTimeout(scrollToBottomSmooth, 20);
+
+      onMessageSent?.(optimisticMsg);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("chat_message_sent", {
+            detail: { message: optimisticMsg, otherUserId: selectedUser.id },
+          })
+        );
+      }
 
       const result = await sendMessageAction(
         selectedUser.id,
@@ -560,7 +718,7 @@ export default function ChatWindow({
           }
           return prev.map((m) => (m.id === tempId ? result.message : m));
         });
-        setTimeout(scrollToBottom, 40);
+        setTimeout(scrollToBottomSmooth, 40);
       } else {
         updateMessagesWithCache((prev) => prev.filter((m) => m.id !== tempId));
         setNewMessage(trimmed);
@@ -622,17 +780,31 @@ export default function ChatWindow({
           </div>
         </div>
 
-        <a
-          href={`/user/${selectedUser.id}`}
-          className="inline-flex items-center gap-1 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors shrink-0"
-        >
-          <span className="hidden xs:inline sm:inline">Profili Gör</span>
-          <span className="sm:hidden">Profil</span> →
-        </a>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowDeleteChatModal(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-300 transition-colors cursor-pointer"
+            title="Sohbeti Kalıcı Olarak Sil"
+          >
+            <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+            <span className="hidden xs:inline sm:inline">Sohbeti Sil</span>
+          </button>
+          <a
+            href={`/user/${selectedUser.id}`}
+            className="inline-flex items-center gap-1 px-2.5 sm:px-3 min-h-[36px] py-1.5 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors"
+          >
+            <span className="hidden xs:inline sm:inline">Profili Gör</span>
+            <span className="sm:hidden">Profil</span> →
+          </a>
+        </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 relative z-0 bg-slate-50 dark:bg-zinc-950">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-3 relative z-0 bg-slate-50 dark:bg-zinc-950"
+      >
         {isLoading ? (
           <div className="flex flex-col justify-end h-full space-y-3 py-2">
             <div className="flex justify-start">
@@ -667,10 +839,22 @@ export default function ChatWindow({
             return (
               <div
                 key={msg.id}
-                className={`flex ${isMine ? "justify-end" : "justify-start"} ${
+                className={`group flex items-end gap-1.5 ${isMine ? "justify-end" : "justify-start"} ${
                   isLastFromSame ? "mt-1" : "mt-5"
                 }`}
               >
+                {/* Gönderen kullanıcı için mesaj silme butonu */}
+                {isMine && !String(msg.id).startsWith("temp-") && (
+                  <button
+                    type="button"
+                    onClick={() => setDeletingMessage(msg)}
+                    className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shrink-0 mb-1"
+                    title="Mesajı kalıcı olarak sil"
+                    aria-label="Mesajı kalıcı olarak sil"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+                  </button>
+                )}
                 {!isMine && (
                   <div className="shrink-0 mr-2.5 mt-0.5">
                     {selectedUser.avatar_url ? (
@@ -782,6 +966,19 @@ export default function ChatWindow({
                     })}
                   </div>
                 </div>
+
+                {/* Alıcı kullanıcı için de mesaj silme butonu */}
+                {!isMine && !String(msg.id).startsWith("temp-") && (
+                  <button
+                    type="button"
+                    onClick={() => setDeletingMessage(msg)}
+                    className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shrink-0 mb-1 order-last"
+                    title="Mesajı kalıcı olarak sil"
+                    aria-label="Mesajı kalıcı olarak sil"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+                  </button>
+                )}
               </div>
             );
           })
@@ -944,6 +1141,96 @@ export default function ChatWindow({
               alt={lightboxImage.name}
               className="max-h-[82vh] max-w-full object-contain rounded-2xl shadow-2xl"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Mesaj Silme Onay Modalı */}
+      {deletingMessage && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => !isDeletingMsg && setDeletingMessage(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Mesajı Kalıcı Olarak Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Bu işlem geri alınamaz.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Bu mesajı her iki taraf için de kalıcı olarak silmek istediğinizden emin misiniz?
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingMsg}
+                onClick={() => setDeletingMessage(null)}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingMsg}
+                onClick={handleConfirmDeleteMessage}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isDeletingMsg ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Sil</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sohbeti Kalıcı Olarak Silme Modalı */}
+      {showDeleteChatModal && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => !isDeletingChat && setShowDeleteChatModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Kalıcı Olarak Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Tüm sohbet geçmişi temizlenir.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              <strong className="text-slate-900 dark:text-slate-100">{selectedUser.full_name}</strong> ile olan tüm mesajlaşma geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz ve bu kişi sohbet listenizden tamamen kaldırılacaktır.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingChat}
+                onClick={() => setShowDeleteChatModal(false)}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingChat}
+                onClick={handleConfirmDeleteChat}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isDeletingChat ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Sohbeti Kalıcı Olarak Sil</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

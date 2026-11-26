@@ -51,3 +51,10 @@ export async function markMessagesAsRead(senderId: string) {
      console.error('Error marking messages as read:', error);
   }
 }
+
+export {
+  deleteMessageAction,
+  deleteConversationAction,
+  getLatestMessageBetweenUsersAction,
+} from '@/lib/social-actions';
+

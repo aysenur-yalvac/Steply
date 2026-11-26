@@ -1,14 +1,24 @@
 ﻿
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, MessageSquare, Send, Search, Loader2, X } from 'lucide-react';
+import { User, MessageSquare, Send, Search, Loader2, X, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import UserSearch from '@/components/social/UserSearch';
 import ChatWindow from '@/components/social/ChatWindow';
 import EmptyState from '@/components/layout/EmptyState';
 import PageWrapper from '@/components/layout/PageWrapper';
-import { Conversation, UserSearchResult, markMessagesAsReadAction, searchUsersAction } from '@/lib/social-actions';
+import {
+  Conversation,
+  UserSearchResult,
+  markMessagesAsReadAction,
+  searchUsersAction,
+  deleteConversationAction,
+  getLatestMessageBetweenUsersAction,
+  getConversationWithUserAction,
+  Message,
+} from '@/lib/social-actions';
 import { createClient } from '@/utils/supabase/client';
 import { isImageAttachment, parseContentWithAttachment } from '@/lib/chat-attachments';
 
@@ -34,6 +44,8 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [confirmDeleteConv, setConfirmDeleteConv] = useState<Conversation | null>(null);
+  const [isDeletingConv, setIsDeletingConv] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -120,8 +132,125 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
     }
   }, [activeUser]);
 
+  const handleUpdateLastMessage = useCallback((newMsg: Message) => {
+    if (!newMsg?.id) return;
+    const isSender = newMsg.sender_id === currentUser.id;
+    const otherId = isSender ? newMsg.receiver_id : newMsg.sender_id;
+    if (!otherId) return;
+
+    setConversations((prev) => {
+      const existingConvIdx = prev.findIndex((c) => c.other_user.id === otherId);
+      const isOpen = activeUser?.id === otherId;
+
+      if (existingConvIdx !== -1) {
+        const existingConv = prev[existingConvIdx];
+        const updatedConv: Conversation = {
+          ...existingConv,
+          last_message: newMsg,
+          unread_count:
+            !isSender && !isOpen
+              ? existingConv.unread_count + 1
+              : isOpen
+              ? 0
+              : existingConv.unread_count,
+        };
+
+        if (!isSender && !isOpen && existingConv.unread_count === 0 && typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('unread_chat_count_changed', {
+              detail: { action: 'new_unread_chat' },
+            })
+          );
+        }
+
+        if (isOpen && !isSender) {
+          void markMessagesAsReadAction(otherId).then(() => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('unread_chat_count_changed'));
+            }
+          });
+        }
+
+        // En son mesajlaşılan kişiyi listenin en üstüne taşı
+        const others = prev.filter((_, idx) => idx !== existingConvIdx);
+        return [updatedConv, ...others];
+      } else {
+        // Yeni bir kullanıcıdan ilk mesaj geldiğinde listeye ekle ve en üste koy
+        void getConversationWithUserAction(otherId).then((newConv) => {
+          if (newConv) {
+            newConv.last_message = newMsg;
+            if (!isSender && !isOpen) newConv.unread_count = 1;
+            setConversations((curr) => {
+              if (curr.some((c) => c.other_user.id === otherId)) return curr;
+              return [newConv, ...curr];
+            });
+          }
+        });
+        return prev;
+      }
+    });
+  }, [currentUser.id, activeUser?.id]);
+
+  const handleMessageDeleted = useCallback((deletedMsgId: string, otherUserId?: string) => {
+    if (!deletedMsgId) return;
+    setConversations((prev) => {
+      const targetConv = prev.find(
+        (c) => c.last_message?.id === deletedMsgId || (otherUserId && c.other_user.id === otherUserId)
+      );
+      if (!targetConv) return prev;
+
+      const targetId = targetConv.other_user.id;
+      void getLatestMessageBetweenUsersAction(targetId).then((latestMsg) => {
+        setConversations((curr) => {
+          if (!latestMsg) {
+            // İki kullanıcı arasında mesaj kalmadıysa sohbeti listeden tamamen kaldır
+            return curr.filter((c) => c.other_user.id !== targetId);
+          }
+          return curr.map((c) =>
+            c.other_user.id === targetId ? { ...c, last_message: latestMsg } : c
+          );
+        });
+      });
+
+      return prev;
+    });
+  }, []);
+
+  const handleConfirmDeleteConv = async () => {
+    if (!confirmDeleteConv) return;
+    const targetId = confirmDeleteConv.other_user.id;
+    setIsDeletingConv(true);
+    try {
+      const res = await deleteConversationAction(targetId);
+      if (!res.success) {
+        toast.error(res.error || "Sohbet silinemedi.");
+        return;
+      }
+
+      setConversations((prev) => prev.filter((c) => c.other_user.id !== targetId));
+      if (activeUser?.id === targetId) {
+        setActiveUser(null);
+        router.push("/dashboard/messages");
+      }
+      setConfirmDeleteConv(null);
+      toast.success("Sohbet kalıcı olarak silindi.");
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("conversation_deleted", {
+            detail: { otherUserId: targetId },
+          })
+        );
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Sohbet silinemedi.");
+    } finally {
+      setIsDeletingConv(false);
+    }
+  };
+
   useEffect(() => {
-    // Subscribe to new incoming messages
+    // 1. Supabase Realtime ile gelen, giden ve silinen mesajları dinle
     const channel = supabase
       .channel('messages-client-realtime')
       .on(
@@ -133,47 +262,73 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
           filter: `receiver_id=eq.${currentUser.id}`,
         },
         (payload) => {
-          const newMsg = payload.new;
-          
-          setConversations((prev) => {
-            const senderId = newMsg.sender_id;
-            const existingConvIdx = prev.findIndex(c => c.other_user.id === senderId);
-            
-            // If the chat is currently open, it is instantly read.
-            const isOpen = activeUser?.id === senderId;
-
-            if (existingConvIdx !== -1) {
-              const updatedConv = { ...prev[existingConvIdx] };
-              if (!isOpen) {
-                if (updatedConv.unread_count === 0) {
-                   window.dispatchEvent(new CustomEvent('unread_chat_count_changed', { detail: { action: 'new_unread_chat' } }));
-                }
-                updatedConv.unread_count += 1;
-              } else {
-                 markMessagesAsReadAction(senderId).then(() => {
-                   if (typeof window !== "undefined") {
-                     window.dispatchEvent(new Event("unread_chat_count_changed"));
-                   }
-                 });
-              }
-              const newConvs = [...prev];
-              newConvs[existingConvIdx] = updatedConv;
-              return newConvs;
-            } else {
-              // If it's a completely new conversation, fetch the user data or let router.refresh handle it.
-              // For now, trigger a refresh to fetch the full conversation properly
-              router.refresh();
-              return prev;
-            }
-          });
+          handleUpdateLastMessage(payload.new as Message);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          handleUpdateLastMessage(payload.new as Message);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const oldMsg = payload.old as { id?: string; sender_id?: string; receiver_id?: string };
+          if (oldMsg?.id) {
+            const partnerId = oldMsg.sender_id === currentUser.id ? oldMsg.receiver_id : oldMsg.sender_id;
+            handleMessageDeleted(oldMsg.id, partnerId);
+          }
         }
       )
       .subscribe();
 
+    // 2. Yerel sekme için anlık (0ms) custom DOM olaylarını dinle
+    const onChatMessageSent = (e: any) => {
+      if (e.detail?.message) {
+        handleUpdateLastMessage(e.detail.message);
+      }
+    };
+
+    const onChatMessageDeleted = (e: any) => {
+      if (e.detail?.messageId) {
+        handleMessageDeleted(e.detail.messageId, e.detail?.otherUserId);
+      }
+    };
+
+    const onConversationDeleted = (e: any) => {
+      const otherUserId = e.detail?.otherUserId;
+      if (otherUserId) {
+        setConversations((prev) => prev.filter((c) => c.other_user.id !== otherUserId));
+        if (activeUser?.id === otherUserId) {
+          setActiveUser(null);
+          router.push('/dashboard/messages');
+        }
+      }
+    };
+
+    window.addEventListener('chat_message_sent', onChatMessageSent);
+    window.addEventListener('chat_message_deleted', onChatMessageDeleted);
+    window.addEventListener('conversation_deleted', onConversationDeleted);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('chat_message_sent', onChatMessageSent);
+      window.removeEventListener('chat_message_deleted', onChatMessageDeleted);
+      window.removeEventListener('conversation_deleted', onConversationDeleted);
     };
-  }, [currentUser.id, activeUser, router, supabase]);
+  }, [currentUser.id, supabase, handleUpdateLastMessage, handleMessageDeleted, activeUser?.id, router]);
 
   return (
     <PageWrapper className="overflow-hidden pb-0 mb-0">
@@ -276,9 +431,10 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                 <div className="flex flex-col gap-1">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-3 mb-3 mt-2">Son Konuşmalar</h3>
                   {conversations.map((conv) => (
-                    <button
+                    <div
                       key={conv.other_user.id}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={() =>
                         handleSelectUser({
                           id: conv.other_user.id,
@@ -288,7 +444,19 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                           institution: conv.other_user.institution,
                         })
                       }
-                      className={`w-full text-left flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-200 cursor-pointer ${activeUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelectUser({
+                            id: conv.other_user.id,
+                            full_name: conv.other_user.full_name,
+                            avatar_url: conv.other_user.avatar_url,
+                            role: conv.other_user.role,
+                            institution: conv.other_user.institution,
+                          });
+                        }
+                      }}
+                      className={`group w-full text-left flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-200 cursor-pointer ${activeUser?.id === conv.other_user.id ? 'bg-violet-50 dark:bg-violet-950/40 border-l-4 border-l-violet-600 text-violet-950 dark:text-white font-medium shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 border-l-4 border-transparent'}`}
                     >
                       {conv.other_user.avatar_url ? (
                         <img
@@ -304,7 +472,7 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                       <div className="flex flex-col overflow-hidden w-full pointer-events-none">
                         <div className="flex justify-between items-center mb-0.5">
                           <span className="font-semibold text-sm truncate text-slate-800 dark:text-slate-100">{conv.other_user.full_name}</span>
-                          {conv.last_message && (
+                          {conv.last_message?.created_at && (
                             <span className="text-[10px] text-slate-400 shrink-0">
                               {new Date(conv.last_message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
@@ -322,23 +490,45 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                               conv.last_message.content,
                               conv.last_message.metadata
                             );
-                            if (parsed.text) return parsed.text;
-                            if (parsed.attachment) {
-                              return isImageAttachment(parsed.attachment)
+                            let preview = "";
+                            if (parsed.text && parsed.attachment) {
+                              preview = `${isImageAttachment(parsed.attachment) ? "📷 " : "📎 "}${parsed.text}`;
+                            } else if (parsed.text) {
+                              preview = parsed.text;
+                            } else if (parsed.attachment) {
+                              preview = isImageAttachment(parsed.attachment)
                                 ? "📷 Görsel"
                                 : `📎 ${parsed.attachment.name}`;
+                            } else {
+                              preview = conv.last_message.content;
                             }
-                            return conv.last_message.content;
+                            return conv.last_message.sender_id === currentUser.id
+                              ? `Sen: ${preview}`
+                              : preview;
                           })()}
                         </p>
                       </div>
-                      {/* Unread Badge */}
-                      {activeUser?.id !== conv.other_user.id && conv.unread_count > 0 && (
-                        <div className="ml-auto shrink-0 self-center bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm pointer-events-none">
-                          {formatUnreadBadge(conv.unread_count)}
-                        </div>
-                      )}
-                    </button>
+                      {/* Unread Badge & Delete action */}
+                      <div className="ml-auto shrink-0 flex items-center gap-1.5 self-center">
+                        {activeUser?.id !== conv.other_user.id && conv.unread_count > 0 && (
+                          <div className="bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm pointer-events-none">
+                            {formatUnreadBadge(conv.unread_count)}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteConv(conv);
+                          }}
+                          className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
+                          title="Sohbeti Sil"
+                          aria-label="Sohbeti Sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )
@@ -356,6 +546,17 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
                 setActiveUser(null);
                 router.push('/dashboard/messages');
               }}
+              onConversationDeleted={(deletedUserId) => {
+                setConversations((prev) => prev.filter((c) => c.other_user.id !== deletedUserId));
+                setActiveUser(null);
+                router.push('/dashboard/messages');
+              }}
+              onMessageSent={(msg) => {
+                handleUpdateLastMessage(msg);
+              }}
+              onMessageDeleted={(msgId) => {
+                handleMessageDeleted(msgId, activeUser?.id);
+              }}
             />
           ) : (
             <EmptyState
@@ -367,6 +568,58 @@ export default function MessagesClient({ currentUser, selectedUser, recentConver
         </div>
 
       </div>
+
+      {/* Sohbeti Kalıcı Olarak Silme Modalı (Sohbet Listesi İçin) */}
+      {confirmDeleteConv && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => !isDeletingConv && setConfirmDeleteConv(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Sohbeti Kalıcı Olarak Sil</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Tüm sohbet geçmişi temizlenir.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              <strong className="text-slate-900 dark:text-slate-100">
+                {confirmDeleteConv.other_user.full_name}
+              </strong>{" "}
+              ile olan tüm mesajlaşma geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz ve bu kişi sohbet listenizden tamamen kaldırılacaktır.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingConv}
+                onClick={() => setConfirmDeleteConv(null)}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingConv}
+                onClick={handleConfirmDeleteConv}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isDeletingConv ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="w-3.5 h-3.5" />
+                )}
+                <span>Sohbeti Kalıcı Olarak Sil</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageWrapper>
   );
 }

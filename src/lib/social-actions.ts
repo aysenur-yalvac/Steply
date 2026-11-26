@@ -298,6 +298,161 @@ export async function markMessagesAsReadAction(senderId: string): Promise<{succe
   return { success: true };
 }
 
+export async function deleteMessageAction(messageId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!messageId) return { success: false, error: "Mesaj ID zorunludur." };
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { success: false, error: "Yetkisiz işlem." };
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    // Mesajın kullanıcıya ait bir sohbette olduğunu doğrula
+    const { data: msg, error: fetchErr } = await client
+      .from("messages")
+      .select("id, sender_id, receiver_id")
+      .eq("id", messageId)
+      .maybeSingle();
+
+    if (fetchErr || !msg) {
+      return { success: false, error: "Mesaj bulunamadı." };
+    }
+
+    if (msg.sender_id !== user.id && msg.receiver_id !== user.id) {
+      return { success: false, error: "Bu mesajı silme yetkiniz yok." };
+    }
+
+    const { error: deleteErr } = await client
+      .from("messages")
+      .delete()
+      .eq("id", messageId);
+
+    if (deleteErr) {
+      console.error("[deleteMessageAction] Delete error:", deleteErr);
+      return { success: false, error: "Mesaj silinemedi." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("[deleteMessageAction] Unexpected error:", err);
+    return { success: false, error: err?.message || "Beklenmedik bir hata oluştu." };
+  }
+}
+
+export async function deleteConversationAction(otherUserId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!otherUserId) return { success: false, error: "Kullanıcı ID zorunludur." };
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { success: false, error: "Yetkisiz işlem." };
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    // İki kullanıcı arasındaki tüm mesajları kalıcı olarak sil
+    const { error: deleteErr } = await client
+      .from("messages")
+      .delete()
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`);
+
+    if (deleteErr) {
+      console.error("[deleteConversationAction] Delete error:", deleteErr);
+      return { success: false, error: "Sohbet silinemedi." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("[deleteConversationAction] Unexpected error:", err);
+    return { success: false, error: err?.message || "Beklenmedik bir hata oluştu." };
+  }
+}
+
+export async function getLatestMessageBetweenUsersAction(otherUserId: string): Promise<Message | null> {
+  try {
+    if (!otherUserId) return null;
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return null;
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    const { data, error } = await client
+      .from("messages")
+      .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data as Message;
+  } catch {
+    return null;
+  }
+}
+
+export async function getConversationWithUserAction(otherUserId: string): Promise<Conversation | null> {
+  try {
+    if (!otherUserId) return null;
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return null;
+
+    let client: any = supabase;
+    try {
+      client = createAdminClient();
+    } catch {
+      client = supabase;
+    }
+
+    const [profileRes, latestMsg] = await Promise.all([
+      client.from("profiles").select("*").eq("id", otherUserId).maybeSingle(),
+      getLatestMessageBetweenUsersAction(otherUserId),
+    ]);
+
+    if (!profileRes.data) return null;
+    const p = profileRes.data;
+
+    return {
+      other_user: {
+        id: p.id,
+        full_name: p.full_name || "İsimsiz Kullanıcı",
+        email: p.email || p.school_email || "",
+        avatar_url: p.avatar_url || null,
+        role: p.role || "student",
+        institution: p.institution || p.university || "",
+        university: p.university || null,
+      },
+      last_message: latestMsg || {
+        id: "",
+        sender_id: otherUserId,
+        receiver_id: user.id,
+        content: "",
+        is_read: true,
+        metadata: null,
+        created_at: new Date().toISOString(),
+      },
+      unread_count: 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 
 export async function getUnreadChatCountAction(): Promise<{ count: number; error?: string }> {
   try {
