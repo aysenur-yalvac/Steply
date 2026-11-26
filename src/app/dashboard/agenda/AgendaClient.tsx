@@ -138,22 +138,26 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             placeholder="Neyi tamamlamanız gerekiyor? (Örn: Veritabanı Tasarımı)" 
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="w-full max-w-full min-w-0 box-border sm:flex-[2] px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
+            className="w-full max-w-full min-w-0 box-border sm:flex-[2] px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
             required
           />
-          <div className="w-full sm:flex-1 min-w-0 max-w-full overflow-hidden">
+          <div className="relative w-full sm:flex-1 max-w-full min-w-0 overflow-hidden">
             <input 
               type="date" 
               value={newTaskDate}
               onChange={(e) => setNewTaskDate(e.target.value)}
-              className="w-full max-w-full min-w-0 box-border block [color-scheme:light] dark:[color-scheme:dark] px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner text-sm"
+              style={{ WebkitAppearance: "none" }}
+              className="appearance-none -webkit-appearance-none w-full max-w-full min-w-0 box-border block px-4 py-3 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:!opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:!absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:!inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:!w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:!h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
               required
             />
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+            </span>
           </div>
           <button 
             type="submit" 
             disabled={isAdding}
-            className="px-6 py-4 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md shadow-violet-500/25 active:scale-95 flex items-center justify-center shrink-0"
+            className="px-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-md shadow-violet-500/25 active:scale-95 flex items-center justify-center shrink-0"
           >
             {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus className="w-5 h-5 mr-2" /> Görev Ekle</>}
           </button>

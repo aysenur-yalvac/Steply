@@ -167,16 +167,22 @@ export default function TaskDetailModal({
         <div className="overflow-y-auto overflow-x-hidden space-y-6 min-w-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             {/* Due Date */}
-            <div className="space-y-2 min-w-0 overflow-hidden">
+            <div className="space-y-2 min-w-0">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 shrink-0" /> Son Teslim Tarihi
               </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full max-w-full min-w-0 box-border block [color-scheme:light] dark:[color-scheme:dark] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+              <div className="relative w-full max-w-full min-w-0 overflow-hidden">
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  style={{ WebkitAppearance: "none" }}
+                  className="appearance-none -webkit-appearance-none w-full max-w-full min-w-0 box-border block bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-10 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:!opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:!absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:!inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:!w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:!h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                />
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                </span>
+              </div>
             </div>
 
             {/* Assigned To */}
@@ -188,7 +194,7 @@ export default function TaskDetailModal({
                 value={assignedTo}
                 disabled={!canAssignTask}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full max-w-full min-w-0 box-border bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full max-w-full min-w-0 box-border bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">Atanmamış</option>
                 {assignableMembers.map(member => (
