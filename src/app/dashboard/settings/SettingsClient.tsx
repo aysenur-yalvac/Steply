@@ -278,7 +278,8 @@ export default function SettingsClient({
     return () => clearInterval(timer);
   }, [resetCooldown]);
 
-  // Permanent Account Deletion (Danger Zone)
+  // Permanent Account Deletion (Danger Zone under Account Security)
+  const [securitySubTab, setSecuritySubTab] = useState<"password" | "delete">("password");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteOtpSent, setDeleteOtpSent] = useState(false);
   const [deleteOtpCode, setDeleteOtpCode] = useState("");
@@ -1172,130 +1173,196 @@ export default function SettingsClient({
 
                 {/* ── SECURITY ── */}
                 {activeTab === "security" && (
-                  <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
-                    <div className="space-y-1.5">
-                      <label htmlFor="currentPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        Mevcut Şifre
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="currentPassword"
-                          type={showCurrent ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={(e) => {
-                            setCurrentPassword(e.target.value);
-                            if (pwError) setPwError(null);
-                          }}
-                          placeholder="Mevcut şifrenizi girin"
-                          required
-                          className={`${inputCls} pr-11`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrent((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                          aria-label={showCurrent ? "Şifreyi gizle" : "Şifreyi göster"}
-                        >
-                          {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-end pt-0.5">
-                        <button
-                          type="button"
-                          onClick={handleForgotPassword}
-                          disabled={resetSending || resetCooldown > 0}
-                          className="inline-flex items-center gap-1.5 min-h-[36px] px-1 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed transition-colors"
-                        >
-                          {resetSending && <Loader2 className="w-3 h-3 animate-spin" />}
-                          {resetSending
-                            ? "Gönderiliyor..."
-                            : resetCooldown > 0
-                              ? `Tekrar gönder (${resetCooldown}s)`
-                              : "Şifremi unuttum"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {resetSentMsg && (
-                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-xs font-medium text-emerald-700 dark:text-emerald-300 leading-relaxed">
-                        {resetSentMsg}
-                      </div>
-                    )}
-
-                    {pwError && (
-                      <div className="rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-xs font-medium text-rose-700 dark:text-rose-300 leading-relaxed">
-                        {pwError}
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                      <label htmlFor="newPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        Yeni Şifre
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="newPassword"
-                          type={showNew ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="En az 6 karakter"
-                          required
-                          minLength={6}
-                          className={`${inputCls} pr-11`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNew((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                          aria-label={showNew ? "Şifreyi gizle" : "Şifreyi göster"}
-                        >
-                          {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        Yeni Şifreyi Onayla
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="confirmPassword"
-                          type={showConfirm ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Şifrenizi tekrar girin"
-                          required
-                          minLength={6}
-                          className={`${inputCls} pr-11`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirm((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
-                          aria-label={showConfirm ? "Şifreyi gizle" : "Şifreyi göster"}
-                        >
-                          {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="pt-1">
+                  <div className="space-y-6 max-w-xl">
+                    {/* Sub-tabs: Şifre Değiştir | Hesabı Kapat */}
+                    <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/70 max-w-md">
                       <button
-                        type="submit"
-                        disabled={pwLoading}
-                        className={primaryBtn}
-                        style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                        type="button"
+                        onClick={() => setSecuritySubTab("password")}
+                        className={`flex items-center justify-center gap-2 min-h-[40px] px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          securitySubTab === "password"
+                            ? "bg-white dark:bg-slate-900 text-violet-600 dark:text-violet-300 shadow-sm border border-slate-200/60 dark:border-slate-700"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        }`}
                       >
-                        {pwLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <KeyRound className="w-4 h-4" strokeWidth={1.5} />
-                        )}
-                        {pwLoading ? "Güncelleniyor..." : "Şifreyi Güncelle"}
+                        <KeyRound className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Şifre Değiştir</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSecuritySubTab("delete")}
+                        className={`flex items-center justify-center gap-2 min-h-[40px] px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          securitySubTab === "delete"
+                            ? "bg-rose-600 text-white shadow-sm shadow-rose-600/25 border border-rose-500"
+                            : "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                        }`}
+                      >
+                        <Trash2 className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Hesabı Kapat</span>
                       </button>
                     </div>
-                  </form>
+
+                    {securitySubTab === "password" && (
+                      <form onSubmit={handlePasswordChange} className="space-y-5 max-w-md">
+                        <div className="space-y-1.5">
+                          <label htmlFor="currentPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                            Mevcut Şifre
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="currentPassword"
+                              type={showCurrent ? "text" : "password"}
+                              value={currentPassword}
+                              onChange={(e) => {
+                                setCurrentPassword(e.target.value);
+                                if (pwError) setPwError(null);
+                              }}
+                              placeholder="Mevcut şifrenizi girin"
+                              required
+                              className={`${inputCls} pr-11`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrent((v) => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                              aria-label={showCurrent ? "Şifreyi gizle" : "Şifreyi göster"}
+                            >
+                              {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-end pt-0.5">
+                            <button
+                              type="button"
+                              onClick={handleForgotPassword}
+                              disabled={resetSending || resetCooldown > 0}
+                              className="inline-flex items-center gap-1.5 min-h-[36px] px-1 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed transition-colors"
+                            >
+                              {resetSending && <Loader2 className="w-3 h-3 animate-spin" />}
+                              {resetSending
+                                ? "Gönderiliyor..."
+                                : resetCooldown > 0
+                                  ? `Tekrar gönder (${resetCooldown}s)`
+                                  : "Şifremi unuttum"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {resetSentMsg && (
+                          <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-xs font-medium text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                            {resetSentMsg}
+                          </div>
+                        )}
+
+                        {pwError && (
+                          <div className="rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-xs font-medium text-rose-700 dark:text-rose-300 leading-relaxed">
+                            {pwError}
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5">
+                          <label htmlFor="newPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                            Yeni Şifre
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="newPassword"
+                              type={showNew ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="En az 6 karakter"
+                              required
+                              minLength={6}
+                              className={`${inputCls} pr-11`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNew((v) => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                              aria-label={showNew ? "Şifreyi gizle" : "Şifreyi göster"}
+                            >
+                              {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                            Yeni Şifreyi Onayla
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="confirmPassword"
+                              type={showConfirm ? "text" : "password"}
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Şifrenizi tekrar girin"
+                              required
+                              minLength={6}
+                              className={`${inputCls} pr-11`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirm((v) => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-500 transition-colors"
+                              aria-label={showConfirm ? "Şifreyi gizle" : "Şifreyi göster"}
+                            >
+                              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="pt-1">
+                          <button
+                            type="submit"
+                            disabled={pwLoading}
+                            className={primaryBtn}
+                            style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #9333ea 100%)" }}
+                          >
+                            {pwLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <KeyRound className="w-4 h-4" strokeWidth={1.5} />
+                            )}
+                            {pwLoading ? "Güncelleniyor..." : "Şifreyi Güncelle"}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {securitySubTab === "delete" && (
+                      <div className="rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6 shadow-sm space-y-5">
+                        <div className="flex items-start gap-3.5">
+                          <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 shrink-0 mt-0.5">
+                            <AlertTriangle className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1.5 min-w-0">
+                            <h3 className="text-base font-bold text-rose-700 dark:text-rose-300">
+                              Hesabı Kalıcı Olarak Kapat
+                            </h3>
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                              Hesabınızı kapattığınızda tüm profil bilgileriniz, oluşturduğunuz projeler, görevler ve ekip üyelikleriniz kalıcı olarak silinir. Bu işlem geri alınamaz; ancak silme işleminden sonra aynı e-posta adresiyle sıfırdan yeniden kayıt olabilirsiniz.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteModalError(null);
+                              setDeleteModalInfo(null);
+                              setDeleteOtpCode("");
+                              setShowDeleteModal(true);
+                            }}
+                            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Hesabımı Kapatmak İstiyorum</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* ── NOTIFICATIONS ── */}
@@ -1414,38 +1481,6 @@ export default function SettingsClient({
               </motion.div>
             </AnimatePresence>
           </div>
-        </div>
-      </div>
-
-      {/* ── TEHLİKELİ BÖLGE / HESABI KALICI OLARAK KAPAT ── */}
-      <div className="mt-8 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 shrink-0 mt-0.5">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-rose-700 dark:text-rose-300">
-                Tehlikeli Bölge / Hesabı Kalıcı Olarak Kapat
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-                Hesabınızı kapattığınızda tüm profil bilgileriniz, oluşturduğunuz projeler ve ekip üyelikleriniz kalıcı olarak silinir. Bu işlem geri alınamaz; ancak silme işleminden sonra aynı e-posta adresiyle sıfırdan yeniden kayıt olabilirsiniz.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setDeleteModalError(null);
-              setDeleteModalInfo(null);
-              setDeleteOtpCode("");
-              setShowDeleteModal(true);
-            }}
-            className="w-full sm:w-auto shrink-0 min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Hesabımı Kapatmak İstiyorum</span>
-          </button>
         </div>
       </div>
 
