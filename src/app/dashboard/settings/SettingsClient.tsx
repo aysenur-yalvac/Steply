@@ -30,6 +30,9 @@ import {
   Phone,
   Upload,
   Camera,
+  AlertTriangle,
+  Trash2,
+  X,
 } from "lucide-react";
 import { Country, State } from "country-state-city";
 import { BackButton } from "@/components/ui/back-button";
@@ -39,6 +42,7 @@ import { Avatar } from "@/components/ui/avatar";
 import UniversityCombobox from "@/components/ui/UniversityCombobox";
 import DepartmentCombobox from "@/components/ui/DepartmentCombobox";
 import { createClient } from "@/utils/supabase/client";
+import { clearAllSavedLocalAccounts } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
 import { isStudentEmail, STUDENT_EMAIL_ERROR_MESSAGE } from "@/lib/email-validation";
 
@@ -273,6 +277,102 @@ export default function SettingsClient({
     }, 1000);
     return () => clearInterval(timer);
   }, [resetCooldown]);
+
+  // Permanent Account Deletion (Danger Zone)
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteOtpSent, setDeleteOtpSent] = useState(false);
+  const [deleteOtpCode, setDeleteOtpCode] = useState("");
+  const [deleteOtpSending, setDeleteOtpSending] = useState(false);
+  const [deleteOtpCooldown, setDeleteOtpCooldown] = useState(0);
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState<string | null>(null);
+  const [deleteModalInfo, setDeleteModalInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (deleteOtpCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setDeleteOtpCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [deleteOtpCooldown]);
+
+  async function handleSendDeleteAccountOtp() {
+    if (deleteOtpSending || deleteOtpCooldown > 0) return;
+    setDeleteOtpSending(true);
+    setDeleteModalError(null);
+    setDeleteModalInfo(null);
+    try {
+      const res = await fetch("/api/auth/delete-account/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || "Doğrulama kodu gönderilemedi.";
+        setDeleteModalError(msg);
+        toast.error(msg);
+        return;
+      }
+      setDeleteOtpSent(true);
+      setDeleteOtpCooldown(60);
+      const infoMsg = `${email} adresine 6 haneli doğrulama kodu gönderildi (10 dakika geçerli).`;
+      setDeleteModalInfo(infoMsg);
+      toast.success("Doğrulama kodu e-posta adresinize gönderildi.");
+    } catch {
+      const msg = "Ağ hatası nedeniyle doğrulama kodu gönderilemedi.";
+      setDeleteModalError(msg);
+      toast.error(msg);
+    } finally {
+      setDeleteOtpSending(false);
+    }
+  }
+
+  async function handleConfirmDeleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (deleteConfirming) return;
+    const cleanCode = deleteOtpCode.trim();
+    if (!/^\d{6}$/.test(cleanCode)) {
+      const msg = "Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu eksiksiz girin.";
+      setDeleteModalError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setDeleteConfirming(true);
+    setDeleteModalError(null);
+    try {
+      const res = await fetch("/api/auth/delete-account/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || "Hesap silinemedi. Lütfen kodu kontrol edip tekrar deneyin.";
+        setDeleteModalError(msg);
+        toast.error(msg);
+        setDeleteConfirming(false);
+        return;
+      }
+
+      clearAllSavedLocalAccounts();
+      try {
+        const supabaseClient = createClient();
+        await Promise.race([
+          supabaseClient.auth.signOut(),
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ]);
+      } catch {}
+
+      toast.success("Hesabınız ve tüm verileriniz kalıcı olarak silindi.");
+      window.location.href = "/";
+    } catch {
+      const msg = "Hesap silinirken bir ağ hatası oluştu. Lütfen tekrar deneyin.";
+      setDeleteModalError(msg);
+      toast.error(msg);
+      setDeleteConfirming(false);
+    }
+  }
 
   // Notifications
   const [muteAll, setMuteAll] = useState(false);
@@ -1316,6 +1416,197 @@ export default function SettingsClient({
           </div>
         </div>
       </div>
+
+      {/* ── TEHLİKELİ BÖLGE / HESABI KALICI OLARAK KAPAT ── */}
+      <div className="mt-8 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-rose-700 dark:text-rose-300">
+                Tehlikeli Bölge / Hesabı Kalıcı Olarak Kapat
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
+                Hesabınızı kapattığınızda tüm profil bilgileriniz, oluşturduğunuz projeler ve ekip üyelikleriniz kalıcı olarak silinir. Bu işlem geri alınamaz; ancak silme işleminden sonra aynı e-posta adresiyle sıfırdan yeniden kayıt olabilirsiniz.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteModalError(null);
+              setDeleteModalInfo(null);
+              setDeleteOtpCode("");
+              setShowDeleteModal(true);
+            }}
+            className="w-full sm:w-auto shrink-0 min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Hesabımı Kapatmak İstiyorum</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── E-POSTA ONAYLI KALICI HESAP SİLME MODALI ── */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteConfirming) {
+              setShowDeleteModal(false);
+            }
+          }}
+        >
+          <div className="w-[95vw] max-w-md rounded-2xl bg-white dark:bg-[#131926] border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-6 space-y-5 overflow-x-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Başlık */}
+            <div className="flex items-start justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-snug">
+                    Hesabı Kalıcı Olarak Kapat
+                  </h3>
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
+                    Bu işlem geri alınamaz
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={deleteConfirming}
+                onClick={() => setShowDeleteModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+                aria-label="Kapat"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Uyarı Açıklaması */}
+            <div className="rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 p-3.5 space-y-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              <p className="font-semibold text-rose-700 dark:text-rose-300">
+                Hesabınızı sildiğinizde neler olur?
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
+                <li>Tüm profil verileriniz, puanlarınız ve rozetleriniz silinir.</li>
+                <li>Sahip olduğunuz projeler ve diğer projelerdeki üyelikleriniz kaldırılır.</li>
+                <li>
+                  Kimlik kaydınız tamamen temizlenir; dilerseniz daha sonra{" "}
+                  <strong className="text-slate-900 dark:text-white break-all">{email}</strong>{" "}
+                  adresiyle sıfırdan yeniden kayıt olabilirsiniz.
+                </li>
+              </ul>
+            </div>
+
+            {/* E-posta Doğrulama Kodu Gönderme Bölümü */}
+            <div className="space-y-3">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Kayıtlı E-Posta Adresiniz
+                </label>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium truncate">
+                    {email}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSendDeleteAccountOtp}
+                    disabled={deleteOtpSending || deleteOtpCooldown > 0 || deleteConfirming}
+                    className="shrink-0 min-h-[42px] px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-55 disabled:cursor-not-allowed text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    {deleteOtpSending ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Gönderiliyor...</span>
+                      </>
+                    ) : deleteOtpCooldown > 0 ? (
+                      <span>Tekrar Gönder ({deleteOtpCooldown}s)</span>
+                    ) : deleteOtpSent ? (
+                      <span>Kodu Yeniden Gönder</span>
+                    ) : (
+                      <span>Doğrulama Kodu Gönder</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {deleteModalInfo && (
+                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3.5 py-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                  {deleteModalInfo}
+                </div>
+              )}
+
+              {deleteModalError && (
+                <div className="rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 px-3.5 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-300 leading-relaxed">
+                  {deleteModalError}
+                </div>
+              )}
+
+              {/* 6 Haneli Kod Giriş Formu */}
+              <form onSubmit={handleConfirmDeleteAccount} className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="delete-otp-input"
+                    className="text-xs font-semibold text-slate-700 dark:text-slate-300 block"
+                  >
+                    6 Haneli E-Posta Doğrulama Kodu
+                  </label>
+                  <input
+                    id="delete-otp-input"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={deleteOtpCode}
+                    onChange={(e) => {
+                      const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+                      setDeleteOtpCode(digitsOnly);
+                      if (deleteModalError) setDeleteModalError(null);
+                    }}
+                    placeholder="Örn: 123456"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-mono text-lg font-bold tracking-[0.35em] text-slate-900 dark:text-white placeholder:tracking-normal placeholder:font-sans placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition-all"
+                  />
+                  <p className="text-[11px] text-slate-400">
+                    E-posta kutunuza gelen 6 haneli kodu girin. Kod 10 dakika boyunca geçerlidir.
+                  </p>
+                </div>
+
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    disabled={deleteConfirming}
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={deleteConfirming || deleteOtpCode.trim().length !== 6}
+                    className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/25 transition-all cursor-pointer"
+                  >
+                    {deleteConfirming ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Hesap Siliniyor...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4" />
+                        <span>Hesabımı Kalıcı Olarak Sil</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
