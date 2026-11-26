@@ -203,6 +203,49 @@ export default function ChatWindow({
       setProjects(userProjectsCache.get(currentUser.id) ?? []);
     }
 
+    const syncLatestMessages = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      try {
+        const { data, error } = await supabase
+          .from("messages")
+          .select("id, sender_id, receiver_id, content, is_read, metadata, created_at")
+          .or(
+            `and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`
+          )
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (!active || error || !data) return;
+        const ordered = (data as Message[]).slice().reverse();
+
+        updateMessagesWithCache((prev) => {
+          const tempMessages = prev.filter((m) => String(m.id).startsWith("temp-"));
+          const serverIds = new Set(ordered.map((m) => m.id));
+          const remainingTemps = tempMessages.filter(
+            (t) =>
+              !ordered.some(
+                (s) => s.sender_id === t.sender_id && s.content === t.content
+              )
+          );
+          const merged = [...ordered, ...remainingTemps];
+
+          const prevRealIds = prev
+            .filter((m) => !String(m.id).startsWith("temp-"))
+            .map((m) => `${m.id}:${m.content}`)
+            .join("|");
+          const nextRealIds = ordered.map((m) => `${m.id}:${m.content}`).join("|");
+
+          if (prevRealIds === nextRealIds && remainingTemps.length === tempMessages.length && serverIds.size === ordered.length) {
+            return prev;
+          }
+          setTimeout(scrollToBottom, 80);
+          return merged;
+        });
+      } catch {
+        // Ignore transient network poll error
+      }
+    };
+
     const channel = supabase
       .channel(`realtime:messages:${currentUser.id}:${selectedUser.id}`)
       .on(
@@ -220,7 +263,7 @@ export default function ChatWindow({
               if (prev.some((m) => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
-            setTimeout(scrollToBottom, 100);
+            setTimeout(scrollToBottom, 80);
           }
         }
       )
@@ -237,7 +280,6 @@ export default function ChatWindow({
           if (newMsg.sender_id === currentUser.id) {
             updateMessagesWithCache((prev) => {
               if (prev.some((m) => m.id === newMsg.id)) return prev;
-              // If an optimistic temp message with the exact same content exists, replace it in place
               const tempIdx = prev.findIndex(
                 (m) =>
                   String(m.id).startsWith("temp-") &&
@@ -251,14 +293,47 @@ export default function ChatWindow({
               }
               return [...prev, newMsg];
             });
-            setTimeout(scrollToBottom, 100);
+            setTimeout(scrollToBottom, 80);
           }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          const updatedMsg = payload.new as Message;
+          if (!updatedMsg?.id) return;
+          updateMessagesWithCache((prev) =>
+            prev.map((m) => (m.id === updatedMsg.id ? { ...m, ...updatedMsg } : m))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          const oldMsg = payload.old as { id?: string };
+          if (!oldMsg?.id) return;
+          updateMessagesWithCache((prev) => prev.filter((m) => m.id !== oldMsg.id));
         }
       )
       .subscribe();
 
+    const pollTimer = setInterval(() => {
+      void syncLatestMessages();
+    }, 3000);
+
     return () => {
       active = false;
+      clearInterval(pollTimer);
       supabase.removeChannel(channel);
     };
   }, [selectedUser.id, currentUser.id, supabase]);
@@ -270,9 +345,13 @@ export default function ChatWindow({
   }, [pendingPreviewUrl]);
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current && messagesEndRef.current.parentElement) {
-      const container = messagesEndRef.current.parentElement;
-      container.scrollTop = container.scrollHeight;
+    if (messagesEndRef.current) {
+      if (messagesEndRef.current.parentElement) {
+        const container = messagesEndRef.current.parentElement;
+        container.scrollTop = container.scrollHeight;
+      } else {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 

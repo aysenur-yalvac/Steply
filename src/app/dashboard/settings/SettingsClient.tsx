@@ -72,10 +72,10 @@ interface SettingsClientProps {
   initialSchoolNumber: string;
   initialSchoolEmail: string;
   initialPhoneNumber: string;
-  initialBlockedUsers: FollowUser[];
+  initialBlockedUsers?: FollowUser[];
 }
 
-type Tab = "profile" | "security" | "notifications" | "preferences" | "blocked";
+type Tab = "profile" | "security" | "notifications" | "preferences";
 
 const NAV_ITEMS: {
   id: Tab;
@@ -106,12 +106,6 @@ const NAV_ITEMS: {
     label: "Görünüm ve Gizlilik",
     description: "Gizlilik ve görüntüleme seçenekleri",
     icon: <Sliders className="w-4 h-4" />,
-  },
-  {
-    id: "blocked",
-    label: "Engellenenler",
-    description: "Engellediğin kullanıcılar",
-    icon: <ShieldOff className="w-4 h-4" />,
   },
 ];
 
@@ -209,7 +203,7 @@ export default function SettingsClient({
   initialSchoolNumber,
   initialSchoolEmail,
   initialPhoneNumber,
-  initialBlockedUsers,
+  initialBlockedUsers = [],
 }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [blockedUsers, setBlockedUsers] = useState<FollowUser[]>(initialBlockedUsers);
@@ -258,6 +252,39 @@ export default function SettingsClient({
   const [privacyLoading, setPrivacyLoading] = useState(false);
 
   // Security
+  const PW_RESET_COOLDOWN_KEY = "steply_pw_reset_cooldown_until";
+  const DELETE_OTP_COOLDOWN_KEY = "steply_delete_otp_cooldown_until";
+
+  const getRemainingSeconds = (storageKey: string): number => {
+    if (typeof window === "undefined") return 0;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return 0;
+      const until = Number(raw);
+      if (!Number.isFinite(until) || until <= Date.now()) {
+        window.localStorage.removeItem(storageKey);
+        return 0;
+      }
+      return Math.ceil((until - Date.now()) / 1000);
+    } catch {
+      return 0;
+    }
+  };
+
+  const startPersistentCooldown = (
+    storageKey: string,
+    setter: React.Dispatch<React.SetStateAction<number>>,
+    seconds = 60
+  ) => {
+    const until = Date.now() + seconds * 1000;
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(storageKey, String(until));
+      } catch {}
+    }
+    setter(seconds);
+  };
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -271,12 +298,11 @@ export default function SettingsClient({
   const [resetCooldown, setResetCooldown] = useState(0);
 
   useEffect(() => {
-    if (resetCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResetCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
+    const syncReset = () => setResetCooldown(getRemainingSeconds(PW_RESET_COOLDOWN_KEY));
+    syncReset();
+    const timer = setInterval(syncReset, 1000);
     return () => clearInterval(timer);
-  }, [resetCooldown]);
+  }, []);
 
   // Permanent Account Deletion (Danger Zone under Account Security)
   const [securitySubTab, setSecuritySubTab] = useState<"password" | "delete">("password");
@@ -290,12 +316,15 @@ export default function SettingsClient({
   const [deleteModalInfo, setDeleteModalInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (deleteOtpCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setDeleteOtpCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
+    const syncDeleteOtp = () => {
+      const rem = getRemainingSeconds(DELETE_OTP_COOLDOWN_KEY);
+      setDeleteOtpCooldown(rem);
+      if (rem > 0) setDeleteOtpSent(true);
+    };
+    syncDeleteOtp();
+    const timer = setInterval(syncDeleteOtp, 1000);
     return () => clearInterval(timer);
-  }, [deleteOtpCooldown]);
+  }, []);
 
   async function handleSendDeleteAccountOtp() {
     if (deleteOtpSending || deleteOtpCooldown > 0) return;
@@ -315,7 +344,7 @@ export default function SettingsClient({
         return;
       }
       setDeleteOtpSent(true);
-      setDeleteOtpCooldown(60);
+      startPersistentCooldown(DELETE_OTP_COOLDOWN_KEY, setDeleteOtpCooldown, 60);
       const infoMsg = `${email} adresine 6 haneli doğrulama kodu gönderildi (10 dakika geçerli).`;
       setDeleteModalInfo(infoMsg);
       toast.success("Doğrulama kodu e-posta adresinize gönderildi.");
@@ -553,38 +582,33 @@ export default function SettingsClient({
     setPwError(null);
     setResetSentMsg(null);
     try {
-      const supabase = createClient();
-      const origin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_SITE_URL || "https://steply-app.vercel.app";
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
-      if (error) {
-        const lowerMsg = (error.message || "").toLowerCase();
-        const lowerCode = ((error as any).code || "").toLowerCase();
-        const isRateLimit =
-          (error as any).status === 429 ||
-          lowerCode === "over_email_send_rate_limit" ||
-          lowerMsg.includes("rate limit") ||
-          lowerMsg.includes("over_email_send_rate_limit") ||
-          lowerMsg.includes("429") ||
-          lowerMsg.includes("too many requests") ||
-          lowerMsg.includes("for security purposes");
-        const msg = isRateLimit
-          ? "Saatlik e-posta gönderim kotası doldu. Güvenlik nedeniyle bir süre bekleyip tekrar deneyin."
-          : error.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg = data?.error || "Şifre sıfırlama bağlantısı gönderilemedi.";
         setPwError(msg);
         toast.error(msg);
-        if (isRateLimit) setResetCooldown(60);
-      } else {
-        const msg =
-          "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
-        setResetSentMsg(msg);
-        setResetCooldown(60);
-        toast.success(msg);
+        if (res.status === 429) {
+          startPersistentCooldown(PW_RESET_COOLDOWN_KEY, setResetCooldown, 60);
+        }
+        return;
       }
+
+      const msg =
+        data?.message ||
+        "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.";
+      setResetSentMsg(msg);
+      startPersistentCooldown(PW_RESET_COOLDOWN_KEY, setResetCooldown, 60);
+      toast.success(msg);
+    } catch {
+      const msg = "Ağ hatası nedeniyle şifre sıfırlama bağlantısı gönderilemedi.";
+      setPwError(msg);
+      toast.error(msg);
     } finally {
       setResetSending(false);
     }
@@ -1423,59 +1447,6 @@ export default function SettingsClient({
                         />
                       </button>
                     </div>
-                  </div>
-                )}
-
-                {activeTab === "blocked" && (
-                  <div className="max-w-md space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShieldOff className="w-4 h-4 text-slate-400" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {blockedUsers.length === 0
-                          ? "Engellenmiş kullanıcı yok."
-                          : `${blockedUsers.length} kullanıcı engellendi.`}
-                      </p>
-                    </div>
-
-                    {blockedUsers.length > 0 && (
-                      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100">
-                        {blockedUsers.map((u) => (
-                          <div key={u.id} className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 transition-colors">
-                            <Avatar
-                              src={u.avatar_url}
-                              name={u.full_name ?? "?"}
-                              size="sm"
-                              className="w-9 h-9 text-sm shrink-0"
-                            />
-                            <span className="flex-1 text-sm font-semibold text-slate-700 truncate">
-                              {u.full_name ?? "Must-b Academy Üyesi"}
-                            </span>
-                            <button
-                              disabled={unblocking === u.id}
-                              onClick={async () => {
-                                setUnblocking(u.id);
-                                try {
-                                  const result = await unblockUserAction(u.id);
-                                  if (!("error" in result)) {
-                                    setBlockedUsers((prev) => prev.filter((b) => b.id !== u.id));
-                                  }
-                                } finally {
-                                  setUnblocking(null);
-                                }
-                              }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-colors disabled:opacity-50 shrink-0"
-                            >
-                              {unblocking === u.id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <ShieldCheck className="w-3 h-3" />
-                              )}
-                              Engeli Kaldır
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 )}
               </motion.div>

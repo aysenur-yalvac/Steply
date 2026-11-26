@@ -344,13 +344,32 @@ export default function AnimatedCharactersLoginPage({
   const [kvkkAccepted, setKvkkAccepted] = useState(false);
   const [kvkkError, setKvkkError] = useState<string | null>(null);
 
+  const LOGIN_PW_RESET_COOLDOWN_KEY = "steply_pw_reset_cooldown_until";
+
   useEffect(() => {
-    if (resetCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResetCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
+    const syncCooldown = () => {
+      if (typeof window === "undefined") return;
+      try {
+        const raw = window.localStorage.getItem(LOGIN_PW_RESET_COOLDOWN_KEY);
+        if (!raw) {
+          setResetCooldown(0);
+          return;
+        }
+        const until = Number(raw);
+        if (!Number.isFinite(until) || until <= Date.now()) {
+          window.localStorage.removeItem(LOGIN_PW_RESET_COOLDOWN_KEY);
+          setResetCooldown(0);
+          return;
+        }
+        setResetCooldown(Math.ceil((until - Date.now()) / 1000));
+      } catch {
+        setResetCooldown(0);
+      }
+    };
+    syncCooldown();
+    const timer = setInterval(syncCooldown, 1000);
     return () => clearInterval(timer);
-  }, [resetCooldown]);
+  }, []);
 
   const handleForgotPassword = async () => {
     if (resetSending || resetCooldown > 0) return;
@@ -365,58 +384,41 @@ export default function AnimatedCharactersLoginPage({
     setResetSending(true);
     setResetFeedback(null);
     try {
-      // 1. Önce sunucu tarafında e-posta adresinin sistemde kayıtlı olup olmadığını kontrol et
-      try {
-        const checkRes = await fetch("/api/auth/check-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: trimmedEmail }),
-        });
-        if (checkRes.ok) {
-          const checkData = await checkRes.json();
-          if (checkData && checkData.exists === false) {
-            const notFoundMsg = "Bu e-posta adresine ait bir kayıt bulunmamaktadır.";
-            setResetFeedback({ type: "error", text: notFoundMsg });
-            toast.error(notFoundMsg);
-            return;
-          }
-        }
-      } catch (checkErr) {
-        console.error("[forgot-password] check-email error:", checkErr);
-      }
-
-      const supabase = createClient();
-      const origin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_SITE_URL || "https://steply-app.vercel.app";
-      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
       });
-      if (resetErr) {
-        const lowerMsg = (resetErr.message || "").toLowerCase();
-        const lowerCode = ((resetErr as any).code || "").toLowerCase();
-        const isRateLimit =
-          (resetErr as any).status === 429 ||
-          lowerCode === "over_email_send_rate_limit" ||
-          lowerMsg.includes("rate limit") ||
-          lowerMsg.includes("over_email_send_rate_limit") ||
-          lowerMsg.includes("429") ||
-          lowerMsg.includes("too many requests") ||
-          lowerMsg.includes("for security purposes");
-        const msg = isRateLimit
-          ? "Saatlik e-posta gönderim kotası doldu. Güvenlik nedeniyle bir süre bekleyip tekrar deneyin."
-          : resetErr.message || "Şifre sıfırlama bağlantısı gönderilemedi.";
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg = data?.error || "Şifre sıfırlama bağlantısı gönderilemedi.";
         setResetFeedback({ type: "error", text: msg });
         toast.error(msg);
-        if (isRateLimit) setResetCooldown(60);
-      } else {
-        const msg =
-          "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
-        setResetFeedback({ type: "success", text: msg });
-        setResetCooldown(60);
-        toast.success(msg);
+        if (res.status === 429 && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem(LOGIN_PW_RESET_COOLDOWN_KEY, String(Date.now() + 60000));
+          } catch {}
+          setResetCooldown(60);
+        }
+        return;
       }
+
+      const msg =
+        data?.message ||
+        "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu onaylayın.";
+      setResetFeedback({ type: "success", text: msg });
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(LOGIN_PW_RESET_COOLDOWN_KEY, String(Date.now() + 60000));
+        } catch {}
+      }
+      setResetCooldown(60);
+      toast.success(msg);
+    } catch {
+      const msg = "Ağ hatası nedeniyle şifre sıfırlama bağlantısı gönderilemedi.";
+      setResetFeedback({ type: "error", text: msg });
+      toast.error(msg);
     } finally {
       setResetSending(false);
     }

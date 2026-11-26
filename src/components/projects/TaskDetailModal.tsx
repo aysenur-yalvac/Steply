@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Calendar, User, ListTodo, Plus, Trash2, CheckSquare, Square, Loader2 } from "lucide-react";
 import { ProjectTask, updateTaskAction, SubTask } from "@/lib/actions";
 import { TeamMember } from "./ProjectAnalyticsView";
@@ -37,9 +38,14 @@ export default function TaskDetailModal({
   const [assignedTo, setAssignedTo] = useState<string>(task.assigned_to || "");
   const [subtasks, setSubtasks] = useState<SubTask[]>(task.subtasks || []);
   const [newSubtask, setNewSubtask] = useState("");
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  if (!isOpen || !task) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isOpen || !task) return null;
 
   // Permission: only project owner or teachers can assign tasks
   const isOwner = !!currentUserId && currentUserId === projectOwnerId;
@@ -136,18 +142,18 @@ export default function TaskDetailModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm px-3 pt-16 pb-6 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[95vw] max-w-lg p-4 sm:p-6 shadow-2xl relative z-10 my-auto flex flex-col max-h-[90vh] overflow-x-hidden overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[95vw] max-w-lg p-4 sm:p-6 shadow-2xl relative z-10 my-0 sm:my-auto flex flex-col max-h-[88dvh] overflow-x-hidden overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
-          <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight pr-4">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5 shrink-0">
+          <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-tight pr-4 break-words min-w-0">
             {task.title}
           </h3>
           <button
@@ -158,31 +164,31 @@ export default function TaskDetailModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="overflow-y-auto overflow-x-hidden space-y-6 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             {/* Due Date */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" /> Son Teslim Tarihi
+            <div className="space-y-2 min-w-0 overflow-hidden">
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 shrink-0" /> Son Teslim Tarihi
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full max-w-full min-w-0 box-border block [color-scheme:light] dark:[color-scheme:dark] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             {/* Assigned To */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                <User className="w-4 h-4" /> Sorumlu Kişi
+            <div className="space-y-2 min-w-0">
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
+                <User className="w-4 h-4 shrink-0" /> Sorumlu Kişi
               </label>
               <select
                 value={assignedTo}
                 disabled={!canAssignTask}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full max-w-full min-w-0 box-border bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">Atanmamış</option>
                 {assignableMembers.map(member => (
@@ -274,6 +280,7 @@ export default function TaskDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

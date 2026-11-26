@@ -7,7 +7,6 @@ import { BackButton } from "@/components/ui/back-button";
 import { Github, Linkedin, Globe, Twitter, Building2, FolderOpen, ShieldOff } from "lucide-react";
 import ProfileProjectsPanel from "@/components/profile/ProfileProjectsPanel";
 import FollowButton from "@/components/profile/FollowButton";
-import BlockButton from "@/components/profile/BlockButton";
 import ReportContentButton from "@/components/ui/ReportContentButton";
 import { sanitizeInstitution } from "@/lib/utils";
 
@@ -137,14 +136,11 @@ export default async function PublicProfilePage({
                 {!isSelf && (
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {viewer && (
-                      <>
-                        <FollowButton
-                          targetId={id}
-                          isFollowing={isFollowing}
-                          isFollowedByTarget={isFollowedByTarget}
-                        />
-                        <BlockButton targetId={id} isBlocked={isBlocked} />
-                      </>
+                      <FollowButton
+                        targetId={id}
+                        isFollowing={isFollowing}
+                        isFollowedByTarget={isFollowedByTarget}
+                      />
                     )}
                     <ReportContentButton
                       targetType="profile"

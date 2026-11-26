@@ -16,6 +16,7 @@ import {
   FileText,
   AlertCircle,
   Download,
+  Hand,
 } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -57,9 +58,9 @@ const COLOR_OPTIONS = [
   { label: 'Kırmızı', value: '#ef4444' },
   { label: 'Mavi', value: '#3b82f6' },
   { label: 'Yeşil', value: '#10b981' },
-  { label: 'Sarı', value: '#f59e0b' },
-  { label: 'Mor', value: '#8b5cf6' },
+  { label: 'Sarı', value: '#eab308' },
   { label: 'Siyah', value: '#0f172a' },
+  { label: 'Beyaz', value: '#ffffff' },
 ];
 
 const WIDTH_OPTIONS = [
@@ -131,7 +132,8 @@ export default function PdfViewer({
 }: PdfViewerProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
-  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
+  // Default mode is 'view' (scroll/pan) so users don't accidentally draw when scrolling
+  const [tool, setTool] = useState<'view' | 'pen' | 'eraser'>('view');
   const [strokeColor, setStrokeColor] = useState<string>('#ef4444');
   const [strokeWidth, setStrokeWidth] = useState<number>(4);
   const [pageDimensions, setPageDimensions] = useState<Record<number, { width: number; height: number }>>({});
@@ -181,14 +183,17 @@ export default function PdfViewer({
 
   // Drawing handlers for each page stage
   const handleMouseDown = (pageNum: number, e: any) => {
-    if (!canAnnotate) return;
+    if (!canAnnotate || tool === 'view') return;
+    if (e?.evt?.cancelable) {
+      e.evt.preventDefault();
+    }
     const stage = e.target.getStage();
     const pos = stage?.getPointerPosition();
     if (!pos) return;
 
     setActiveStroke({
       pageNum,
-      tool,
+      tool: tool === 'eraser' ? 'eraser' : 'pen',
       color: strokeColor,
       width: strokeWidth,
       rawPoints: [pos.x, pos.y],
@@ -196,7 +201,10 @@ export default function PdfViewer({
   };
 
   const handleMouseMove = (pageNum: number, e: any) => {
-    if (!activeStroke || activeStroke.pageNum !== pageNum || !canAnnotate) return;
+    if (!activeStroke || activeStroke.pageNum !== pageNum || !canAnnotate || tool === 'view') return;
+    if (e?.evt?.cancelable) {
+      e.evt.preventDefault();
+    }
     const stage = e.target.getStage();
     const pos = stage?.getPointerPosition();
     if (!pos) return;
@@ -314,11 +322,26 @@ export default function PdfViewer({
         {/* Center Section: Drawing Tools (if canAnnotate) */}
         {canAnnotate && (
           <div className="flex items-center flex-wrap gap-1.5 bg-slate-950/70 p-1 rounded-xl border border-slate-800">
+            {/* View / Scroll Mode */}
+            <button
+              type="button"
+              onClick={() => setTool('view')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                tool === 'view'
+                  ? 'bg-violet-600 text-white shadow-sm ring-1 ring-violet-400'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Görüntüleme ve Kaydırma Modu"
+            >
+              <Hand className="w-3.5 h-3.5" />
+              <span>Kaydır</span>
+            </button>
+
             {/* Pen Tool */}
             <button
               type="button"
-              onClick={() => setTool('pen')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              onClick={() => setTool((prev) => (prev === 'pen' ? 'view' : 'pen'))}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 tool === 'pen'
                   ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
@@ -326,14 +349,14 @@ export default function PdfViewer({
               title="Kalem Aracı"
             >
               <PenTool className="w-3.5 h-3.5" />
-              <span>Kalem</span>
+              <span>Çiz</span>
             </button>
 
             {/* Eraser Tool */}
             <button
               type="button"
-              onClick={() => setTool('eraser')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              onClick={() => setTool((prev) => (prev === 'eraser' ? 'view' : 'eraser'))}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 tool === 'eraser'
                   ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
@@ -517,10 +540,16 @@ export default function PdfViewer({
                   {/* Konva Drawing Stage Overlay */}
                   {dims && dims.width > 0 && dims.height > 0 && (
                     <div
-                      className="absolute inset-0 z-10"
+                      className="absolute inset-0 z-10 bg-transparent"
                       style={{
-                        pointerEvents: canAnnotate ? 'auto' : 'none',
-                        cursor: canAnnotate ? 'crosshair' : 'default',
+                        pointerEvents: canAnnotate && tool !== 'view' ? 'auto' : 'none',
+                        touchAction: canAnnotate && tool !== 'view' ? 'none' : 'auto',
+                        cursor:
+                          canAnnotate && tool === 'pen'
+                            ? 'crosshair'
+                            : canAnnotate && tool === 'eraser'
+                            ? 'cell'
+                            : 'default',
                       }}
                     >
                       <Stage

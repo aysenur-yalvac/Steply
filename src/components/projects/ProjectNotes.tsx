@@ -11,8 +11,9 @@ import {
   Download,
   X,
 } from "lucide-react";
-import { addProjectNoteAction } from "@/lib/actions";
+import { addProjectNoteAction, getProjectNotesAction } from "@/lib/actions";
 import type { ProjectNote } from "@/lib/actions";
+import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -199,10 +200,42 @@ export default function ProjectNotes({
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
+  const notesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shouldRestoreFocusRef = useRef(false);
+  const authorCacheRef = useRef<Map<string, { name: string | null; avatar: string | null }>>(
+    new Map()
+  );
+  const prevNoteCountRef = useRef<number>(initialNotes.length);
   const router = useRouter();
+
+  // Seed author cache from initialNotes and currentUser
+  useEffect(() => {
+    if (currentUserId) {
+      authorCacheRef.current.set(currentUserId, {
+        name: currentUserName,
+        avatar: currentUserAvatar,
+      });
+    }
+    initialNotes.forEach((n) => {
+      if (n.user_id && (n.author_name || n.author_avatar)) {
+        authorCacheRef.current.set(n.user_id, {
+          name: n.author_name ?? null,
+          avatar: n.author_avatar ?? null,
+        });
+      }
+    });
+  }, [currentUserId, currentUserName, currentUserAvatar, initialNotes]);
+
+  const scrollToBottom = (smooth = false) => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+    if (smooth && notesEndRef.current) {
+      notesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  };
 
   const focusMessageTextarea = () => {
     if (typeof window === "undefined") return;
@@ -222,10 +255,158 @@ export default function ProjectNotes({
   }, [isSubmitting]);
 
   useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
+    if (notes.length > prevNoteCountRef.current) {
+      scrollToBottom(true);
+    } else if (prevNoteCountRef.current === initialNotes.length) {
+      scrollToBottom(false);
     }
-  }, [notes]);
+    prevNoteCountRef.current = notes.length;
+  }, [notes, initialNotes.length]);
+
+  // Real-Time Supabase subscription + 3s lightweight background sync fallback
+  useEffect(() => {
+    if (!projectId) return;
+    let active = true;
+    const supabase = createClient();
+
+    const mergeServerNotes = (serverNotes: ProjectNote[]) => {
+      if (!active) return;
+      serverNotes.forEach((sn) => {
+        if (sn.user_id && (sn.author_name || sn.author_avatar)) {
+          authorCacheRef.current.set(sn.user_id, {
+            name: sn.author_name ?? null,
+            avatar: sn.author_avatar ?? null,
+          });
+        }
+      });
+
+      setNotes((prev) => {
+        // Keep any in-flight optimistic temp notes that haven't been matched yet
+        const pendingTemps = prev.filter(
+          (p) =>
+            String(p.id).startsWith("temp-") &&
+            !serverNotes.some(
+              (sn) => sn.user_id === p.user_id && sn.content === p.content
+            )
+        );
+        const next = [...serverNotes, ...pendingTemps];
+        if (
+          next.length === prev.length &&
+          next.every((item, idx) => item.id === prev[idx]?.id && item.content === prev[idx]?.content)
+        ) {
+          return prev;
+        }
+        return next;
+      });
+    };
+
+    const syncFromServer = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
+      try {
+        const fresh = await getProjectNotesAction(projectId);
+        if (active && Array.isArray(fresh)) {
+          mergeServerNotes(fresh);
+        }
+      } catch {
+        // ignore transient network errors
+      }
+    };
+
+    const channel = supabase
+      .channel(`realtime:project_discussions:${projectId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "project_discussions",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          const row = payload.new as any;
+          if (!row?.id) return;
+          const cachedAuthor = authorCacheRef.current.get(row.user_id);
+          const incomingNote: ProjectNote = {
+            id: row.id,
+            project_id: row.project_id,
+            user_id: row.user_id,
+            content: row.content,
+            created_at: row.created_at,
+            author_name: cachedAuthor?.name ?? null,
+            author_avatar: cachedAuthor?.avatar ?? null,
+          };
+
+          setNotes((prev) => {
+            if (prev.some((n) => n.id === incomingNote.id)) return prev;
+            const tempIdx = prev.findIndex(
+              (n) =>
+                String(n.id).startsWith("temp-") &&
+                n.user_id === incomingNote.user_id &&
+                n.content === incomingNote.content
+            );
+            if (tempIdx !== -1) {
+              const copy = [...prev];
+              copy[tempIdx] = {
+                ...incomingNote,
+                author_name: incomingNote.author_name ?? copy[tempIdx].author_name,
+                author_avatar: incomingNote.author_avatar ?? copy[tempIdx].author_avatar,
+              };
+              return copy;
+            }
+            return [...prev, incomingNote];
+          });
+
+          // If author metadata was not cached yet, fetch full list in background
+          if (!cachedAuthor) {
+            void syncFromServer();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "project_discussions",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          const row = payload.new as any;
+          if (!row?.id) return;
+          setNotes((prev) =>
+            prev.map((n) => (n.id === row.id ? { ...n, content: row.content } : n))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "project_discussions",
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          const oldRow = payload.old as any;
+          if (!oldRow?.id) return;
+          setNotes((prev) => prev.filter((n) => n.id !== oldRow.id));
+        }
+      )
+      .subscribe();
+
+    // 3-second lightweight background polling fallback
+    const pollTimer = setInterval(() => {
+      void syncFromServer();
+    }, 3000);
+
+    return () => {
+      active = false;
+      clearInterval(pollTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
 
   useEffect(() => {
     return () => {
@@ -334,7 +515,6 @@ export default function ProjectNotes({
             }
             return prev.map((n) => (n.id === tempId ? result.note : n));
           });
-          router.refresh();
         }
       } catch (err: any) {
         setNotes((prev) => prev.filter((n) => n.id !== tempId));
@@ -473,6 +653,7 @@ export default function ProjectNotes({
             );
           })
         )}
+        <div ref={notesEndRef} />
       </div>
 
       {/* Attachment Preview Bar */}

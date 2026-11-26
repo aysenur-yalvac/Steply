@@ -141,12 +141,12 @@ export default function AgendaClient({ initialTasks }: { initialTasks: Task[] })
             className="w-full max-w-full min-w-0 box-border sm:flex-[2] px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
             required
           />
-          <div className="w-full sm:flex-1 min-w-0 overflow-hidden">
+          <div className="w-full sm:flex-1 min-w-0 max-w-full overflow-hidden">
             <input 
               type="date" 
               value={newTaskDate}
               onChange={(e) => setNewTaskDate(e.target.value)}
-              className="w-full max-w-full min-w-0 box-border block appearance-none px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner"
+              className="w-full max-w-full min-w-0 box-border block [color-scheme:light] dark:[color-scheme:dark] px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all shadow-inner text-sm"
               required
             />
           </div>
