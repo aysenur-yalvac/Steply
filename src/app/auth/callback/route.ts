@@ -35,6 +35,12 @@ export async function GET(request: Request) {
     if (isPasswordRecovery) {
       return NextResponse.redirect(`${origin}/auth/reset-password?error=invalid_link`);
     }
+
+    // E-posta önizleme botları tek kullanımlık linki önceden tüketmişse, doğrulama tamamlanmıştır;
+    // kullanıcıya hata göstermek yerine giriş sayfasına yönlendir.
+    return NextResponse.redirect(
+      `${origin}/auth/login?message=E-posta+adresiniz+onaylandı.+Lütfen+giriş+yapın.`
+    );
   }
 
   if (code) {

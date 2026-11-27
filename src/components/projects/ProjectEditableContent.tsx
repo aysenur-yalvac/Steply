@@ -149,13 +149,16 @@ export default function ProjectEditableContent({
   // selectedMember: the candidate picked from search, not yet confirmed
   const [teamMembers,    setTeamMembers]    = useState<Member[]>(initialTeamMembers);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
+  const isLeavingRef = useRef(false);
 
   // Sync teamMembers and project fields automatically when server props refresh via RealtimeSyncProvider
   useEffect(() => {
+    if (isLeavingRef.current || (typeof window !== "undefined" && (window as any).__isLeavingProject)) return;
     setTeamMembers(initialTeamMembers);
   }, [initialTeamMembers]);
 
   useEffect(() => {
+    if (isLeavingRef.current || (typeof window !== "undefined" && (window as any).__isLeavingProject)) return;
     if (!editingTitle) setTitle(project.title);
     if (!editingDesc) setDescription(project.cleanedDescription);
     setStartDate(project.start_date ?? "");
@@ -174,6 +177,7 @@ export default function ProjectEditableContent({
   // Instant optimistic member status update when an invitee accepts/declines in Realtime
   useEffect(() => {
     function handleProjectMembersRealtime(e: Event) {
+      if (isLeavingRef.current || (typeof window !== "undefined" && (window as any).__isLeavingProject)) return;
       const custom = e as CustomEvent<any>;
       const payload = custom.detail;
       if (!payload) return;
@@ -422,16 +426,41 @@ export default function ProjectEditableContent({
   };
 
   const handleLeaveProject = async () => {
-    if (isLeaving) return;
+    if (isLeavingRef.current || isLeaving) return;
+    isLeavingRef.current = true;
     setIsLeaving(true);
-    const result = await removeProjectMemberAction(project.id, currentUserId);
-    if ("error" in result) {
-      toast.error(`Ayrılma işlemi başarısız: ${result.error}`);
+    if (typeof window !== "undefined") {
+      (window as any).__isLeavingProject = true;
+    }
+
+    try {
+      const result = await removeProjectMemberAction(project.id, currentUserId);
+      if ("error" in result) {
+        toast.error(`Ayrılma işlemi başarısız: ${result.error}`);
+        isLeavingRef.current = false;
+        setIsLeaving(false);
+        if (typeof window !== "undefined") {
+          (window as any).__isLeavingProject = false;
+        }
+        setShowLeaveModal(false);
+      } else {
+        toast.success("Projeden başarıyla ayrıldınız");
+        setShowLeaveModal(false);
+        router.replace('/dashboard/projects');
+        setTimeout(() => {
+          if (typeof window !== "undefined") {
+            (window as any).__isLeavingProject = false;
+          }
+        }, 3000);
+      }
+    } catch (err: any) {
+      toast.error(`Ayrılma işlemi başarısız: ${err?.message || "Bilinmeyen hata"}`);
+      isLeavingRef.current = false;
       setIsLeaving(false);
+      if (typeof window !== "undefined") {
+        (window as any).__isLeavingProject = false;
+      }
       setShowLeaveModal(false);
-    } else {
-      toast.success("Projeden başarıyla ayrıldınız");
-      router.push('/dashboard');
     }
   };
 

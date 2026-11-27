@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isTeacherEmail } from "@/lib/email-classification";
 import { Mail, Loader2, RefreshCw, CheckCircle } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function OtpInput({ email, role = "student" }: { email: string; role?: string }) {
   const router = useRouter();
-  const [otp, setOtp] = useState<string[]>(Array(8).fill(""));
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -19,7 +20,12 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Önceki yarım kalmış oturum/token kalıntılarını temizle ve ilk kutuya odaklan
   useEffect(() => {
+    try {
+      const supabase = createClient();
+      supabase.auth.signOut().catch(() => {});
+    } catch {}
     inputRefs.current[0]?.focus();
   }, []);
 
@@ -30,8 +36,8 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
   const handleVerify = async (code?: string) => {
     const rawToken = code !== undefined ? code : otp.join("");
     const token = String(rawToken).replace(/\D/g, "").trim();
-    if (token.length !== 8) {
-      setError("Lütfen 8 haneli kodu eksiksiz girin.");
+    if (token.length !== 6) {
+      setError("Lütfen 6 haneli doğrulama kodunu eksiksiz girin.");
       setShake(true);
       setTimeout(() => setShake(false), 400);
       return;
@@ -40,39 +46,72 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     setLoading(true);
     setError(null);
 
-    try {
-      const normalizedEmail = email.trim().toLowerCase();
-      const res = await fetch("/api/auth/verify-otp-8", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: normalizedEmail, code: token, token }),
-      });
-      const data = await res.json();
+    const normalizedEmail = email.trim().toLowerCase();
 
-      if (!res.ok) {
-        const rawErr = data.error || "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin.";
-        setError(formatOtpError(rawErr));
-        setShake(true);
-        setTimeout(() => setShake(false), 400);
-        setOtp(Array(8).fill(""));
-        return;
+    try {
+      const supabase = createClient();
+      let verified = false;
+      let redirectDestination = "/dashboard";
+
+      // 1. Doğrudan Supabase client verifyOtp (type: 'signup')
+      try {
+        const { data: suData, error: suErr } = await supabase.auth.verifyOtp({
+          email: normalizedEmail,
+          token,
+          type: "signup",
+        });
+
+        if (!suErr && suData?.session) {
+          verified = true;
+        } else {
+          // 2. Fallback type: 'email'
+          const { data: emData, error: emErr } = await supabase.auth.verifyOtp({
+            email: normalizedEmail,
+            token,
+            type: "email",
+          });
+          if (!emErr && emData?.session) {
+            verified = true;
+          }
+        }
+      } catch (clientErr) {
+        console.warn("[OtpInput] Client verifyOtp exception:", clientErr);
       }
 
-      setSuccessMsg("E-postanız doğrulandı! Oturumunuz açılıyor...");
-      setSuccess(true);
-      
-      setTimeout(() => {
-        if (data.redirectUrl) {
-          window.location.href = data.redirectUrl;
-        } else if (data.magicLink) {
-          window.location.href = data.magicLink;
-        } else {
-          router.replace("/dashboard");
-        }
-      }, 1000);
+      // 3. İstemci verifyOtp başarılı olmadıysa sunucu API'miz üzerinden doğrula (Resend / DB OTP desteği)
+      if (!verified) {
+        const res = await fetch("/api/auth/verify-otp-8", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: normalizedEmail, code: token, token }),
+        });
+        const data = await res.json();
 
+        if (res.ok && (data.success || data.verified)) {
+          verified = true;
+          if (data.redirectUrl) {
+            redirectDestination = data.redirectUrl;
+          } else if (data.magicLink) {
+            redirectDestination = data.magicLink;
+          }
+        } else {
+          const rawErr = data.error || "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin.";
+          setError(formatOtpError(rawErr));
+          setShake(true);
+          setTimeout(() => setShake(false), 400);
+          setOtp(Array(6).fill(""));
+          return;
+        }
+      }
+
+      setSuccessMsg("E-postanız başarıyla doğrulandı! Oturumunuz açılıyor...");
+      setSuccess(true);
+
+      setTimeout(() => {
+        window.location.href = redirectDestination;
+      }, 1000);
     } catch {
-      setError("Beklenmeyen bir hata oluştu.");
+      setError("Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.");
       setShake(true);
       setTimeout(() => setShake(false), 400);
     } finally {
@@ -87,11 +126,11 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
     setOtp(newOtp);
     setError(null);
     
-    if (digit && index < 7) {
+    if (digit && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
     
-    if (digit && index === 7 && newOtp.every((d) => d !== "")) {
+    if (digit && index === 5 && newOtp.every((d) => d !== "")) {
       setTimeout(() => handleVerify(newOtp.join("")), 50);
     }
   };
@@ -106,20 +145,20 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
       setOtp(newOtp);
     }
     if (e.key === "ArrowLeft" && index > 0) inputRefs.current[index - 1]?.focus();
-    if (e.key === "ArrowRight" && index < 7) inputRefs.current[index + 1]?.focus();
+    if (e.key === "ArrowRight" && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     const newOtp = [...otp];
-    paste.split("").forEach((char, i) => { if (i < 8) newOtp[i] = char; });
+    paste.split("").forEach((char, i) => { if (i < 6) newOtp[i] = char; });
     setOtp(newOtp);
     
-    const nextIndex = Math.min(paste.length, 7);
+    const nextIndex = Math.min(paste.length, 5);
     inputRefs.current[nextIndex]?.focus();
     
-    if (paste.length === 8) {
+    if (paste.length === 6) {
       setTimeout(() => handleVerify(paste), 50);
     }
   };
@@ -193,14 +232,14 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
           <>
             <h1 className="text-2xl font-extrabold text-white mb-2">Kontrol ediliyor...</h1>
             <p className="text-slate-400 text-sm max-w-sm">
-              Bir saniye, kodunuzu doğruluyoruz.
+              Bir saniye, 6 haneli kodunuzu doğruluyoruz.
             </p>
           </>
         ) : (
           <>
             <h1 className="text-2xl font-extrabold text-white mb-2">E-postanızı doğrulayın</h1>
             <p className="text-slate-400 text-sm max-w-sm">
-              <span className="text-purple-300 font-semibold break-all">{email}</span> adresine gönderilen 8 haneli kodu girin.
+              <span className="text-purple-300 font-semibold break-all">{email}</span> adresine gönderilen 6 haneli kodu girin.
             </p>
           </>
         )}
@@ -212,18 +251,18 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         </p>
       )}
 
-      {/* OTP DECK CONTAINER */}
+      {/* OTP DECK CONTAINER - 6 HANELİ KUTULAR */}
       <div 
-        className={`flex items-center justify-center gap-1 sm:gap-2 relative my-2 w-full max-w-full ${shake ? "otp-shake" : ""}`}
+        className={`flex items-center justify-center gap-1.5 sm:gap-2.5 relative my-2 w-full max-w-full ${shake ? "otp-shake" : ""}`}
       >
         {otp.map((digit, i) => {
           let transform = "";
           
           if (loading) {
-            const translateX = (3.5 - i) * 40;
+            const translateX = (2.5 - i) * 36;
             transform = `translateX(${translateX}px) translateY(-10px) rotate(0deg) scale(0.9)`;
           } else {
-            const rotateDeg = (i - 3.5) * 4;
+            const rotateDeg = (i - 2.5) * 4;
             transform = `translateY(0px) rotate(${rotateDeg}deg) scale(1)`;
           }
 
@@ -239,7 +278,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
               onKeyDown={(e) => handleKeyDown(i, e)}
               onPaste={handlePaste}
               readOnly={loading}
-              className="otp-card w-8 h-10 sm:w-10 sm:h-12 text-center text-base sm:text-xl font-bold rounded-lg sm:rounded-xl outline-none shrink-0"
+              className="otp-card w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-2xl font-extrabold rounded-xl outline-none shrink-0"
               style={{
                 color: loading ? "transparent" : "white",
                 background: "rgba(255,255,255,0.05)",
@@ -247,7 +286,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
                 boxShadow: digit && !loading ? "0 0 10px rgba(160,32,240,0.2)" : "none",
                 borderColor: digit && !loading ? "rgba(160,32,240,0.5)" : "rgba(255,255,255,0.1)",
                 transform: transform,
-                zIndex: loading ? 8 - Math.abs(3.5 - i) : 1
+                zIndex: loading ? 6 - Math.abs(2.5 - i) : 1
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "rgba(160,32,240,0.8)";
@@ -264,7 +303,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         })}
       </div>
 
-      {/* Hata veya Bilgi Bildirimi - Akış düzeni (flex-col gap-4) içinde butonla asla üst üste binmez */}
+      {/* Hata veya Bilgi Bildirimi */}
       {error && (
         <div
           role="alert"
@@ -278,7 +317,7 @@ export default function OtpInput({ email, role = "student" }: { email: string; r
         <div
           className="w-full max-w-sm rounded-xl px-4 py-2.5 text-xs text-emerald-300 text-center border border-emerald-500/30 bg-emerald-950/50 shadow-sm"
         >
-          8 haneli kod tekrar gönderildi. Spam/gereksiz klasörünüze de bakınız.
+          6 haneli kod tekrar gönderildi. Spam/gereksiz klasörünüze de bakınız.
         </div>
       )}
 

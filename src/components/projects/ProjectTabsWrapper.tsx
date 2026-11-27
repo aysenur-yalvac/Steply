@@ -52,6 +52,7 @@ export default function ProjectTabsWrapper({
 
   // Keep tasks synced if server-rendered initialTasks changes (preserving in-flight temp-* optimistic tasks)
   useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).__isLeavingProject) return;
     setTasks((prev) => {
       const temps = prev.filter((t) => String(t.id).startsWith('temp-'));
       return [...initialTasks, ...temps];
@@ -62,6 +63,7 @@ export default function ProjectTabsWrapper({
   useEffect(() => {
     if (!projectId) return;
     function handleRealtimeTasks(e: Event) {
+      if (typeof window !== "undefined" && (window as any).__isLeavingProject) return;
       const custom = e as CustomEvent<any>;
       const payload = custom.detail;
       if (!payload) return;

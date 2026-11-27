@@ -49,53 +49,115 @@ export async function POST(request: Request) {
   let createdUserId: string | null = null;
 
   // 3. Kullanıcıyı oluştur: SUPABASE_SERVICE_ROLE_KEY varsa Admin API ile oluştur
-  // Böylece Supabase kendi çift doğrulama mailini göndermez, sadece bizim 8 haneli OTP mailimiz gider.
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
     const admin = createAdminClient();
-    const { data: adminData, error: adminError } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: false,
-      user_metadata: {
-        full_name: fullName,
-        role: finalRole,
-        institution: institution,
-        university: institution,
-        teacher_status: teacherStatus,
-        email_verified: false,
-      },
+
+    // Kullanıcının sistemde gerçekten kayıtlı olup olmadığını kontrol et
+    const { data: usersData } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
     });
+    const existingUser = usersData?.users?.find(
+      (u) => (u.email || "").toLowerCase() === email.toLowerCase()
+    );
 
-    if (adminError) {
-      const rawMsg = adminError.message || "";
-      const lowerMsg = rawMsg.toLowerCase();
-      let trError = rawMsg;
+    const { data: profileRow } = await admin
+      .from("profiles")
+      .select("id")
+      .ilike("email", email)
+      .maybeSingle();
 
-      if (
-        lowerMsg.includes("already registered") ||
-        lowerMsg.includes("already been registered") ||
-        lowerMsg.includes("user already registered") ||
-        lowerMsg.includes("exists")
-      ) {
-        trError = "Bu e-posta adresi zaten kayıtlı.";
-      } else if (lowerMsg.includes("password should be")) {
-        trError = "Şifre en az 6 karakter olmalıdır.";
-      } else if (
-        lowerMsg.includes("for security purposes") ||
-        lowerMsg.includes("rate limit") ||
-        lowerMsg.includes("too many requests") ||
-        (adminError as any).status === 429
-      ) {
-        trError = "Güvenlik nedeniyle lütfen 1 dakika bekleyip tekrar deneyin.";
-      }
+    const isConfirmedInAuth = !!(existingUser && existingUser.email_confirmed_at);
+    const isConfirmedInProfile = !!(profileRow && existingUser?.email_confirmed_at);
 
+    // Yalnızca kullanıcı gerçekten onaylanmış ve kayıtlıysa giriş sayfasına yönlendir
+    if (isConfirmedInAuth || isConfirmedInProfile) {
       return NextResponse.redirect(
-        `${origin}/auth/register?error=${encodeURIComponent(trError)}`,
+        `${origin}/auth/login?email=${encodeURIComponent(
+          email
+        )}&error=${encodeURIComponent(
+          "Bu e-posta adresi zaten kayıtlı. Lütfen Giriş Yap sayfasını kullanın."
+        )}`,
         { status: 303 }
       );
     }
 
-    createdUserId = adminData.user?.id ?? null;
+    // Daha önce yarım kalmış (onaylanmamış) bir kayıt denemesi varsa şifresini ve profilini güncelle
+    if (existingUser) {
+      const { error: updateError } = await admin.auth.admin.updateUserById(
+        existingUser.id,
+        {
+          password,
+          email_confirm: false,
+          user_metadata: {
+            full_name: fullName,
+            role: finalRole,
+            institution: institution,
+            university: institution,
+            teacher_status: teacherStatus,
+            email_verified: false,
+          },
+        }
+      );
+
+      if (updateError) {
+        return NextResponse.redirect(
+          `${origin}/auth/register?error=${encodeURIComponent(updateError.message)}`,
+          { status: 303 }
+        );
+      }
+      createdUserId = existingUser.id;
+    } else {
+      // Yeni kullanıcı oluştur
+      const { data: adminData, error: adminError } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: false,
+        user_metadata: {
+          full_name: fullName,
+          role: finalRole,
+          institution: institution,
+          university: institution,
+          teacher_status: teacherStatus,
+          email_verified: false,
+        },
+      });
+
+      if (adminError) {
+        const rawMsg = adminError.message || "";
+        const lowerMsg = rawMsg.toLowerCase();
+        let trError = rawMsg;
+
+        if (
+          lowerMsg.includes("already registered") ||
+          lowerMsg.includes("already been registered") ||
+          lowerMsg.includes("user already registered") ||
+          lowerMsg.includes("exists")
+        ) {
+          trError = "Bu e-posta adresi zaten kayıtlı. Lütfen Giriş Yap sayfasını kullanın.";
+          return NextResponse.redirect(
+            `${origin}/auth/login?email=${encodeURIComponent(email)}&error=${encodeURIComponent(trError)}`,
+            { status: 303 }
+          );
+        } else if (lowerMsg.includes("password should be")) {
+          trError = "Şifre en az 6 karakter olmalıdır.";
+        } else if (
+          lowerMsg.includes("for security purposes") ||
+          lowerMsg.includes("rate limit") ||
+          lowerMsg.includes("too many requests") ||
+          (adminError as any).status === 429
+        ) {
+          trError = "Güvenlik nedeniyle lütfen 1 dakika bekleyip tekrar deneyin.";
+        }
+
+        return NextResponse.redirect(
+          `${origin}/auth/register?error=${encodeURIComponent(trError)}`,
+          { status: 303 }
+        );
+      }
+
+      createdUserId = adminData.user?.id ?? null;
+    }
 
     // Profil tablosuna seçilen okul/üniversite bilgisini RLS'e takılmadan eksiksiz kaydet
     if (createdUserId) {
@@ -107,7 +169,10 @@ export async function POST(request: Request) {
       };
       if (teacherStatus) profileUpdate.teacher_status = teacherStatus;
 
-      await admin.from("profiles").update(profileUpdate).eq("id", createdUserId);
+      await admin.from("profiles").upsert({
+        id: createdUserId,
+        ...profileUpdate,
+      });
       if (institution) {
         await (admin as any)
           .from("profiles")
@@ -176,6 +241,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // Supabase returns identities: [] if user already exists
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      const { data: profileCheck } = await supabase
+        .from("profiles")
+        .select("id")
+        .ilike("email", email)
+        .maybeSingle();
+
+      if (profileCheck) {
+        return NextResponse.redirect(
+          `${origin}/auth/login?email=${encodeURIComponent(
+            email
+          )}&error=${encodeURIComponent(
+            "Bu e-posta adresi zaten kayıtlı. Lütfen Giriş Yap sayfasını kullanın."
+          )}`,
+          { status: 303 }
+        );
+      }
+    }
+
     createdUserId = data.user?.id ?? null;
 
     if (createdUserId) {
@@ -193,7 +278,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // 4. Tek bir 8 haneli OTP üretip Must-b Academy <noreply@mustbacademy.com> üzerinden gönder
+  // 4. Tek bir 6 haneli OTP üretip Must-b Academy <noreply@mustbacademy.com> üzerinden gönder
   try {
     await fetch(`${origin}/api/auth/send-otp-8`, {
       method: "POST",

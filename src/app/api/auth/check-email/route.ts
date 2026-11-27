@@ -48,6 +48,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ exists: !!profileRow });
   } catch (err) {
     console.error("[check-email] error:", err);
-    return NextResponse.json({ exists: true });
+    return NextResponse.json({ exists: false });
   }
 }

@@ -10,9 +10,9 @@ export async function POST(request: Request) {
     const normalizedEmail = String(body?.email || "").trim().toLowerCase();
     const normalizedCode = String(body?.code ?? body?.token ?? "").trim();
 
-    if (!normalizedEmail || !normalizedCode || normalizedCode.length !== 8) {
+    if (!normalizedEmail || !normalizedCode || (normalizedCode.length !== 6 && normalizedCode.length !== 8)) {
       return NextResponse.json(
-        { error: "Lütfen 8 haneli geçerli bir doğrulama kodu girin." },
+        { error: "Lütfen 6 haneli geçerli bir doğrulama kodu girin." },
         { status: 400 }
       );
     }

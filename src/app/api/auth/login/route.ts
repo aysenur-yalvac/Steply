@@ -76,10 +76,13 @@ export async function POST(request: Request) {
     }
 
     if (emailExists === false) {
-      return NextResponse.redirect(
-        `${origin}/auth/register?error=Bu+e-posta+ile+kayıtlı+hesap+bulunamadı.+Lütfen+kayıt+olun.`,
-        { status: 303 }
+      const errUrl = new URL('/auth/login', origin)
+      errUrl.searchParams.set('email', email)
+      errUrl.searchParams.set(
+        'error',
+        'Bu e-posta adresine ait kayıtlı bir hesap bulunamadı. Lütfen önce Kayıt Ol sayfasından hesap oluşturun.'
       )
+      return NextResponse.redirect(errUrl.toString(), { status: 303 })
     }
   }
 
@@ -89,7 +92,9 @@ export async function POST(request: Request) {
   })
 
   if (error) {
-    let message = error.message.includes('Invalid login credentials') ? 'E-posta adresi veya şifre hatalı.' : 'Giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.'
+    let message = error.message.includes('Invalid login credentials')
+      ? 'E-posta adresi veya şifre hatalı.'
+      : 'Giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.'
     if (error.message.includes('Email not confirmed')) {
       // Send OTP and redirect to verify-email
       try {

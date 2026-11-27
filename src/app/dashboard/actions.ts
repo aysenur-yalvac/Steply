@@ -507,6 +507,7 @@ export async function addProjectMemberAction(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
@@ -577,6 +578,7 @@ export async function acceptProjectInviteAction(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
@@ -619,6 +621,7 @@ export async function declineProjectInviteAction(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }
@@ -665,6 +668,7 @@ export async function removeProjectMemberAction(
   } catch {}
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${projectId}`);
   return { success: true };
 }

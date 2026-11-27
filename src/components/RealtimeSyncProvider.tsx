@@ -18,11 +18,17 @@ export default function RealtimeSyncProvider({
   const lastFocusRefreshRef = useRef<number>(0);
 
   const scheduleRouterRefresh = useCallback(() => {
+    if (typeof window !== "undefined" && (window as any).__isLeavingProject) {
+      return;
+    }
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
     }
     refreshTimerRef.current = setTimeout(() => {
       refreshTimerRef.current = null;
+      if (typeof window !== "undefined" && (window as any).__isLeavingProject) {
+        return;
+      }
       router.refresh();
     }, 300);
   }, [router]);
